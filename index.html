@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🐒 SiteMonkeys Zero-Failure AI</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐒</text></svg>">
+    <link rel="icon" href="/assets/Apple Touch icon Site monkeys.png">
+    <link rel="apple-touch-icon" href="/assets/Apple Touch icon Site monkeys.png">
     <style>
         * {
             margin: 0;
@@ -159,11 +160,20 @@
         .message.user .message-avatar {
             background: linear-gradient(135deg, #3b82f6, #1e40af);
             color: white;
+            overflow: hidden;
         }
 
         .message.assistant .message-avatar {
             background: linear-gradient(135deg, #fbbf24, #f59e0b);
             color: white;
+            overflow: hidden;
+        }
+
+        .avatar-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
         }
 
         .message-content {
@@ -293,11 +303,18 @@
 </head>
 <body>
     <div class="header">
-        <h1>🐒 SiteMonkeys Zero-Failure AI</h1>
+        <div style="display: flex; align-items: center; justify-content: center; gap: 1rem; margin-bottom: 1rem;">
+            <img src="/assets/logo.png" alt="SiteMonkeys Logo" style="height: 60px; width: auto;">
+            <h1>SiteMonkeys Zero-Failure AI</h1>
+        </div>
         <p class="tagline">"From Overlooked to Overbooked" - Powered by Your Google Drive Vault</p>
         <div class="mascot-container">
-            <div class="mascot">🐵</div>
-            <div class="mascot">🐒</div>
+            <div class="mascot" style="background: none; border: 3px solid rgba(255,255,255,0.3);">
+                <img src="/assets/boy-mascot.png" alt="Eli" style="width: 50px; height: 50px; border-radius: 50%;">
+            </div>
+            <div class="mascot" style="background: none; border: 3px solid rgba(255,255,255,0.3);">
+                <img src="/assets/girl-mascot.png" alt="Roxy" style="width: 50px; height: 50px; border-radius: 50%;">
+            </div>
         </div>
     </div>
 
@@ -461,7 +478,9 @@
             const messageDiv = document.createElement('div');
             messageDiv.className = `message ${sender}`;
             
-            const avatar = sender === 'user' ? '👤' : '🐒';
+            const avatar = sender === 'user' 
+                ? '<img src="/assets/boy-mascot.png" alt="User" class="avatar-img">' 
+                : '<img src="/assets/girl-mascot.png" alt="SiteMonkeys AI" class="avatar-img">';
             
             messageDiv.innerHTML = `
                 <div class="message-avatar">${avatar}</div>
@@ -479,7 +498,7 @@
             loadingDiv.id = 'loading-message-' + Date.now();
             
             loadingDiv.innerHTML = `
-                <div class="message-avatar">🐒</div>
+                <div class="message-avatar"><img src="/assets/girl-mascot.png" alt="SiteMonkeys AI" class="avatar-img"></div>
                 <div class="message-content">
                     <div class="loading">
                         <span>🤔 Processing with zero-failure enforcement</span>
