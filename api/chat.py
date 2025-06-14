@@ -78,7 +78,7 @@ def get_ai_response(user_input, memory_context):
             max_tokens=4000
         )
         
-        return response.choices[0].message.content.strip()
+        return response['choices'][0]['message']['content'].strip()
         
     except Exception as e:
         raise Exception(f"OpenAI API Error: {e}")
