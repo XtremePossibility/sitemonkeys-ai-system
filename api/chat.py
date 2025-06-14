@@ -1,6 +1,5 @@
 import os
 import json
-import openai
 from http.server import BaseHTTPRequestHandler
 
 class handler(BaseHTTPRequestHandler):
@@ -59,16 +58,17 @@ class handler(BaseHTTPRequestHandler):
 
 def get_ai_response(user_input, memory_context):
     """Get AI response with your enforcement shell"""
+    import openai
     
     # OpenAI setup
     openai_key = os.getenv("OPENAI_API_KEY")
     if not openai_key:
         raise ValueError("OPENAI_API_KEY not found in environment variables")
     
-    client = openai.OpenAI(api_key=openai_key)
+    openai.api_key = openai_key
     
     try:
-        response = client.chat.completions.create(
+        response = openai.ChatCompletion.create(
             model="gpt-4",
             messages=[
                 {"role": "system", "content": memory_context},
