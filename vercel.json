@@ -1,10 +1,10 @@
 {
   "functions": {
     "api/load-vault.py": {
-      "runtime": "python3.9"
+      "runtime": "@vercel/python"
     },
     "api/chat.py": {
-      "runtime": "python3.9"
+      "runtime": "@vercel/python"
     }
   },
   "routes": [
