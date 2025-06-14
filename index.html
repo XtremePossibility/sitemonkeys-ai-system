@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🐒 SiteMonkeys Zero-Failure AI</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐒</text></svg>">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: linear-gradient(90deg, #1e40af 0%, #3b82f6 50%, #fbbf24 100%);
+            color: white;
+            padding: 1rem;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .header .tagline {
+            font-size: 1rem;
+            opacity: 0.9;
+            font-style: italic;
+        }
+
+        .mascot-container {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin: 1rem 0;
+        }
+
+        .mascot {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-10px); }
+            60% { transform: translateY(-5px); }
+        }
+
+        .main-container {
+            flex: 1;
+            display: flex;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+            gap: 1rem;
+            padding: 1rem;
+        }
+
+        .sidebar {
+            width: 300px;
+            background: rgba(255,255,255,0.95);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+            height: fit-content;
+            position: sticky;
+            top: 1rem;
+        }
+
+        .sidebar h3 {
+            color: #1e40af;
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .status-item:last-child {
+            border-bottom: none;
+        }
+
+        .status-icon {
+            font-size: 1.2rem;
+        }
+
+        .chat-container {
+            flex: 1;
+            background: rgba(255,255,255,0.95);
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+            overflow: hidden;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 1.5rem;
+            overflow-y: auto;
+            max-height: 60vh;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .message {
+            display: flex;
+            gap: 1rem;
+            max-width: 80%;
+        }
+
+        .message.user {
+            align-self: flex-end;
+            flex-direction: row-reverse;
+        }
+
+        .message.assistant {
+            align-self: flex-start;
+        }
+
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        .message.user .message-avatar {
+            background: linear-gradient(135deg, #3b82f6, #1e40af);
+            color: white;
+        }
+
+        .message.assistant .message-avatar {
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            color: white;
+        }
+
+        .message-content {
+            background: #f8fafc;
+            padding: 1rem;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            line-height: 1.6;
+        }
+
+        .message.user .message-content {
+            background: linear-gradient(135deg, #3b82f6, #1e40af);
+            color: white;
+        }
+
+        .chat-input-container {
+            padding: 1.5rem;
+            border-top: 1px solid #e2e8f0;
+            background: #f8fafc;
+        }
+
+        .chat-input-form {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 1rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 25px;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .chat-input:focus {
+            border-color: #3b82f6;
+        }
+
+        .send-button {
+            padding: 1rem 1.5rem;
+            background: linear-gradient(135deg, #3b82f6, #1e40af);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: transform 0.2s;
+        }
+
+        .send-button:hover {
+            transform: scale(1.05);
+        }
+
+        .send-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #6b7280;
+            font-style: italic;
+        }
+
+        .loading-dots {
+            display: inline-block;
+        }
+
+        .loading-dots::after {
+            content: '';
+            animation: dots 2s infinite;
+        }
+
+        @keyframes dots {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60%, 100% { content: '...'; }
+        }
+
+        .error-message {
+            background: #fee2e2;
+            color: #dc2626;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem;
+            border-left: 4px solid #dc2626;
+        }
+
+        .welcome-message {
+            text-align: center;
+            color: #6b7280;
+            padding: 2rem;
+            font-style: italic;
+        }
+
+        @media (max-width: 768px) {
+            .main-container {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                position: relative;
+            }
+            
+            .header h1 {
+                font-size: 1.5rem;
+            }
+            
+            .mascot-container {
+                gap: 1rem;
+            }
+            
+            .mascot {
+                width: 40px;
+                height: 40px;
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🐒 SiteMonkeys Zero-Failure AI</h1>
+        <p class="tagline">"From Overlooked to Overbooked" - Powered by Your Google Drive Vault</p>
+        <div class="mascot-container">
+            <div class="mascot">🐵</div>
+            <div class="mascot">🐒</div>
+        </div>
+    </div>
+
+    <div class="main-container">
+        <div class="sidebar">
+            <h3>🔐 System Status</h3>
+            <div class="status-item">
+                <span class="status-icon">🔄</span>
+                <span id="vault-status">Loading Vault...</span>
+            </div>
+            <div class="status-item">
+                <span class="status-icon">🧠</span>
+                <span id="ai-status">AI Systems Ready</span>
+            </div>
+            <div class="status-item">
+                <span class="status-icon">⚡</span>
+                <span id="enforcement-status">Zero-Failure Mode</span>
+            </div>
+            <div class="status-item">
+                <span class="status-icon">🎯</span>
+                <span id="memory-status">Persistent Memory Active</span>
+            </div>
+            
+            <h3 style="margin-top: 2rem;">📋 Loaded Files</h3>
+            <div id="loaded-files">
+                <div class="status-item">
+                    <span class="status-icon">📄</span>
+                    <span>Enforcement Shell</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-icon">📄</span>
+                    <span>Behavior Enforcement</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-icon">📄</span>
+                    <span>Founder's Directive</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-icon">📄</span>
+                    <span>Services Matrix</span>
+                </div>
+            </div>
+
+            <div style="margin-top: 2rem;">
+                <button onclick="refreshVault()" style="width: 100%; padding: 0.75rem; background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; border-radius: 8px; cursor: pointer;">
+                    🔄 Refresh Vault
+                </button>
+                <button onclick="clearChat()" style="width: 100%; padding: 0.75rem; background: linear-gradient(135deg, #ef4444, #dc2626); color: white; border: none; border-radius: 8px; cursor: pointer; margin-top: 0.5rem;">
+                    🗑️ Clear Chat
+                </button>
+            </div>
+        </div>
+
+        <div class="chat-container">
+            <div class="chat-messages" id="chat-messages">
+                <div class="welcome-message">
+                    <h3>🐒 Welcome to SiteMonkeys AI!</h3>
+                    <p>Your zero-failure enforcement shell is loading. Ask me anything about SiteMonkeys validation, scaling, competitive analysis, or strategic decisions.</p>
+                </div>
+            </div>
+            
+            <div class="chat-input-container">
+                <form class="chat-input-form" onsubmit="sendMessage(event)">
+                    <input 
+                        type="text" 
+                        class="chat-input" 
+                        id="message-input" 
+                        placeholder="Ask about SiteMonkeys validation, scaling, or strategic decisions..."
+                        required
+                    >
+                    <button type="submit" class="send-button" id="send-button">
+                        Send 🚀
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let memoryContext = '';
+        let isLoading = false;
+
+        // Load vault memory on page load
+        window.addEventListener('load', async () => {
+            await loadVaultMemory();
+        });
+
+        async function loadVaultMemory() {
+            try {
+                document.getElementById('vault-status').textContent = 'Loading Vault...';
+                
+                const response = await fetch('/api/load-vault');
+                const data = await response.json();
+                
+                if (data.success) {
+                    memoryContext = data.memory;
+                    document.getElementById('vault-status').innerHTML = '<span style="color: green;">✅ Vault Loaded</span>';
+                    console.log('Vault memory loaded successfully');
+                } else {
+                    throw new Error(data.error || 'Failed to load vault');
+                }
+            } catch (error) {
+                console.error('Failed to load vault:', error);
+                document.getElementById('vault-status').innerHTML = '<span style="color: red;">❌ Vault Error</span>';
+                addErrorMessage('Failed to load enforcement vault: ' + error.message);
+            }
+        }
+
+        async function sendMessage(event) {
+            event.preventDefault();
+            
+            if (isLoading) return;
+            
+            const input = document.getElementById('message-input');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            // Add user message
+            addMessage(message, 'user');
+            input.value = '';
+            
+            // Add loading message
+            const loadingId = addLoadingMessage();
+            isLoading = true;
+            updateSendButton(true);
+            
+            try {
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        message: message,
+                        memory: memoryContext
+                    })
+                });
+                
+                const data = await response.json();
+                
+                // Remove loading message
+                removeLoadingMessage(loadingId);
+                
+                if (data.success) {
+                    addMessage(data.response, 'assistant');
+                } else {
+                    addErrorMessage('AI Error: ' + (data.error || 'Unknown error'));
+                }
+            } catch (error) {
+                removeLoadingMessage(loadingId);
+                addErrorMessage('Connection Error: ' + error.message);
+            } finally {
+                isLoading = false;
+                updateSendButton(false);
+            }
+        }
+
+        function addMessage(content, sender) {
+            const messagesContainer = document.getElementById('chat-messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}`;
+            
+            const avatar = sender === 'user' ? '👤' : '🐒';
+            
+            messageDiv.innerHTML = `
+                <div class="message-avatar">${avatar}</div>
+                <div class="message-content">${formatMessage(content)}</div>
+            `;
+            
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function addLoadingMessage() {
+            const messagesContainer = document.getElementById('chat-messages');
+            const loadingDiv = document.createElement('div');
+            loadingDiv.className = 'message assistant';
+            loadingDiv.id = 'loading-message-' + Date.now();
+            
+            loadingDiv.innerHTML = `
+                <div class="message-avatar">🐒</div>
+                <div class="message-content">
+                    <div class="loading">
+                        <span>🤔 Processing with zero-failure enforcement</span>
+                        <span class="loading-dots"></span>
+                    </div>
+                </div>
+            `;
+            
+            messagesContainer.appendChild(loadingDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            
+            return loadingDiv.id;
+        }
+
+        function removeLoadingMessage(loadingId) {
+            const loadingElement = document.getElementById(loadingId);
+            if (loadingElement) {
+                loadingElement.remove();
+            }
+        }
+
+        function addErrorMessage(error) {
+            const messagesContainer = document.getElementById('chat-messages');
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error-message';
+            errorDiv.textContent = error;
+            messagesContainer.appendChild(errorDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function formatMessage(content) {
+            // Convert markdown-style formatting to HTML
+            return content
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                .replace(/`(.*?)`/g, '<code style="background: #f1f5f9; padding: 2px 4px; border-radius: 4px;">$1</code>')
+                .replace(/\n/g, '<br>');
+        }
+
+        function updateSendButton(loading) {
+            const button = document.getElementById('send-button');
+            button.disabled = loading;
+            button.textContent = loading ? 'Thinking...' : 'Send 🚀';
+        }
+
+        function clearChat() {
+            const messagesContainer = document.getElementById('chat-messages');
+            messagesContainer.innerHTML = `
+                <div class="welcome-message">
+                    <h3>🐒 Chat Cleared!</h3>
+                    <p>Your zero-failure enforcement shell is still active. What would you like to discuss?</p>
+                </div>
+            `;
+        }
+
+        async function refreshVault() {
+            await loadVaultMemory();
+        }
+
+        // Auto-focus input on page load
+        document.getElementById('message-input').focus();
+    </script>
+</body>
+</html>
