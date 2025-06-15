@@ -1,77 +1,82 @@
-import os
-import json
-from google.oauth2.service_account import Credentials
-from googleapiclient.discovery import build
-from http.server import BaseHTTPRequestHandler
+import { google } from 'googleapis';
 
-# Your exact folder ID
-VAULT_FOLDER_ID = "1LAkbqjN7g-HJV9BRWV-AsmMpY1JzJiIM"
+const VAULT_FOLDER_ID = "1LAkbqjN7g-HJV9BRWV-AsmMpY1JzJiIM";
 
-class handler(BaseHTTPRequestHandler):
-    def do_GET(self):
-        try:
-            # Get credentials from environment
-            google_creds = os.getenv('GOOGLE_CREDENTIALS_JSON')
-            if not google_creds:
-                raise Exception("No Google credentials found")
-            
-            # Parse the JSON credentials
-            creds_dict = json.loads(google_creds)
-            
-            # Create credentials object
-            credentials = Credentials.from_service_account_info(
-                creds_dict,
-                scopes=['https://www.googleapis.com/auth/drive.readonly']
-            )
-            
-            # Build the Drive service
-            service = build('drive', 'v3', credentials=credentials)
-            
-            # List files in the vault folder
-            results = service.files().list(
-                q=f"'{VAULT_FOLDER_ID}' in parents",
-                fields="files(id, name, mimeType)"
-            ).execute()
-            
-            files = results.get('files', [])
-            
-            if not files:
-                raise Exception(f"No files found in folder {VAULT_FOLDER_ID}")
-            
-            # Load content from each file
-            vault_content = "=== SITEMONKEYS BUSINESS INTELLIGENCE VAULT ===\n\n"
-            files_loaded = 0
-            
-            for file_info in files:
-                try:
-                    if file_info['mimeType'] == 'application/vnd.google-apps.document':
-                        # Export Google Doc as plain text
-                        request = service.files().export_media(
-                            fileId=file_info['id'],
-                            mimeType='text/plain'
-                        )
-                        file_content = request.execute().decode('utf-8')
-                        
-                        vault_content += f"\n=== {file_info['name']} ===\n"
-                        vault_content += file_content
-                        vault_content += "\n\n"
-                        files_loaded += 1
-                        
-                except Exception as file_error:
-                    continue  # Skip files that can't be read
-            
-            # Return successful response
-            response_data = {
-                "success": True,
-                "memory": vault_content,
-                "token_estimate": len(vault_content.split()),
-                "folders_loaded": files_loaded,
-                "mode": "google_drive_loaded"
+export default async function handler(req, res) {
+    try {
+        // Get Google credentials from environment
+        const credentialsJson = process.env.GOOGLE_CREDENTIALS_JSON;
+        if (!credentialsJson) {
+            throw new Error("Google credentials not found");
+        }
+
+        // Parse credentials
+        const credentials = JSON.parse(credentialsJson);
+        
+        // Create auth client
+        const auth = new google.auth.GoogleAuth({
+            credentials: credentials,
+            scopes: ['https://www.googleapis.com/auth/drive.readonly']
+        });
+
+        // Create Drive client
+        const drive = google.drive({ version: 'v3', auth });
+
+        // List files in vault folder
+        const response = await drive.files.list({
+            q: `'${VAULT_FOLDER_ID}' in parents`,
+            fields: 'files(id, name, mimeType)'
+        });
+
+        const files = response.data.files || [];
+        
+        if (files.length === 0) {
+            throw new Error(`No files found in folder ${VAULT_FOLDER_ID}`);
+        }
+
+        // Load content from each file
+        let vaultContent = "=== SITEMONKEYS BUSINESS INTELLIGENCE VAULT ===\n\n";
+        let filesLoaded = 0;
+
+        for (const file of files) {
+            try {
+                if (file.mimeType === 'application/vnd.google-apps.document') {
+                    // Export Google Doc as plain text
+                    const exportResponse = await drive.files.export({
+                        fileId: file.id,
+                        mimeType: 'text/plain'
+                    });
+
+                    vaultContent += `\n=== ${file.name} ===\n`;
+                    vaultContent += exportResponse.data;
+                    vaultContent += "\n\n";
+                    filesLoaded++;
+                }
+            } catch (fileError) {
+                console.log(`Error loading file ${file.name}:`, fileError);
+                continue;
             }
-            
-        except Exception as e:
-            # Return fallback business intelligence
-            fallback_content = """=== SITEMONKEYS CORE BUSINESS INTELLIGENCE ===
+        }
+
+        // Calculate token estimate
+        const tokenEstimate = Math.round(vaultContent.length / 4.2);
+        const estimatedCost = (tokenEstimate * 0.002 / 1000).toFixed(4);
+
+        // Return successful response
+        res.status(200).json({
+            success: true,
+            memory: vaultContent,
+            token_estimate: tokenEstimate,
+            folders_loaded: filesLoaded,
+            estimated_cost: `$${estimatedCost}`,
+            mode: 'google_drive_loaded'
+        });
+
+    } catch (error) {
+        console.error('Vault loading error:', error);
+        
+        // Return fallback business intelligence
+        const fallbackContent = `=== SITEMONKEYS CORE BUSINESS INTELLIGENCE ===
 
 FINANCIAL CONSTRAINTS:
 - Launch Budget: $15,000 maximum
@@ -94,27 +99,15 @@ ENFORCEMENT DIRECTIVES:
 - Founder protection protocols active
 - Market leader positioning required
 - Persistence-driven execution mandatory
-- Helpful initiative protocols enabled"""
+- Helpful initiative protocols enabled`;
 
-            response_data = {
-                "success": True,
-                "memory": fallback_content,
-                "token_estimate": 500,
-                "folders_loaded": 0,
-                "mode": "fallback_mode",
-                "error": str(e)
-            }
-        
-        # Send response
-        self.send_response(200)
-        self.send_header('Content-Type', 'application/json')
-        self.send_header('Access-Control-Allow-Origin', '*')
-        self.end_headers()
-        self.wfile.write(json.dumps(response_data).encode())
-
-    def do_OPTIONS(self):
-        self.send_response(200)
-        self.send_header('Access-Control-Allow-Origin', '*')
-        self.send_header('Access-Control-Allow-Methods', 'GET, OPTIONS')
-        self.send_header('Access-Control-Allow-Headers', 'Content-Type')
-        self.end_headers()
+        res.status(200).json({
+            success: true,
+            memory: fallbackContent,
+            token_estimate: 500,
+            folders_loaded: 0,
+            mode: 'fallback_mode',
+            error: error.message
+        });
+    }
+}
