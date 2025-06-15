@@ -15,6 +15,10 @@ export default async function handler(req, res) {
       return res.status(400).json({ success: false, error: 'Missing message or vault memory' });
     }
 
+    const memoryPreview = vault_memory.substring(0, 300).replace(/\n/g, ' ↵ ');
+    console.log(`📥 Vault memory length: ${vault_memory.length}`);
+    console.log(`🧠 Vault preview: ${memoryPreview}...`);
+
     const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
