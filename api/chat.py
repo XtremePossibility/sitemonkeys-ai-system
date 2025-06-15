@@ -56,9 +56,9 @@ BEHAVIORAL INSTRUCTIONS:
                 {"role": "user", "content": user_message}
             ]
             
-            # Call GPT-4 Turbo with high context limit
+            # Call GPT-4 Turbo with high context limit - FORCE VERSION
             response = client.chat.completions.create(
-                model="gpt-4-turbo-preview",  # Latest GPT-4 Turbo with 128K context
+                model="gpt-4-turbo",  # Use explicit turbo model name
                 messages=messages,
                 max_tokens=2000,
                 temperature=0.1  # Low temperature for consistent business responses
