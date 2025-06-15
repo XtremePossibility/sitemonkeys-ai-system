@@ -1,368 +1,280 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SiteMonkeys AI - Business Validation System</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-            min-height: 100vh;
-            color: #333;
-        }
-
-        .header {
-            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-            padding: 15px 20px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            color: white;
-            text-align: center;
-        }
-
-        .header h1 {
-            font-size: 24px;
-            font-weight: 700;
-            margin-bottom: 5px;
-        }
-
-        .header p {
-            font-size: 14px;
-            opacity: 0.9;
-        }
-
-        .main-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-            height: calc(100vh - 90px);
-            display: flex;
-            flex-direction: column;
-        }
-
-        .status-indicator {
-            background: rgba(255,255,255,0.9);
-            border-radius: 12px;
-            padding: 12px 20px;
-            margin-bottom: 20px;
-            text-align: center;
-            font-weight: 600;
-        }
-
-        .status-indicator.loading {
-            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-            color: #1f2937;
-            animation: pulse 2s infinite;
-        }
-
-        .status-indicator.success {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            color: white;
-        }
-
-        .status-indicator.error {
-            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-            color: white;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
-        }
-
-        .chat-container {
-            flex: 1;
-            background: rgba(255,255,255,0.95);
-            border-radius: 20px;
-            padding: 25px;
-            overflow-y: auto;
-            margin-bottom: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-        }
-
-        .message {
-            margin-bottom: 20px;
-            padding: 16px 20px;
-            border-radius: 18px;
-            max-width: 85%;
-            line-height: 1.6;
-            font-size: 15px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-        }
-
-        .message.user {
-            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-            color: white;
-            margin-left: auto;
-            border-bottom-right-radius: 8px;
-        }
-
-        .message.assistant {
-            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-            color: #1f2937;
-            margin-right: auto;
-            border: 1px solid #e5e7eb;
-            border-bottom-left-radius: 8px;
-        }
-
-        .message.assistant::before {
-            content: "🐒 ";
-            font-size: 18px;
-            margin-right: 8px;
-        }
-
-        .message.thinking {
-            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-            color: #1f2937;
-            font-style: italic;
-            animation: pulse 2s infinite;
-        }
-
-        .input-container {
-            display: flex;
-            gap: 12px;
-            background: rgba(255,255,255,0.95);
-            padding: 20px;
-            border-radius: 20px;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
-        }
-
-        .input-container input {
-            flex: 1;
-            padding: 16px 20px;
-            border: 2px solid #e5e7eb;
-            border-radius: 16px;
-            font-size: 16px;
-            outline: none;
-            transition: all 0.3s ease;
-            background: white;
-        }
-
-        .input-container input:focus {
-            border-color: #2563eb;
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-        }
-
-        .input-container button {
-            padding: 16px 24px;
-            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-            color: #1f2937;
-            border: none;
-            border-radius: 16px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 12px rgba(251, 191, 36, 0.3);
-        }
-
-        .input-container button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(251, 191, 36, 0.4);
-        }
-
-        .cost-tracker {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: rgba(255,255,255,0.9);
-            border-radius: 12px;
-            padding: 12px 16px;
-            font-size: 13px;
-            font-weight: 500;
-            display: none;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        }
-
-        .cost-tracker.visible {
-            display: block;
-        }
-
-        /* Mobile Responsive */
-        @media (max-width: 768px) {
-            .main-container {
-                padding: 15px;
-            }
-            .message {
-                max-width: 95%;
-                font-size: 14px;
-            }
-            .input-container {
-                flex-direction: column;
-            }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SiteMonkeys Business Validation System</title>
+  <link rel="icon" href="logo.png" type="image/png">
+  <link rel="manifest" href="/manifest.json" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #121212;
+      color: #fff;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 20px;
+      max-width: 100%;
+      overflow-x: hidden;
+      font-size: clamp(14px, 2.5vw, 18px);
+      overflow-wrap: break-word;
+    }
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      max-width: 1200px;
+      margin-bottom: 20px;
+    }
+    header img {
+      height: 60px;
+    }
+    main {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+      width: 100%;
+      max-width: 1200px;
+    }
+    .mascot {
+      height: clamp(150px, 30vw, 300px);
+    }
+    .chat-container {
+      width: 100%;
+      background: #1e1e1e;
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 0 10px rgba(255,255,255,0.1);
+    }
+    .chat-box {
+      min-height: 300px;
+      background: #111;
+      border: 1px solid #333;
+      margin-bottom: 15px;
+      padding: 10px;
+      overflow-y: auto;
+      border-radius: 5px;
+    }
+    .chat-input {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .chat-input input {
+      padding: 10px;
+      border: none;
+      border-radius: 5px;
+      background: #333;
+      color: #fff;
+      font-size: 1rem;
+    }
+    .chat-input button {
+      padding: 10px;
+      border: none;
+      background: #ffcc00;
+      color: #000;
+      font-weight: bold;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+    .sidebar {
+      width: 100%;
+      background: #1c1c1c;
+      border-radius: 10px;
+      padding: 20px;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+    .sidebar h2 {
+      font-size: 18px;
+      margin-bottom: 10px;
+      color: #ffcc00;
+    }
+    .status {
+      color: #0f0;
+      font-weight: bold;
+    }
+    @media (min-width: 768px) {
+      main {
+        flex-direction: row;
+        justify-content: center;
+        gap: 40px;
+      }
+      .chat-input {
+        flex-direction: row;
+      }
+    }
+    .typing span {
+      display: inline-block;
+      opacity: 0;
+      animation: fadeIn 0.05s forwards;
+    }
+    @keyframes fadeIn {
+      to { opacity: 1; }
+    }
+  </style>
 </head>
 <body>
-    <div class="header">
-        <h1>🐒 SiteMonkeys AI</h1>
-        <p>Business Validation System</p>
+  <header>
+    <img src="logo.png" alt="SiteMonkeys Logo">
+    <h1>Site Monkeys AI<br><small>Business Validation Engine</small></h1>
+  </header>
+  <main>
+    <img src="boy-mascot.png" alt="Eli" class="mascot">
+    <div class="chat-container">
+      <div class="chat-box" id="chatBox">
+        <ul id="checklist" style="list-style: none; padding-left: 0; font-size: 14px; line-height: 1.4;">
+          <li id="check-vault">🔄 Loading vault...</li>
+          <li id="check-zero">⏳ Zero-Failure Directive</li>
+          <li id="check-budget">⏳ Budget Constraints</li>
+          <li id="check-pricing">⏳ Pricing Strategy</li>
+          <li id="check-legal">⏳ Legal Framework</li>
+          <li id="check-done" style="display: none;">✅ All systems loaded</li>
+        </ul>
+        <p class="status" id="statusDisplay">🚀 Initializing SiteMonkeys AI System...</p>
+      </div>
+      <div class="chat-input">
+        <input type="text" id="userInput" placeholder="Ask a business question...">
+        <button onclick="sendMessage()">Send 🚀</button>
+        <button onclick="downloadLog()">📥 Download Session Log</button>
+      </div>
     </div>
+    <img src="girl-mascot.png" alt="Roxy" class="mascot">
+  </main>
+  <script>
+    let sessionVault = null;
+    let sessionCost = 0;
+    let messageCount = 0;
+    let sessionLog = [];
 
-    <div class="main-container">
-        <div class="status-indicator" id="statusIndicator">
-            🚀 Initializing SiteMonkeys AI System...
-        </div>
+    async function initializeSession() {
+      const statusDisplay = document.getElementById('statusDisplay');
+      statusDisplay.textContent = '🔄 Loading SiteMonkeys business intelligence vault...';
+      try {
+        const res = await fetch('/api/load-vault');
+        const data = await res.json();
+        if (data.success) {
+          sessionVault = data.vault_content || data.memory;
+          document.getElementById('check-vault').textContent = '✅ Vault loaded';
+          document.getElementById('check-zero').textContent = '✅ Zero-Failure Directive';
+          document.getElementById('check-budget').textContent = '✅ Budget Constraints';
+          document.getElementById('check-pricing').textContent = '✅ Pricing Strategy';
+          document.getElementById('check-legal').textContent = '✅ Legal Framework';
+          document.getElementById('check-done').style.display = 'block';
+          sessionCost = 0;
+          statusDisplay.textContent = `✅ Vault loaded (${data.tokens} tokens, ${data.folders_loaded || 0} folders)`;
 
-        <div class="chat-container" id="chatContainer">
-            <!-- Chat messages will appear here -->
-        </div>
-
-        <div class="input-container">
-            <input type="text" id="userInput" placeholder="Ask about SiteMonkeys budget, margins, pricing, legal docs, or any business validation question..." onkeypress="if(event.key==='Enter') sendMessage()">
-            <button onclick="sendMessage()">Send 🚀</button>
-        </div>
-    </div>
-
-    <div class="cost-tracker" id="costTracker">
-        💰 Cost Tracking
-    </div>
-
-    <script>
-        let sessionVault = null;
-        let sessionActive = false;
-        let sessionCost = 0;
-
-        async function initializeSession() {
-            if (sessionVault) {
-                console.log('Session vault already loaded');
-                return sessionVault;
-            }
-
-            showStatus('🔄 Loading SiteMonkeys business intelligence vault...', 'loading');
-
-            try {
-                console.log('Calling /api/load-vault...');
-                const response = await fetch('/api/load-vault');
-                console.log('Response status:', response.status);
-                
-                const data = await response.json();
-                console.log('API Response:', data);
-
-                if (data.success) {
-                    sessionVault = data.memory;
-                    sessionActive = true;
-                    
-                    const tokenCount = data.token_estimate || 'Unknown';
-                    const foldersLoaded = data.folders_loaded || 0;
-                    const mode = data.mode || 'unknown';
-                    
-                    showStatus(`✅ Vault loaded (${tokenCount} tokens, ${foldersLoaded} folders, ${mode})`, 'success');
-                    
-                    console.log('Vault loaded successfully');
-                    console.log('Mode:', mode);
-                    console.log('First 500 chars:', sessionVault.substring(0, 500));
-                    
-                    return sessionVault;
-                } else {
-                    throw new Error(data.error || 'Failed to load vault');
-                }
-            } catch (error) {
-                console.error('Vault loading error:', error);
-                showStatus('❌ Failed to load business intelligence vault', 'error');
-                throw error;
-            }
+          if (data.files) {
+            const fileList = document.createElement('ul');
+            fileList.style.marginTop = '10px';
+            data.files.forEach(file => {
+              const li = document.createElement('li');
+              li.textContent = `📄 ${file.name}`;
+              fileList.appendChild(li);
+            });
+            document.getElementById('chatBox').appendChild(fileList);
+          }
+        } else {
+          throw new Error(data.error);
         }
+      } catch (err) {
+        statusDisplay.textContent = '❌ Failed to load business intelligence vault';
+        console.error('Vault load failed:', err);
+      }
+    }
 
-        async function sendMessage() {
-            const input = document.getElementById('userInput');
-            const message = input.value.trim();
-            if (!message) return;
+    function typeResponse(text, label, box) {
+      const paragraph = document.createElement('p');
+      paragraph.className = 'status typing';
+      let index = 0;
+      const characters = [...`${label} ${text}`];
+      const sessionText = `${label} ${text}`;
 
-            console.log('Sending message:', message);
-
-            // Initialize session vault if not loaded
-            if (!sessionVault) {
-                try {
-                    await initializeSession();
-                } catch (error) {
-                    addMessage('❌ Cannot send message - vault loading failed', 'assistant');
-                    return;
-                }
-            }
-
-            // Add user message to chat
-            addMessage(message, 'user');
-            input.value = '';
-
-            // Show AI thinking
-            const thinkingDiv = addMessage('🧠 Analyzing against SiteMonkeys business intelligence...', 'assistant', true);
-
-            try {
-                console.log('Calling /api/chat with vault memory...');
-                const response = await fetch('/api/chat', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        message: message,
-                        vault_memory: sessionVault
-                    })
-                });
-
-                console.log('Chat response status:', response.status);
-                const data = await response.json();
-                console.log('Chat response data:', data);
-                
-                thinkingDiv.remove();
-
-                if (data.success) {
-                    addMessage(data.response, 'assistant');
-
-                    // Update cost tracking if available
-                    if (data.cost_info) {
-                        const cost = parseFloat(data.cost_info.estimated_cost);
-                        updateCostTracking(cost);
-                    }
-                } else {
-                    addMessage(`❌ Error: ${data.error}`, 'assistant');
-                }
-            } catch (error) {
-                console.error('Chat error:', error);
-                thinkingDiv.remove();
-                addMessage('❌ Connection error. Please try again.', 'assistant');
-            }
+      const interval = setInterval(() => {
+        if (index < characters.length) {
+          const span = document.createElement('span');
+          span.textContent = characters[index];
+          paragraph.appendChild(span);
+          box.scrollTop = box.scrollHeight;
+          index++;
+        } else {
+          clearInterval(interval);
+          sessionLog.push(sessionText);
         }
+      }, 20);
 
-        function addMessage(content, sender, isThinking = false) {
-            const chatContainer = document.getElementById('chatContainer');
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${sender}${isThinking ? ' thinking' : ''}`;
-            messageDiv.innerHTML = content.replace(/\n/g, '<br>');
-            chatContainer.appendChild(messageDiv);
-            chatContainer.scrollTop = chatContainer.scrollHeight;
-            return messageDiv;
-        }
+      box.appendChild(paragraph);
+    }
 
-        function updateCostTracking(cost) {
-            sessionCost += cost;
-            const tracker = document.getElementById('costTracker');
-            tracker.innerHTML = `
-                💰 Cost Tracking<br>
-                This msg: $${cost.toFixed(4)}<br>
-                Session: $${sessionCost.toFixed(4)}
-            `;
-            tracker.classList.add('visible');
-        }
+    async function sendMessage() {
+      const input = document.getElementById('userInput');
+      const box = document.getElementById('chatBox');
+      const msg = document.createElement('p');
+      msg.textContent = '🧑 You: ' + input.value;
+      box.appendChild(msg);
+      sessionLog.push('🧑 You: ' + input.value);
 
-        function showStatus(message, type) {
-            const indicator = document.getElementById('statusIndicator');
-            indicator.textContent = message;
-            indicator.className = `status-indicator ${type}`;
-        }
+      const thinking = document.createElement('p');
+      thinking.textContent = '🐒 Analyzing...';
+      thinking.className = 'status';
+      box.appendChild(thinking);
+      box.scrollTop = box.scrollHeight;
 
-        // Initialize session when page loads
-        window.addEventListener('load', () => {
-            console.log('Page loaded, initializing session...');
-            initializeSession().catch(console.error);
+      try {
+        const res = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: input.value, vault_memory: sessionVault })
         });
-    </script>
+        const data = await res.json();
+        thinking.remove();
+
+        const label = messageCount % 2 === 0 ? '🧒 Eli:' : '👧 Roxy:';
+        typeResponse(data.response, label, box);
+
+        if (data.cost_info?.estimated_cost) {
+          sessionCost += parseFloat(data.cost_info.estimated_cost);
+          const costNote = document.createElement('p');
+          costNote.className = 'status';
+          costNote.textContent = `💰 Session total: $${sessionCost.toFixed(4)}`;
+          box.appendChild(costNote);
+          sessionLog.push(`💰 Session total: $${sessionCost.toFixed(4)}`);
+        }
+
+        box.scrollTop = box.scrollHeight;
+        messageCount++;
+      } catch (err) {
+        thinking.textContent = '❌ Error reaching AI';
+        console.error(err);
+      }
+      input.value = '';
+    }
+
+    function downloadLog() {
+      const logText = sessionLog.join('\n');
+      const blob = new Blob([logText], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'SiteMonkeys_Session_Log.txt';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    window.addEventListener('load', initializeSession);
+
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js')
+        .then(() => console.log('✅ Service worker registered'))
+        .catch(err => console.error('❌ Service worker registration failed:', err));
+    }
+  </script>
 </body>
 </html>
