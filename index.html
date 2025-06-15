@@ -238,21 +238,26 @@
             showStatus('🔄 Loading SiteMonkeys business intelligence vault...', 'loading');
 
             try {
+                console.log('Calling /api/load-vault...');
                 const response = await fetch('/api/load-vault');
+                console.log('Response status:', response.status);
+                
                 const data = await response.json();
+                console.log('API Response:', data);
 
                 if (data.success) {
-                    // CRITICAL: Store the actual memory content
-                    sessionVault = data.memory || data.vault_content;
+                    sessionVault = data.memory;
                     sessionActive = true;
                     
                     const tokenCount = data.token_estimate || 'Unknown';
                     const foldersLoaded = data.folders_loaded || 0;
+                    const mode = data.mode || 'unknown';
                     
-                    showStatus(`✅ Vault loaded (${tokenCount} tokens, ${foldersLoaded} folders) - Ready for validation`, 'success');
+                    showStatus(`✅ Vault loaded (${tokenCount} tokens, ${foldersLoaded} folders, ${mode})`, 'success');
                     
-                    // DEBUG: Log first 500 chars to verify content
-                    console.log('Vault loaded - first 500 chars:', sessionVault.substring(0, 500));
+                    console.log('Vault loaded successfully');
+                    console.log('Mode:', mode);
+                    console.log('First 500 chars:', sessionVault.substring(0, 500));
                     
                     return sessionVault;
                 } else {
@@ -270,7 +275,9 @@
             const message = input.value.trim();
             if (!message) return;
 
-            // CRITICAL: Ensure vault is loaded before sending
+            console.log('Sending message:', message);
+
+            // Initialize session vault if not loaded
             if (!sessionVault) {
                 try {
                     await initializeSession();
@@ -288,6 +295,7 @@
             const thinkingDiv = addMessage('🧠 Analyzing against SiteMonkeys business intelligence...', 'assistant', true);
 
             try {
+                console.log('Calling /api/chat with vault memory...');
                 const response = await fetch('/api/chat', {
                     method: 'POST',
                     headers: {
@@ -295,11 +303,14 @@
                     },
                     body: JSON.stringify({
                         message: message,
-                        vault_memory: sessionVault  // CRITICAL: Pass actual vault content
+                        vault_memory: sessionVault
                     })
                 });
 
+                console.log('Chat response status:', response.status);
                 const data = await response.json();
+                console.log('Chat response data:', data);
+                
                 thinkingDiv.remove();
 
                 if (data.success) {
@@ -307,15 +318,16 @@
 
                     // Update cost tracking if available
                     if (data.cost_info) {
-                        updateCostTracking(parseFloat(data.cost_info.estimated_cost));
+                        const cost = parseFloat(data.cost_info.estimated_cost);
+                        updateCostTracking(cost);
                     }
                 } else {
                     addMessage(`❌ Error: ${data.error}`, 'assistant');
                 }
             } catch (error) {
+                console.error('Chat error:', error);
                 thinkingDiv.remove();
                 addMessage('❌ Connection error. Please try again.', 'assistant');
-                console.error('Chat error:', error);
             }
         }
 
@@ -346,21 +358,9 @@
             indicator.className = `status-indicator ${type}`;
         }
 
-        // ADD DEBUG FUNCTION TO TEST VAULT CONTENT
-        function testVaultContent() {
-            if (sessionVault) {
-                console.log('VAULT CONTENT LOADED:');
-                console.log('Length:', sessionVault.length);
-                console.log('First 1000 chars:', sessionVault.substring(0, 1000));
-                console.log('Contains budget info:', sessionVault.includes('15000') || sessionVault.includes('15,000'));
-                console.log('Contains margin info:', sessionVault.includes('87%'));
-            } else {
-                console.log('NO VAULT CONTENT - Session vault is null');
-            }
-        }
-
         // Initialize session when page loads
         window.addEventListener('load', () => {
+            console.log('Page loaded, initializing session...');
             initializeSession().catch(console.error);
         });
     </script>
