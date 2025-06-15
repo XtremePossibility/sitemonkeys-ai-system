@@ -3,394 +3,359 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SiteMonkeys AI - Business Validation System</title>
+    <title>SiteMonkeys Business Validation System</title>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .container {
             max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
-            background: #1a1a2e;
-            color: white;
-            min-height: 100vh;
         }
         
         .header {
             text-align: center;
-            padding: 20px;
-            background: #000;
-            border: 2px solid #ffd700;
-            border-radius: 10px;
-            margin-bottom: 20px;
+            margin-bottom: 30px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        .logo {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 20px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
         }
         
         .title {
-            font-size: 24px;
-            color: #ffd700;
+            font-size: 2.5em;
+            color: #2c3e50;
             margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
         }
         
         .subtitle {
-            color: #ccc;
-            font-size: 16px;
-        }
-        
-        .main-container {
-            display: grid;
-            grid-template-columns: 250px 1fr 250px;
-            gap: 20px;
+            font-size: 1.2em;
+            color: #7f8c8d;
             margin-bottom: 20px;
         }
         
-        @media (max-width: 768px) {
-            .main-container {
-                grid-template-columns: 1fr;
-                gap: 15px;
-            }
+        .mascots {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 20px 0;
         }
         
-        .mascot-section {
-            background: #333;
-            border-radius: 10px;
-            padding: 15px;
+        .mascot {
             text-align: center;
         }
         
         .mascot-img {
-            width: 100px;
-            height: 100px;
-            border-radius: 10px;
-            margin-bottom: 10px;
-            display: block;
-            margin-left: auto;
-            margin-right: auto;
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            border: 5px solid #3498db;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease;
+        }
+        
+        .mascot-img:hover {
+            transform: scale(1.1);
         }
         
         .mascot-name {
-            color: #ffd700;
+            margin-top: 10px;
             font-weight: bold;
-            margin-bottom: 15px;
+            color: #2c3e50;
+            font-size: 1.1em;
         }
         
-        .status-panel {
-            background: #222;
-            border-radius: 5px;
-            padding: 10px;
-            margin-bottom: 10px;
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 2fr 1fr;
+            gap: 30px;
+            margin-top: 30px;
         }
         
-        .status-title {
-            color: #ffd700;
-            font-size: 14px;
-            margin-bottom: 8px;
-            font-weight: bold;
-        }
-        
-        .status-item {
-            font-size: 12px;
-            margin: 5px 0;
-            display: flex;
-            justify-content: space-between;
+        .sidebar {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            height: fit-content;
         }
         
         .chat-area {
-            background: rgba(255, 255, 255, 0.95);
+            background: rgba(255, 255, 255, 0.98);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            min-height: 600px;
+        }
+        
+        .vault-status {
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+            color: white;
+            padding: 15px;
             border-radius: 10px;
-            padding: 20px;
-            color: #333;
-            display: flex;
-            flex-direction: column;
-            min-height: 400px;
-        }
-        
-        .chat-header {
+            margin-bottom: 20px;
             text-align: center;
-            margin-bottom: 20px;
-            color: #1a1a2e;
         }
         
-        .chat-messages {
-            flex: 1;
-            overflow-y: auto;
-            margin-bottom: 20px;
-            max-height: 300px;
-            padding: 10px;
-            background: rgba(240, 240, 240, 0.8);
-            border-radius: 5px;
-        }
-        
-        .message {
-            margin: 10px 0;
-            padding: 10px;
-            background: white;
-            border-radius: 8px;
-            border-left: 4px solid #ffd700;
+        .status-item {
+            margin: 8px 0;
+            font-size: 0.95em;
         }
         
         .input-area {
             display: flex;
+            margin-top: 20px;
             gap: 10px;
         }
         
-        .chat-input {
+        .input-box {
             flex: 1;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
+            padding: 15px;
+            border: 2px solid #3498db;
+            border-radius: 25px;
             font-size: 16px;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+        
+        .input-box:focus {
+            border-color: #2980b9;
         }
         
         .send-btn {
-            background: #ffd700;
-            color: #1a1a2e;
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
             border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            font-weight: bold;
+            padding: 15px 25px;
+            border-radius: 25px;
             cursor: pointer;
+            font-weight: bold;
+            transition: transform 0.2s ease;
         }
         
         .send-btn:hover {
-            background: #ffed4e;
+            transform: translateY(-2px);
         }
         
-        .loading {
-            text-align: center;
-            padding: 10px;
-            font-style: italic;
-            color: #666;
+        .feature-list {
+            list-style: none;
         }
         
-        .cost-tracker {
+        .feature-item {
+            padding: 8px 0;
+            border-bottom: 1px solid #ecf0f1;
+            color: #2c3e50;
+        }
+        
+        .feature-item:before {
+            content: "🚀 ";
+            margin-right: 8px;
+        }
+        
+        .welcome-message {
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
             text-align: center;
-            font-size: 12px;
-            color: #666;
-            margin-top: 10px;
+            font-size: 1.1em;
+        }
+        
+        .placeholder-icon {
+            width: 120px;
+            height: 120px;
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 48px;
+            font-weight: bold;
+            margin: 0 auto 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .placeholder-mascot {
+            width: 150px;
+            height: 150px;
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 36px;
+            font-weight: bold;
+            border: 5px solid #3498db;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease;
+        }
+        
+        .placeholder-mascot:hover {
+            transform: scale(1.1);
+        }
+        
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .mascots {
+                flex-direction: column;
+                gap: 20px;
+            }
+            
+            .title {
+                font-size: 2em;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="header">
-        <div class="title">🐒 SITE MONKEYS AI 🐒</div>
-        <div class="subtitle">Business Validation System</div>
-    </div>
-    
-    <div class="main-container">
-        <!-- LEFT MASCOT - ELI -->
-        <div class="mascot-section">
-            <img src="boy-mascot.png" alt="Eli" class="mascot-img" onerror="this.style.display='none'">
-            <div class="mascot-name">ELI</div>
+    <div class="container">
+        <div class="header">
+            <!-- SiteMonkeys Logo Placeholder -->
+            <div class="placeholder-icon">SM</div>
+            <h1 class="title">SiteMonkeys</h1>
+            <p class="subtitle">AI-Powered Business Validation System</p>
+            <p style="color: #e74c3c; font-weight: bold;">From Overlooked to Overbooked</p>
             
-            <div class="status-panel">
-                <div class="status-title">🔐 VAULT STATUS</div>
-                <div class="status-item">
-                    <span>Status:</span>
-                    <span id="vaultStatus">Loading...</span>
+            <div class="mascots">
+                <div class="mascot">
+                    <div class="placeholder-mascot">ELI</div>
+                    <div class="mascot-name">Eli - Strategy Monkey</div>
                 </div>
-                <div class="status-item">
-                    <span>Tokens:</span>
-                    <span id="tokenCount">Calculating...</span>
-                </div>
-                <div class="status-item">
-                    <span>Folders:</span>
-                    <span id="folderCount">Scanning...</span>
-                </div>
-                <div class="status-item">
-                    <span>Cost:</span>
-                    <span id="estimatedCost">$0.00</span>
-                </div>
-            </div>
-            
-            <div class="status-panel">
-                <div class="status-title">💰 CONSTRAINTS</div>
-                <div class="status-item">
-                    <span>Budget:</span>
-                    <span>$15K</span>
-                </div>
-                <div class="status-item">
-                    <span>Burn:</span>
-                    <span><$3K/mo</span>
-                </div>
-                <div class="status-item">
-                    <span>Margins:</span>
-                    <span>87%+</span>
+                <div class="mascot">
+                    <div class="placeholder-mascot">ROXY</div>
+                    <div class="mascot-name">Roxy - Analytics Monkey</div>
                 </div>
             </div>
         </div>
         
-        <!-- CENTER CHAT AREA -->
-        <div class="chat-area">
-            <div class="chat-header">
-                <h2>🎯 Business Validation Console</h2>
-                <p>AI-powered strategic advisor</p>
-            </div>
-            
-            <div class="chat-messages" id="chatMessages">
-                <div class="message">
-                    <strong>SiteMonkeys AI:</strong> <span id="welcomeMessage">Initializing business intelligence vault...</span>
+        <div class="main-content">
+            <div class="sidebar">
+                <h3 style="margin-bottom: 15px; color: #2c3e50;">🔐 Vault Intelligence</h3>
+                <div class="vault-status">
+                    <div class="status-item">💾 Business Intelligence: Complete</div>
+                    <div class="status-item">📊 Tokens Loaded: 0</div>
+                    <div class="status-item">💰 Estimated Cost: $0.00</div>
+                    <div class="status-item">📁 Folders Accessed: 0</div>
+                    <div class="status-item">⚡ Status: Fallback</div>
                 </div>
+                
+                <h4 style="margin-bottom: 10px; color: #2c3e50;">🎯 Core Features</h4>
+                <ul class="feature-list">
+                    <li class="feature-item">Zero-Failure Launch Protocol</li>
+                    <li class="feature-item">99.8% Survivability Target</li>
+                    <li class="feature-item">87% Margin Protection</li>
+                    <li class="feature-item">$15K Budget Compliance</li>
+                    <li class="feature-item">Triple-AI Validation</li>
+                </ul>
             </div>
             
-            <div class="loading" id="loading" style="display: none;">
-                Processing your request...
-            </div>
-            
-            <div class="input-area">
-                <input type="text" class="chat-input" id="chatInput" placeholder="Ask about your business strategy, financials, or launch preparation...">
-                <button class="send-btn" id="sendBtn">🚀 Send</button>
-            </div>
-            
-            <div class="cost-tracker">
-                <span id="costTracker">API Calls: 0 | Estimated Cost: $0.00</span>
-            </div>
-        </div>
-        
-        <!-- RIGHT MASCOT - ROXY -->
-        <div class="mascot-section">
-            <img src="girl-mascot.png" alt="Roxy" class="mascot-img" onerror="this.style.display='none'">
-            <div class="mascot-name">ROXY</div>
-            
-            <div class="status-panel">
-                <div class="status-title">⚡ SYSTEM STATUS</div>
-                <div class="status-item">
-                    <span>API:</span>
-                    <span id="apiStatus">Testing...</span>
+            <div class="chat-area">
+                <div class="welcome-message">
+                    Welcome to the SiteMonkeys Business Validation System! I have your complete vault loaded with financial constraints ($15K budget, $3K burn, 87% margins), pricing tiers ($697/$1,497/$2,997), legal framework, and zero-failure protocols. Ready to validate your launch preparation and transform your business strategy!
                 </div>
-                <div class="status-item">
-                    <span>Uptime:</span>
-                    <span>99.8%</span>
+                
+                <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+                    <h4 style="color: #2c3e50; margin-bottom: 10px;">🚨 Image Loading Status</h4>
+                    <p style="color: #e74c3c;">
+                        <strong>Current Status:</strong> Using placeholders - Vercel static file routing needs fixing
+                    </p>
+                    <p style="color: #7f8c8d; font-size: 0.9em; margin-top: 5px;">
+                        Images should load: logo.png, boy-mascot.png, girl-mascot.png from /public/ folder
+                    </p>
                 </div>
-                <div class="status-item">
-                    <span>Security:</span>
-                    <span>Active</span>
-                </div>
-                <div class="status-item">
-                    <span>Zero-Fail:</span>
-                    <span>Enabled</span>
+                
+                <div class="input-area">
+                    <input type="text" class="input-box" placeholder="Ask me about launch strategy, financial projections, or system validation..." />
+                    <button class="send-btn" onclick="sendMessage()">🚀 Send</button>
                 </div>
             </div>
             
-            <div class="status-panel">
-                <div class="status-title">📊 PRICING TIERS</div>
-                <div class="status-item">
-                    <span>Boost:</span>
-                    <span>$697</span>
+            <div class="sidebar">
+                <h3 style="margin-bottom: 15px; color: #2c3e50;">⚙️ System Status</h3>
+                <div style="background: #ecf0f1; padding: 15px; border-radius: 10px; margin-bottom: 15px;">
+                    <div style="margin-bottom: 8px;">
+                        <strong>Interface:</strong> <span style="color: #27ae60;">✅ OPERATIONAL</span>
+                    </div>
+                    <div style="margin-bottom: 8px;">
+                        <strong>Images:</strong> <span style="color: #e74c3c;">❌ ROUTING ISSUE</span>
+                    </div>
+                    <div style="margin-bottom: 8px;">
+                        <strong>Vault API:</strong> <span style="color: #f39c12;">⚠️ FALLBACK MODE</span>
+                    </div>
+                    <div>
+                        <strong>Chat:</strong> <span style="color: #27ae60;">✅ READY</span>
+                    </div>
                 </div>
-                <div class="status-item">
-                    <span>Climb:</span>
-                    <span>$1,497</span>
-                </div>
-                <div class="status-item">
-                    <span>Lead:</span>
-                    <span>$2,997</span>
-                </div>
+                
+                <h4 style="margin-bottom: 10px; color: #2c3e50;">🎯 Quick Actions</h4>
+                <ul class="feature-list">
+                    <li class="feature-item">Financial Validation</li>
+                    <li class="feature-item">Launch Checklist</li>
+                    <li class="feature-item">Risk Assessment</li>
+                    <li class="feature-item">Contractor Vetting</li>
+                    <li class="feature-item">Timeline Planning</li>
+                </ul>
             </div>
         </div>
     </div>
 
     <script>
-        let messageCount = 0;
-        let totalCost = 0;
-        
-        // Load vault data on page load
-        async function loadVault() {
-            try {
-                const response = await fetch('/api/load-vault');
-                const data = await response.json();
-                
-                // Update vault status
-                document.getElementById('vaultStatus').textContent = data.status || 'Loaded';
-                document.getElementById('tokenCount').textContent = data.tokens || '0';
-                
-                // Update folder count
-                const folderCount = data.folders_loaded ? data.folders_loaded.length : 0;
-                document.getElementById('folderCount').textContent = folderCount;
-                
-                // Calculate estimated cost
-                const estimatedCost = (data.tokens * 0.002 / 1000).toFixed(4);
-                document.getElementById('estimatedCost').textContent = `$${estimatedCost}`;
-                
-                // Update API status
-                document.getElementById('apiStatus').textContent = 'Online';
-                
-                // Update welcome message
-                document.getElementById('welcomeMessage').textContent = 
-                    `Welcome to the SiteMonkeys Business Validation System! I have your complete vault loaded with financial constraints ($15K budget, $3K burn, 87% margins), pricing tiers ($697/$1,497/$2,997), legal framework, and zero-failure protocols. Ready to validate your launch preparation and transform your business strategy!`;
-                
-            } catch (error) {
-                console.error('Vault loading error:', error);
-                document.getElementById('vaultStatus').textContent = 'Error';
-                document.getElementById('apiStatus').textContent = 'Offline';
-                document.getElementById('welcomeMessage').textContent = 
-                    'System initialization failed. Please refresh the page or contact support.';
-            }
-        }
-        
-        // Send message function
-        async function sendMessage() {
-            const input = document.getElementById('chatInput');
+        function sendMessage() {
+            const input = document.querySelector('.input-box');
             const message = input.value.trim();
-            
-            if (!message) return;
-            
-            // Add user message
-            addMessage(`You: ${message}`, 'user');
-            input.value = '';
-            
-            // Show loading
-            document.getElementById('loading').style.display = 'block';
-            
-            try {
-                // Simulate AI response (you can replace with actual API call)
-                await new Promise(resolve => setTimeout(resolve, 1500));
-                
-                const responses = [
-                    "Based on your $15K launch budget and $3K monthly burn rate, I recommend prioritizing the 4-week sprint implementation to achieve breakeven by month 3.",
-                    "Your 87% margin target is achievable with the current pricing structure. The $697-$2,997 tiers provide optimal market positioning against $30K agencies.",
-                    "The zero-failure protocols are operational. All legal frameworks including NDAs and compliance measures are properly configured for contractor protection.",
-                    "Your vault contains complete business intelligence. Financial constraints, pricing strategy, and implementation roadmap are all accessible for strategic validation.",
-                    "The Site Monkeys platform is designed for scalability. Current architecture supports 100K+ customers without human runtime dependencies."
-                ];
-                
-                const response = responses[Math.floor(Math.random() * responses.length)];
-                const aiName = messageCount % 2 === 0 ? 'Eli' : 'Roxy';
-                
-                addMessage(`${aiName}: ${response}`, 'ai');
-                
-                // Update cost tracking
-                messageCount++;
-                totalCost += 0.02;
-                document.getElementById('costTracker').textContent = 
-                    `API Calls: ${messageCount} | Estimated Cost: $${totalCost.toFixed(2)}`;
-                
-            } catch (error) {
-                addMessage('SiteMonkeys AI: System temporarily unavailable. Please try again.', 'error');
-            } finally {
-                document.getElementById('loading').style.display = 'none';
+            if (message) {
+                console.log('Message:', message);
+                input.value = '';
+                // Add your chat functionality here
+                alert('Chat functionality would process: ' + message);
             }
         }
         
-        // Add message to chat
-        function addMessage(text, type) {
-            const messagesContainer = document.getElementById('chatMessages');
-            const messageDiv = document.createElement('div');
-            messageDiv.className = 'message';
-            messageDiv.innerHTML = `<strong>${text}</strong>`;
-            
-            messagesContainer.appendChild(messageDiv);
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
-        }
-        
-        // Event listeners
-        document.getElementById('sendBtn').addEventListener('click', sendMessage);
-        document.getElementById('chatInput').addEventListener('keypress', function(e) {
+        document.querySelector('.input-box').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 sendMessage();
             }
         });
-        
-        // Initialize on page load
-        document.addEventListener('DOMContentLoaded', loadVault);
+
+        // Test vault API connection
+        fetch('/api/load-vault')
+            .then(response => response.text())
+            .then(data => {
+                console.log('Vault API Response:', data);
+                if (data.includes('vault_content') || data.includes('tokens')) {
+                    // Real vault data detected
+                    document.querySelector('.vault-status .status-item:nth-child(5)').innerHTML = '⚡ Status: <span style="color: #27ae60;">CONNECTED</span>';
+                }
+            })
+            .catch(error => {
+                console.error('Vault API Error:', error);
+            });
     </script>
 </body>
 </html>
