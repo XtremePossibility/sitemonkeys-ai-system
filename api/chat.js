@@ -28,7 +28,6 @@ export default async function handler(req, res) {
 
     const reply = completion.choices?.[0]?.message?.content || 'No response.';
     const usage = completion.usage || { total_tokens: 0 };
-
     const estimatedCost = (usage.total_tokens * 0.002 / 1000).toFixed(4);
 
     return res.status(200).json({
