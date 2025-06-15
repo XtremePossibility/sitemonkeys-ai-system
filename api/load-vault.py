@@ -60,11 +60,13 @@ def load_vault_memory():
     memory_content = "=== SITEMONKEYS ZERO-FAILURE ENFORCEMENT LOADED ===\n\n"
     
     try:
-        # Load from 00_EnforcementShell.txt/Memory Files/
+        # Load core enforcement files
         memory_content += load_enforcement_shell_files(drive_service, vault_folder_id)
-        
-        # Load from 01_Core_Directives/
         memory_content += load_core_directives_files(drive_service, vault_folder_id)
+        memory_content += load_vault_memory_files(drive_service, vault_folder_id)
+        memory_content += load_legal_files(drive_service, vault_folder_id)
+        memory_content += load_ai_tuning_files(drive_service, vault_folder_id)
+        memory_content += load_contractor_handoff_files(drive_service, vault_folder_id)
         
         return memory_content
         
@@ -179,3 +181,128 @@ def load_single_file(drive_service, folder_id, filename):
         
     except Exception as e:
         return f"\n=== {filename} ===\nERROR LOADING: {e}\n\n"
+
+def load_vault_memory_files(drive_service, vault_folder_id):
+    """Load files from VAULT_MEMORY_FILES/"""
+    content = "=== VAULT MEMORY FILES ===\n\n"
+    
+    try:
+        # Find VAULT_MEMORY_FILES folder
+        folder_response = drive_service.files().list(
+            q=f"'{vault_folder_id}' in parents and name='VAULT_MEMORY_FILES' and mimeType='application/vnd.google-apps.folder'",
+            fields="files(id, name)"
+        ).execute()
+        
+        if not folder_response['files']:
+            return content + "VAULT_MEMORY_FILES folder not found\n\n"
+        
+        memory_folder_id = folder_response['files'][0]['id']
+        
+        # Files to load from VAULT_MEMORY_FILES
+        memory_files = [
+            "00_BEHAVIOR_ENFORCEMENT_DEEP_LAYER.txt",
+            "00_EnforcementShell_Addendum.txt",
+            "00_EnforcementShell.txt",
+            "02_BlueprintArchitecture.txt",
+            "03_ContractorAccessRules.txt",
+            "04_QAProtocols.md",
+            "Founder's Directive – Elevated and Executable Form.txt"
+        ]
+        
+        for filename in memory_files:
+            content += load_single_file(drive_service, memory_folder_id, filename)
+        
+        return content
+        
+    except Exception as e:
+        return content + f"Error loading vault memory files: {e}\n\n"
+
+def load_legal_files(drive_service, vault_folder_id):
+    """Load files from 02_Legal/"""
+    content = "=== LEGAL FILES ===\n\n"
+    
+    try:
+        # Find 02_Legal folder
+        folder_response = drive_service.files().list(
+            q=f"'{vault_folder_id}' in parents and name='02_Legal' and mimeType='application/vnd.google-apps.folder'",
+            fields="files(id, name)"
+        ).execute()
+        
+        if not folder_response['files']:
+            return content + "02_Legal folder not found\n\n"
+        
+        legal_folder_id = folder_response['files'][0]['id']
+        
+        # Key legal files to load
+        legal_files = [
+            "NEW_NDA_Contactors.txt",
+            "Terms Of Service Site Monkeys.txt",
+            "Site Monkeys Privacy Policy .txt",
+            "Master_Launch_Checklist.txt"
+        ]
+        
+        for filename in legal_files:
+            content += load_single_file(drive_service, legal_folder_id, filename)
+        
+        return content
+        
+    except Exception as e:
+        return content + f"Error loading legal files: {e}\n\n"
+
+def load_ai_tuning_files(drive_service, vault_folder_id):
+    """Load files from 03_AI_Tuning/"""
+    content = "=== AI TUNING FILES ===\n\n"
+    
+    try:
+        # Find 03_AI_Tuning folder
+        folder_response = drive_service.files().list(
+            q=f"'{vault_folder_id}' in parents and name='03_AI_Tuning' and mimeType='application/vnd.google-apps.folder'",
+            fields="files(id, name)"
+        ).execute()
+        
+        if not folder_response['files']:
+            return content + "03_AI_Tuning folder not found\n\n"
+        
+        tuning_folder_id = folder_response['files'][0]['id']
+        
+        # AI tuning files to load
+        tuning_files = [
+            "EnforcementShell_Addendum.txt"
+        ]
+        
+        for filename in tuning_files:
+            content += load_single_file(drive_service, tuning_folder_id, filename)
+        
+        return content
+        
+    except Exception as e:
+        return content + f"Error loading AI tuning files: {e}\n\n"
+
+def load_contractor_handoff_files(drive_service, vault_folder_id):
+    """Load files from 05_Complete Contractor Handoff/"""
+    content = "=== CONTRACTOR HANDOFF FILES ===\n\n"
+    
+    try:
+        # Find 05_Complete Contractor Handoff folder
+        folder_response = drive_service.files().list(
+            q=f"'{vault_folder_id}' in parents and name='05_Complete Contractor Handoff' and mimeType='application/vnd.google-apps.folder'",
+            fields="files(id, name)"
+        ).execute()
+        
+        if not folder_response['files']:
+            return content + "05_Complete Contractor Handoff folder not found\n\n"
+        
+        handoff_folder_id = folder_response['files'][0]['id']
+        
+        # Contractor handoff files to load
+        handoff_files = [
+            "NDA_Contactors.txt"
+        ]
+        
+        for filename in handoff_files:
+            content += load_single_file(drive_service, handoff_folder_id, filename)
+        
+        return content
+        
+    except Exception as e:
+        return content + f"Error loading contractor handoff files: {e}\n\n"
