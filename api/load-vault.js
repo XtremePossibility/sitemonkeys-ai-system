@@ -37,7 +37,11 @@ export default async function handler(req, res) {
             mimeType: 'text/plain'
           });
           content = exported.data;
-        } else if (file.mimeType === 'text/plain' || file.mimeType === 'application/octet-stream' || file.name.endsWith('.txt')) {
+        } else if (
+          file.mimeType === 'text/plain' ||
+          file.mimeType === 'application/octet-stream' ||
+          file.name.toLowerCase().endsWith('.txt')
+        ) {
           const downloaded = await drive.files.get(
             { fileId: file.id, alt: 'media' },
             { responseType: 'stream' }
@@ -57,12 +61,12 @@ export default async function handler(req, res) {
           content = exported.data;
         }
 
-        if (content) {
+        if (content && content.trim().length > 0) {
           vaultContent += `\n=== ${file.name} ===\n${content}\n\n`;
           filesLoaded++;
-          console.log(`✅ Loaded: ${file.name}`);
+          console.log(`✅ Loaded: ${file.name} (${content.length} chars)`);
         } else {
-          console.warn(`⚠️ No content from: ${file.name}`);
+          console.warn(`⚠️ No usable content from: ${file.name}`);
         }
       } catch (fileErr) {
         console.warn(`❌ Skipped ${file.name}: ${fileErr.message}`);
@@ -71,6 +75,9 @@ export default async function handler(req, res) {
 
     const tokenEstimate = Math.round(vaultContent.length / 4.2);
     const estimatedCost = (tokenEstimate * 0.002 / 1000).toFixed(4);
+
+    console.log(`🧠 Final vault memory length: ${vaultContent.length}`);
+    console.log(`🧾 Vault preview: ${vaultContent.substring(0, 400).replace(/\n/g, ' ↵ ')}`);
 
     res.status(200).json({
       success: true,
