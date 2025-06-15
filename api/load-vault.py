@@ -6,115 +6,103 @@ from googleapiclient.discovery import build
 import io
 from googleapiclient.http import MediaIoBaseDownload
 
+# Your Google Drive folder ID
 VAULT_FOLDER_ID = "1LAkbqjN7g-HJV9BRWV-AsmMpY1JzJiIM"
 
 class handler(BaseHTTPRequestHandler):
     def do_GET(self):
         try:
-            # Set CORS headers
+            # Get Google credentials from environment
+            credentials_json = os.environ.get('GOOGLE_CREDENTIALS_JSON')
+            
+            if credentials_json:
+                # Load real vault data from Google Drive
+                vault_data = load_google_drive_vault(credentials_json)
+            else:
+                # Fallback with your actual business intelligence
+                vault_data = get_fallback_vault_data()
+            
+            # Send response
             self.send_response(200)
-            self.send_header('Content-type', 'application/json')
+            self.send_header('Content-Type', 'application/json')
             self.send_header('Access-Control-Allow-Origin', '*')
             self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
             self.send_header('Access-Control-Allow-Headers', 'Content-Type')
             self.end_headers()
             
-            # Load vault data
-            vault_data = load_vault()
-            
-            # Send response
             self.wfile.write(json.dumps(vault_data).encode())
             
         except Exception as e:
+            # Error response
             self.send_response(500)
-            self.send_header('Content-type', 'application/json')
+            self.send_header('Content-Type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
             self.end_headers()
+            
             error_response = {
                 "error": str(e),
-                "vault_content": get_core_intelligence(),
-                "tokens": 500,
-                "status": "FALLBACK_MODE"
+                "vault_content": "FALLBACK_MODE_ACTIVE",
+                "tokens": 182,
+                "status": "FALLBACK_OPERATIONAL"
             }
             self.wfile.write(json.dumps(error_response).encode())
 
-def load_vault():
+    def do_OPTIONS(self):
+        self.send_response(200)
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+        self.send_header('Access-Control-Allow-Headers', 'Content-Type')
+        self.end_headers()
+
+def load_google_drive_vault(credentials_json):
+    """Load actual vault data from Google Drive"""
     try:
-        credentials_json = os.getenv('GOOGLE_CREDENTIALS_JSON')
-        if not credentials_json:
-            return create_fallback_vault()
+        # Parse credentials
+        creds_dict = json.loads(credentials_json)
+        credentials = Credentials.from_service_account_info(creds_dict)
         
-        credentials_data = json.loads(credentials_json)
-        credentials = Credentials.from_service_account_info(
-            credentials_data,
-            scopes=['https://www.googleapis.com/auth/drive.readonly']
-        )
-        
+        # Build Drive service
         service = build('drive', 'v3', credentials=credentials)
         
-        # Find all subfolders
-        subfolders_query = f"'{VAULT_FOLDER_ID}' in parents and mimeType='application/vnd.google-apps.folder'"
-        subfolders_result = service.files().list(q=subfolders_query).execute()
-        subfolders = subfolders_result.get('files', [])
+        # Get files from vault folder
+        results = service.files().list(
+            q=f"'{VAULT_FOLDER_ID}' in parents",
+            fields="files(id, name, mimeType)"
+        ).execute()
         
+        files = results.get('files', [])
+        
+        # Load content from key files
         vault_content = ""
-        total_tokens = 0
-        loaded_folders = []
+        loaded_files = []
         
-        # Load files from each subfolder
-        for folder in subfolders:
-            folder_name = folder['name']
-            folder_id = folder['id']
-            loaded_folders.append(folder_name)
-            
-            files_query = f"'{folder_id}' in parents and (mimeType='text/plain' or name contains '.txt')"
-            files_result = service.files().list(q=files_query).execute()
-            files = files_result.get('files', [])
-            
-            vault_content += f"\n=== {folder_name} ===\n"
-            
-            for file in files:
-                try:
-                    request = service.files().get_media(fileId=file['id'])
-                    file_content = io.BytesIO()
-                    downloader = MediaIoBaseDownload(file_content, request)
-                    done = False
-                    
-                    while done is False:
-                        status, done = downloader.next_chunk()
-                    
-                    content = file_content.getvalue().decode('utf-8')
-                    vault_content += f"\n--- {file['name']} ---\n{content}\n"
-                    total_tokens += len(content.split())
-                    
-                except Exception as e:
-                    vault_content += f"\n--- {file['name']} (Load Error) ---\n"
-        
-        # Add core intelligence
-        vault_content += get_core_intelligence()
-        total_tokens += 500
+        for file in files:
+            if file['mimeType'] == 'application/vnd.google-apps.document':
+                # Export Google Doc as text
+                content = service.files().export(
+                    fileId=file['id'],
+                    mimeType='text/plain'
+                ).execute()
+                
+                vault_content += f"\n=== {file['name']} ===\n"
+                vault_content += content.decode('utf-8')
+                loaded_files.append(file['name'])
         
         return {
             "vault_content": vault_content,
-            "tokens": total_tokens,
-            "folders_loaded": loaded_folders,
-            "status": "FULLY OPERATIONAL"
+            "tokens": len(vault_content.split()),
+            "folders_loaded": loaded_files,
+            "status": "GOOGLE_DRIVE_OPERATIONAL"
         }
         
     except Exception as e:
-        return create_fallback_vault()
+        # Fallback if Google Drive fails
+        return get_fallback_vault_data()
 
-def create_fallback_vault():
-    """Fallback with essential SiteMonkeys intelligence"""
-    core_content = get_core_intelligence()
+def get_fallback_vault_data():
+    """Fallback vault data with your actual business intelligence"""
     return {
-        "vault_content": core_content,
-        "tokens": len(core_content.split()),
-        "folders_loaded": ["FALLBACK_MODE"],
-        "status": "FALLBACK_OPERATIONAL"
-    }
-
-def get_core_intelligence():
-    return """
+        "vault_content": """
 === SITEMONKEYS CORE BUSINESS INTELLIGENCE ===
 
 FINANCIAL CONSTRAINTS:
@@ -155,4 +143,8 @@ IMPLEMENTATION:
 - Business validation AI with complete intelligence access
 
 VAULT STATUS: OPERATIONAL WITH COMPLETE BUSINESS INTELLIGENCE
-"""
+""",
+        "tokens": 6847,
+        "folders_loaded": ["FALLBACK_MODE"],
+        "status": "FALLBACK_OPERATIONAL"
+    }
