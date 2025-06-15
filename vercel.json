@@ -1,24 +1,7 @@
 {
   "functions": {
-    "api/load-vault.py": {
-      "runtime": "python3.9"
-    },
-    "api/chat.py": {
-      "runtime": "python3.9"
+    "api/*.py": {
+      "runtime": "@vercel/python"
     }
-  },
-  "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "/api/$1"
-    },
-    {
-      "src": "/(.*\\.(png|jpg|jpeg|gif|svg|ico))",
-      "dest": "/public/$1"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
-    }
-  ]
+  }
 }
