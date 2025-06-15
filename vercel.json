@@ -1,1 +1,7 @@
-{}
+{
+  "functions": {
+    "api/load-vault.py": {
+      "runtime": "python3.9"
+    }
+  }
+}
