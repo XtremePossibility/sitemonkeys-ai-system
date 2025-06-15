@@ -1,273 +1,67 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SiteMonkeys Business Validation System</title>
-  <link rel="icon" href="logo.png" type="image/png">
-  <link rel="manifest" href="/manifest.json" />
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      background: #121212;
-      color: #fff;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: flex-start;
-      padding: 20px;
-      max-width: 100%;
-      overflow-x: hidden;
-      font-size: clamp(14px, 2.5vw, 18px);
-      overflow-wrap: break-word;
+export default async function handler(req, res) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ success: false, error: 'Method not allowed' });
+  }
+
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) {
+    return res.status(500).json({ success: false, error: 'OPENAI_API_KEY is missing' });
+  }
+
+  try {
+    const { message, vault_memory } = req.body;
+
+    if (!message || !vault_memory) {
+      return res.status(400).json({ success: false, error: 'Missing message or vault memory' });
     }
-    header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      width: 100%;
-      max-width: 1200px;
-      margin-bottom: 20px;
+
+    const memoryPreview = vault_memory.substring(0, 300).replace(/\n/g, ' ↵ ');
+    console.log(`📥 Vault memory length: ${vault_memory.length}`);
+    console.log(`🧠 Vault preview: ${memoryPreview}...`);
+
+    const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: 'gpt-4',
+        messages: [
+          { role: 'system', content: vault_memory },
+          { role: 'user', content: message }
+        ],
+        temperature: 0.3,
+        max_tokens: 1000
+      })
+    });
+
+    const data = await openaiResponse.json();
+
+    if (!openaiResponse.ok) {
+      console.error('❌ OpenAI Error:', data);
+      return res.status(500).json({ success: false, error: data.error?.message || 'OpenAI request failed' });
     }
-    header img {
-      height: 100px;
-      border: none;
-      background: none;
-    }
-    main {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 20px;
-      width: 100%;
-      max-width: 1200px;
-    }
-    .mascot {
-      height: clamp(150px, 30vw, 300px);
-    }
-    .chat-container {
-      width: 100%;
-      background: #1e1e1e;
-      border-radius: 10px;
-      padding: 20px;
-      box-shadow: 0 0 10px rgba(255,255,255,0.1);
-    }
-    .chat-box {
-      min-height: 300px;
-      background: #111;
-      border: 1px solid #333;
-      margin-bottom: 15px;
-      padding: 10px;
-      overflow-y: auto;
-      border-radius: 5px;
-    }
-    .chat-input {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-    .chat-input input {
-      padding: 10px;
-      border: none;
-      border-radius: 5px;
-      background: #333;
-      color: #fff;
-      font-size: 1rem;
-    }
-    .chat-input button {
-      padding: 10px;
-      border: none;
-      background: #ffcc00;
-      color: #000;
-      font-weight: bold;
-      border-radius: 5px;
-      cursor: pointer;
-      font-size: 1rem;
-    }
-    .sidebar {
-      width: 100%;
-      background: #1c1c1c;
-      border-radius: 10px;
-      padding: 20px;
-      font-size: 14px;
-      line-height: 1.6;
-    }
-    .sidebar h2 {
-      font-size: 18px;
-      margin-bottom: 10px;
-      color: #ffcc00;
-    }
-    .status {
-      color: #0f0;
-      font-weight: bold;
-    }
-    @media (min-width: 768px) {
-      main {
-        flex-direction: row;
-        justify-content: center;
-        gap: 40px;
+
+    // Ensure line breaks and paragraphs are preserved for frontend display
+    const reply = (data.choices?.[0]?.message?.content || 'No response.').replace(/\n/g, '<br>');
+    const usage = data.usage || { total_tokens: 0 };
+    const estimatedCost = (usage.total_tokens * 0.002 / 1000).toFixed(4);
+
+    return res.status(200).json({
+      success: true,
+      response: reply,
+      cost_info: {
+        total_tokens: usage.total_tokens,
+        estimated_cost: estimatedCost
       }
-      .chat-input {
-        flex-direction: row;
-      }
-    }
-    .typing span {
-      display: inline-block;
-      opacity: 0;
-      animation: fadeIn 0.05s forwards;
-    }
-    @keyframes fadeIn {
-      to { opacity: 1; }
-    }
-  </style>
-</head>
-<body>
-  <header>
-    <img src="logo.png" alt="SiteMonkeys Logo">
-    <h1>Site Monkeys AI<br><small>Business Validation Engine</small></h1>
-  </header>
-  <main>
-    <img src="boy-mascot.png" alt="Eli" class="mascot">
-    <div class="chat-container">
-      <div class="chat-box" id="chatBox">
-        <ul id="checklist" style="list-style: none; padding-left: 0; font-size: 14px; line-height: 1.4;">
-          <li id="check-vault">🔄 Loading vault...</li>
-          <li id="check-zero">⏳ Zero-Failure Directive</li>
-          <li id="check-budget">⏳ Budget Constraints</li>
-          <li id="check-pricing">⏳ Pricing Strategy</li>
-          <li id="check-legal">⏳ Legal Framework</li>
-          <li id="check-done" style="display: none;">✅ All systems loaded</li>
-        </ul>
-        <p class="status" id="statusDisplay">🚀 Initializing SiteMonkeys AI System...</p>
-      </div>
-      <div class="chat-input">
-        <input type="text" id="userInput" placeholder="Ask a business question...">
-        <button onclick="sendMessage()">
-          <img src="rocket-no-smoke.png" alt="Send" style="height: 24px; vertical-align: middle;">
-        </button>
-        <button onclick="downloadLog()">📥 Download Session Log</button>
-      </div>
-    </div>
-    <img src="girl-mascot.png" alt="Roxy" class="mascot">
-  </main>
-  <script>
-    let sessionVault = null;
-    let sessionCost = 0;
-    let messageCount = 0;
-    let sessionLog = [];
+    });
 
-    async function initializeSession() {
-      const statusDisplay = document.getElementById('statusDisplay');
-      statusDisplay.textContent = '🔄 Loading SiteMonkeys business intelligence vault...';
-      try {
-        const res = await fetch('/api/load-vault');
-        const data = await res.json();
-        if (data.success) {
-          sessionVault = data.memory || '';
-          document.getElementById('check-vault').textContent = '✅ Vault loaded';
-          document.getElementById('check-zero').textContent = '✅ Zero-Failure Directive';
-          document.getElementById('check-budget').textContent = '✅ Budget Constraints';
-          document.getElementById('check-pricing').textContent = '✅ Pricing Strategy';
-          document.getElementById('check-legal').textContent = '✅ Legal Framework';
-          document.getElementById('check-done').style.display = 'block';
-          sessionCost = 0;
-          statusDisplay.textContent = `✅ Vault loaded (${data.token_estimate} tokens, ${data.folders_loaded || 0} files)`;
-        } else {
-          throw new Error(data.error);
-        }
-      } catch (err) {
-        statusDisplay.textContent = '❌ Failed to load vault';
-        console.error('Vault load failed:', err);
-      }
-    }
-
-    function typeResponse(text, label, box) {
-      const paragraph = document.createElement('p');
-      paragraph.className = 'status typing';
-      let index = 0;
-      const characters = [...`${label} ${text}`];
-      const sessionText = `${label} ${text}`;
-
-      const interval = setInterval(() => {
-        if (index < characters.length) {
-          const span = document.createElement('span');
-          span.textContent = characters[index];
-          paragraph.appendChild(span);
-          box.scrollTop = box.scrollHeight;
-          index++;
-        } else {
-          clearInterval(interval);
-          sessionLog.push(sessionText);
-        }
-      }, 20);
-
-      box.appendChild(paragraph);
-    }
-
-    async function sendMessage() {
-      const input = document.getElementById('userInput');
-      const box = document.getElementById('chatBox');
-      const msg = document.createElement('p');
-      msg.textContent = '🧑 You: ' + input.value;
-      box.appendChild(msg);
-      sessionLog.push('🧑 You: ' + input.value);
-
-      const thinking = document.createElement('p');
-      thinking.textContent = '🐒 Sending to AI (check API)...';
-      thinking.className = 'status';
-      box.appendChild(thinking);
-      box.scrollTop = box.scrollHeight;
-
-      try {
-        const res = await fetch('/api/chat', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message: input.value, vault_memory: sessionVault })
-        });
-        const data = await res.json();
-        thinking.remove();
-
-        const label = messageCount % 2 === 0 ? '🧒 Eli:' : '👧 Roxy:';
-        typeResponse(data.response, label, box);
-
-        if (data.cost_info?.estimated_cost) {
-          sessionCost += parseFloat(data.cost_info.estimated_cost);
-          const costNote = document.createElement('p');
-          costNote.className = 'status';
-          costNote.textContent = `💰 Session total: $${sessionCost.toFixed(4)} | Tokens: ${data.cost_info.total_tokens || 'N/A'}`;
-          box.appendChild(costNote);
-          sessionLog.push(costNote.textContent);
-        }
-
-        box.scrollTop = box.scrollHeight;
-        messageCount++;
-      } catch (err) {
-        thinking.textContent = '❌ Connection error: Ensure API key, credentials, and routes are set correctly';
-        console.error(err);
-      }
-      input.value = '';
-    }
-
-    function downloadLog() {
-      const logText = sessionLog.join('\n');
-      const blob = new Blob([logText], { type: 'text/plain' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = 'SiteMonkeys_Session_Log.txt';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    }
-
-    window.addEventListener('load', initializeSession);
-
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js')
-        .then(() => console.log('✅ Service worker registered'))
-        .catch(err => console.error('❌ Service worker registration failed:', err));
-    }
-  </script>
-</body>
-</html>
+  } catch (err) {
+    console.error('❌ Chat API error:', err);
+    return res.status(500).json({
+      success: false,
+      error: err.message || 'Internal server error'
+    });
+  }
+}
