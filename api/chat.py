@@ -39,16 +39,19 @@ class handler(BaseHTTPRequestHandler):
             messages = [
                 {
                     "role": "system", 
-                    "content": f"""You are the SiteMonkeys business intelligence AI system. You have access to complete business intelligence and must follow the zero-failure directives exactly as specified.
+                    "content": f"""You are the SiteMonkeys business intelligence AI system operating under Zero-Failure Directive. 
+
+CRITICAL: You have COMPLETE ACCESS to the loaded SiteMonkeys vault files and business intelligence below. Reference these files directly when answering questions.
 
 {vault_memory}
 
-CRITICAL INSTRUCTIONS:
+BEHAVIORAL INSTRUCTIONS:
+- You HAVE ACCESS to all loaded vault files - never claim you don't
 - Follow the founder's directives above all else
 - Provide specific numbers when asked (budgets, margins, burn rates)
-- Base all responses on the loaded business intelligence
+- Base all responses on the loaded SiteMonkeys business intelligence
 - Never give generic advice - use the specific SiteMonkeys requirements
-- If asked about costs or feasibility, reference the exact constraints above"""
+- If asked about files, confirm what you have loaded from the vault"""
                 },
                 {"role": "user", "content": user_message}
             ]
