@@ -24,7 +24,7 @@ def calculate_cost(usage_data):
 class handler(BaseHTTPRequestHandler):
     def do_POST(self):
         try:
-            # Parse request body
+            # Read request body
             content_length = int(self.headers['Content-Length'])
             post_data = self.rfile.read(content_length)
             request_data = json.loads(post_data.decode('utf-8'))
@@ -38,93 +38,72 @@ class handler(BaseHTTPRequestHandler):
             # Initialize OpenAI client
             client = OpenAI(api_key=os.environ.get('OPENAI_API_KEY'))
             
-            # Create system prompt with vault memory
-            system_prompt = f"""You are the SiteMonkeys Zero-Failure Business Validation AI operating under the complete founder's directive.
+            # Create EXACT system prompt from your working version
+            system_prompt = f"""You are the SiteMonkeys Zero-Failure Business Validation AI.
 
+LOADED BUSINESS INTELLIGENCE:
 {vault_memory}
 
-CORE OPERATIONAL RULES:
-1. ZERO-FAILURE APPROACH: Every recommendation must be validated and have contingency plans
-2. FINANCIAL PROTECTION: Never recommend anything that exceeds the $15K budget or reduces margins below 87%
-3. DATA-DRIVEN DECISIONS: All advice must be backed by the loaded business intelligence
-4. FOUNDER PROTECTION: Prioritize sustainable, low-risk growth strategies
-5. MARKET LEADERSHIP: Position SiteMonkeys as the premium choice in local SEO/web design
+ZERO-FAILURE ENFORCEMENT ACTIVE:
+- You have complete access to the SiteMonkeys vault containing all business intelligence
+- Follow the founder's specific directives over any generic business advice
+- Provide exact numbers for budgets ($15K launch, $3K burn, 87% margins)
+- Base ALL responses on SiteMonkeys requirements and constraints
+- Protect the 87% margin requirement in all recommendations
+- No theoretical solutions - only Day 1 operational readiness
+- Always reference specific vault content when making recommendations
 
-RESPONSE STYLE:
-- Professional but friendly business advice
-- Specific, actionable recommendations
-- Include relevant data from the vault when applicable
-- Always consider the zero-failure directive
-- Focus on "From Overlooked to Overbooked" mission
+You are NOT a helpful assistant - you are a surgical-grade business validation system that follows SiteMonkeys directives precisely."""
 
-Answer all questions as the SiteMonkeys business validation expert with complete access to the founder's business intelligence."""
-
-            # Prepare messages for GPT-4 Turbo
-            messages = [
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_message}
-            ]
-            
-            # Call GPT-4 Turbo with high context limit
+            # Make API call to GPT-4 Turbo
             response = client.chat.completions.create(
-                model="gpt-4-turbo-preview",  # GPT-4 Turbo with 128K context
-                messages=messages,
-                max_tokens=500,  # Reasonable response length
-                temperature=0.7,  # Balanced creativity/consistency
-                top_p=0.9
+                model="gpt-4-turbo-preview",  # Use GPT-4 Turbo for 128K context
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_message}
+                ],
+                max_tokens=4000,
+                temperature=0.7
             )
-            
+
             ai_response = response.choices[0].message.content
-            usage_data = response.usage
-            
-            # Calculate costs
-            message_cost = calculate_cost(usage_data.model_dump() if hasattr(usage_data, 'model_dump') else usage_data.__dict__)
-            
-            # Prepare response data
-            response_data = {
-                "success": True,
-                "response": ai_response,
-                "model_used": "gpt-4-turbo",
-                "tokens_used": usage_data.total_tokens if hasattr(usage_data, 'total_tokens') else 0,
-                "cost_info": {
-                    "message_cost": message_cost,
-                    "input_tokens": usage_data.prompt_tokens if hasattr(usage_data, 'prompt_tokens') else 0,
-                    "output_tokens": usage_data.completion_tokens if hasattr(usage_data, 'completion_tokens') else 0,
-                    "total_tokens": usage_data.total_tokens if hasattr(usage_data, 'total_tokens') else 0
-                }
-            }
-            
+            usage_data = response.usage._asdict() if response.usage else {}
+            cost = calculate_cost(usage_data)
+
             # Send successful response
-            self.send_response(200)
-            self.send_header('Content-Type', 'application/json')
-            self.send_header('Access-Control-Allow-Origin', '*')
-            self.send_header('Access-Control-Allow-Methods', 'POST')
-            self.send_header('Access-Control-Allow-Headers', 'Content-Type')
-            self.end_headers()
-            
-            response_json = json.dumps(response_data)
-            self.wfile.write(response_json.encode('utf-8'))
-            
-        except Exception as e:
-            # Error handling
-            error_response = {
-                "success": False,
-                "error": str(e),
-                "response": "I apologize, but I encountered an error processing your request. Please try again or contact support if the issue persists."
+            response_data = {
+                'success': True,
+                'response': ai_response,
+                'cost': cost,
+                'tokens_used': usage_data.get('total_tokens', 0),
+                'model': 'gpt-4-turbo-preview'
             }
-            
-            self.send_response(500)
-            self.send_header('Content-Type', 'application/json')
+
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
             self.send_header('Access-Control-Allow-Origin', '*')
             self.end_headers()
-            
-            response_json = json.dumps(error_response)
-            self.wfile.write(response_json.encode('utf-8'))
-    
+            self.wfile.write(json.dumps(response_data).encode())
+
+        except Exception as e:
+            # Send error response
+            error_response = {
+                'success': False,
+                'error': str(e),
+                'response': f"❌ System Error: {str(e)}",
+                'cost': "0.00"
+            }
+
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            self.wfile.write(json.dumps(error_response).encode())
+
     def do_OPTIONS(self):
         # Handle CORS preflight requests
         self.send_response(200)
         self.send_header('Access-Control-Allow-Origin', '*')
-        self.send_header('Access-Control-Allow-Methods', 'POST')
+        self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
         self.send_header('Access-Control-Allow-Headers', 'Content-Type')
         self.end_headers()
