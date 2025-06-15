@@ -4,309 +4,365 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SiteMonkeys AI - Business Validation System</title>
-    <link rel="icon" href="assets/apple-touch-icon-site-monkeys.png" type="image/png">
+    <link rel="icon" href="https://images.squarespace-cdn.com/content/v1/66d35f84b9d4a82a6cc6e4e7/1725281255193-VQNM6UV5R0OJKQRQX4D9/apple-touch-icon-site-monkeys.png" type="image/png">
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
             min-height: 100vh;
             color: #333;
         }
-        
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            background: white;
-            box-shadow: 0 0 20px rgba(0,0,0,0.1);
-        }
-        
+
         .header {
-            background: linear-gradient(135deg, #2196F3 0%, #FFC107 100%);
-            padding: 20px;
-            color: white;
-            text-align: center;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            padding: 15px 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
-        
-        .header h1 {
-            font-size: 2em;
-            margin-bottom: 5px;
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
             display: flex;
             align-items: center;
-            justify-content: center;
+            justify-content: space-between;
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
             gap: 15px;
         }
-        
-        .header p {
-            opacity: 0.9;
-            font-size: 1.1em;
+
+        .logo {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
         }
-        
-        .mascot-header {
+
+        .brand-text {
+            color: white;
+        }
+
+        .brand-text h1 {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 2px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .brand-text p {
+            font-size: 12px;
+            opacity: 0.9;
+            font-weight: 500;
+        }
+
+        .cost-tracker {
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 12px;
+            padding: 12px 16px;
+            color: white;
+            font-size: 13px;
+            font-weight: 500;
+            min-width: 180px;
+            text-align: center;
+            display: none;
+        }
+
+        .cost-tracker.visible {
+            display: block;
+        }
+
+        .main-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            height: calc(100vh - 90px);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .session-banner {
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            border: 2px solid rgba(255,255,255,0.2);
+        }
+
+        .session-banner h2 {
+            color: #1f2937;
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .session-banner p {
+            color: #374151;
+            font-size: 14px;
+            font-weight: 500;
+            opacity: 0.8;
+        }
+
+        .status-indicator {
+            background: rgba(255,255,255,0.9);
+            border-radius: 12px;
+            padding: 12px 20px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: 600;
+            border: 2px solid rgba(255,255,255,0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        .status-indicator.loading {
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+            color: #1f2937;
+            animation: pulse 2s infinite;
+        }
+
+        .status-indicator.success {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
+
+        .status-indicator.error {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .chat-container {
+            flex: 1;
+            background: rgba(255,255,255,0.95);
+            border-radius: 20px;
+            padding: 25px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255,255,255,0.3);
+            backdrop-filter: blur(20px);
+        }
+
+        .message {
+            margin-bottom: 20px;
+            padding: 16px 20px;
+            border-radius: 18px;
+            max-width: 85%;
+            line-height: 1.6;
+            font-size: 15px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+
+        .message.user {
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            color: white;
+            margin-left: auto;
+            border-bottom-right-radius: 8px;
+        }
+
+        .message.assistant {
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            color: #1f2937;
+            margin-right: auto;
+            border: 1px solid #e5e7eb;
+            border-bottom-left-radius: 8px;
+        }
+
+        .message.assistant::before {
+            content: "🐒 ";
+            font-size: 18px;
+            margin-right: 8px;
+        }
+
+        .message.thinking {
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+            color: #1f2937;
+            font-style: italic;
+            animation: pulse 2s infinite;
+        }
+
+        .input-container {
+            display: flex;
+            gap: 12px;
+            background: rgba(255,255,255,0.95);
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255,255,255,0.3);
+            backdrop-filter: blur(20px);
+        }
+
+        .input-container input {
+            flex: 1;
+            padding: 16px 20px;
+            border: 2px solid #e5e7eb;
+            border-radius: 16px;
+            font-size: 16px;
+            outline: none;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .input-container input:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .input-container button {
+            padding: 16px 24px;
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+            color: #1f2937;
+            border: none;
+            border-radius: 16px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(251, 191, 36, 0.3);
+        }
+
+        .input-container button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(251, 191, 36, 0.4);
+        }
+
+        .input-container button:active {
+            transform: translateY(0);
+        }
+
+        .mascot-corner {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 20px;
-            margin: 10px 0;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            border: 3px solid rgba(255,255,255,0.3);
+            backdrop-filter: blur(10px);
+            z-index: 50;
         }
-        
-        .mascot {
+
+        .mascot-corner img {
             width: 60px;
             height: 60px;
             border-radius: 50%;
-            border: 3px solid white;
-            background: white;
-            padding: 5px;
-        }
-        
-        .chat-container {
-            flex: 1;
-            padding: 20px;
-            overflow-y: auto;
-            background: #f8f9fa;
-        }
-        
-        .message {
-            margin-bottom: 15px;
-            display: flex;
-            align-items: flex-start;
-            gap: 10px;
-        }
-        
-        .message.user {
-            flex-direction: row-reverse;
-        }
-        
-        .message-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: #2196F3;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: bold;
-            flex-shrink: 0;
-        }
-        
-        .message.user .message-avatar {
-            background: #FFC107;
-            color: #333;
-        }
-        
-        .message-content {
-            background: white;
-            padding: 12px 16px;
-            border-radius: 18px;
-            max-width: 70%;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            line-height: 1.4;
-        }
-        
-        .message.user .message-content {
-            background: #2196F3;
-            color: white;
-        }
-        
-        .input-container {
-            padding: 20px;
-            background: white;
-            border-top: 1px solid #eee;
-        }
-        
-        .input-wrapper {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-        
-        #userInput {
-            flex: 1;
-            padding: 12px 16px;
-            border: 2px solid #e0e0e0;
-            border-radius: 25px;
-            font-size: 16px;
-            outline: none;
-            transition: border-color 0.3s ease;
-        }
-        
-        #userInput:focus {
-            border-color: #2196F3;
-        }
-        
-        .send-button {
-            background: #2196F3;
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            border-radius: 25px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: background-color 0.3s ease;
-        }
-        
-        .send-button:hover {
-            background: #1976D2;
-        }
-        
-        .send-button:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-        }
-        
-        .status {
-            text-align: center;
-            padding: 10px;
-            margin: 10px 0;
-            border-radius: 8px;
-            font-weight: 500;
-        }
-        
-        .status.loading {
-            background: #E3F2FD;
-            color: #1976D2;
-        }
-        
-        .status.success {
-            background: #E8F5E8;
-            color: #2E7D2E;
-        }
-        
-        .status.error {
-            background: #FFEBEE;
-            color: #C62828;
         }
 
-        .session-info {
-            background: #e3f2fd;
-            padding: 15px;
-            border-radius: 8px;
-            margin: 10px 0;
-            font-size: 0.9em;
-            border-left: 4px solid #2196F3;
-        }
-
-        .cost-display {
-            position: fixed;
-            top: 10px;
-            right: 10px;
-            background: rgba(0,0,0,0.8);
-            color: white;
-            padding: 10px;
-            border-radius: 8px;
-            font-size: 12px;
-            z-index: 1000;
-            min-width: 200px;
-        }
-        
+        /* Mobile Responsive */
         @media (max-width: 768px) {
-            .container {
-                height: 100vh;
-            }
-            
-            .header h1 {
-                font-size: 1.5em;
-            }
-            
-            .mascot {
-                width: 50px;
-                height: 50px;
-            }
-            
-            .message-content {
-                max-width: 85%;
+            .header-content {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
             }
 
-            .cost-display {
-                position: relative;
-                top: auto;
-                right: auto;
-                margin: 10px;
-                background: rgba(0,0,0,0.1);
-                color: #333;
+            .main-container {
+                padding: 15px;
+            }
+
+            .session-banner h2 {
+                font-size: 20px;
+            }
+
+            .message {
+                max-width: 95%;
+                font-size: 14px;
+            }
+
+            .input-container {
+                flex-direction: column;
+            }
+
+            .input-container input,
+            .input-container button {
+                width: 100%;
+                font-size: 16px;
+            }
+
+            .mascot-corner {
+                bottom: 20px;
+                right: 20px;
+                width: 60px;
+                height: 60px;
+            }
+
+            .mascot-corner img {
+                width: 45px;
+                height: 45px;
             }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <div class="mascot-header">
-                <span style="font-size: 2em;">🐵</span>
-                <h1>SiteMonkeys AI</h1>
-                <span style="font-size: 2em;">🐵</span>
+    <div class="header">
+        <div class="header-content">
+            <div class="logo-section">
+                <img src="https://images.squarespace-cdn.com/content/v1/66d35f84b9d4a82a6cc6e4e7/1725281255193-VQNM6UV5R0OJKQRQX4D9/apple-touch-icon-site-monkeys.png" alt="SiteMonkeys Logo" class="logo">
+                <div class="brand-text">
+                    <h1>SiteMonkeys AI</h1>
+                    <p>Business Validation System</p>
+                </div>
             </div>
-            <p>Business Validation & Zero-Failure Intelligence System</p>
-            <p style="font-size: 0.9em; margin-top: 5px;">From Overlooked to Overbooked</p>
-        </div>
-        
-        <div id="statusContainer"></div>
-        
-        <div class="chat-container" id="chatContainer">
-            <!-- Messages will be added here -->
-        </div>
-        
-        <div class="input-container">
-            <div class="input-wrapper">
-                <input type="text" id="userInput" placeholder="Ask me about SiteMonkeys business validation..." 
-                       onkeypress="if(event.key==='Enter') sendMessage()">
-                <button class="send-button" onclick="sendMessage()">Send</button>
+            <div class="cost-tracker" id="costTracker">
+                💰 Ready for Analysis
             </div>
         </div>
     </div>
 
+    <div class="main-container">
+        <div class="session-banner">
+            <h2>🎯 SiteMonkeys Business Validation Session</h2>
+            <p>💾 Complete vault loaded • 🔄 Unlimited questions • 📊 Real business intelligence active</p>
+        </div>
+
+        <div class="status-indicator" id="statusIndicator">
+            🚀 Initializing SiteMonkeys AI System...
+        </div>
+
+        <div class="chat-container" id="chatContainer">
+            <!-- Chat messages will appear here -->
+        </div>
+
+        <div class="input-container">
+            <input type="text" id="userInput" placeholder="Ask about SiteMonkeys budget, margins, pricing, legal docs, or any business validation question..." onkeypress="if(event.key==='Enter') sendMessage()">
+            <button onclick="sendMessage()">Send 🚀</button>
+        </div>
+    </div>
+
+    <div class="mascot-corner">
+        <img src="https://images.squarespace-cdn.com/content/v1/66d35f84b9d4a82a6cc6e4e7/1725204909007-4KT15JS8PTGDRT2LXRUF/roxy-v2.png" alt="Roxy Mascot">
+    </div>
+
     <script>
-        let sessionVault = null;  // Store vault in session
+        let sessionVault = null;
         let sessionActive = false;
-        let sessionCostTotal = 0; // Track session costs
-        let dailyCostTotal = parseFloat(localStorage.getItem('dailyCost') || '0');
-        let dailyDate = localStorage.getItem('dailyDate') || new Date().toDateString();
-
-        // Reset daily cost if new day
-        if (dailyDate !== new Date().toDateString()) {
-            dailyCostTotal = 0;
-            dailyDate = new Date().toDateString();
-            localStorage.setItem('dailyCost', '0');
-            localStorage.setItem('dailyDate', dailyDate);
-        }
-
-        function updateCostDisplay(costInfo) {
-            if (costInfo && costInfo.estimated_cost) {
-                const messageCost = parseFloat(costInfo.estimated_cost);
-                sessionCostTotal += messageCost;
-                dailyCostTotal += messageCost;
-                
-                // Save daily cost
-                localStorage.setItem('dailyCost', dailyCostTotal.toString());
-                
-                // Update display
-                let costDisplay = document.getElementById('costDisplay');
-                if (!costDisplay) {
-                    costDisplay = document.createElement('div');
-                    costDisplay.id = 'costDisplay';
-                    costDisplay.className = 'cost-display';
-                    document.body.appendChild(costDisplay);
-                }
-                
-                costDisplay.innerHTML = `
-                    💰 <strong>Cost Tracking</strong><br>
-                    This message: $${messageCost.toFixed(4)}<br>
-                    Session total: $${sessionCostTotal.toFixed(4)}<br>
-                    Today total: $${dailyCostTotal.toFixed(4)}<br>
-                    <small>Tokens: ${costInfo.total_tokens || 'N/A'}</small>
-                `;
-            }
-        }
+        let dailyCost = parseFloat(localStorage.getItem('dailyCost') || '0');
+        let sessionCost = 0;
 
         async function initializeSession() {
             if (sessionVault) {
@@ -314,18 +370,21 @@
                 return sessionVault;
             }
 
-            showStatus('Loading SiteMonkeys business intelligence vault...', 'loading');
+            showStatus('🔄 Loading SiteMonkeys business intelligence vault...', 'loading');
             
             try {
                 const response = await fetch('/api/load-vault');
                 const data = await response.json();
                 
                 if (data.success) {
-                    sessionVault = data.memory;  // Store in session
+                    sessionVault = data.memory;
                     sessionActive = true;
+                    
                     const tokenCount = data.token_estimate || 'Unknown';
-                    showStatus(`✅ Session vault loaded (${tokenCount} tokens) - Ready for validation`, 'success');
-                    console.log('Vault loaded and cached for session');
+                    const foldersLoaded = data.folders_loaded || 0;
+                    
+                    showStatus(`✅ Vault loaded (${tokenCount} tokens, ${foldersLoaded} folders) - Ready for validation`, 'success');
+                    console.log('Complete SiteMonkeys vault loaded and cached for session');
                     return sessionVault;
                 } else {
                     throw new Error(data.error || 'Failed to load vault');
@@ -340,7 +399,6 @@
         async function sendMessage() {
             const input = document.getElementById('userInput');
             const message = input.value.trim();
-            
             if (!message) return;
 
             // Initialize session vault if not loaded
@@ -348,7 +406,7 @@
                 try {
                     await initializeSession();
                 } catch (error) {
-                    return; // Exit if vault loading fails
+                    return;
                 }
             }
 
@@ -367,20 +425,19 @@
                     },
                     body: JSON.stringify({
                         message: message,
-                        vault_memory: sessionVault  // Use cached vault
+                        vault_memory: sessionVault
                     })
                 });
 
                 const data = await response.json();
-                
-                // Remove thinking message
                 thinkingDiv.remove();
 
                 if (data.success) {
                     addMessage(data.response, 'assistant');
+                    
                     // Update cost tracking
-                    if (data.cost_info) {
-                        updateCostDisplay(data.cost_info);
+                    if (data.cost) {
+                        updateCostTracking(data.cost);
                     }
                 } else {
                     addMessage(`❌ Error: ${data.error}`, 'assistant');
@@ -392,65 +449,50 @@
             }
         }
 
-        function addMessage(content, sender, isTemporary = false) {
+        function addMessage(content, sender, isThinking = false) {
             const chatContainer = document.getElementById('chatContainer');
             const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${sender}`;
-            
-            if (isTemporary) {
-                messageDiv.style.opacity = '0.7';
-            }
-            
-            const avatar = document.createElement('div');
-            avatar.className = 'message-avatar';
-            avatar.textContent = sender === 'user' ? '🐵' : '🤖';
-            
-            const content_div = document.createElement('div');
-            content_div.className = 'message-content';
-            content_div.textContent = content;
-            
-            messageDiv.appendChild(avatar);
-            messageDiv.appendChild(content_div);
+            messageDiv.className = `message ${sender}${isThinking ? ' thinking' : ''}`;
+            messageDiv.innerHTML = content.replace(/\n/g, '<br>');
             chatContainer.appendChild(messageDiv);
-            
-            // Scroll to bottom
             chatContainer.scrollTop = chatContainer.scrollHeight;
-            
             return messageDiv;
         }
 
-        function showStatus(message, type) {
-            const statusContainer = document.getElementById('statusContainer');
-            statusContainer.innerHTML = `<div class="status ${type}">${message}</div>`;
+        function updateCostTracking(cost) {
+            sessionCost += cost;
+            dailyCost += cost;
+            localStorage.setItem('dailyCost', dailyCost.toString());
             
-            // Auto-hide success/error messages after 5 seconds
-            if (type !== 'loading') {
-                setTimeout(() => {
-                    statusContainer.innerHTML = '';
-                }, 5000);
-            }
+            const tracker = document.getElementById('costTracker');
+            tracker.innerHTML = `
+                💰 Cost Tracking<br>
+                This msg: $${cost.toFixed(4)}<br>
+                Session: $${sessionCost.toFixed(4)}<br>
+                Today: $${dailyCost.toFixed(4)}
+            `;
+            tracker.classList.add('visible');
         }
 
-        function addSessionInfo() {
-            const info = document.createElement('div');
-            info.className = 'session-info';
-            info.innerHTML = `
-                <div style="text-align: center;">
-                    🎯 <strong>SiteMonkeys Business Validation Session</strong><br>
-                    💾 Vault loaded once per session (cost optimized)<br>
-                    🔄 Unlimited questions this session<br>
-                    📊 Real business intelligence active
-                </div>
-            `;
-            document.getElementById('chatContainer').appendChild(info);
+        function showStatus(message, type) {
+            const indicator = document.getElementById('statusIndicator');
+            indicator.textContent = message;
+            indicator.className = `status-indicator ${type}`;
         }
 
         // Initialize session when page loads
         window.addEventListener('load', () => {
-            addSessionInfo();
-            // Auto-initialize vault for immediate readiness
             initializeSession().catch(console.error);
         });
+
+        // Reset daily cost at midnight
+        const now = new Date();
+        const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+        const msUntilTomorrow = tomorrow.getTime() - now.getTime();
+        setTimeout(() => {
+            localStorage.setItem('dailyCost', '0');
+            location.reload();
+        }, msUntilTomorrow);
     </script>
 </body>
 </html>
