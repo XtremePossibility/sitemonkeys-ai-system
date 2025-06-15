@@ -1,5 +1,6 @@
 import os
 import json
+import openai
 from http.server import BaseHTTPRequestHandler
 
 class handler(BaseHTTPRequestHandler):
@@ -8,31 +9,56 @@ class handler(BaseHTTPRequestHandler):
             # Read request body
             content_length = int(self.headers['Content-Length'])
             post_data = self.rfile.read(content_length)
-            request_data = json.loads(post_data.decode('utf-8'))
+            data = json.loads(post_data.decode('utf-8'))
             
-            user_message = request_data.get('message', '')
-            memory_context = request_data.get('memory', '')
+            user_message = data.get('message', '')
+            vault_memory = data.get('vault_memory', '')
             
-            if not user_message:
-                raise ValueError("No message provided")
+            # Set up OpenAI
+            openai.api_key = os.getenv("OPENAI_API_KEY")
             
-            # Get AI response
-            ai_response = get_ai_response(user_message, memory_context)
+            # Create messages for GPT-4 Turbo (128K context)
+            messages = [
+                {
+                    "role": "system", 
+                    "content": f"""You are the SiteMonkeys business intelligence AI system. You have access to complete business intelligence and must follow the zero-failure directives exactly as specified.
+
+{vault_memory}
+
+CRITICAL INSTRUCTIONS:
+- Follow the founder's directives above all else
+- Provide specific numbers when asked (budgets, margins, burn rates)
+- Base all responses on the loaded business intelligence
+- Never give generic advice - use the specific SiteMonkeys requirements
+- If asked about costs or feasibility, reference the exact constraints above"""
+                },
+                {"role": "user", "content": user_message}
+            ]
+            
+            # Call GPT-4 Turbo with high context limit
+            response = openai.ChatCompletion.create(
+                model="gpt-4-1106-preview",  # GPT-4 Turbo with 128K context
+                messages=messages,
+                max_tokens=4000,
+                temperature=0.1  # Low temperature for consistent business responses
+            )
+            
+            ai_response = response['choices'][0]['message']['content']
             
             # Return success response
             self.send_response(200)
             self.send_header('Content-Type', 'application/json')
             self.send_header('Access-Control-Allow-Origin', '*')
-            self.send_header('Access-Control-Allow-Methods', 'POST, OPTIONS')
-            self.send_header('Access-Control-Allow-Headers', 'Content-Type')
             self.end_headers()
             
-            response = {
+            response_data = {
                 "success": True,
-                "response": ai_response
+                "response": ai_response,
+                "model_used": "gpt-4-turbo",
+                "tokens_used": response.get('usage', {}).get('total_tokens', 'unknown')
             }
             
-            self.wfile.write(json.dumps(response).encode())
+            self.wfile.write(json.dumps(response_data).encode())
             
         except Exception as e:
             # Return error response
@@ -55,30 +81,3 @@ class handler(BaseHTTPRequestHandler):
         self.send_header('Access-Control-Allow-Methods', 'POST, OPTIONS')
         self.send_header('Access-Control-Allow-Headers', 'Content-Type')
         self.end_headers()
-
-def get_ai_response(user_input, memory_context):
-    """Get AI response with your enforcement shell"""
-    import openai
-    
-    # OpenAI setup
-    openai_key = os.getenv("OPENAI_API_KEY")
-    if not openai_key:
-        raise ValueError("OPENAI_API_KEY not found in environment variables")
-    
-    openai.api_key = openai_key
-    
-    try:
-        response = openai.ChatCompletion.create(
-            model="gpt-4",
-            messages=[
-                {"role": "system", "content": memory_context},
-                {"role": "user", "content": user_input}
-            ],
-            temperature=0.2,
-            max_tokens=4000
-        )
-        
-        return response['choices'][0]['message']['content'].strip()
-        
-    except Exception as e:
-        raise Exception(f"OpenAI API Error: {e}")
