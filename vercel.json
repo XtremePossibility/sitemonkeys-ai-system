@@ -1,16 +1,1 @@
-{
-  "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "/api/$1"
-    },
-    {
-      "src": "/(logo\\.png|boy-mascot\\.png|girl-mascot\\.png|Apple.*\\.png)",
-      "dest": "/public/$1"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/public/index.html"
-    }
-  ]
-}
+{}
