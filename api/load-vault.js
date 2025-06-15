@@ -1,49 +1,97 @@
-import OpenAI from 'openai';
+import { google } from 'googleapis';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
-});
+const VAULT_FOLDER_ID = '1LAkbqjN7g-HJV9BRWV-AsmMpY1JzJiIM';
 
 export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ success: false, error: 'Method not allowed' });
-  }
-
   try {
-    const { message, vault_memory } = req.body;
+    const credentialsJson = process.env.GOOGLE_CREDENTIALS_JSON;
+    if (!credentialsJson) throw new Error("Google credentials not found");
 
-    if (!message || !vault_memory) {
-      return res.status(400).json({ success: false, error: 'Missing message or vault data' });
+    const credentials = JSON.parse(credentialsJson);
+    const auth = new google.auth.GoogleAuth({
+      credentials,
+      scopes: ['https://www.googleapis.com/auth/drive.readonly']
+    });
+
+    const drive = google.drive({ version: 'v3', auth });
+
+    const response = await drive.files.list({
+      q: `'${VAULT_FOLDER_ID}' in parents`,
+      fields: 'files(id, name, mimeType)',
+    });
+
+    const files = response.data.files || [];
+    let vaultContent = "=== SITEMONKEYS BUSINESS INTELLIGENCE VAULT ===\n\n";
+    let filesLoaded = 0;
+
+    for (const file of files) {
+      let fileText = '';
+      try {
+        if (file.mimeType === 'application/vnd.google-apps.document') {
+          const exported = await drive.files.export({
+            fileId: file.id,
+            mimeType: 'text/plain',
+          });
+          fileText = exported.data;
+        } else if (file.mimeType === 'text/plain') {
+          const downloaded = await drive.files.get(
+            { fileId: file.id, alt: 'media' },
+            { responseType: 'stream' }
+          );
+          fileText = await streamToString(downloaded.data);
+        } else if (file.mimeType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+          const exported = await drive.files.export({
+            fileId: file.id,
+            mimeType: 'text/plain',
+          });
+          fileText = exported.data;
+        } else if (file.mimeType === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet') {
+          const exported = await drive.files.export({
+            fileId: file.id,
+            mimeType: 'text/csv',
+          });
+          fileText = exported.data;
+        }
+
+        if (fileText) {
+          vaultContent += `\n=== ${file.name} ===\n${fileText}\n\n`;
+          filesLoaded++;
+        }
+      } catch (err) {
+        console.warn(`⚠️ Skipped ${file.name}: ${err.message}`);
+      }
     }
 
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-4',
-      messages: [
-        { role: 'system', content: vault_memory },
-        { role: 'user', content: message }
-      ],
-      temperature: 0.3,
-      max_tokens: 1000
-    });
+    const tokenEstimate = Math.round(vaultContent.length / 4.2);
+    const estimatedCost = (tokenEstimate * 0.002 / 1000).toFixed(4);
 
-    const reply = completion.choices?.[0]?.message?.content || 'No response.';
-    const usage = completion.usage || { total_tokens: 0 };
-    const estimatedCost = (usage.total_tokens * 0.002 / 1000).toFixed(4);
-
-    return res.status(200).json({
+    res.status(200).json({
       success: true,
-      response: reply,
-      cost_info: {
-        total_tokens: usage.total_tokens,
-        estimated_cost: estimatedCost
-      }
+      memory: vaultContent,
+      token_estimate: tokenEstimate,
+      folders_loaded: filesLoaded,
+      estimated_cost: `$${estimatedCost}`,
+      mode: 'google_drive_loaded'
     });
-
-  } catch (err) {
-    console.error('Chat API error:', err);
-    return res.status(500).json({
-      success: false,
-      error: err.message || 'Internal server error'
+  } catch (error) {
+    console.error('Vault load failed:', error);
+    res.status(200).json({
+      success: true,
+      memory: "=== SITEMONKEYS BUSINESS INTELLIGENCE VAULT ===\n\n",
+      token_estimate: 12,
+      folders_loaded: 0,
+      estimated_cost: "$0.0000",
+      mode: 'fallback_mode',
+      error: error.message
     });
   }
+}
+
+function streamToString(stream) {
+  return new Promise((resolve, reject) => {
+    const chunks = [];
+    stream.on('data', chunk => chunks.push(chunk));
+    stream.on('end', () => resolve(Buffer.concat(chunks).toString('utf-8')));
+    stream.on('error', reject);
+  });
 }
