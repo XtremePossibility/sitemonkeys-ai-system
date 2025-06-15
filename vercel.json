@@ -5,7 +5,7 @@
       "dest": "/api/$1"
     },
     {
-      "src": "/(.*\\.(png|jpg|jpeg|gif|svg|ico))",
+      "src": "/(logo\\.png|boy-mascot\\.png|girl-mascot\\.png|Apple.*\\.png)",
       "dest": "/public/$1"
     },
     {
