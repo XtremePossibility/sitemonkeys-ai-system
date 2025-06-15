@@ -1,50 +1,91 @@
-<script>
-  // inside sendMessage()
-  async function sendMessage() {
-    const input = document.getElementById('userInput');
-    const box = document.getElementById('chatBox');
-    const msg = document.createElement('p');
-    msg.textContent = '🧑 You: ' + input.value;
-    box.appendChild(msg);
-    sessionLog.push('🧑 You: ' + input.value);
-
-    const thinking = document.createElement('p');
-    thinking.textContent = '🐒 Sending to AI...';
-    thinking.className = 'status';
-    box.appendChild(thinking);
-    box.scrollTop = box.scrollHeight;
-
-    try {
-      const res = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: input.value, vault_memory: sessionVault })
-      });
-      const data = await res.json();
-      thinking.remove();
-
-      const label = messageCount % 2 === 0 ? '🧒 Eli:' : '👧 Roxy:';
-      const response = document.createElement('p');
-      response.className = 'status';
-      response.innerHTML = `${label}<br>${data.response}`; // use .innerHTML to preserve <br> tags
-      box.appendChild(response);
-      sessionLog.push(`${label}\n${data.response.replace(/<br>/g, '\n')}`);
-
-      if (data.cost_info?.estimated_cost) {
-        sessionCost += parseFloat(data.cost_info.estimated_cost);
-        const costNote = document.createElement('p');
-        costNote.className = 'status';
-        costNote.textContent = `💰 Session total: $${sessionCost.toFixed(4)} | Tokens: ${data.cost_info.total_tokens || 'N/A'}`;
-        box.appendChild(costNote);
-        sessionLog.push(costNote.textContent);
-      }
-
-      box.scrollTop = box.scrollHeight;
-      messageCount++;
-    } catch (err) {
-      thinking.textContent = '❌ Connection error';
-      console.error(err);
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SiteMonkeys Business Validation System</title>
+  <link rel="icon" href="logo.png" type="image/png">
+  <link rel="manifest" href="/manifest.json" />
+  <style>
+    body {
+      background: #121212;
+      color: #fff;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      padding: 20px;
+      max-width: 100%;
+      font-size: clamp(14px, 2.5vw, 18px);
+      overflow-wrap: break-word;
     }
-    input.value = '';
-  }
-</script>
+    .chat-box p {
+      margin-bottom: 10px;
+      white-space: pre-wrap;
+    }
+    .status {
+      color: #0f0;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>SiteMonkeys AI 🐒</h1>
+  <div class="chat-box" id="chatBox"></div>
+  <input type="text" id="userInput" placeholder="Ask a business question...">
+  <button onclick="sendMessage()">Send</button>
+  <script>
+    let sessionVault = null;
+    let sessionCost = 0;
+    let messageCount = 0;
+
+    async function initializeSession() {
+      try {
+        const res = await fetch('/api/load-vault');
+        const data = await res.json();
+        if (data.success) {
+          sessionVault = data.memory || '';
+        }
+      } catch (err) {
+        console.error('Vault load failed:', err);
+      }
+    }
+
+    async function sendMessage() {
+      const input = document.getElementById('userInput');
+      const box = document.getElementById('chatBox');
+      const userMsg = input.value;
+      box.innerHTML += `<p>🧑 You: ${userMsg}</p>`;
+      input.value = '';
+
+      const thinking = document.createElement('p');
+      thinking.textContent = '🤖 Thinking...';
+      box.appendChild(thinking);
+
+      try {
+        const res = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: userMsg, vault_memory: sessionVault })
+        });
+        const data = await res.json();
+        thinking.remove();
+
+        const reply = data.response || 'No response';
+        const label = messageCount % 2 === 0 ? '🧒 Eli:' : '👧 Roxy:';
+        box.innerHTML += `<p>${label}<br>${reply}</p>`;
+
+        if (data.cost_info?.estimated_cost) {
+          sessionCost += parseFloat(data.cost_info.estimated_cost);
+          box.innerHTML += `<p class="status">💰 Session total: $${sessionCost.toFixed(4)} | Tokens: ${data.cost_info.total_tokens || 'N/A'}</p>`;
+        }
+
+        messageCount++;
+        box.scrollTop = box.scrollHeight;
+      } catch (err) {
+        thinking.textContent = '❌ Connection error';
+        console.error(err);
+      }
+    }
+
+    window.addEventListener('load', initializeSession);
+  </script>
+</body>
+</html>
