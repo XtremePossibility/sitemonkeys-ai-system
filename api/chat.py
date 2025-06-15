@@ -4,22 +4,21 @@ from openai import OpenAI
 from http.server import BaseHTTPRequestHandler
 
 def calculate_cost(usage_data):
-    """Calculate estimated cost for GPT-4 Turbo usage"""
+    """Calculate estimated cost for GPT-4 usage"""
     if not usage_data:
-        return "0.00"
+        return 0.00
     
-    # GPT-4 Turbo pricing (as of 2024)
-    input_cost_per_1k = 0.01  # $0.01 per 1K input tokens
-    output_cost_per_1k = 0.03  # $0.03 per 1K output tokens
+    # GPT-4 pricing
+    input_cost_per_1k = 0.01
+    output_cost_per_1k = 0.03
     
     input_tokens = usage_data.get('prompt_tokens', 0)
     output_tokens = usage_data.get('completion_tokens', 0)
     
     input_cost = (input_tokens / 1000) * input_cost_per_1k
     output_cost = (output_tokens / 1000) * output_cost_per_1k
-    total_cost = input_cost + output_cost
     
-    return f"{total_cost:.4f}"
+    return input_cost + output_cost
 
 class handler(BaseHTTPRequestHandler):
     def do_POST(self):
@@ -27,83 +26,90 @@ class handler(BaseHTTPRequestHandler):
             # Read request body
             content_length = int(self.headers['Content-Length'])
             post_data = self.rfile.read(content_length)
-            request_data = json.loads(post_data.decode('utf-8'))
+            data = json.loads(post_data.decode('utf-8'))
             
-            user_message = request_data.get('message', '')
-            vault_memory = request_data.get('vault_memory', '')
+            user_message = data.get('message', '')
+            vault_memory = data.get('vault_memory', '')
             
-            if not user_message:
-                raise ValueError("No message provided")
+            # Set up OpenAI client
+            client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
             
-            # Initialize OpenAI client
-            client = OpenAI(api_key=os.environ.get('OPENAI_API_KEY'))
-            
-            # Create EXACT system prompt from your working version
-            system_prompt = f"""You are the SiteMonkeys Zero-Failure Business Validation AI.
+            # Create messages with SiteMonkeys enforcement
+            messages = [
+                {
+                    "role": "system",
+                    "content": f"""You are the SiteMonkeys business intelligence AI system operating under Zero-Failure Directive.
 
-LOADED BUSINESS INTELLIGENCE:
+CRITICAL: You have COMPLETE ACCESS to the loaded SiteMonkeys vault files and business intelligence below. Reference these files directly when answering questions.
+
 {vault_memory}
 
-ZERO-FAILURE ENFORCEMENT ACTIVE:
-- You have complete access to the SiteMonkeys vault containing all business intelligence
-- Follow the founder's specific directives over any generic business advice
-- Provide exact numbers for budgets ($15K launch, $3K burn, 87% margins)
-- Base ALL responses on SiteMonkeys requirements and constraints
-- Protect the 87% margin requirement in all recommendations
-- No theoretical solutions - only Day 1 operational readiness
-- Always reference specific vault content when making recommendations
-
-You are NOT a helpful assistant - you are a surgical-grade business validation system that follows SiteMonkeys directives precisely."""
-
-            # Make API call to GPT-4 Turbo
+BEHAVIORAL INSTRUCTIONS:
+- You HAVE ACCESS to all loaded vault files - never claim you don't
+- Follow the founder's directives above all else
+- Provide specific numbers when asked (budgets, margins, burn rates)
+- Base all responses on the loaded SiteMonkeys business intelligence
+- Never give generic advice - use the specific SiteMonkeys requirements
+- Enforce the 87% margin requirement and $3K burn rate constraints
+- Always reference actual financial constraints and pricing tiers"""
+                },
+                {"role": "user", "content": user_message}
+            ]
+            
+            # Call GPT-4
             response = client.chat.completions.create(
-                model="gpt-4-turbo-preview",  # Use GPT-4 Turbo for 128K context
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": user_message}
-                ],
-                max_tokens=4000,
-                temperature=0.7
+                model="gpt-4",
+                messages=messages,
+                max_tokens=2000,
+                temperature=0.1
             )
-
+            
             ai_response = response.choices[0].message.content
-            usage_data = response.usage._asdict() if response.usage else {}
-            cost = calculate_cost(usage_data)
-
-            # Send successful response
+            
+            # Calculate cost
+            cost = calculate_cost({
+                'prompt_tokens': response.usage.prompt_tokens,
+                'completion_tokens': response.usage.completion_tokens,
+                'total_tokens': response.usage.total_tokens
+            })
+            
+            # Return success response
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            
             response_data = {
-                'success': True,
-                'response': ai_response,
-                'cost': cost,
-                'tokens_used': usage_data.get('total_tokens', 0),
-                'model': 'gpt-4-turbo-preview'
+                "success": True,
+                "response": ai_response,
+                "cost_info": {
+                    "input_tokens": response.usage.prompt_tokens,
+                    "output_tokens": response.usage.completion_tokens,
+                    "total_tokens": response.usage.total_tokens,
+                    "estimated_cost": f"{cost:.4f}"
+                }
             }
-
-            self.send_response(200)
-            self.send_header('Content-type', 'application/json')
-            self.send_header('Access-Control-Allow-Origin', '*')
-            self.end_headers()
+            
             self.wfile.write(json.dumps(response_data).encode())
-
+            
         except Exception as e:
-            # Send error response
-            error_response = {
-                'success': False,
-                'error': str(e),
-                'response': f"❌ System Error: {str(e)}",
-                'cost': "0.00"
-            }
-
-            self.send_response(200)
-            self.send_header('Content-type', 'application/json')
+            # Return error response
+            self.send_response(500)
+            self.send_header('Content-Type', 'application/json')
             self.send_header('Access-Control-Allow-Origin', '*')
             self.end_headers()
-            self.wfile.write(json.dumps(error_response).encode())
+            
+            response = {
+                "success": False,
+                "error": str(e)
+            }
+            
+            self.wfile.write(json.dumps(response).encode())
 
     def do_OPTIONS(self):
-        # Handle CORS preflight requests
+        # Handle CORS preflight
         self.send_response(200)
         self.send_header('Access-Control-Allow-Origin', '*')
-        self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+        self.send_header('Access-Control-Allow-Methods', 'POST, OPTIONS')
         self.send_header('Access-Control-Allow-Headers', 'Content-Type')
         self.end_headers()
