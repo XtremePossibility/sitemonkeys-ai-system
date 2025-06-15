@@ -31,9 +31,9 @@
       margin-bottom: 20px;
     }
     header img {
-      height: 80px;
+      height: 100px;
       border: none;
-      background: transparent;
+      background: none;
     }
     main {
       display: flex;
@@ -144,7 +144,7 @@
       <div class="chat-input">
         <input type="text" id="userInput" placeholder="Ask a business question...">
         <button onclick="sendMessage()">
-          <img src="Rocket no smoke.png" alt="Send" style="height: 24px; vertical-align: middle;">
+          <img src="rocket-no-smoke.png" alt="Send" style="height: 24px; vertical-align: middle;">
         </button>
         <button onclick="downloadLog()">📥 Download Session Log</button>
       </div>
@@ -152,8 +152,123 @@
     <img src="girl-mascot.png" alt="Roxy" class="mascot">
   </main>
   <script>
-    // All previously written JavaScript remains unchanged
-    // This file is now fully finalized for copy and paste deployment
+    let sessionVault = null;
+    let sessionCost = 0;
+    let messageCount = 0;
+    let sessionLog = [];
+
+    async function initializeSession() {
+      const statusDisplay = document.getElementById('statusDisplay');
+      statusDisplay.textContent = '🔄 Loading SiteMonkeys business intelligence vault...';
+      try {
+        const res = await fetch('/api/load-vault');
+        const data = await res.json();
+        if (data.success) {
+          sessionVault = data.vault_content || data.memory;
+          document.getElementById('check-vault').textContent = '✅ Vault loaded';
+          document.getElementById('check-zero').textContent = '✅ Zero-Failure Directive';
+          document.getElementById('check-budget').textContent = '✅ Budget Constraints';
+          document.getElementById('check-pricing').textContent = '✅ Pricing Strategy';
+          document.getElementById('check-legal').textContent = '✅ Legal Framework';
+          document.getElementById('check-done').style.display = 'block';
+          sessionCost = 0;
+          statusDisplay.textContent = `✅ Vault loaded (${data.tokens} tokens, ${data.folders_loaded || 0} folders)`;
+        } else {
+          throw new Error(data.error);
+        }
+      } catch (err) {
+        statusDisplay.textContent = '❌ Failed to load business intelligence vault';
+        console.error('Vault load failed:', err);
+      }
+    }
+
+    function typeResponse(text, label, box) {
+      const paragraph = document.createElement('p');
+      paragraph.className = 'status typing';
+      let index = 0;
+      const characters = [...`${label} ${text}`];
+      const sessionText = `${label} ${text}`;
+
+      const interval = setInterval(() => {
+        if (index < characters.length) {
+          const span = document.createElement('span');
+          span.textContent = characters[index];
+          paragraph.appendChild(span);
+          box.scrollTop = box.scrollHeight;
+          index++;
+        } else {
+          clearInterval(interval);
+          sessionLog.push(sessionText);
+        }
+      }, 20);
+
+      box.appendChild(paragraph);
+    }
+
+    async function sendMessage() {
+      const input = document.getElementById('userInput');
+      const box = document.getElementById('chatBox');
+      const msg = document.createElement('p');
+      msg.textContent = '🧑 You: ' + input.value;
+      box.appendChild(msg);
+      sessionLog.push('🧑 You: ' + input.value);
+
+      const thinking = document.createElement('p');
+      thinking.textContent = '🐒 Sending to AI (check API)...';
+      thinking.className = 'status';
+      box.appendChild(thinking);
+      box.scrollTop = box.scrollHeight;
+
+      try {
+        const res = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: input.value, vault_memory: sessionVault })
+        });
+        const data = await res.json();
+        thinking.remove();
+
+        const label = messageCount % 2 === 0 ? '🧒 Eli:' : '👧 Roxy:';
+        typeResponse(data.response, label, box);
+
+        if (data.cost_info?.estimated_cost) {
+          sessionCost += parseFloat(data.cost_info.estimated_cost);
+          const costNote = document.createElement('p');
+          costNote.className = 'status';
+          costNote.textContent = `💰 Session total: $${sessionCost.toFixed(4)} | Tokens: ${data.cost_info.total_tokens || 'N/A'}`;
+          box.appendChild(costNote);
+          sessionLog.push(costNote.textContent);
+        }
+
+        box.scrollTop = box.scrollHeight;
+        messageCount++;
+      } catch (err) {
+        thinking.textContent = '❌ Connection error: Ensure API key, credentials, and routes are set correctly';
+        console.error(err);
+      }
+      input.value = '';
+    }
+
+    function downloadLog() {
+      const logText = sessionLog.join('
+');
+      const blob = new Blob([logText], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'SiteMonkeys_Session_Log.txt';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    window.addEventListener('load', initializeSession);
+
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js')
+        .then(() => console.log('✅ Service worker registered'))
+        .catch(err => console.error('❌ Service worker registration failed:', err));
+    }
   </script>
 </body>
 </html>
