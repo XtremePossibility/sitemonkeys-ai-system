@@ -3,6 +3,24 @@ import json
 import openai
 from http.server import BaseHTTPRequestHandler
 
+def calculate_cost(usage_data):
+    """Calculate estimated cost for GPT-4 Turbo usage"""
+    if not usage_data:
+        return "0.00"
+    
+    # GPT-4 Turbo pricing (as of 2024)
+    input_cost_per_1k = 0.01   # $0.01 per 1K input tokens
+    output_cost_per_1k = 0.03  # $0.03 per 1K output tokens
+    
+    input_tokens = usage_data.get('prompt_tokens', 0)
+    output_tokens = usage_data.get('completion_tokens', 0)
+    
+    input_cost = (input_tokens / 1000) * input_cost_per_1k
+    output_cost = (output_tokens / 1000) * output_cost_per_1k
+    total_cost = input_cost + output_cost
+    
+    return f"{total_cost:.4f}"
+
 class handler(BaseHTTPRequestHandler):
     def do_POST(self):
         try:
@@ -55,7 +73,14 @@ CRITICAL INSTRUCTIONS:
                 "success": True,
                 "response": ai_response,
                 "model_used": "gpt-4-turbo",
-                "tokens_used": response.get('usage', {}).get('total_tokens', 'unknown')
+                "tokens_used": response.get('usage', {}).get('total_tokens', 'unknown'),
+                "cost_info": {
+                    "input_tokens": response.get('usage', {}).get('prompt_tokens', 0),
+                    "output_tokens": response.get('usage', {}).get('completion_tokens', 0),
+                    "total_tokens": response.get('usage', {}).get('total_tokens', 0),
+                    "estimated_cost": calculate_cost(response.get('usage', {})),
+                    "session_total": "tracked_in_frontend"
+                }
             }
             
             self.wfile.write(json.dumps(response_data).encode())
