@@ -42,59 +42,41 @@ class handler(BaseHTTPRequestHandler):
 def load_minimal_core():
     """Load only essential SiteMonkeys intelligence to fit in 8K tokens"""
     
-    core_intelligence = """=== SITEMONKEYS BUSINESS INTELLIGENCE ===
+    core_intelligence = """=== SITEMONKEYS CORE INTELLIGENCE ===
 
-BUDGET CONSTRAINTS:
+BUDGET & FINANCIAL:
 - Launch Budget: $15,000 maximum
 - Monthly Burn: $3,000 maximum  
 - Target Margins: 87% minimum at scale
+- Boost: $697/month, Climb: $1,497/month, Lead: $2,997/month
 
-PRICING STRATEGY:
-- Boost Plan: $697/month
-- Climb Plan: $1,497/month  
-- Lead Plan: $2,997/month
-- Positioning: 70-90% cheaper than $30K agencies
+ZERO-FAILURE ENFORCEMENT:
+1. Follow founder's directives above all else - no generic advice
+2. Provide specific numbers when asked (budgets, margins, timelines)
+3. Base responses on SiteMonkeys requirements only
+4. Focus on real-world survivability and 87% margin protection
+5. No placeholders - everything must work from Day 1
 
-ZERO-FAILURE DIRECTIVES:
-1. Follow founder's directives above all else
-2. No generic advice - use specific SiteMonkeys requirements
-3. Base all responses on loaded business intelligence
-4. Provide specific numbers when asked
-5. Focus on real-world survivability and scalability
-
-CORE SERVICES REQUIRED:
-- Complete SEO automation (technical, on-page, off-page, local)
-- Full PPC management (Google, Meta, TikTok, LinkedIn)
-- Content generation (blogs, social, creative assets)
-- Review management and reputation rescue
-- Analytics and reporting dashboards
-- Customer onboarding and success automation
-
-TECHNICAL REQUIREMENTS:
-- 100% AI automation (no human runtime dependencies)
-- 99.8% uptime target
-- Handles 100K+ customers without degradation
-- Triple-AI failover (Claude → GPT-4 → Mistral)
-- Complete IP protection and clone resistance
-
-BUSINESS MODEL:
-- Replace $30K/month marketing agencies
-- AI-powered service delivery
-- Agency results at fraction of cost
+CORE BUSINESS MODEL:
+- Replace $30K/month agencies with $697-$2,997 AI automation
+- 100% AI service delivery (SEO, PPC, content, creative, reviews)
+- 99.8% uptime, handles 100K+ customers
 - "From Overlooked to Overbooked" positioning
 
-FOUNDER ENFORCEMENT:
-- Truthfulness over politeness
-- Real-world validation required
-- No placeholders or "Phase 2" solutions
-- Everything must work from Day 1
-- Margins and budget constraints non-negotiable
+TECHNICAL REQUIREMENTS:
+- Triple-AI failover system (Claude → GPT-4 → Mistral)
+- Complete IP protection and clone resistance
+- No human runtime dependencies
+- Launch in 4 weeks maximum
 
-REQUEST ADDITIONAL FILES: Ask "Load [specific area] for [business need]" to access:
-- Legal documents and contracts
-- Contractor handoff materials  
-- Implementation roadmaps
-- AI tuning protocols
-- Session logging capabilities"""
+NON-NEGOTIABLES:
+- 87% margins maintained at scale
+- $15K launch budget maximum
+- $3K monthly burn maximum
+- Agency-quality results from Day 1
+- Real-world stress testing required
+
+AVAILABLE: Legal docs, contractor materials, implementation roadmaps
+REQUEST: "Load [specific area] for [business need]" """
 
     return core_intelligence
