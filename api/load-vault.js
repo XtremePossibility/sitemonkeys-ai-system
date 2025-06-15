@@ -25,32 +25,27 @@ export default async function handler(req, res) {
     let filesLoaded = 0;
 
     for (const file of files) {
+      let fileText = '';
       try {
-        let fileText = '';
         if (file.mimeType === 'application/vnd.google-apps.document') {
-          // Google Doc
           const exported = await drive.files.export({
             fileId: file.id,
             mimeType: 'text/plain',
           });
           fileText = exported.data;
         } else if (file.mimeType === 'text/plain') {
-          // Plain .txt file
-          const downloaded = await drive.files.get({
-            fileId: file.id,
-            alt: 'media',
-          }, { responseType: 'stream' });
-
+          const downloaded = await drive.files.get(
+            { fileId: file.id, alt: 'media' },
+            { responseType: 'stream' }
+          );
           fileText = await streamToString(downloaded.data);
         } else if (file.mimeType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
-          // Word (.docx)
           const exported = await drive.files.export({
             fileId: file.id,
             mimeType: 'text/plain',
           });
           fileText = exported.data;
         } else if (file.mimeType === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet') {
-          // Excel (.xlsx)
           const exported = await drive.files.export({
             fileId: file.id,
             mimeType: 'text/csv',
@@ -62,9 +57,8 @@ export default async function handler(req, res) {
           vaultContent += `\n=== ${file.name} ===\n${fileText}\n\n`;
           filesLoaded++;
         }
-      } catch (fileError) {
-        console.error(`❌ Error loading file "${file.name}":`, fileError.message);
-        continue;
+      } catch (err) {
+        console.warn(`⚠️ Skipped ${file.name}: ${err.message}`);
       }
     }
 
@@ -77,10 +71,10 @@ export default async function handler(req, res) {
       token_estimate: tokenEstimate,
       folders_loaded: filesLoaded,
       estimated_cost: `$${estimatedCost}`,
-      mode: 'google_drive_loaded',
+      mode: 'google_drive_loaded'
     });
   } catch (error) {
-    console.error('Vault loading error:', error);
+    console.error('Vault load failed:', error);
     res.status(200).json({
       success: true,
       memory: "=== SITEMONKEYS BUSINESS INTELLIGENCE VAULT ===\n\n",
