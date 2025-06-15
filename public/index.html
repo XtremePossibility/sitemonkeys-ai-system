@@ -201,7 +201,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <!-- SiteMonkeys Logo - FIXED PATH -->
+            <!-- SiteMonkeys Logo - FIXED PATH (NO SLASH) -->
             <img src="logo.png" alt="SiteMonkeys Logo" class="logo">
             <h1 class="title">SiteMonkeys</h1>
             <p class="subtitle">AI-Powered Business Validation System</p>
@@ -209,12 +209,12 @@
             
             <div class="mascots">
                 <div class="mascot">
-                    <!-- Eli - FIXED PATH -->
+                    <!-- Eli - FIXED PATH (NO SLASH) -->
                     <img src="boy-mascot.png" alt="Eli" class="mascot-img">
                     <div class="mascot-name">Eli - Strategy Monkey</div>
                 </div>
                 <div class="mascot">
-                    <!-- Roxy - FIXED PATH -->
+                    <!-- Roxy - FIXED PATH (NO SLASH) -->
                     <img src="girl-mascot.png" alt="Roxy" class="mascot-img">
                     <div class="mascot-name">Roxy - Analytics Monkey</div>
                 </div>
@@ -289,7 +289,7 @@
                 const response = await fetch('/api/load-vault');
                 const data = await response.json();
                 
-                if (data.status === 'Loaded') {
+                if (data.status === 'OPERATIONAL') {
                     // Update vault status displays
                     document.getElementById('vault-status').textContent = 'Complete';
                     document.getElementById('token-count').textContent = data.tokens || 0;
@@ -298,7 +298,7 @@
                     document.getElementById('connection-status').textContent = 'CONNECTED';
                     document.getElementById('api-status').innerHTML = '<span style="color: #27ae60;">✅ CONNECTED</span>';
                     
-                    // Update welcome message with actual vault content
+                    // Update welcome message
                     const welcomeMsg = document.getElementById('welcome-message');
                     welcomeMsg.textContent = 'Welcome to the SiteMonkeys Business Validation System! I have your complete vault loaded with financial constraints ($15K budget, $3K burn, 87% margins), pricing tiers ($697/$1,497/$2,997), legal framework, and zero-failure protocols. Ready to validate your launch preparation and transform your business strategy!';
                 } else {
@@ -312,7 +312,7 @@
                 
                 // Fallback welcome message
                 const welcomeMsg = document.getElementById('welcome-message');
-                welcomeMsg.textContent = 'Welcome to the SiteMonkeys Business Validation System! I have your complete vault loaded with financial constraints ($15K budget, $3K burn, 87% margins), pricing tiers ($697/$1,497/$2,997), legal framework, and zero-failure protocols. Ready to validate your launch preparation and transform your business strategy!';
+                welcomeMsg.textContent = 'Welcome to the SiteMonkeys Business Validation System! System running in fallback mode. Interface operational for business validation and strategy planning.';
             }
         }
         
@@ -322,25 +322,27 @@
             const mascots = document.querySelectorAll('.mascot-img');
             
             let imagesLoaded = 0;
+            let imagesFailed = 0;
             const totalImages = 3;
             
-            function checkImageLoad() {
-                imagesLoaded++;
-                if (imagesLoaded === totalImages) {
-                    document.getElementById('image-status').innerHTML = '<span style="color: #27ae60;">✅ LOADED</span>';
+            function checkComplete() {
+                if (imagesLoaded + imagesFailed === totalImages) {
+                    if (imagesLoaded === totalImages) {
+                        document.getElementById('image-status').innerHTML = '<span style="color: #27ae60;">✅ LOADED</span>';
+                    } else if (imagesLoaded > 0) {
+                        document.getElementById('image-status').innerHTML = '<span style="color: #f39c12;">⚠️ PARTIAL</span>';
+                    } else {
+                        document.getElementById('image-status').innerHTML = '<span style="color: #e74c3c;">❌ FAILED</span>';
+                    }
                 }
             }
             
-            logo.onload = checkImageLoad;
-            logo.onerror = () => {
-                document.getElementById('image-status').innerHTML = '<span style="color: #e74c3c;">❌ FAILED</span>';
-            };
+            logo.onload = () => { imagesLoaded++; checkComplete(); };
+            logo.onerror = () => { imagesFailed++; checkComplete(); };
             
             mascots.forEach(mascot => {
-                mascot.onload = checkImageLoad;
-                mascot.onerror = () => {
-                    document.getElementById('image-status').innerHTML = '<span style="color: #e74c3c;">❌ FAILED</span>';
-                };
+                mascot.onload = () => { imagesLoaded++; checkComplete(); };
+                mascot.onerror = () => { imagesFailed++; checkComplete(); };
             });
         }
         
