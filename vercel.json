@@ -1,9 +1,14 @@
 {
-  "functions": {
-    "api/load-vault.py": {
-      "runtime": "@vercel/python@3.9.16"
+  "builds": [
+    {
+      "src": "api/*.py",
+      "use": "@vercel/python"
+    },
+    {
+      "src": "index.html",
+      "use": "@vercel/static"
     }
-  },
+  ],
   "routes": [
     {
       "src": "/api/(.*)",
