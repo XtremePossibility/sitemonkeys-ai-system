@@ -1,18 +1,1 @@
-{
-  "builds": [
-    {
-      "src": "api/load-vault.py",
-      "use": "@vercel/python"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/api/load-vault",
-      "dest": "/api/load-vault.py"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
-    }
-  ]
-}
+
