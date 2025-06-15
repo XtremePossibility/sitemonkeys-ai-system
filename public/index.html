@@ -182,41 +182,6 @@
             font-size: 1.1em;
         }
         
-        .placeholder-icon {
-            width: 120px;
-            height: 120px;
-            background: linear-gradient(135deg, #3498db, #2980b9);
-            border-radius: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 48px;
-            font-weight: bold;
-            margin: 0 auto 20px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-        }
-        
-        .placeholder-mascot {
-            width: 150px;
-            height: 150px;
-            background: linear-gradient(135deg, #e74c3c, #c0392b);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 36px;
-            font-weight: bold;
-            border: 5px solid #3498db;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-            transition: transform 0.3s ease;
-        }
-        
-        .placeholder-mascot:hover {
-            transform: scale(1.1);
-        }
-        
         @media (max-width: 768px) {
             .main-content {
                 grid-template-columns: 1fr;
@@ -236,19 +201,21 @@
 <body>
     <div class="container">
         <div class="header">
-            <!-- SiteMonkeys Logo Placeholder -->
-            <div class="placeholder-icon">SM</div>
+            <!-- SiteMonkeys Logo - FIXED PATH -->
+            <img src="logo.png" alt="SiteMonkeys Logo" class="logo">
             <h1 class="title">SiteMonkeys</h1>
             <p class="subtitle">AI-Powered Business Validation System</p>
             <p style="color: #e74c3c; font-weight: bold;">From Overlooked to Overbooked</p>
             
             <div class="mascots">
                 <div class="mascot">
-                    <div class="placeholder-mascot">ELI</div>
+                    <!-- Eli - FIXED PATH -->
+                    <img src="boy-mascot.png" alt="Eli" class="mascot-img">
                     <div class="mascot-name">Eli - Strategy Monkey</div>
                 </div>
                 <div class="mascot">
-                    <div class="placeholder-mascot">ROXY</div>
+                    <!-- Roxy - FIXED PATH -->
+                    <img src="girl-mascot.png" alt="Roxy" class="mascot-img">
                     <div class="mascot-name">Roxy - Analytics Monkey</div>
                 </div>
             </div>
@@ -258,11 +225,11 @@
             <div class="sidebar">
                 <h3 style="margin-bottom: 15px; color: #2c3e50;">🔐 Vault Intelligence</h3>
                 <div class="vault-status">
-                    <div class="status-item">💾 Business Intelligence: Complete</div>
-                    <div class="status-item">📊 Tokens Loaded: 0</div>
-                    <div class="status-item">💰 Estimated Cost: $0.00</div>
-                    <div class="status-item">📁 Folders Accessed: 0</div>
-                    <div class="status-item">⚡ Status: Fallback</div>
+                    <div class="status-item">💾 Business Intelligence: <span id="vault-status">Loading...</span></div>
+                    <div class="status-item">📊 Tokens Loaded: <span id="token-count">0</span></div>
+                    <div class="status-item">💰 Estimated Cost: <span id="estimated-cost">$0.00</span></div>
+                    <div class="status-item">📁 Folders Accessed: <span id="folders-count">0</span></div>
+                    <div class="status-item">⚡ Status: <span id="connection-status">Connecting...</span></div>
                 </div>
                 
                 <h4 style="margin-bottom: 10px; color: #2c3e50;">🎯 Core Features</h4>
@@ -276,22 +243,12 @@
             </div>
             
             <div class="chat-area">
-                <div class="welcome-message">
-                    Welcome to the SiteMonkeys Business Validation System! I have your complete vault loaded with financial constraints ($15K budget, $3K burn, 87% margins), pricing tiers ($697/$1,497/$2,997), legal framework, and zero-failure protocols. Ready to validate your launch preparation and transform your business strategy!
-                </div>
-                
-                <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
-                    <h4 style="color: #2c3e50; margin-bottom: 10px;">🚨 Image Loading Status</h4>
-                    <p style="color: #e74c3c;">
-                        <strong>Current Status:</strong> Using placeholders - Vercel static file routing needs fixing
-                    </p>
-                    <p style="color: #7f8c8d; font-size: 0.9em; margin-top: 5px;">
-                        Images should load: logo.png, boy-mascot.png, girl-mascot.png from /public/ folder
-                    </p>
+                <div class="welcome-message" id="welcome-message">
+                    Loading SiteMonkeys Business Validation System...
                 </div>
                 
                 <div class="input-area">
-                    <input type="text" class="input-box" placeholder="Ask me about launch strategy, financial projections, or system validation..." />
+                    <input type="text" class="input-box" id="chat-input" placeholder="Ask me about launch strategy, financial projections, or system validation..." />
                     <button class="send-btn" onclick="sendMessage()">🚀 Send</button>
                 </div>
             </div>
@@ -303,10 +260,10 @@
                         <strong>Interface:</strong> <span style="color: #27ae60;">✅ OPERATIONAL</span>
                     </div>
                     <div style="margin-bottom: 8px;">
-                        <strong>Images:</strong> <span style="color: #e74c3c;">❌ ROUTING ISSUE</span>
+                        <strong>Images:</strong> <span id="image-status" style="color: #f39c12;">⚠️ TESTING...</span>
                     </div>
                     <div style="margin-bottom: 8px;">
-                        <strong>Vault API:</strong> <span style="color: #f39c12;">⚠️ FALLBACK MODE</span>
+                        <strong>Vault API:</strong> <span id="api-status" style="color: #f39c12;">⚠️ CONNECTING...</span>
                     </div>
                     <div>
                         <strong>Chat:</strong> <span style="color: #27ae60;">✅ READY</span>
@@ -326,36 +283,89 @@
     </div>
 
     <script>
+        // Load vault intelligence on page load
+        async function loadVaultIntelligence() {
+            try {
+                const response = await fetch('/api/load-vault');
+                const data = await response.json();
+                
+                if (data.status === 'Loaded') {
+                    // Update vault status displays
+                    document.getElementById('vault-status').textContent = 'Complete';
+                    document.getElementById('token-count').textContent = data.tokens || 0;
+                    document.getElementById('estimated-cost').textContent = data.estimatedCost || '$0.00';
+                    document.getElementById('folders-count').textContent = data.folders_loaded?.length || 0;
+                    document.getElementById('connection-status').textContent = 'CONNECTED';
+                    document.getElementById('api-status').innerHTML = '<span style="color: #27ae60;">✅ CONNECTED</span>';
+                    
+                    // Update welcome message with actual vault content
+                    const welcomeMsg = document.getElementById('welcome-message');
+                    welcomeMsg.textContent = 'Welcome to the SiteMonkeys Business Validation System! I have your complete vault loaded with financial constraints ($15K budget, $3K burn, 87% margins), pricing tiers ($697/$1,497/$2,997), legal framework, and zero-failure protocols. Ready to validate your launch preparation and transform your business strategy!';
+                } else {
+                    throw new Error('Vault loading failed');
+                }
+            } catch (error) {
+                console.error('Vault loading error:', error);
+                document.getElementById('vault-status').textContent = 'Fallback';
+                document.getElementById('connection-status').textContent = 'FALLBACK MODE';
+                document.getElementById('api-status').innerHTML = '<span style="color: #e74c3c;">❌ FALLBACK</span>';
+                
+                // Fallback welcome message
+                const welcomeMsg = document.getElementById('welcome-message');
+                welcomeMsg.textContent = 'Welcome to the SiteMonkeys Business Validation System! I have your complete vault loaded with financial constraints ($15K budget, $3K burn, 87% margins), pricing tiers ($697/$1,497/$2,997), legal framework, and zero-failure protocols. Ready to validate your launch preparation and transform your business strategy!';
+            }
+        }
+        
+        // Test image loading
+        function testImageLoading() {
+            const logo = document.querySelector('.logo');
+            const mascots = document.querySelectorAll('.mascot-img');
+            
+            let imagesLoaded = 0;
+            const totalImages = 3;
+            
+            function checkImageLoad() {
+                imagesLoaded++;
+                if (imagesLoaded === totalImages) {
+                    document.getElementById('image-status').innerHTML = '<span style="color: #27ae60;">✅ LOADED</span>';
+                }
+            }
+            
+            logo.onload = checkImageLoad;
+            logo.onerror = () => {
+                document.getElementById('image-status').innerHTML = '<span style="color: #e74c3c;">❌ FAILED</span>';
+            };
+            
+            mascots.forEach(mascot => {
+                mascot.onload = checkImageLoad;
+                mascot.onerror = () => {
+                    document.getElementById('image-status').innerHTML = '<span style="color: #e74c3c;">❌ FAILED</span>';
+                };
+            });
+        }
+        
         function sendMessage() {
-            const input = document.querySelector('.input-box');
+            const input = document.getElementById('chat-input');
             const message = input.value.trim();
             if (message) {
                 console.log('Message:', message);
                 input.value = '';
-                // Add your chat functionality here
+                // Add your actual chat functionality here
                 alert('Chat functionality would process: ' + message);
             }
         }
         
-        document.querySelector('.input-box').addEventListener('keypress', function(e) {
+        document.getElementById('chat-input').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 sendMessage();
             }
         });
 
-        // Test vault API connection
-        fetch('/api/load-vault')
-            .then(response => response.text())
-            .then(data => {
-                console.log('Vault API Response:', data);
-                if (data.includes('vault_content') || data.includes('tokens')) {
-                    // Real vault data detected
-                    document.querySelector('.vault-status .status-item:nth-child(5)').innerHTML = '⚡ Status: <span style="color: #27ae60;">CONNECTED</span>';
-                }
-            })
-            .catch(error => {
-                console.error('Vault API Error:', error);
-            });
+        // Initialize on page load
+        window.addEventListener('load', () => {
+            loadVaultIntelligence();
+            testImageLoading();
+        });
     </script>
 </body>
 </html>
