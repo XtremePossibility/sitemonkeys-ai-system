@@ -37,11 +37,24 @@
             margin-bottom: 15px;
         }
 
+        .main-logo-section {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 15px;
+        }
+
         .site-logo {
-            width: 60px;
-            height: 60px;
-            border-radius: 12px;
-            border: 2px solid #fbbf24;
+            width: 80px;
+            height: 80px;
+            border-radius: 16px;
+            border: 3px solid #fbbf24;
+            box-shadow: 0 0 20px rgba(251, 191, 36, 0.4);
+        }
+
+        .title-section {
+            text-align: center;
         }
 
         .main-title {
@@ -53,6 +66,7 @@
             background-clip: text;
             text-shadow: 0 0 30px rgba(251, 191, 36, 0.5);
             letter-spacing: 2px;
+            margin-bottom: 5px;
         }
 
         .subtitle {
@@ -60,6 +74,12 @@
             color: #94a3b8;
             font-weight: 600;
             letter-spacing: 1px;
+        }
+
+        .header-rocket {
+            font-size: 60px;
+            animation: float 3s ease-in-out infinite;
+            filter: drop-shadow(0 0 10px rgba(251, 191, 36, 0.6));
         }
 
         /* MAIN CONTAINER */
@@ -82,12 +102,13 @@
         }
 
         .mascot-large {
-            width: 200px;
-            height: 200px;
-            border-radius: 20px;
-            border: 4px solid #fbbf24;
-            box-shadow: 0 10px 30px rgba(251, 191, 36, 0.3);
+            width: 220px;
+            height: 220px;
+            border-radius: 25px;
+            border: 5px solid #fbbf24;
+            box-shadow: 0 15px 40px rgba(251, 191, 36, 0.4);
             transition: transform 0.3s ease;
+            object-fit: cover;
         }
 
         .mascot-large:hover {
@@ -217,11 +238,11 @@
 
         /* Alternating avatars */
         .message.assistant:nth-of-type(even)::before {
-            background-image: url('https://images.squarespace-cdn.com/content/v1/66d35f84b9d4a82a6cc6e4e7/1725204840969-CBZZ37E2TV79KQHPRMKB/eli-v2.png');
+            background-image: url('assets/eli-v2.png');
         }
 
         .message.assistant:nth-of-type(odd)::before {
-            background-image: url('https://images.squarespace-cdn.com/content/v1/66d35f84b9d4a82a6cc6e4e7/1725204909007-4KT15JS8PTGDRT2LXRUF/roxy-v2.png');
+            background-image: url('assets/roxy-v2.png');
         }
 
         .message.thinking {
@@ -321,22 +342,23 @@
         /* ROCKET DECORATIONS */
         .rocket {
             position: absolute;
-            width: 60px;
-            height: 60px;
-            opacity: 0.6;
-            animation: float 3s ease-in-out infinite;
+            font-size: 120px;
+            opacity: 0.7;
+            animation: float 4s ease-in-out infinite;
+            filter: drop-shadow(0 0 15px rgba(251, 191, 36, 0.5));
+            z-index: 1;
         }
 
         .rocket-1 {
-            top: 20%;
-            right: 10%;
+            top: 15%;
+            right: 8%;
             animation-delay: 0s;
         }
 
         .rocket-2 {
-            top: 60%;
-            left: 5%;
-            animation-delay: 1.5s;
+            top: 70%;
+            left: 3%;
+            animation-delay: 2s;
         }
 
         @keyframes float {
@@ -389,17 +411,20 @@
     <!-- TOP HEADER -->
     <div class="top-header">
         <div class="main-logo-section">
-            <img src="https://images.squarespace-cdn.com/content/v1/66d35f84b9d4a82a6cc6e4e7/1725281255193-VQNM6UV5R0OJKQRQX4D9/apple-touch-icon-site-monkeys.png" alt="SiteMonkeys Logo" class="site-logo">
-            <h1 class="main-title">SITE MONKEYS AI</h1>
+            <img src="assets/apple-touch-icon-site-monkeys.png" alt="SiteMonkeys Logo" class="site-logo">
+            <div class="title-section">
+                <h1 class="main-title">SITE MONKEYS AI</h1>
+                <p class="subtitle">BUSINESS VALIDATION ENGINE</p>
+            </div>
+            <div class="header-rocket">🚀</div>
         </div>
-        <p class="subtitle">BUSINESS VALIDATION ENGINE</p>
     </div>
 
     <!-- MAIN CONTAINER -->
     <div class="main-container">
         <!-- LEFT PANEL - ELI & STATUS -->
         <div class="left-panel">
-            <img src="https://images.squarespace-cdn.com/content/v1/66d35f84b9d4a82a6cc6e4e7/1725204840969-CBZZ37E2TV79KQHPRMKB/eli-v2.png" alt="Eli" class="mascot-large">
+            <img src="assets/eli-v2.png" alt="Eli" class="mascot-large">
             
             <div class="status-panel">
                 <div class="status-title">SiteMonkeys<br>Business Validation System</div>
@@ -444,7 +469,7 @@
 
         <!-- RIGHT PANEL - ROXY & COST -->
         <div class="right-panel">
-            <img src="https://images.squarespace-cdn.com/content/v1/66d35f84b9d4a82a6cc6e4e7/1725204909007-4KT15JS8PTGDRT2LXRUF/roxy-v2.png" alt="Roxy" class="mascot-large">
+            <img src="assets/roxy-v2.png" alt="Roxy" class="mascot-large">
             
             <div class="cost-tracker" id="costTracker" style="display: none;">
                 <div class="cost-title">💰 Cost Tracking</div>
