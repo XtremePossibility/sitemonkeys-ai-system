@@ -57,7 +57,7 @@ CRITICAL INSTRUCTIONS:
             response = openai.ChatCompletion.create(
                 model="gpt-4-1106-preview",  # GPT-4 Turbo with 128K context
                 messages=messages,
-                max_tokens=4000,
+                max_tokens=2000,  # Reduced to leave room for vault
                 temperature=0.1  # Low temperature for consistent business responses
             )
             
