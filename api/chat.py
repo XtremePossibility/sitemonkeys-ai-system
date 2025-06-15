@@ -1,6 +1,6 @@
 import os
 import json
-import openai
+from openai import OpenAI
 from http.server import BaseHTTPRequestHandler
 
 def calculate_cost(usage_data):
@@ -32,8 +32,8 @@ class handler(BaseHTTPRequestHandler):
             user_message = data.get('message', '')
             vault_memory = data.get('vault_memory', '')
             
-            # Set up OpenAI
-            openai.api_key = os.getenv("OPENAI_API_KEY")
+            # Set up OpenAI client
+            client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
             
             # Create messages for GPT-4 Turbo (128K context)
             messages = [
@@ -54,14 +54,14 @@ CRITICAL INSTRUCTIONS:
             ]
             
             # Call GPT-4 Turbo with high context limit
-            response = openai.ChatCompletion.create(
-                model="gpt-4-1106-preview",  # GPT-4 Turbo with 128K context
+            response = client.chat.completions.create(
+                model="gpt-4-turbo-preview",  # Latest GPT-4 Turbo with 128K context
                 messages=messages,
-                max_tokens=2000,  # Reduced to leave room for vault
+                max_tokens=2000,
                 temperature=0.1  # Low temperature for consistent business responses
             )
             
-            ai_response = response['choices'][0]['message']['content']
+            ai_response = response.choices[0].message.content
             
             # Return success response
             self.send_response(200)
@@ -73,12 +73,15 @@ CRITICAL INSTRUCTIONS:
                 "success": True,
                 "response": ai_response,
                 "model_used": "gpt-4-turbo",
-                "tokens_used": response.get('usage', {}).get('total_tokens', 'unknown'),
                 "cost_info": {
-                    "input_tokens": response.get('usage', {}).get('prompt_tokens', 0),
-                    "output_tokens": response.get('usage', {}).get('completion_tokens', 0),
-                    "total_tokens": response.get('usage', {}).get('total_tokens', 0),
-                    "estimated_cost": calculate_cost(response.get('usage', {})),
+                    "input_tokens": response.usage.prompt_tokens,
+                    "output_tokens": response.usage.completion_tokens,
+                    "total_tokens": response.usage.total_tokens,
+                    "estimated_cost": calculate_cost({
+                        'prompt_tokens': response.usage.prompt_tokens,
+                        'completion_tokens': response.usage.completion_tokens,
+                        'total_tokens': response.usage.total_tokens
+                    }),
                     "session_total": "tracked_in_frontend"
                 }
             }
