@@ -25,40 +25,41 @@ export default async function handler(req, res) {
     let filesLoaded = 0;
 
     for (const file of files) {
-      let fileText = '';
       try {
+        let content = '';
+
         if (file.mimeType === 'application/vnd.google-apps.document') {
           const exported = await drive.files.export({
             fileId: file.id,
-            mimeType: 'text/plain',
+            mimeType: 'text/plain'
           });
-          fileText = exported.data;
-        } else if (file.mimeType === 'text/plain') {
+          content = exported.data;
+        } else if (file.mimeType === 'text/plain' || file.name.endsWith('.txt')) {
           const downloaded = await drive.files.get(
             { fileId: file.id, alt: 'media' },
             { responseType: 'stream' }
           );
-          fileText = await streamToString(downloaded.data);
-        } else if (file.mimeType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+          content = await streamToString(downloaded.data);
+        } else if (file.mimeType.includes('wordprocessingml.document')) {
           const exported = await drive.files.export({
             fileId: file.id,
-            mimeType: 'text/plain',
+            mimeType: 'text/plain'
           });
-          fileText = exported.data;
-        } else if (file.mimeType === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet') {
+          content = exported.data;
+        } else if (file.mimeType.includes('spreadsheetml.sheet')) {
           const exported = await drive.files.export({
             fileId: file.id,
-            mimeType: 'text/csv',
+            mimeType: 'text/csv'
           });
-          fileText = exported.data;
+          content = exported.data;
         }
 
-        if (fileText) {
-          vaultContent += `\n=== ${file.name} ===\n${fileText}\n\n`;
+        if (content) {
+          vaultContent += `\n=== ${file.name} ===\n${content}\n\n`;
           filesLoaded++;
         }
-      } catch (err) {
-        console.warn(`⚠️ Skipped ${file.name}: ${err.message}`);
+      } catch (fileErr) {
+        console.warn(`⚠️ Skipped ${file.name}: ${fileErr.message}`);
       }
     }
 
@@ -73,8 +74,8 @@ export default async function handler(req, res) {
       estimated_cost: `$${estimatedCost}`,
       mode: 'google_drive_loaded'
     });
-  } catch (error) {
-    console.error('Vault load failed:', error);
+  } catch (err) {
+    console.error('Vault load error:', err);
     res.status(200).json({
       success: true,
       memory: "=== SITEMONKEYS BUSINESS INTELLIGENCE VAULT ===\n\n",
@@ -82,7 +83,7 @@ export default async function handler(req, res) {
       folders_loaded: 0,
       estimated_cost: "$0.0000",
       mode: 'fallback_mode',
-      error: error.message
+      error: err.message
     });
   }
 }
@@ -91,7 +92,7 @@ function streamToString(stream) {
   return new Promise((resolve, reject) => {
     const chunks = [];
     stream.on('data', chunk => chunks.push(chunk));
-    stream.on('end', () => resolve(Buffer.concat(chunks).toString('utf-8')));
+    stream.on('end', () => resolve(Buffer.concat(chunks).toString('utf8')));
     stream.on('error', reject);
   });
 }
