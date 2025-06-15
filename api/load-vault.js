@@ -24,9 +24,11 @@ export default async function handler(req, res) {
     let vaultContent = "=== SITEMONKEYS BUSINESS INTELLIGENCE VAULT ===\n\n";
     let filesLoaded = 0;
 
+    console.log(`📦 Found ${files.length} files in the vault folder.`);
+
     for (const file of files) {
       try {
-        console.log(`📄 Attempting: ${file.name} (${file.mimeType})`);
+        console.log(`📄 Processing: ${file.name} (type: ${file.mimeType})`);
         let content = '';
 
         if (file.mimeType === 'application/vnd.google-apps.document') {
@@ -35,11 +37,7 @@ export default async function handler(req, res) {
             mimeType: 'text/plain'
           });
           content = exported.data;
-        } else if (
-          file.mimeType === 'text/plain' ||
-          file.mimeType === 'application/octet-stream' ||
-          file.name.toLowerCase().endsWith('.txt')
-        ) {
+        } else if (file.mimeType === 'text/plain' || file.mimeType === 'application/octet-stream' || file.name.endsWith('.txt')) {
           const downloaded = await drive.files.get(
             { fileId: file.id, alt: 'media' },
             { responseType: 'stream' }
@@ -62,11 +60,12 @@ export default async function handler(req, res) {
         if (content) {
           vaultContent += `\n=== ${file.name} ===\n${content}\n\n`;
           filesLoaded++;
+          console.log(`✅ Loaded: ${file.name}`);
         } else {
-          console.warn(`⚠️ No content loaded from: ${file.name}`);
+          console.warn(`⚠️ No content from: ${file.name}`);
         }
       } catch (fileErr) {
-        console.warn(`⚠️ Skipped ${file.name}: ${fileErr.message}`);
+        console.warn(`❌ Skipped ${file.name}: ${fileErr.message}`);
       }
     }
 
