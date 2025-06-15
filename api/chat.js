@@ -13,7 +13,7 @@ export default async function handler(req, res) {
     const { message, vault_memory } = req.body;
 
     if (!message || !vault_memory) {
-      return res.status(400).json({ success: false, error: 'Missing message or vault data' });
+      return res.status(400).json({ success: false, error: 'Missing message or vault memory' });
     }
 
     const completion = await openai.chat.completions.create({
@@ -30,7 +30,7 @@ export default async function handler(req, res) {
     const usage = completion.usage || { total_tokens: 0 };
     const estimatedCost = (usage.total_tokens * 0.002 / 1000).toFixed(4);
 
-    return res.status(200).json({
+    res.status(200).json({
       success: true,
       response: reply,
       cost_info: {
@@ -40,7 +40,7 @@ export default async function handler(req, res) {
     });
 
   } catch (err) {
-    console.error('Chat API error:', err);
+    console.error('❌ Chat API error:', err.message || err);
     return res.status(500).json({
       success: false,
       error: err.message || 'Internal server error'
