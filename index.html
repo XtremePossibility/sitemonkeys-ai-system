@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SiteMonkeys AI - Business Validation System</title>
+    <title>SiteMonkeys AI - Business Validation Engine</title>
     <link rel="icon" href="https://images.squarespace-cdn.com/content/v1/66d35f84b9d4a82a6cc6e4e7/1725281255193-VQNM6UV5R0OJKQRQX4D9/apple-touch-icon-site-monkeys.png" type="image/png">
     <style>
         * {
@@ -14,184 +14,214 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
             min-height: 100vh;
-            color: #333;
-        }
-
-        .header {
-            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-            padding: 15px 20px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-
-        .header-content {
-            max-width: 1200px;
-            margin: 0 auto;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .logo-section {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .logo {
-            width: 50px;
-            height: 50px;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-        }
-
-        .brand-text {
             color: white;
+            overflow-x: hidden;
         }
 
-        .brand-text h1 {
-            font-size: 24px;
-            font-weight: 700;
-            margin-bottom: 2px;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
-        }
-
-        .brand-text p {
-            font-size: 12px;
-            opacity: 0.9;
-            font-weight: 500;
-        }
-
-        .cost-tracker {
-            background: rgba(255,255,255,0.15);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.2);
-            border-radius: 12px;
-            padding: 12px 16px;
-            color: white;
-            font-size: 13px;
-            font-weight: 500;
-            min-width: 180px;
-            text-align: center;
-            display: none;
-        }
-
-        .cost-tracker.visible {
-            display: block;
-        }
-
-        .main-container {
-            max-width: 1200px;
-            margin: 0 auto;
+        /* TOP HEADER */
+        .top-header {
+            background: linear-gradient(135deg, #000 0%, #1a1a2e 100%);
             padding: 20px;
-            height: calc(100vh - 90px);
+            text-align: center;
+            border-bottom: 3px solid #fbbf24;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+        }
+
+        .main-logo-section {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 15px;
+        }
+
+        .site-logo {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            border: 2px solid #fbbf24;
+        }
+
+        .main-title {
+            font-size: 48px;
+            font-weight: 900;
+            background: linear-gradient(45deg, #fbbf24, #f59e0b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 30px rgba(251, 191, 36, 0.5);
+            letter-spacing: 2px;
+        }
+
+        .subtitle {
+            font-size: 18px;
+            color: #94a3b8;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+
+        /* MAIN CONTAINER */
+        .main-container {
+            display: grid;
+            grid-template-columns: 350px 1fr 350px;
+            height: calc(100vh - 140px);
+            gap: 20px;
+            padding: 20px;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        /* LEFT PANEL - ELI & STATUS */
+        .left-panel {
             display: flex;
             flex-direction: column;
-        }
-
-        .session-banner {
-            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-            border-radius: 16px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
-            border: 2px solid rgba(255,255,255,0.2);
-        }
-
-        .session-banner h2 {
-            color: #1f2937;
-            font-size: 22px;
-            font-weight: 700;
-            margin-bottom: 8px;
-            display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 20px;
         }
 
-        .session-banner p {
-            color: #374151;
-            font-size: 14px;
-            font-weight: 500;
-            opacity: 0.8;
+        .mascot-large {
+            width: 200px;
+            height: 200px;
+            border-radius: 20px;
+            border: 4px solid #fbbf24;
+            box-shadow: 0 10px 30px rgba(251, 191, 36, 0.3);
+            transition: transform 0.3s ease;
         }
 
-        .status-indicator {
-            background: rgba(255,255,255,0.9);
-            border-radius: 12px;
-            padding: 12px 20px;
+        .mascot-large:hover {
+            transform: scale(1.05) rotate(2deg);
+        }
+
+        .status-panel {
+            background: rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 25px;
+            width: 100%;
+            border: 2px solid rgba(251, 191, 36, 0.3);
+            backdrop-filter: blur(15px);
+        }
+
+        .status-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #fbbf24;
             margin-bottom: 20px;
             text-align: center;
-            font-weight: 600;
-            border: 2px solid rgba(255,255,255,0.3);
-            backdrop-filter: blur(10px);
         }
 
-        .status-indicator.loading {
-            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-            color: #1f2937;
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 0;
+            font-size: 14px;
+            font-weight: 600;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            transition: all 0.3s ease;
+        }
+
+        .status-item:last-child {
+            border-bottom: none;
+        }
+
+        .status-item.loading {
+            color: #fbbf24;
             animation: pulse 2s infinite;
         }
 
-        .status-indicator.success {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            color: white;
+        .status-item.loaded {
+            color: #10b981;
         }
 
-        .status-indicator.error {
-            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-            color: white;
+        .status-item.error {
+            color: #ef4444;
         }
 
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
-        }
-
-        .chat-container {
-            flex: 1;
+        /* CENTER CHAT AREA */
+        .center-chat {
             background: rgba(255,255,255,0.95);
-            border-radius: 20px;
+            border-radius: 25px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 15px 50px rgba(0,0,0,0.3);
+            border: 3px solid rgba(251, 191, 36, 0.5);
+            overflow: hidden;
+        }
+
+        .chat-header {
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+            padding: 20px;
+            text-align: center;
+            color: #1f2937;
+        }
+
+        .chat-header h2 {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .chat-header p {
+            font-size: 14px;
+            opacity: 0.8;
+        }
+
+        .chat-messages {
+            flex: 1;
             padding: 25px;
             overflow-y: auto;
-            margin-bottom: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            border: 1px solid rgba(255,255,255,0.3);
-            backdrop-filter: blur(20px);
+            background: white;
+            color: #1f2937;
         }
 
         .message {
             margin-bottom: 20px;
-            padding: 16px 20px;
+            padding: 18px 22px;
             border-radius: 18px;
             max-width: 85%;
             line-height: 1.6;
             font-size: 15px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            position: relative;
         }
 
         .message.user {
             background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
             color: white;
             margin-left: auto;
-            border-bottom-right-radius: 8px;
+            border-bottom-right-radius: 6px;
         }
 
         .message.assistant {
             background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
             color: #1f2937;
             margin-right: auto;
-            border: 1px solid #e5e7eb;
-            border-bottom-left-radius: 8px;
+            border: 2px solid #e5e7eb;
+            border-bottom-left-radius: 6px;
+            padding-left: 60px;
         }
 
         .message.assistant::before {
-            content: "🐒 ";
-            font-size: 18px;
-            margin-right: 8px;
+            content: "";
+            position: absolute;
+            left: 15px;
+            top: 15px;
+            width: 35px;
+            height: 35px;
+            background-size: cover;
+            border-radius: 50%;
+            border: 2px solid #fbbf24;
+        }
+
+        /* Alternating avatars */
+        .message.assistant:nth-of-type(even)::before {
+            background-image: url('https://images.squarespace-cdn.com/content/v1/66d35f84b9d4a82a6cc6e4e7/1725204840969-CBZZ37E2TV79KQHPRMKB/eli-v2.png');
+        }
+
+        .message.assistant:nth-of-type(odd)::before {
+            background-image: url('https://images.squarespace-cdn.com/content/v1/66d35f84b9d4a82a6cc6e4e7/1725204909007-4KT15JS8PTGDRT2LXRUF/roxy-v2.png');
         }
 
         .message.thinking {
@@ -199,24 +229,25 @@
             color: #1f2937;
             font-style: italic;
             animation: pulse 2s infinite;
+            margin-right: auto;
+        }
+
+        .chat-input {
+            padding: 25px;
+            background: #f8fafc;
+            border-top: 2px solid #e5e7eb;
         }
 
         .input-container {
             display: flex;
-            gap: 12px;
-            background: rgba(255,255,255,0.95);
-            padding: 20px;
-            border-radius: 20px;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
-            border: 1px solid rgba(255,255,255,0.3);
-            backdrop-filter: blur(20px);
+            gap: 15px;
         }
 
         .input-container input {
             flex: 1;
-            padding: 16px 20px;
+            padding: 18px 25px;
             border: 2px solid #e5e7eb;
-            border-radius: 16px;
+            border-radius: 25px;
             font-size: 16px;
             outline: none;
             transition: all 0.3s ease;
@@ -225,137 +256,216 @@
 
         .input-container input:focus {
             border-color: #2563eb;
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
         }
 
-        .input-container button {
-            padding: 16px 24px;
+        .send-button {
+            padding: 18px 30px;
             background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
             color: #1f2937;
             border: none;
-            border-radius: 16px;
+            border-radius: 25px;
             font-size: 16px;
-            font-weight: 600;
+            font-weight: 700;
             cursor: pointer;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 12px rgba(251, 191, 36, 0.3);
-        }
-
-        .input-container button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(251, 191, 36, 0.4);
-        }
-
-        .input-container button:active {
-            transform: translateY(0);
-        }
-
-        .mascot-corner {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            width: 80px;
-            height: 80px;
-            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-            border-radius: 50%;
+            box-shadow: 0 6px 20px rgba(251, 191, 36, 0.3);
             display: flex;
             align-items: center;
-            justify-content: center;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-            border: 3px solid rgba(255,255,255,0.3);
-            backdrop-filter: blur(10px);
-            z-index: 50;
+            gap: 8px;
         }
 
-        .mascot-corner img {
+        .send-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(251, 191, 36, 0.4);
+        }
+
+        /* RIGHT PANEL - ROXY & COST */
+        .right-panel {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .cost-tracker {
+            background: rgba(251, 191, 36, 0.15);
+            border-radius: 20px;
+            padding: 25px;
+            width: 100%;
+            border: 2px solid rgba(251, 191, 36, 0.3);
+            backdrop-filter: blur(15px);
+            text-align: center;
+        }
+
+        .cost-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #fbbf24;
+            margin-bottom: 15px;
+        }
+
+        .cost-line {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .cost-highlight {
+            color: #10b981;
+            font-weight: 700;
+        }
+
+        /* ROCKET DECORATIONS */
+        .rocket {
+            position: absolute;
             width: 60px;
             height: 60px;
-            border-radius: 50%;
+            opacity: 0.6;
+            animation: float 3s ease-in-out infinite;
         }
 
-        /* Mobile Responsive */
-        @media (max-width: 768px) {
-            .header-content {
-                flex-direction: column;
-                gap: 15px;
-                text-align: center;
-            }
+        .rocket-1 {
+            top: 20%;
+            right: 10%;
+            animation-delay: 0s;
+        }
 
+        .rocket-2 {
+            top: 60%;
+            left: 5%;
+            animation-delay: 1.5s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(5deg); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        /* MOBILE RESPONSIVE */
+        @media (max-width: 1200px) {
             .main-container {
-                padding: 15px;
+                grid-template-columns: 1fr;
+                grid-template-rows: auto auto auto;
+                gap: 15px;
             }
 
-            .session-banner h2 {
-                font-size: 20px;
+            .left-panel, .right-panel {
+                flex-direction: row;
+                justify-content: center;
             }
 
-            .message {
-                max-width: 95%;
-                font-size: 14px;
+            .mascot-large {
+                width: 120px;
+                height: 120px;
             }
 
-            .input-container {
-                flex-direction: column;
+            .status-panel, .cost-tracker {
+                max-width: 400px;
             }
 
-            .input-container input,
-            .input-container button {
-                width: 100%;
-                font-size: 16px;
+            .main-title {
+                font-size: 32px;
             }
 
-            .mascot-corner {
-                bottom: 20px;
-                right: 20px;
-                width: 60px;
-                height: 60px;
-            }
-
-            .mascot-corner img {
-                width: 45px;
-                height: 45px;
+            .rocket {
+                display: none;
             }
         }
     </style>
 </head>
 <body>
-    <div class="header">
-        <div class="header-content">
-            <div class="logo-section">
-                <img src="https://images.squarespace-cdn.com/content/v1/66d35f84b9d4a82a6cc6e4e7/1725281255193-VQNM6UV5R0OJKQRQX4D9/apple-touch-icon-site-monkeys.png" alt="SiteMonkeys Logo" class="logo">
-                <div class="brand-text">
-                    <h1>SiteMonkeys AI</h1>
-                    <p>Business Validation System</p>
+    <!-- ROCKET DECORATIONS -->
+    <div class="rocket rocket-1">🚀</div>
+    <div class="rocket rocket-2">🚀</div>
+
+    <!-- TOP HEADER -->
+    <div class="top-header">
+        <div class="main-logo-section">
+            <img src="https://images.squarespace-cdn.com/content/v1/66d35f84b9d4a82a6cc6e4e7/1725281255193-VQNM6UV5R0OJKQRQX4D9/apple-touch-icon-site-monkeys.png" alt="SiteMonkeys Logo" class="site-logo">
+            <h1 class="main-title">SITE MONKEYS AI</h1>
+        </div>
+        <p class="subtitle">BUSINESS VALIDATION ENGINE</p>
+    </div>
+
+    <!-- MAIN CONTAINER -->
+    <div class="main-container">
+        <!-- LEFT PANEL - ELI & STATUS -->
+        <div class="left-panel">
+            <img src="https://images.squarespace-cdn.com/content/v1/66d35f84b9d4a82a6cc6e4e7/1725204840969-CBZZ37E2TV79KQHPRMKB/eli-v2.png" alt="Eli" class="mascot-large">
+            
+            <div class="status-panel">
+                <div class="status-title">SiteMonkeys<br>Business Validation System</div>
+                <div class="status-item loading" id="status-vault">⏳ Site Monkeys memory vault loaded</div>
+                <div class="status-item loading" id="status-zero">⏳ Zero Failure activated</div>
+                <div class="status-item loading" id="status-data">⏳ Legitimate data initiative activated</div>
+                <div class="status-item loading" id="status-persist">⏳ Persistence driven activated</div>
+                <div class="status-item loading" id="status-helpful">⏳ Helpful initiative activated</div>
+                <div class="status-item loading" id="status-founder">⏳ Founder Protection activated</div>
+                <div class="status-item loading" id="status-market">⏳ Market leader Initiative</div>
+            </div>
+        </div>
+
+        <!-- CENTER CHAT AREA -->
+        <div class="center-chat">
+            <div class="chat-header">
+                <h2>🎯 Zero-Failure AI</h2>
+                <p>Complete Business Intelligence • Real-World Validation Ready</p>
+            </div>
+
+            <div class="chat-messages" id="chatMessages">
+                <div class="message assistant">
+                    🚀 <strong>SiteMonkeys Business Validation Engine Online!</strong><br><br>
+                    I have complete access to your business intelligence:<br>
+                    • $15K launch budget & $3K monthly burn constraints<br>
+                    • 87% margin requirements & pricing validation<br>
+                    • Complete legal framework & contractor protocols<br>
+                    • Zero-failure enforcement protocols active<br><br>
+                    Ready for launch preparation validation! 🐒
                 </div>
             </div>
-            <div class="cost-tracker" id="costTracker">
-                💰 Ready for Analysis
+
+            <div class="chat-input">
+                <div class="input-container">
+                    <input type="text" id="userInput" placeholder="Ask about budget constraints, legal documents, contractor protocols, pricing strategy, or any SiteMonkeys business validation..." onkeypress="if(event.key==='Enter') sendMessage()">
+                    <button class="send-button" onclick="sendMessage()">
+                        Send 🚀
+                    </button>
+                </div>
             </div>
         </div>
-    </div>
 
-    <div class="main-container">
-        <div class="session-banner">
-            <h2>🎯 SiteMonkeys Business Validation Session</h2>
-            <p>💾 Complete vault loaded • 🔄 Unlimited questions • 📊 Real business intelligence active</p>
+        <!-- RIGHT PANEL - ROXY & COST -->
+        <div class="right-panel">
+            <img src="https://images.squarespace-cdn.com/content/v1/66d35f84b9d4a82a6cc6e4e7/1725204909007-4KT15JS8PTGDRT2LXRUF/roxy-v2.png" alt="Roxy" class="mascot-large">
+            
+            <div class="cost-tracker" id="costTracker" style="display: none;">
+                <div class="cost-title">💰 Cost Tracking</div>
+                <div class="cost-line">
+                    <span>This Message:</span>
+                    <span class="cost-highlight" id="msgCost">$0.00</span>
+                </div>
+                <div class="cost-line">
+                    <span>Session Total:</span>
+                    <span class="cost-highlight" id="sessionCost">$0.00</span>
+                </div>
+                <div class="cost-line">
+                    <span>Today Total:</span>
+                    <span class="cost-highlight" id="dailyCost">$0.00</span>
+                </div>
+                <div class="cost-line">
+                    <span>Tokens Used:</span>
+                    <span class="cost-highlight" id="tokenCount">0</span>
+                </div>
+            </div>
         </div>
-
-        <div class="status-indicator" id="statusIndicator">
-            🚀 Initializing SiteMonkeys AI System...
-        </div>
-
-        <div class="chat-container" id="chatContainer">
-            <!-- Chat messages will appear here -->
-        </div>
-
-        <div class="input-container">
-            <input type="text" id="userInput" placeholder="Ask about SiteMonkeys budget, margins, pricing, legal docs, or any business validation question..." onkeypress="if(event.key==='Enter') sendMessage()">
-            <button onclick="sendMessage()">Send 🚀</button>
-        </div>
-    </div>
-
-    <div class="mascot-corner">
-        <img src="https://images.squarespace-cdn.com/content/v1/66d35f84b9d4a82a6cc6e4e7/1725204909007-4KT15JS8PTGDRT2LXRUF/roxy-v2.png" alt="Roxy Mascot">
     </div>
 
     <script>
@@ -363,6 +473,7 @@
         let sessionActive = false;
         let dailyCost = parseFloat(localStorage.getItem('dailyCost') || '0');
         let sessionCost = 0;
+        let messageCount = 0;
 
         async function initializeSession() {
             if (sessionVault) {
@@ -370,7 +481,7 @@
                 return sessionVault;
             }
 
-            showStatus('🔄 Loading SiteMonkeys business intelligence vault...', 'loading');
+            updateStatus('status-vault', 'loading', '🔄 Loading SiteMonkeys vault...');
             
             try {
                 const response = await fetch('/api/load-vault');
@@ -380,19 +491,32 @@
                     sessionVault = data.memory;
                     sessionActive = true;
                     
-                    const tokenCount = data.token_estimate || 'Unknown';
-                    const foldersLoaded = data.folders_loaded || 0;
+                    // Progressive status updates
+                    setTimeout(() => updateStatus('status-vault', 'loaded', '✅ Site Monkeys memory vault loaded'), 500);
+                    setTimeout(() => updateStatus('status-zero', 'loaded', '✅ Zero Failure activated'), 800);
+                    setTimeout(() => updateStatus('status-data', 'loaded', '✅ Legitimate data initiative activated'), 1100);
+                    setTimeout(() => updateStatus('status-persist', 'loaded', '✅ Persistence driven activated'), 1400);
+                    setTimeout(() => updateStatus('status-helpful', 'loaded', '✅ Helpful initiative activated'), 1700);
+                    setTimeout(() => updateStatus('status-founder', 'loaded', '✅ Founder Protection activated'), 2000);
+                    setTimeout(() => updateStatus('status-market', 'loaded', '✅ Market leader Initiative'), 2300);
                     
-                    showStatus(`✅ Vault loaded (${tokenCount} tokens, ${foldersLoaded} folders) - Ready for validation`, 'success');
-                    console.log('Complete SiteMonkeys vault loaded and cached for session');
+                    console.log('Complete SiteMonkeys vault loaded successfully');
                     return sessionVault;
                 } else {
                     throw new Error(data.error || 'Failed to load vault');
                 }
             } catch (error) {
                 console.error('Vault loading error:', error);
-                showStatus('❌ Failed to load business intelligence vault', 'error');
+                updateStatus('status-vault', 'error', '❌ Vault Loading Failed');
                 throw error;
+            }
+        }
+
+        function updateStatus(itemId, status, text) {
+            const item = document.getElementById(itemId);
+            if (item) {
+                item.className = `status-item ${status}`;
+                item.textContent = text;
             }
         }
 
@@ -433,11 +557,12 @@
                 thinkingDiv.remove();
 
                 if (data.success) {
+                    messageCount++;
                     addMessage(data.response, 'assistant');
                     
                     // Update cost tracking
                     if (data.cost) {
-                        updateCostTracking(data.cost);
+                        updateCostTracking(data.cost, data.tokens || 0);
                     }
                 } else {
                     addMessage(`❌ Error: ${data.error}`, 'assistant');
@@ -450,7 +575,7 @@
         }
 
         function addMessage(content, sender, isThinking = false) {
-            const chatContainer = document.getElementById('chatContainer');
+            const chatContainer = document.getElementById('chatMessages');
             const messageDiv = document.createElement('div');
             messageDiv.className = `message ${sender}${isThinking ? ' thinking' : ''}`;
             messageDiv.innerHTML = content.replace(/\n/g, '<br>');
@@ -459,25 +584,17 @@
             return messageDiv;
         }
 
-        function updateCostTracking(cost) {
+        function updateCostTracking(cost, tokens) {
             sessionCost += cost;
             dailyCost += cost;
             localStorage.setItem('dailyCost', dailyCost.toString());
             
-            const tracker = document.getElementById('costTracker');
-            tracker.innerHTML = `
-                💰 Cost Tracking<br>
-                This msg: $${cost.toFixed(4)}<br>
-                Session: $${sessionCost.toFixed(4)}<br>
-                Today: $${dailyCost.toFixed(4)}
-            `;
-            tracker.classList.add('visible');
-        }
-
-        function showStatus(message, type) {
-            const indicator = document.getElementById('statusIndicator');
-            indicator.textContent = message;
-            indicator.className = `status-indicator ${type}`;
+            document.getElementById('msgCost').textContent = `$${cost.toFixed(4)}`;
+            document.getElementById('sessionCost').textContent = `$${sessionCost.toFixed(4)}`;
+            document.getElementById('dailyCost').textContent = `$${dailyCost.toFixed(4)}`;
+            document.getElementById('tokenCount').textContent = tokens.toLocaleString();
+            
+            document.getElementById('costTracker').style.display = 'block';
         }
 
         // Initialize session when page loads
