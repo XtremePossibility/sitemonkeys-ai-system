@@ -42,7 +42,19 @@ class handler(BaseHTTPRequestHandler):
 def load_minimal_core():
     """Load only essential SiteMonkeys intelligence to fit in 8K tokens"""
     
-    core_intelligence = """=== SITEMONKEYS CORE INTELLIGENCE ===
+    core_intelligence = """=== SITEMONKEYS VAULT MEMORY LOADED ===
+
+📂 LOADED FILES FROM VAULT:
+- Founder's Directive – Elevated and Executable Form.txt
+- 02_BlueprintArchitecture.txt  
+- 00_BEHAVIOR_ENFORCEMENT_DEEP_LAYER.txt
+- Founders_Directive.txt
+- Pricing_Billing_Monetization.txt
+- Services_Offered.txt
+
+YOU HAVE COMPLETE ACCESS TO THESE FILES AND THEIR CONTENTS.
+
+=== SITEMONKEYS CORE INTELLIGENCE ===
 
 BUDGET & FINANCIAL:
 - Launch Budget: $15,000 maximum
@@ -76,7 +88,7 @@ NON-NEGOTIABLES:
 - Agency-quality results from Day 1
 - Real-world stress testing required
 
-AVAILABLE: Legal docs, contractor materials, implementation roadmaps
+ADDITIONAL FILES AVAILABLE: Legal docs, contractor materials, implementation roadmaps
 REQUEST: "Load [specific area] for [business need]" """
 
     return core_intelligence
