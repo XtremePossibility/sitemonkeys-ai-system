@@ -1,7 +1,8 @@
 import OpenAI from 'openai';
 
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
+  apiKey: process.env.OPENAI_API_KEY,
+  project: process.env.OPENAI_PROJECT_ID  // Add this to your Vercel env
 });
 
 export default async function handler(req, res) {
@@ -30,7 +31,7 @@ export default async function handler(req, res) {
     const usage = completion.usage || { total_tokens: 0 };
     const estimatedCost = (usage.total_tokens * 0.002 / 1000).toFixed(4);
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       response: reply,
       cost_info: {
