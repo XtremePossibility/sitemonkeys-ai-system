@@ -164,7 +164,7 @@
         const res = await fetch('/api/load-vault');
         const data = await res.json();
         if (data.success) {
-          sessionVault = data.vault_content || data.memory;
+          sessionVault = data.memory || '';
           document.getElementById('check-vault').textContent = '✅ Vault loaded';
           document.getElementById('check-zero').textContent = '✅ Zero-Failure Directive';
           document.getElementById('check-budget').textContent = '✅ Budget Constraints';
@@ -172,12 +172,12 @@
           document.getElementById('check-legal').textContent = '✅ Legal Framework';
           document.getElementById('check-done').style.display = 'block';
           sessionCost = 0;
-          statusDisplay.textContent = `✅ Vault loaded (${data.tokens} tokens, ${data.folders_loaded || 0} folders)`;
+          statusDisplay.textContent = `✅ Vault loaded (${data.token_estimate} tokens, ${data.folders_loaded || 0} files)`;
         } else {
           throw new Error(data.error);
         }
       } catch (err) {
-        statusDisplay.textContent = '❌ Failed to load business intelligence vault';
+        statusDisplay.textContent = '❌ Failed to load vault';
         console.error('Vault load failed:', err);
       }
     }
@@ -250,8 +250,7 @@
     }
 
     function downloadLog() {
-      const logText = sessionLog.join('
-');
+      const logText = sessionLog.join('\n');
       const blob = new Blob([logText], { type: 'text/plain' });
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
