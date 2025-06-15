@@ -1,12 +1,41 @@
-# api/load-vault.py - EXACT WORKING VERSION
-import os
+from http.server import BaseHTTPRequestHandler
 import json
+import os
 from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
 import io
 from googleapiclient.http import MediaIoBaseDownload
 
 VAULT_FOLDER_ID = "1LAkbqjN7g-HJV9BRWV-AsmMpY1JzJiIM"
+
+class handler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        try:
+            # Set CORS headers
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+            self.send_header('Access-Control-Allow-Headers', 'Content-Type')
+            self.end_headers()
+            
+            # Load vault data
+            vault_data = load_vault()
+            
+            # Send response
+            self.wfile.write(json.dumps(vault_data).encode())
+            
+        except Exception as e:
+            self.send_response(500)
+            self.send_header('Content-type', 'application/json')
+            self.end_headers()
+            error_response = {
+                "error": str(e),
+                "vault_content": get_core_intelligence(),
+                "tokens": 500,
+                "status": "FALLBACK_MODE"
+            }
+            self.wfile.write(json.dumps(error_response).encode())
 
 def load_vault():
     try:
@@ -127,18 +156,3 @@ IMPLEMENTATION:
 
 VAULT STATUS: OPERATIONAL WITH COMPLETE BUSINESS INTELLIGENCE
 """
-
-def handler(event, context):
-    """Vercel serverless function handler"""
-    vault_data = load_vault()
-    
-    return {
-        'statusCode': 200,
-        'headers': {
-            'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-            'Access-Control-Allow-Headers': 'Content-Type'
-        },
-        'body': json.dumps(vault_data)
-    }
