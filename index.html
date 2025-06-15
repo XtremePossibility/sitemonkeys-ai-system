@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SiteMonkeys AI - Business Validation Engine</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Cost Tracking Overlay */
+        .cost-tracker {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            min-width: 200px;
+            z-index: 1000;
+            display: none;
+            border: 2px solid #FFD700;
+        }
+
+        .cost-tracker h4 {
+            color: #FFD700;
+            margin-bottom: 10px;
+            font-size: 1rem;
+        }
+
+        .cost-tracker .cost-line {
+            margin: 5px 0;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        /* Header */
+        .header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            text-align: center;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header h1 {
+            color: #FFD700;
+            font-size: 3rem;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .header .subtitle {
+            color: white;
+            font-size: 1.2rem;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        }
+
+        .logo {
+            height: 60px;
+            width: auto;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Main Container */
+        .container {
+            display: flex;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            gap: 20px;
+            min-height: calc(100vh - 140px);
+        }
+
+        /* Left Sidebar */
+        .sidebar {
+            width: 300px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 30px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            height: fit-content;
+            position: relative;
+        }
+
+        .mascot-container {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .mascot-img {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 3px solid #FFD700;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s ease;
+        }
+
+        .mascot-img:hover {
+            transform: scale(1.05);
+        }
+
+        .mascot-name {
+            color: #FFD700;
+            font-size: 1.4rem;
+            font-weight: bold;
+            margin-top: 15px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        }
+
+        .system-status {
+            color: white;
+            margin-bottom: 25px;
+        }
+
+        .system-status h3 {
+            color: #FFD700;
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        }
+
+        .status-item {
+            margin: 8px 0;
+            padding: 5px 0;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-check {
+            color: #00ff88;
+            font-weight: bold;
+        }
+
+        /* Chat Area */
+        .chat-container {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            max-height: 500px;
+            min-height: 400px;
+        }
+
+        .message {
+            margin: 15px 0;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message.user {
+            flex-direction: row-reverse;
+        }
+
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 2px solid #FFD700;
+            flex-shrink: 0;
+        }
+
+        .message-content {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 12px 16px;
+            border-radius: 18px;
+            max-width: 70%;
+            color: #333;
+            line-height: 1.4;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .message.user .message-content {
+            background: #FFD700;
+            color: #1e3c72;
+            font-weight: 500;
+        }
+
+        /* Input Area */
+        .input-container {
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .input-wrapper {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .message-input {
+            flex: 1;
+            padding: 12px 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 25px;
+            background: rgba(255, 255, 255, 0.9);
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .message-input:focus {
+            border-color: #FFD700;
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+        }
+
+        .send-button {
+            background: #FFD700;
+            color: #1e3c72;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .send-button:hover {
+            background: #FFA500;
+            transform: scale(1.05);
+        }
+
+        .send-button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Right Sidebar */
+        .right-sidebar {
+            width: 300px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 30px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            height: fit-content;
+            text-align: center;
+            position: relative;
+        }
+
+        /* Vault Status */
+        .vault-status {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .vault-status h4 {
+            color: #FFD700;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+
+        .vault-item {
+            color: white;
+            font-size: 0.9rem;
+            margin: 5px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .vault-check {
+            color: #00ff88;
+            font-weight: bold;
+        }
+
+        /* Loading Animation */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #FFD700;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1200px) {
+            .container {
+                flex-direction: column;
+            }
+            
+            .sidebar, .right-sidebar {
+                width: 100%;
+                margin-bottom: 20px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.5rem;
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .logo {
+                height: 40px;
+            }
+            
+            .mascot-img {
+                width: 80px;
+                height: 80px;
+            }
+            
+            .cost-tracker {
+                position: relative;
+                top: auto;
+                right: auto;
+                margin: 10px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Cost Tracking Overlay -->
+    <div class="cost-tracker" id="costTracker">
+        <h4>💰 Cost Tracking</h4>
+        <div class="cost-line">
+            <span>This message:</span>
+            <span id="messageCost">$0.00</span>
+        </div>
+        <div class="cost-line">
+            <span>Session total:</span>
+            <span id="sessionCost">$0.00</span>
+        </div>
+        <div class="cost-line">
+            <span>Today total:</span>
+            <span id="dailyCost">$0.00</span>
+        </div>
+        <div class="cost-line">
+            <span>Tokens:</span>
+            <span id="tokenCount">0</span>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <div class="header">
+        <h1>
+            <img src="/logo.png" alt="SiteMonkeys Logo" class="logo">
+            SITE MONKEYS AI
+            🚀
+        </h1>
+        <div class="subtitle">BUSINESS VALIDATION ENGINE</div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Left Sidebar - Eli -->
+        <div class="sidebar">
+            <div class="mascot-container">
+                <img src="/boy-mascot.png" alt="Eli" class="mascot-img">
+                <div class="mascot-name">Eli</div>
+            </div>
+            
+            <div class="system-status">
+                <h3>SiteMonkeys<br>Business<br>Validation System</h3>
+                
+                <div class="status-item">
+                    <span class="status-check">•</span> Zero-Failure AI
+                </div>
+                <div class="status-item">
+                    <span class="status-check">•</span> Complete Business Intelligence
+                </div>
+                <div class="status-item">
+                    <span class="status-check">•</span> Real-World Validation Ready
+                </div>
+                <div class="status-item">
+                    <span class="status-check">•</span> Site Monkeys memory vault loaded
+                </div>
+                <div class="status-item">
+                    <span class="status-check">•</span> Zero Failure activated
+                </div>
+                <div class="status-item">
+                    <span class="status-check">•</span> Legitimate data initiative activated
+                </div>
+                <div class="status-item">
+                    <span class="status-check">•</span> Persistence driven activated
+                </div>
+                <div class="status-item">
+                    <span class="status-check">•</span> helpful initiative activated
+                </div>
+                <div class="status-item">
+                    <span class="status-check">•</span> Founder Protection activated
+                </div>
+                <div class="status-item">
+                    <span class="status-check">•</span> Market leader Initiative
+                </div>
+            </div>
+
+            <div style="position: absolute; top: 20%; right: 10%; font-size: 2rem;">🚀</div>
+            <div style="position: absolute; bottom: 30%; left: 15%; font-size: 1.5rem;">🛸</div>
+        </div>
+
+        <!-- Chat Container -->
+        <div class="chat-container">
+            <div class="chat-messages" id="chatMessages">
+                <div class="message">
+                    <img src="/girl-mascot.png" alt="Roxy" class="message-avatar">
+                    <div class="message-content">
+                        Welcome to SiteMonkeys AI! I'm Roxy, and together with Eli, we're here to help you with business validation. Your complete SiteMonkeys intelligence vault is loaded and ready. Ask me anything about your business strategy, validation, or growth plans!
+                    </div>
+                </div>
+            </div>
+            
+            <div class="input-container">
+                <div class="input-wrapper">
+                    <input 
+                        type="text" 
+                        class="message-input" 
+                        id="messageInput" 
+                        placeholder="Ask about your SiteMonkeys business validation..."
+                        maxlength="500"
+                    >
+                    <button class="send-button" id="sendButton">
+                        🐒
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Sidebar - Roxy -->
+        <div class="right-sidebar">
+            <div class="mascot-container">
+                <img src="/girl-mascot.png" alt="Roxy" class="mascot-img">
+                <div class="mascot-name">Roxy</div>
+            </div>
+
+            <div class="vault-status">
+                <h4>📁 Vault Status</h4>
+                <div class="vault-item">
+                    <span>Business Intelligence:</span>
+                    <span class="vault-check">✓</span>
+                </div>
