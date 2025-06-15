@@ -1,240 +1,615 @@
-import os
-import json
-from googleapiclient.discovery import build
-from google.oauth2.service_account import Credentials
-from http.server import BaseHTTPRequestHandler
-
-def get_google_drive_service():
-    """Initialize Google Drive service with credentials"""
-    try:
-        # Get credentials from environment variable
-        creds_json = os.environ.get('GOOGLE_CREDENTIALS_JSON')
-        if not creds_json:
-            raise Exception("GOOGLE_CREDENTIALS_JSON environment variable not found")
-        
-        # Parse JSON credentials
-        creds_info = json.loads(creds_json)
-        
-        # Create credentials
-        credentials = Credentials.from_service_account_info(
-            creds_info,
-            scopes=['https://www.googleapis.com/auth/drive.readonly']
-        )
-        
-        # Build Drive service
-        service = build('drive', 'v3', credentials=credentials)
-        return service
-        
-    except Exception as e:
-        print(f"Error initializing Google Drive service: {e}")
-        return None
-
-def load_all_files_from_folder(service, folder_id, folder_name=""):
-    """Load ALL files from a folder, regardless of type"""
-    try:
-        # Query for ALL files in folder (both .txt and .docx)
-        query = f"'{folder_id}' in parents and trashed=false"
-        results = service.files().list(
-            q=query,
-            fields="files(id, name, mimeType, size)"
-        ).execute()
-        
-        files = results.get('files', [])
-        folder_content = f"\n=== {folder_name} FOLDER ({len(files)} files found) ===\n"
-        
-        # List all files found
-        folder_content += f"Files discovered in {folder_name}:\n"
-        for file in files:
-            folder_content += f"  - {file['name']} (Type: {file['mimeType']}, Size: {file.get('size', 'Unknown')})\n"
-        
-        folder_content += "\n--- FILE CONTENTS ---\n"
-        
-        for file in files:
-            try:
-                # Only process text files and Google Docs
-                if (file['mimeType'] == 'text/plain' or 
-                    file['name'].endswith('.txt') or
-                    file['mimeType'] == 'application/vnd.google-apps.document'):
-                    
-                    if file['mimeType'] == 'application/vnd.google-apps.document':
-                        # Export Google Doc as plain text
-                        file_content = service.files().export(
-                            fileId=file['id'], 
-                            mimeType='text/plain'
-                        ).execute()
-                    else:
-                        # Download plain text file
-                        file_content = service.files().get_media(fileId=file['id']).execute()
-                    
-                    content = file_content.decode('utf-8')
-                    folder_content += f"\n--- {file['name']} ---\n{content[:1000]}...\n"  # First 1000 chars
-                    
-                else:
-                    folder_content += f"\n--- {file['name']} (SKIPPED - {file['mimeType']}) ---\n"
-                    
-            except Exception as e:
-                folder_content += f"\n--- {file['name']} (ERROR: {str(e)}) ---\n"
-                continue
-                
-        return folder_content
-        
-    except Exception as e:
-        print(f"Error loading folder {folder_name}: {e}")
-        return f"\n=== {folder_name} FOLDER - ERROR: {str(e)} ===\n"
-
-def discover_and_load_complete_vault():
-    """Discover ALL folders and load complete vault contents"""
-    try:
-        service = get_google_drive_service()
-        if not service:
-            return {"success": False, "error": "Failed to initialize Google Drive service"}
-        
-        # Your SiteMonkeys vault folder ID
-        VAULT_FOLDER_ID = "1LAkbqjN7g-HJV9BRWV-AsmMpY1JzJiIM"
-        
-        # DISCOVERY PHASE: Find ALL subfolders
-        discovery_content = f"""
-SITEMONKEYS ZERO-FAILURE VAULT DIAGNOSTIC REPORT
-==============================================
-
-VAULT FOLDER ID: {VAULT_FOLDER_ID}
-
-"""
-        
-        # Get ALL subfolders in the vault
-        query = f"'{VAULT_FOLDER_ID}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false"
-        results = service.files().list(
-            q=query,
-            fields="files(id, name, createdTime)"
-        ).execute()
-        
-        subfolders = results.get('files', [])
-        
-        discovery_content += f"TOTAL SUBFOLDERS DISCOVERED: {len(subfolders)}\n\n"
-        discovery_content += "SUBFOLDER INVENTORY:\n"
-        
-        for folder in subfolders:
-            discovery_content += f"  📁 {folder['name']} (ID: {folder['id']})\n"
-        
-        discovery_content += "\n" + "="*50 + "\n"
-        
-        # Core business intelligence (always included)
-        vault_memory = discovery_content + """
-=== CORE SITEMONKEYS BUSINESS INTELLIGENCE ===
-
-FINANCIAL CONSTRAINTS:
-- Launch Budget: $15,000 maximum
-- Monthly Burn Rate: <$3,000
-- Target Margins: 87%+ at scale
-- Pricing Tiers: $697 (Boost), $1,497 (Climb), $2,997 (Lead)
-
-ZERO-FAILURE ENFORCEMENT ACTIVE:
-1. Founder's directives take priority over generic business advice
-2. Provide specific numbers for budgets, margins, timelines
-3. Base all responses on SiteMonkeys requirements only
-4. Protect 87% margin requirement in all recommendations
-5. No placeholders - actionable solutions only
-
-TECHNICAL REQUIREMENTS:
-- Triple-AI failover system: Claude → GPT-4 → Mistral
-- 99.8% uptime requirement
-- 100% AI automation (no human runtime dependencies)
-- Complete IP protection and clone resistance
-- 4-week launch timeline maximum
-
-BUSINESS MODEL:
-- Replace $30K/month agencies with AI automation
-- Service pricing: $697-$2,997 (87-90% cost reduction for customers)
-- "From Overlooked to Overbooked" positioning
-- 100+ elite agency capabilities fully automated
-
-"""
-        
-        # LOADING PHASE: Load content from ALL discovered folders
-        loaded_folders = []
-        failed_folders = []
-        
-        for folder in subfolders:
-            folder_name = folder['name']
-            folder_id = folder['id']
-            
-            try:
-                print(f"Attempting to load folder: {folder_name}")
-                folder_content = load_all_files_from_folder(service, folder_id, folder_name)
-                vault_memory += folder_content
-                loaded_folders.append(folder_name)
-                print(f"Successfully loaded: {folder_name}")
-                
-            except Exception as e:
-                error_msg = f"\n=== {folder_name} FOLDER - LOAD FAILED ===\nError: {str(e)}\n"
-                vault_memory += error_msg
-                failed_folders.append(f"{folder_name}: {str(e)}")
-                print(f"Failed to load {folder_name}: {e}")
-        
-        # Final summary
-        vault_memory += f"""
-
-=== VAULT LOADING DIAGNOSTIC SUMMARY ===
-Total subfolders discovered: {len(subfolders)}
-Successfully loaded folders: {len(loaded_folders)}
-Failed folders: {len(failed_folders)}
-
-LOADED FOLDERS:
-{chr(10).join([f"✅ {folder}" for folder in loaded_folders])}
-
-FAILED FOLDERS:
-{chr(10).join([f"❌ {folder}" for folder in failed_folders])}
-
-VAULT STATUS: {'FULLY OPERATIONAL' if len(failed_folders) == 0 else 'PARTIAL ACCESS'}
-BUSINESS INTELLIGENCE: {'COMPLETE' if len(loaded_folders) >= 4 else 'INCOMPLETE'}
-
-ZERO-FAILURE SYSTEM: DIAGNOSTIC COMPLETE
-"""
-        
-        # Calculate token estimate
-        token_estimate = len(vault_memory.split()) * 1.3
-        
-        return {
-            "success": True,
-            "memory": vault_memory,
-            "token_estimate": f"{token_estimate:.1f}",
-            "folders_discovered": len(subfolders),
-            "folders_loaded": len(loaded_folders),
-            "folders_failed": len(failed_folders),
-            "loaded_folder_names": loaded_folders,
-            "failed_folder_names": failed_folders
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SiteMonkeys AI - Business Validation System</title>
+    <link rel="icon" href="/apple-touch-icon-site-monkeys.png" type="image/png">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
         
-    except Exception as e:
-        print(f"Critical vault loading error: {e}")
-        return {
-            "success": False,
-            "error": f"Vault diagnostic failed: {str(e)}",
-            "memory": f"EMERGENCY FALLBACK: Vault diagnostic error - {str(e)}"
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            color: white;
+            overflow-x: hidden;
         }
 
-class handler(BaseHTTPRequestHandler):
-    def do_GET(self):
-        try:
-            result = discover_and_load_complete_vault()
-            
-            self.send_response(200)
-            self.send_header('Content-type', 'application/json')
-            self.send_header('Access-Control-Allow-Origin', '*')
-            self.end_headers()
-            
-            response = json.dumps(result)
-            self.wfile.write(response.encode())
-            
-        except Exception as e:
-            self.send_response(500)
-            self.send_header('Content-type', 'application/json')
-            self.send_header('Access-Control-Allow-Origin', '*')
-            self.end_headers()
-            
-            error_response = {
-                "success": False,
-                "error": f"Server error: {str(e)}"
+        /* TOP HEADER */
+        .top-header {
+            background: linear-gradient(135deg, #000 0%, #1a1a2e 100%);
+            padding: 20px;
+            text-align: center;
+            border-bottom: 3px solid #fbbf24;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+        }
+
+        .main-logo-section {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 15px;
+        }
+
+        .site-logo {
+            width: 80px;
+            height: 80px;
+            border-radius: 16px;
+            border: 3px solid #fbbf24;
+            box-shadow: 0 0 20px rgba(251, 191, 36, 0.4);
+            background: #fbbf24;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: bold;
+            color: #1f2937;
+        }
+
+        .title-section {
+            text-align: center;
+        }
+
+        .main-title {
+            font-size: 48px;
+            font-weight: 900;
+            background: linear-gradient(45deg, #fbbf24, #f59e0b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 30px rgba(251, 191, 36, 0.5);
+            letter-spacing: 2px;
+            margin-bottom: 5px;
+        }
+
+        .subtitle {
+            font-size: 18px;
+            color: #94a3b8;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+
+        .header-rocket {
+            font-size: 60px;
+            animation: float 3s ease-in-out infinite;
+            filter: drop-shadow(0 0 10px rgba(251, 191, 36, 0.6));
+        }
+
+        /* MAIN CONTAINER */
+        .main-container {
+            display: grid;
+            grid-template-columns: 350px 1fr 350px;
+            height: calc(100vh - 140px);
+            gap: 20px;
+            padding: 20px;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        /* LEFT PANEL - ELI & STATUS */
+        .left-panel {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .mascot-large {
+            width: 220px;
+            height: 220px;
+            border-radius: 25px;
+            border: 5px solid #fbbf24;
+            box-shadow: 0 15px 40px rgba(251, 191, 36, 0.4);
+            transition: transform 0.3s ease;
+            object-fit: cover;
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 100px;
+        }
+
+        .mascot-large:hover {
+            transform: scale(1.05) rotate(2deg);
+        }
+
+        .status-panel {
+            background: rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 25px;
+            width: 100%;
+            border: 2px solid rgba(251, 191, 36, 0.3);
+            backdrop-filter: blur(15px);
+        }
+
+        .status-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #fbbf24;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 0;
+            font-size: 14px;
+            font-weight: 600;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            transition: all 0.3s ease;
+        }
+
+        .status-item:last-child {
+            border-bottom: none;
+        }
+
+        .status-item.loading {
+            color: #fbbf24;
+            animation: pulse 2s infinite;
+        }
+
+        .status-item.loaded {
+            color: #10b981;
+        }
+
+        .status-item.error {
+            color: #ef4444;
+        }
+
+        /* CENTER CHAT AREA */
+        .center-chat {
+            background: rgba(255,255,255,0.95);
+            border-radius: 25px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 15px 50px rgba(0,0,0,0.3);
+            border: 3px solid rgba(251, 191, 36, 0.5);
+            overflow: hidden;
+        }
+
+        .chat-header {
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+            padding: 20px;
+            text-align: center;
+            color: #1f2937;
+        }
+
+        .chat-header h2 {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .chat-header p {
+            font-size: 14px;
+            opacity: 0.8;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 25px;
+            overflow-y: auto;
+            background: white;
+            color: #1f2937;
+        }
+
+        .message {
+            margin-bottom: 20px;
+            padding: 18px 22px;
+            border-radius: 18px;
+            max-width: 85%;
+            line-height: 1.6;
+            font-size: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        .message.user {
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            color: white;
+            margin-left: auto;
+            border-bottom-right-radius: 6px;
+        }
+
+        .message.assistant {
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            color: #1f2937;
+            margin-right: auto;
+            border: 2px solid #e5e7eb;
+            border-bottom-left-radius: 6px;
+            padding-left: 60px;
+        }
+
+        .message.assistant::before {
+            content: "🐒";
+            position: absolute;
+            left: 15px;
+            top: 15px;
+            width: 35px;
+            height: 35px;
+            font-size: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #fbbf24;
+            border-radius: 50%;
+            background: white;
+        }
+
+        .message.thinking {
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+            color: #1f2937;
+            font-style: italic;
+            animation: pulse 2s infinite;
+            margin-right: auto;
+        }
+
+        .chat-input {
+            padding: 25px;
+            background: #f8fafc;
+            border-top: 2px solid #e5e7eb;
+        }
+
+        .input-container {
+            display: flex;
+            gap: 15px;
+        }
+
+        .input-container input {
+            flex: 1;
+            padding: 18px 25px;
+            border: 2px solid #e5e7eb;
+            border-radius: 25px;
+            font-size: 16px;
+            outline: none;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .input-container input:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+        }
+
+        .send-button {
+            padding: 18px 30px;
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+            color: #1f2937;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 6px 20px rgba(251, 191, 36, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .send-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(251, 191, 36, 0.4);
+        }
+
+        /* RIGHT PANEL - ROXY & COST */
+        .right-panel {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .cost-tracker {
+            background: rgba(251, 191, 36, 0.15);
+            border-radius: 20px;
+            padding: 25px;
+            width: 100%;
+            border: 2px solid rgba(251, 191, 36, 0.3);
+            backdrop-filter: blur(15px);
+            text-align: center;
+            display: none;
+        }
+
+        .cost-tracker.visible {
+            display: block;
+        }
+
+        .cost-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #fbbf24;
+            margin-bottom: 15px;
+        }
+
+        .cost-line {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .cost-highlight {
+            color: #10b981;
+            font-weight: 700;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(5deg); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        /* MOBILE RESPONSIVE */
+        @media (max-width: 1200px) {
+            .main-container {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto auto auto;
+                gap: 15px;
             }
-            response = json.dumps(error_response)
-            self.wfile.write(response.encode())
+
+            .left-panel, .right-panel {
+                flex-direction: row;
+                justify-content: center;
+            }
+
+            .mascot-large {
+                width: 120px;
+                height: 120px;
+            }
+
+            .status-panel, .cost-tracker {
+                max-width: 400px;
+            }
+
+            .main-title {
+                font-size: 32px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- TOP HEADER -->
+    <div class="top-header">
+        <div class="main-logo-section">
+            <div class="site-logo">SM</div>
+            <div class="title-section">
+                <h1 class="main-title">SITE MONKEYS AI</h1>
+                <p class="subtitle">BUSINESS VALIDATION ENGINE</p>
+            </div>
+            <div class="header-rocket">🚀</div>
+        </div>
+    </div>
+
+    <!-- MAIN CONTAINER -->
+    <div class="main-container">
+        <!-- LEFT PANEL - ELI & STATUS -->
+        <div class="left-panel">
+            <div class="mascot-large">🐒</div>
+            <div class="status-panel">
+                <div class="status-title">SiteMonkeys<br>Business Validation System</div>
+                <div class="status-item loading" id="status-vault">⏳ Site Monkeys memory vault loading...</div>
+                <div class="status-item loading" id="status-zero">⏳ Zero Failure activation pending</div>
+                <div class="status-item loading" id="status-data">⏳ Legitimate data initiative pending</div>
+                <div class="status-item loading" id="status-persist">⏳ Persistence driven pending</div>
+                <div class="status-item loading" id="status-helpful">⏳ Helpful initiative pending</div>
+                <div class="status-item loading" id="status-founder">⏳ Founder Protection pending</div>
+                <div class="status-item loading" id="status-market">⏳ Market leader Initiative pending</div>
+            </div>
+        </div>
+
+        <!-- CENTER CHAT AREA -->
+        <div class="center-chat">
+            <div class="chat-header">
+                <h2>🎯 Zero-Failure AI</h2>
+                <p>Complete Business Intelligence • Real-World Validation Ready</p>
+            </div>
+            <div class="chat-messages" id="chatMessages">
+                <div class="message assistant">
+                    🚀 <strong>SiteMonkeys Business Validation Engine Online!</strong><br><br>
+                    I have complete access to your business intelligence:<br>
+                    • $15K launch budget & $3K monthly burn constraints<br>
+                    • 87% margin requirements & pricing validation<br>
+                    • Complete legal framework & contractor protocols<br>
+                    • Zero-failure enforcement protocols active<br><br>
+                    Ready for launch preparation validation! 🐒
+                </div>
+            </div>
+            <div class="chat-input">
+                <div class="input-container">
+                    <input type="text" id="userInput" placeholder="Ask about budget constraints, legal documents, contractor protocols, pricing strategy, or any SiteMonkeys business validation..." onkeypress="if(event.key==='Enter') sendMessage()">
+                    <button class="send-button" onclick="sendMessage()">
+                        Send 🚀
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT PANEL - ROXY & COST -->
+        <div class="right-panel">
+            <div class="mascot-large">🐵</div>
+            <div class="cost-tracker" id="costTracker">
+                <div class="cost-title">💰 Cost Tracking</div>
+                <div class="cost-line">
+                    <span>This Message:</span>
+                    <span class="cost-highlight" id="msgCost">$0.00</span>
+                </div>
+                <div class="cost-line">
+                    <span>Session Total:</span>
+                    <span class="cost-highlight" id="sessionCost">$0.00</span>
+                </div>
+                <div class="cost-line">
+                    <span>Today Total:</span>
+                    <span class="cost-highlight" id="dailyCost">$0.00</span>
+                </div>
+                <div class="cost-line">
+                    <span>Tokens Used:</span>
+                    <span class="cost-highlight" id="tokenCount">0</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let sessionVault = null;
+        let sessionActive = false;
+        let dailyCost = parseFloat(localStorage.getItem('dailyCost') || '0');
+        let sessionCost = 0;
+        let messageCount = 0;
+
+        async function initializeSession() {
+            if (sessionVault) {
+                console.log('Session vault already loaded');
+                return sessionVault;
+            }
+
+            updateStatus('status-vault', 'loading', '🔄 Loading SiteMonkeys vault...');
+
+            try {
+                const response = await fetch('/api/load-vault');
+                const data = await response.json();
+
+                if (data.success) {
+                    sessionVault = data.memory;
+                    sessionActive = true;
+
+                    // Progressive status updates
+                    setTimeout(() => updateStatus('status-vault', 'loaded', '✅ Site Monkeys memory vault loaded'), 500);
+                    setTimeout(() => updateStatus('status-zero', 'loaded', '✅ Zero Failure activated'), 800);
+                    setTimeout(() => updateStatus('status-data', 'loaded', '✅ Legitimate data initiative activated'), 1100);
+                    setTimeout(() => updateStatus('status-persist', 'loaded', '✅ Persistence driven activated'), 1400);
+                    setTimeout(() => updateStatus('status-helpful', 'loaded', '✅ Helpful initiative activated'), 1700);
+                    setTimeout(() => updateStatus('status-founder', 'loaded', '✅ Founder Protection activated'), 2000);
+                    setTimeout(() => updateStatus('status-market', 'loaded', '✅ Market leader Initiative'), 2300);
+
+                    console.log('Complete SiteMonkeys vault loaded successfully');
+                    return sessionVault;
+                } else {
+                    throw new Error(data.error || 'Failed to load vault');
+                }
+            } catch (error) {
+                console.error('Vault loading error:', error);
+                updateStatus('status-vault', 'error', '❌ Vault Loading Failed');
+                throw error;
+            }
+        }
+
+        function updateStatus(itemId, status, text) {
+            const item = document.getElementById(itemId);
+            if (item) {
+                item.className = `status-item ${status}`;
+                item.textContent = text;
+            }
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('userInput');
+            const message = input.value.trim();
+            if (!message) return;
+
+            // Initialize session vault if not loaded
+            if (!sessionVault) {
+                try {
+                    await initializeSession();
+                } catch (error) {
+                    return;
+                }
+            }
+
+            // Add user message to chat
+            addMessage(message, 'user');
+            input.value = '';
+
+            // Show AI thinking
+            const thinkingDiv = addMessage('🧠 Analyzing against SiteMonkeys business intelligence...', 'assistant', true);
+
+            try {
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        message: message,
+                        vault_memory: sessionVault
+                    })
+                });
+
+                const data = await response.json();
+                thinkingDiv.remove();
+
+                if (data.success) {
+                    messageCount++;
+                    addMessage(data.response, 'assistant');
+
+                    // Update cost tracking
+                    if (data.cost_info) {
+                        updateCostTracking(
+                            parseFloat(data.cost_info.estimated_cost), 
+                            data.cost_info.total_tokens || 0
+                        );
+                    }
+                } else {
+                    addMessage(`❌ Error: ${data.error}`, 'assistant');
+                }
+            } catch (error) {
+                thinkingDiv.remove();
+                addMessage('❌ Connection error. Please try again.', 'assistant');
+                console.error('Chat error:', error);
+            }
+        }
+
+        function addMessage(content, sender, isThinking = false) {
+            const chatContainer = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}${isThinking ? ' thinking' : ''}`;
+            messageDiv.innerHTML = content.replace(/\n/g, '<br>');
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+            return messageDiv;
+        }
+
+        function updateCostTracking(cost, tokens) {
+            sessionCost += cost;
+            dailyCost += cost;
+            localStorage.setItem('dailyCost', dailyCost.toString());
+
+            document.getElementById('msgCost').textContent = `$${cost.toFixed(4)}`;
+            document.getElementById('sessionCost').textContent = `$${sessionCost.toFixed(4)}`;
+            document.getElementById('dailyCost').textContent = `$${dailyCost.toFixed(4)}`;
+            document.getElementById('tokenCount').textContent = tokens.toLocaleString();
+
+            const costTracker = document.getElementById('costTracker');
+            costTracker.classList.add('visible');
+        }
+
+        // Initialize session when page loads
+        window.addEventListener('load', () => {
+            initializeSession().catch(console.error);
+        });
+
+        // Reset daily cost at midnight
+        const now = new Date();
+        const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+        const msUntilTomorrow = tomorrow.getTime() - now.getTime();
+
+        setTimeout(() => {
+            localStorage.setItem('dailyCost', '0');
+            location.reload();
+        }, msUntilTomorrow);
+    </script>
+</body>
+</html>
