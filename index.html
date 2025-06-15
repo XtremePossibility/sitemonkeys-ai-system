@@ -4,31 +4,24 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SiteMonkeys AI - Business Validation Engine</title>
-    <link rel="icon" href="https://images.squarespace-cdn.com/content/v1/66d35f84b9d4a82a6cc6e4e7/1725281255193-VQNM6UV5R0OJKQRQX4D9/apple-touch-icon-site-monkeys.png" type="image/png">
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
             min-height: 100vh;
             color: white;
-            overflow-x: hidden;
         }
-
-        /* TOP HEADER */
         .top-header {
             background: linear-gradient(135deg, #000 0%, #1a1a2e 100%);
             padding: 20px;
             text-align: center;
             border-bottom: 3px solid #fbbf24;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
         }
-
         .main-logo-section {
             display: flex;
             align-items: center;
@@ -36,15 +29,6 @@
             gap: 20px;
             margin-bottom: 15px;
         }
-
-        .main-logo-section {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 20px;
-            margin-bottom: 15px;
-        }
-
         .site-logo {
             width: 80px;
             height: 80px;
@@ -52,11 +36,9 @@
             border: 3px solid #fbbf24;
             box-shadow: 0 0 20px rgba(251, 191, 36, 0.4);
         }
-
         .title-section {
             text-align: center;
         }
-
         .main-title {
             font-size: 48px;
             font-weight: 900;
@@ -64,25 +46,17 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
-            text-shadow: 0 0 30px rgba(251, 191, 36, 0.5);
-            letter-spacing: 2px;
             margin-bottom: 5px;
         }
-
         .subtitle {
             font-size: 18px;
             color: #94a3b8;
             font-weight: 600;
-            letter-spacing: 1px;
         }
-
         .header-rocket {
             font-size: 60px;
             animation: float 3s ease-in-out infinite;
-            filter: drop-shadow(0 0 10px rgba(251, 191, 36, 0.6));
         }
-
-        /* MAIN CONTAINER */
         .main-container {
             display: grid;
             grid-template-columns: 350px 1fr 350px;
@@ -92,15 +66,12 @@
             max-width: 1600px;
             margin: 0 auto;
         }
-
-        /* LEFT PANEL - ELI & STATUS */
         .left-panel {
             display: flex;
             flex-direction: column;
             align-items: center;
             gap: 20px;
         }
-
         .mascot-large {
             width: 220px;
             height: 220px;
@@ -108,13 +79,10 @@
             border: 5px solid #fbbf24;
             box-shadow: 0 15px 40px rgba(251, 191, 36, 0.4);
             transition: transform 0.3s ease;
-            object-fit: cover;
         }
-
         .mascot-large:hover {
             transform: scale(1.05) rotate(2deg);
         }
-
         .status-panel {
             background: rgba(255,255,255,0.1);
             border-radius: 20px;
@@ -123,7 +91,6 @@
             border: 2px solid rgba(251, 191, 36, 0.3);
             backdrop-filter: blur(15px);
         }
-
         .status-title {
             font-size: 20px;
             font-weight: 700;
@@ -131,7 +98,6 @@
             margin-bottom: 20px;
             text-align: center;
         }
-
         .status-item {
             display: flex;
             align-items: center;
@@ -142,25 +108,16 @@
             border-bottom: 1px solid rgba(255,255,255,0.1);
             transition: all 0.3s ease;
         }
-
         .status-item:last-child {
             border-bottom: none;
         }
-
         .status-item.loading {
             color: #fbbf24;
             animation: pulse 2s infinite;
         }
-
         .status-item.loaded {
             color: #10b981;
         }
-
-        .status-item.error {
-            color: #ef4444;
-        }
-
-        /* CENTER CHAT AREA */
         .center-chat {
             background: rgba(255,255,255,0.95);
             border-radius: 25px;
@@ -170,25 +127,21 @@
             border: 3px solid rgba(251, 191, 36, 0.5);
             overflow: hidden;
         }
-
         .chat-header {
             background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
             padding: 20px;
             text-align: center;
             color: #1f2937;
         }
-
         .chat-header h2 {
             font-size: 24px;
             font-weight: 700;
             margin-bottom: 5px;
         }
-
         .chat-header p {
             font-size: 14px;
             opacity: 0.8;
         }
-
         .chat-messages {
             flex: 1;
             padding: 25px;
@@ -196,7 +149,6 @@
             background: white;
             color: #1f2937;
         }
-
         .message {
             margin-bottom: 20px;
             padding: 18px 22px;
@@ -207,14 +159,12 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
             position: relative;
         }
-
         .message.user {
             background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
             color: white;
             margin-left: auto;
             border-bottom-right-radius: 6px;
         }
-
         .message.assistant {
             background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
             color: #1f2937;
@@ -223,7 +173,6 @@
             border-bottom-left-radius: 6px;
             padding-left: 60px;
         }
-
         .message.assistant::before {
             content: "";
             position: absolute;
@@ -235,16 +184,12 @@
             border-radius: 50%;
             border: 2px solid #fbbf24;
         }
-
-        /* Alternating avatars */
         .message.assistant:nth-of-type(even)::before {
             background-image: url('/boy-mascot.png');
         }
-
         .message.assistant:nth-of-type(odd)::before {
             background-image: url('/girl-mascot.png');
         }
-
         .message.thinking {
             background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
             color: #1f2937;
@@ -252,18 +197,15 @@
             animation: pulse 2s infinite;
             margin-right: auto;
         }
-
         .chat-input {
             padding: 25px;
             background: #f8fafc;
             border-top: 2px solid #e5e7eb;
         }
-
         .input-container {
             display: flex;
             gap: 15px;
         }
-
         .input-container input {
             flex: 1;
             padding: 18px 25px;
@@ -274,12 +216,10 @@
             transition: all 0.3s ease;
             background: white;
         }
-
         .input-container input:focus {
             border-color: #2563eb;
             box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
         }
-
         .send-button {
             padding: 18px 30px;
             background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
@@ -291,24 +231,17 @@
             cursor: pointer;
             transition: all 0.3s ease;
             box-shadow: 0 6px 20px rgba(251, 191, 36, 0.3);
-            display: flex;
-            align-items: center;
-            gap: 8px;
         }
-
         .send-button:hover {
             transform: translateY(-2px);
             box-shadow: 0 8px 25px rgba(251, 191, 36, 0.4);
         }
-
-        /* RIGHT PANEL - ROXY & COST */
         .right-panel {
             display: flex;
             flex-direction: column;
             align-items: center;
             gap: 20px;
         }
-
         .cost-tracker {
             background: rgba(251, 191, 36, 0.15);
             border-radius: 20px;
@@ -318,14 +251,12 @@
             backdrop-filter: blur(15px);
             text-align: center;
         }
-
         .cost-title {
             font-size: 18px;
             font-weight: 700;
             color: #fbbf24;
             margin-bottom: 15px;
         }
-
         .cost-line {
             display: flex;
             justify-content: space-between;
@@ -333,70 +264,55 @@
             font-size: 14px;
             font-weight: 600;
         }
-
         .cost-highlight {
             color: #10b981;
             font-weight: 700;
         }
-
-        /* ROCKET DECORATIONS */
         .rocket {
             position: absolute;
             font-size: 120px;
             opacity: 0.7;
             animation: float 4s ease-in-out infinite;
-            filter: drop-shadow(0 0 15px rgba(251, 191, 36, 0.5));
             z-index: 1;
         }
-
         .rocket-1 {
             top: 15%;
             right: 8%;
             animation-delay: 0s;
         }
-
         .rocket-2 {
             top: 70%;
             left: 3%;
             animation-delay: 2s;
         }
-
         @keyframes float {
             0%, 100% { transform: translateY(0px) rotate(0deg); }
             50% { transform: translateY(-20px) rotate(5deg); }
         }
-
         @keyframes pulse {
             0%, 100% { opacity: 1; }
             50% { opacity: 0.6; }
         }
-
-        /* MOBILE RESPONSIVE */
         @media (max-width: 1200px) {
             .main-container {
                 grid-template-columns: 1fr;
                 grid-template-rows: auto auto auto;
                 gap: 15px;
             }
-
             .left-panel, .right-panel {
                 flex-direction: row;
                 justify-content: center;
             }
-
             .mascot-large {
                 width: 120px;
                 height: 120px;
             }
-
             .status-panel, .cost-tracker {
                 max-width: 400px;
             }
-
             .main-title {
                 font-size: 32px;
             }
-
             .rocket {
                 display: none;
             }
@@ -404,14 +320,12 @@
     </style>
 </head>
 <body>
-    <!-- ROCKET DECORATIONS -->
     <div class="rocket rocket-1">🚀</div>
     <div class="rocket rocket-2">🚀</div>
 
-    <!-- TOP HEADER -->
     <div class="top-header">
         <div class="main-logo-section">
-            <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==" alt="SiteMonkeys Logo" class="site-logo" style="background-image: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTAiIGhlaWdodD0iNTAiIHZpZXdCb3g9IjAgMCA1MCA1MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjUwIiBoZWlnaHQ9IjUwIiByeD0iMTAiIGZpbGw9IiNGQkJGMjQiLz4KPHRleHQgeD0iMjUiIHk9IjMwIiBmb250LWZhbWlseT0iYXJpYWwiIGZvbnQtc2l6ZT0iMjQiIGZvbnQtd2VpZ2h0PSJib2xkIiBmaWxsPSIjMUYyOTM3IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5TTTwvdGV4dD4KPC9zdmc+'); background-size: cover;">
+            <img src="/logo.png" alt="SiteMonkeys Logo" class="site-logo">
             <div class="title-section">
                 <h1 class="main-title">SITE MONKEYS AI</h1>
                 <p class="subtitle">BUSINESS VALIDATION ENGINE</p>
@@ -420,9 +334,7 @@
         </div>
     </div>
 
-    <!-- MAIN CONTAINER -->
     <div class="main-container">
-        <!-- LEFT PANEL - ELI & STATUS -->
         <div class="left-panel">
             <img src="/boy-mascot.png" alt="Eli" class="mascot-large">
             
@@ -438,7 +350,6 @@
             </div>
         </div>
 
-        <!-- CENTER CHAT AREA -->
         <div class="center-chat">
             <div class="chat-header">
                 <h2>🎯 Zero-Failure AI</h2>
@@ -467,7 +378,6 @@
             </div>
         </div>
 
-        <!-- RIGHT PANEL - ROXY & COST -->
         <div class="right-panel">
             <img src="/girl-mascot.png" alt="Roxy" class="mascot-large">
             
@@ -516,7 +426,6 @@
                     sessionVault = data.memory;
                     sessionActive = true;
                     
-                    // Progressive status updates
                     setTimeout(() => updateStatus('status-vault', 'loaded', '✅ Site Monkeys memory vault loaded'), 500);
                     setTimeout(() => updateStatus('status-zero', 'loaded', '✅ Zero Failure activated'), 800);
                     setTimeout(() => updateStatus('status-data', 'loaded', '✅ Legitimate data initiative activated'), 1100);
@@ -550,7 +459,6 @@
             const message = input.value.trim();
             if (!message) return;
 
-            // Initialize session vault if not loaded
             if (!sessionVault) {
                 try {
                     await initializeSession();
@@ -559,11 +467,9 @@
                 }
             }
 
-            // Add user message to chat
             addMessage(message, 'user');
             input.value = '';
 
-            // Show AI thinking
             const thinkingDiv = addMessage('🧠 Analyzing against SiteMonkeys business intelligence...', 'assistant', true);
 
             try {
@@ -585,7 +491,6 @@
                     messageCount++;
                     addMessage(data.response, 'assistant');
                     
-                    // Update cost tracking
                     if (data.cost) {
                         updateCostTracking(data.cost, data.tokens || 0);
                     }
@@ -622,12 +527,10 @@
             document.getElementById('costTracker').style.display = 'block';
         }
 
-        // Initialize session when page loads
         window.addEventListener('load', () => {
             initializeSession().catch(console.error);
         });
 
-        // Reset daily cost at midnight
         const now = new Date();
         const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
         const msUntilTomorrow = tomorrow.getTime() - now.getTime();
