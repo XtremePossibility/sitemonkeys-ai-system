@@ -1,5 +1,54 @@
 let sessionVault = null;  // Store vault in session
         let sessionActive = false;
+        let sessionCostTotal = 0; // Track session costs
+        let dailyCostTotal = parseFloat(localStorage.getItem('dailyCost') || '0');
+        let dailyDate = localStorage.getItem('dailyDate') || new Date().toDateString();
+
+        // Reset daily cost if new day
+        if (dailyDate !== new Date().toDateString()) {
+            dailyCostTotal = 0;
+            dailyDate = new Date().toDateString();
+            localStorage.setItem('dailyCost', '0');
+            localStorage.setItem('dailyDate', dailyDate);
+        }
+
+        function updateCostDisplay(costInfo) {
+            if (costInfo && costInfo.estimated_cost) {
+                const messageCost = parseFloat(costInfo.estimated_cost);
+                sessionCostTotal += messageCost;
+                dailyCostTotal += messageCost;
+                
+                // Save daily cost
+                localStorage.setItem('dailyCost', dailyCostTotal.toString());
+                
+                // Update display
+                let costDisplay = document.getElementById('costDisplay');
+                if (!costDisplay) {
+                    costDisplay = document.createElement('div');
+                    costDisplay.id = 'costDisplay';
+                    costDisplay.style.cssText = `
+                        position: fixed;
+                        top: 10px;
+                        right: 10px;
+                        background: rgba(0,0,0,0.8);
+                        color: white;
+                        padding: 10px;
+                        border-radius: 8px;
+                        font-size: 12px;
+                        z-index: 1000;
+                    `;
+                    document.body.appendChild(costDisplay);
+                }
+                
+                costDisplay.innerHTML = `
+                    💰 <strong>Cost Tracking</strong><br>
+                    This message: ${messageCost.toFixed(4)}<br>
+                    Session total: ${sessionCostTotal.toFixed(4)}<br>
+                    Today total: ${dailyCostTotal.toFixed(4)}<br>
+                    <small>Tokens: ${costInfo.total_tokens || 'N/A'}</small>
+                `;
+            }
+        }
 
         async function initializeSession() {
             if (sessionVault) {
@@ -71,6 +120,10 @@ let sessionVault = null;  // Store vault in session
 
                 if (data.success) {
                     addMessage(data.response, 'assistant');
+                    // Update cost tracking
+                    if (data.cost_info) {
+                        updateCostDisplay(data.cost_info);
+                    }
                 } else {
                     addMessage(`❌ Error: ${data.error}`, 'assistant');
                 }
