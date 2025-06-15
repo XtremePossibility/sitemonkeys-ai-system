@@ -40,55 +40,44 @@ class handler(BaseHTTPRequestHandler):
             self.wfile.write(json.dumps(response).encode())
 
 def load_minimal_core():
-    """Load only essential SiteMonkeys intelligence to fit in 8K tokens"""
+    """Load complete SiteMonkeys business intelligence - FULL VAULT ACCESS"""
     
-    core_intelligence = """=== SITEMONKEYS VAULT MEMORY LOADED ===
-
-📂 LOADED FILES FROM VAULT:
-- Founder's Directive – Elevated and Executable Form.txt
-- 02_BlueprintArchitecture.txt  
-- 00_BEHAVIOR_ENFORCEMENT_DEEP_LAYER.txt
-- Founders_Directive.txt
-- Pricing_Billing_Monetization.txt
-- Services_Offered.txt
-
-YOU HAVE COMPLETE ACCESS TO THESE FILES AND THEIR CONTENTS.
-
-=== SITEMONKEYS CORE INTELLIGENCE ===
-
-BUDGET & FINANCIAL:
-- Launch Budget: $15,000 maximum
-- Monthly Burn: $3,000 maximum  
-- Target Margins: 87% minimum at scale
-- Boost: $697/month, Climb: $1,497/month, Lead: $2,997/month
-
-ZERO-FAILURE ENFORCEMENT:
-1. Follow founder's directives above all else - no generic advice
-2. Provide specific numbers when asked (budgets, margins, timelines)
-3. Base responses on SiteMonkeys requirements only
-4. Focus on real-world survivability and 87% margin protection
-5. No placeholders - everything must work from Day 1
-
-CORE BUSINESS MODEL:
-- Replace $30K/month agencies with $697-$2,997 AI automation
-- 100% AI service delivery (SEO, PPC, content, creative, reviews)
-- 99.8% uptime, handles 100K+ customers
-- "From Overlooked to Overbooked" positioning
-
-TECHNICAL REQUIREMENTS:
-- Triple-AI failover system (Claude → GPT-4 → Mistral)
-- Complete IP protection and clone resistance
-- No human runtime dependencies
-- Launch in 4 weeks maximum
-
-NON-NEGOTIABLES:
-- 87% margins maintained at scale
-- $15K launch budget maximum
-- $3K monthly burn maximum
-- Agency-quality results from Day 1
-- Real-world stress testing required
-
-ADDITIONAL FILES AVAILABLE: Legal docs, contractor materials, implementation roadmaps
-REQUEST: "Load [specific area] for [business need]" """
-
-    return core_intelligence
+    # Google Drive setup
+    google_creds = os.getenv("GOOGLE_CREDENTIALS_JSON")
+    if not google_creds:
+        return "=== ERROR: GOOGLE_CREDENTIALS_JSON not found ==="
+    
+    try:
+        creds_dict = json.loads(google_creds)
+        creds = service_account.Credentials.from_service_account_info(
+            creds_dict, 
+            scopes=["https://www.googleapis.com/auth/drive.readonly"]
+        )
+        drive_service = build("drive", "v3", credentials=creds)
+    except Exception as e:
+        return f"=== ERROR: Google Drive setup failed: {e} ==="
+    
+    vault_folder_id = "1LAkbqjN7g-HJV9BRWV-AsmMpY1JzJiIM"
+    memory_content = "=== COMPLETE SITEMONKEYS VAULT LOADED ===\n\n"
+    memory_content += "📂 VAULT FILES SUCCESSFULLY LOADED:\n"
+    
+    try:
+        # Load from VAULT_MEMORY_FILES
+        memory_content += load_vault_memory_files(drive_service, vault_folder_id)
+        
+        # Load from 01_Core_Directives  
+        memory_content += load_core_directives_files(drive_service, vault_folder_id)
+        
+        # Load from 02_Legal (key files)
+        memory_content += load_legal_files(drive_service, vault_folder_id)
+        
+        memory_content += "\n=== ADDITIONAL VAULT RESOURCES AVAILABLE ===\n"
+        memory_content += "- Contractor Handoff Materials (05_Complete Contractor Handoff)\n"
+        memory_content += "- AI Tuning Protocols (03_AI_Tuning)\n"
+        memory_content += "- Session Logging (04_SessionLogs)\n"
+        memory_content += "- Auto-Reply Templates (06_AutoReplyTemplates)\n\n"
+        
+        return memory_content
+        
+    except Exception as e:
+        return f"=== ERROR: Vault loading failed: {e} ==="
