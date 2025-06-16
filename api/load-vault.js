@@ -15,21 +15,34 @@ export default async function handler(req, res) {
 
     const drive = google.drive({ version: 'v3', auth });
 
-    const response = await drive.files.list({
-      q: `'${VAULT_FOLDER_ID}' in parents`,
-      fields: 'files(id, name, mimeType)',
-    });
+    async function fetchAllFiles(folderId, depth = 0) {
+      const results = [];
+      const res = await drive.files.list({
+        q: `'${folderId}' in parents and trashed = false`,
+        fields: 'files(id, name, mimeType)',
+      });
 
-    const files = response.data.files || [];
+      for (const file of res.data.files || []) {
+        if (file.mimeType === 'application/vnd.google-apps.folder') {
+          const subfiles = await fetchAllFiles(file.id, depth + 1);
+          results.push(...subfiles);
+        } else {
+          results.push(file);
+        }
+      }
+      return results;
+    }
+
+    const files = await fetchAllFiles(VAULT_FOLDER_ID);
     let vaultContent = "=== SITEMONKEYS BUSINESS INTELLIGENCE VAULT ===\n\n";
     let filesLoaded = 0;
 
-    console.log(`📦 Found ${files.length} files in the vault folder.`);
+    console.log(`📦 Recursive vault scan found ${files.length} files total.`);
 
     for (const file of files) {
       try {
-        console.log(`📄 Processing: ${file.name} (type: ${file.mimeType})`);
         let content = '';
+        console.log(`📄 Attempting: ${file.name} (${file.mimeType})`);
 
         if (file.mimeType === 'application/vnd.google-apps.document') {
           const exported = await drive.files.export({
@@ -40,7 +53,7 @@ export default async function handler(req, res) {
         } else if (
           file.mimeType === 'text/plain' ||
           file.mimeType === 'application/octet-stream' ||
-          file.name.toLowerCase().endsWith('.txt')
+          file.name.endsWith('.txt')
         ) {
           const downloaded = await drive.files.get(
             { fileId: file.id, alt: 'media' },
@@ -61,23 +74,20 @@ export default async function handler(req, res) {
           content = exported.data;
         }
 
-        if (content && content.trim().length > 0) {
+        if (content) {
           vaultContent += `\n=== ${file.name} ===\n${content}\n\n`;
           filesLoaded++;
-          console.log(`✅ Loaded: ${file.name} (${content.length} chars)`);
+          console.log(`✅ Loaded: ${file.name}`);
         } else {
-          console.warn(`⚠️ No usable content from: ${file.name}`);
+          console.warn(`⚠️ No content from: ${file.name}`);
         }
-      } catch (fileErr) {
-        console.warn(`❌ Skipped ${file.name}: ${fileErr.message}`);
+      } catch (err) {
+        console.warn(`❌ Skipped ${file.name}: ${err.message}`);
       }
     }
 
     const tokenEstimate = Math.round(vaultContent.length / 4.2);
     const estimatedCost = (tokenEstimate * 0.002 / 1000).toFixed(4);
-
-    console.log(`🧠 Final vault memory length: ${vaultContent.length}`);
-    console.log(`🧾 Vault preview: ${vaultContent.substring(0, 400).replace(/\n/g, ' ↵ ')}`);
 
     res.status(200).json({
       success: true,
