@@ -16,44 +16,38 @@ export default async function handler(req, res) {
     const drive = google.drive({ version: 'v3', auth });
 
     async function fetchAllFiles(folderId) {
-      const results = [];
-      const res = await drive.files.list({
-        q: `'${folderId}' in parents and trashed = false`,
-        fields: 'files(id, name, mimeType)'
-      });
-
-      for (const file of res.data.files || []) {
-        if (file.mimeType === 'application/vnd.google-apps.folder') {
-          const subfiles = await fetchAllFiles(file.id);
-          results.push(...subfiles);
-        } else {
-          results.push(file);
+      const files = [];
+      const queue = [folderId];
+      while (queue.length) {
+        const current = queue.shift();
+        const res = await drive.files.list({
+          q: `'${current}' in parents and trashed = false`,
+          fields: 'files(id, name, mimeType)'
+        });
+        for (const file of res.data.files || []) {
+          if (file.mimeType === 'application/vnd.google-apps.folder') {
+            queue.push(file.id);
+          } else {
+            files.push(file);
+          }
         }
       }
-      return results;
+      return files;
     }
 
     const files = await fetchAllFiles(VAULT_FOLDER_ID);
-    let vaultContent = "=== CONTEXT OVERVIEW ===\nThe following files were loaded into memory from the SiteMonkeys business vault:\n";
+    let vaultContent = '=== CONTEXT OVERVIEW ===\n';
     const fileReport = [];
     let filesLoaded = 0;
 
     for (const file of files) {
       let content = '';
-      let status = 'skipped';
       try {
         if (file.mimeType === 'application/vnd.google-apps.document') {
           const exported = await drive.files.export({ fileId: file.id, mimeType: 'text/plain' });
           content = exported.data;
-        } else if (
-          file.mimeType === 'text/plain' ||
-          file.mimeType === 'application/octet-stream' ||
-          file.name.endsWith('.txt')
-        ) {
-          const downloaded = await drive.files.get(
-            { fileId: file.id, alt: 'media' },
-            { responseType: 'stream' }
-          );
+        } else if (file.mimeType === 'text/plain' || file.name.endsWith('.txt')) {
+          const downloaded = await drive.files.get({ fileId: file.id, alt: 'media' }, { responseType: 'stream' });
           content = await streamToString(downloaded.data);
         } else if (file.mimeType.includes('wordprocessingml.document')) {
           const exported = await drive.files.export({ fileId: file.id, mimeType: 'text/plain' });
@@ -62,31 +56,19 @@ export default async function handler(req, res) {
           const exported = await drive.files.export({ fileId: file.id, mimeType: 'text/csv' });
           content = exported.data;
         }
-
-        if (content?.trim()) {
-          vaultContent += `- ${file.name}\n`;
+        if (content.trim()) {
+          vaultContent += `\n=== ${file.name} ===\n${content}\n`;
           fileReport.push({ name: file.name, mimeType: file.mimeType, status: 'loaded' });
-          vaultContent += `\n=== ${file.name} ===\n${content}\n\n`;
           filesLoaded++;
-          status = 'loaded';
         }
       } catch (err) {
-        status = `error: ${err.message}`;
-        fileReport.push({ name: file.name, mimeType: file.mimeType, status });
+        fileReport.push({ name: file.name, mimeType: file.mimeType, status: `error: ${err.message}` });
       }
     }
-
-    vaultContent = vaultContent.trimStart() +
-      "\n=== END CONTEXT ===\n\n" +
-      "⚠️ If you do not see any file content above or the context appears empty, please verify vault integration or memory permissions."
 
     const tokenEstimate = Math.round(vaultContent.length / 4.2);
     const estimatedCost = (tokenEstimate * 0.002 / 1000).toFixed(4);
 
-    console.log(`🔢 Vault Load Summary: Tokens=${tokenEstimate}, Estimated Cost=$${estimatedCost}`);
-
-    // Ensure this data is being received and rendered properly on the frontend
-    res.setHeader('Content-Type', 'application/json');
     res.status(200).json({
       success: true,
       memory: vaultContent,
@@ -98,9 +80,9 @@ export default async function handler(req, res) {
     });
   } catch (err) {
     res.status(200).json({
-      success: true,
-      memory: "=== SITEMONKEYS BUSINESS INTELLIGENCE VAULT ===\n\n",
-      token_estimate: 12,
+      success: false,
+      memory: '',
+      token_estimate: 0,
       folders_loaded: 0,
       estimated_cost: "$0.0000",
       mode: 'fallback_mode',
@@ -117,4 +99,3 @@ function streamToString(stream) {
     stream.on('error', reject);
   });
 }
-city of my own style but you don't want to trust that you're going down here in the city I don't know where it goes
