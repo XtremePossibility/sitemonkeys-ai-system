@@ -12,9 +12,9 @@
       color: #fff;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       padding: 20px;
-      max-width: 100%;
       font-size: clamp(14px, 2.5vw, 18px);
       overflow-wrap: break-word;
+      max-width: 100vw;
     }
     .chat-box p {
       margin-bottom: 10px;
@@ -24,57 +24,86 @@
       color: #0f0;
       font-weight: bold;
     }
+    .checklist li {
+      margin: 4px 0;
+    }
   </style>
 </head>
 <body>
-  <h1>SiteMonkeys AI 🐒</h1>
+  <header>
+    <img src="logo.png" alt="SiteMonkeys Logo" style="height: 100px; border: none;">
+    <h1>🐒 SiteMonkeys AI</h1>
+    <p>Business Validation Engine</p>
+  </header>
+
+  <div id="checklistContainer">
+    <ul class="checklist" id="checklist">
+      <li>🔄 Loading Vault...</li>
+    </ul>
+  </div>
+
   <div class="chat-box" id="chatBox"></div>
+
   <input type="text" id="userInput" placeholder="Ask a business question...">
-  <button onclick="sendMessage()">Send</button>
+  <button onclick="sendMessage()">
+    <img src="rocket-no-smoke.png" alt="Send" style="height: 24px; vertical-align: middle;">
+  </button>
+  <button onclick="downloadLog()">📥 Download Log</button>
+
   <script>
     let sessionVault = null;
     let sessionCost = 0;
+    let sessionLog = [];
     let messageCount = 0;
 
     async function initializeSession() {
+      const checklist = document.getElementById('checklist');
+      checklist.innerHTML = '<li>🔄 Loading Vault...</li>';
       try {
         const res = await fetch('/api/load-vault');
         const data = await res.json();
         if (data.success) {
           sessionVault = data.memory || '';
+          checklist.innerHTML = `<li>✅ Vault loaded</li>
+                                  <li>✅ Tokens: ${data.token_estimate}</li>
+                                  <li>✅ Files: ${data.folders_loaded}</li>`;
+        } else {
+          checklist.innerHTML = `<li>❌ Vault failed to load</li>`;
         }
       } catch (err) {
-        console.error('Vault load failed:', err);
+        checklist.innerHTML = `<li>❌ Error loading vault</li>`;
       }
     }
 
     async function sendMessage() {
       const input = document.getElementById('userInput');
       const box = document.getElementById('chatBox');
-      const userMsg = input.value;
-      box.innerHTML += `<p>🧑 You: ${userMsg}</p>`;
+      const msg = input.value;
+      box.innerHTML += `<p>🧑 You: ${msg}</p>`;
       input.value = '';
-
       const thinking = document.createElement('p');
-      thinking.textContent = '🤖 Thinking...';
+      thinking.textContent = '🧠 Thinking...';
       box.appendChild(thinking);
 
       try {
         const res = await fetch('/api/chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message: userMsg, vault_memory: sessionVault })
+          body: JSON.stringify({ message: msg, vault_memory: sessionVault })
         });
         const data = await res.json();
         thinking.remove();
 
-        const reply = data.response || 'No response';
         const label = messageCount % 2 === 0 ? '🧒 Eli:' : '👧 Roxy:';
-        box.innerHTML += `<p>${label}<br>${reply}</p>`;
+        const response = (data.response || '').replace(/\n/g, '<br>');
+        box.innerHTML += `<p>${label}<br>${response}</p>`;
 
         if (data.cost_info?.estimated_cost) {
           sessionCost += parseFloat(data.cost_info.estimated_cost);
-          box.innerHTML += `<p class="status">💰 Session total: $${sessionCost.toFixed(4)} | Tokens: ${data.cost_info.total_tokens || 'N/A'}</p>`;
+          const costMsg = `<p class="status">💰 Session total: $${sessionCost.toFixed(4)} | Tokens: ${data.cost_info.total_tokens}</p>`;
+          box.innerHTML += costMsg;
+          sessionLog.push(`${label} ${data.response}`);
+          sessionLog.push(`COST: $${sessionCost.toFixed(4)} | Tokens: ${data.cost_info.total_tokens}`);
         }
 
         messageCount++;
@@ -83,6 +112,18 @@
         thinking.textContent = '❌ Connection error';
         console.error(err);
       }
+    }
+
+    function downloadLog() {
+      const logText = sessionLog.join('\n');
+      const blob = new Blob([logText], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'SiteMonkeys_Chat_Log.txt';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
     }
 
     window.addEventListener('load', initializeSession);
