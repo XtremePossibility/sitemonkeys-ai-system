@@ -3,146 +3,190 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SiteMonkeys Business Validation System</title>
+  <title>SiteMonkeys Business Validation Chat</title>
   <link rel="icon" href="logo.png" type="image/png">
-  <link rel="manifest" href="/manifest.json" />
   <style>
     body {
-      background: #121212;
-      color: #fff;
+      background: #1b1b1b;
+      color: white;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
       padding: 20px;
-      font-size: clamp(14px, 2.5vw, 18px);
-      overflow-wrap: break-word;
-      max-width: 100vw;
+      background: #111;
+      border-bottom: 1px solid #333;
     }
-    .chat-box p {
-      margin-bottom: 10px;
-      white-space: pre-wrap;
+    header img {
+      height: 80px;
     }
-    .status {
-      color: #0f0;
-      font-weight: bold;
+    .main {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
     }
-    .checklist li {
-      margin: 4px 0;
+    .mascots {
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+      max-width: 900px;
     }
-    .file-list {
-      font-size: 0.9rem;
-      color: #ccc;
-      margin: 10px 0 20px 0;
+    .mascots img {
+      height: 150px;
+    }
+    .chat-container {
+      width: 100%;
+      max-width: 900px;
+      background: #222;
+      border-radius: 10px;
+      padding: 20px;
+      margin: 20px 0;
+    }
+    .chat-log {
+      max-height: 400px;
+      overflow-y: auto;
+      padding-right: 10px;
+    }
+    .message {
+      margin: 10px 0;
+      padding: 10px 15px;
+      border-radius: 12px;
+      max-width: 70%;
+    }
+    .user {
+      background: #2563eb;
+      align-self: flex-end;
+      text-align: right;
+    }
+    .ai {
+      background: #2d2d2d;
+      border: 1px solid #444;
+      align-self: flex-start;
+    }
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .controls input {
+      flex: 1;
+      padding: 10px;
+      border-radius: 8px;
+      border: none;
+    }
+    .controls button {
+      padding: 10px 15px;
+      background: #ffc107;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .info-bar {
+      font-size: 14px;
+      margin-top: 10px;
+      color: #bbb;
+    }
+    ul.file-list {
+      padding-left: 20px;
     }
   </style>
 </head>
 <body>
   <header>
-    <img src="logo.png" alt="SiteMonkeys Logo" style="height: 100px; border: none;">
-    <h1>🐒 SiteMonkeys AI</h1>
-    <p>Business Validation Engine</p>
+    <img src="logo.png" alt="SiteMonkeys Logo">
+    <h1>SiteMonkeys AI</h1>
   </header>
 
-  <div id="checklistContainer">
-    <ul class="checklist" id="checklist">
-      <li>🔄 Loading Vault...</li>
-    </ul>
+  <div class="main">
+    <div class="mascots">
+      <img src="boy-mascot.png" alt="Eli">
+      <img src="girl-mascot.png" alt="Roxy">
+    </div>
+
+    <div class="chat-container">
+      <div class="chat-log" id="chatLog"></div>
+
+      <div class="controls">
+        <input type="text" id="userInput" placeholder="Ask a business question...">
+        <button onclick="sendMessage()">
+          <img src="rocket-no-smoke.png" style="height: 24px;">
+        </button>
+      </div>
+      <div class="info-bar" id="infoBar"></div>
+    </div>
   </div>
-
-  <div class="file-list" id="fileList"></div>
-
-  <div class="chat-box" id="chatBox"></div>
-
-  <input type="text" id="userInput" placeholder="Ask a business question...">
-  <button onclick="sendMessage()">
-    <img src="rocket-no-smoke.png" alt="Send" style="height: 24px; vertical-align: middle;">
-  </button>
-  <button onclick="downloadLog()">📥 Download Log</button>
 
   <script>
     let sessionVault = null;
     let sessionCost = 0;
-    let sessionLog = [];
     let messageCount = 0;
 
     async function initializeSession() {
-      const checklist = document.getElementById('checklist');
-      const fileList = document.getElementById('fileList');
-      checklist.innerHTML = '<li>🔄 Loading Vault...</li>';
       try {
         const res = await fetch('/api/load-vault');
         const data = await res.json();
-        if (data.success) {
-          sessionVault = data.memory || '';
-          checklist.innerHTML = `<li>✅ Vault loaded</li>
-                                  <li>✅ Tokens: ${data.token_estimate}</li>
-                                  <li>✅ Files: ${data.folders_loaded}</li>`;
+        sessionVault = data.memory || '';
+        const infoBar = document.getElementById('infoBar');
+        infoBar.innerHTML = `✅ Vault loaded | 📄 Files: ${data.folders_loaded} | 🔢 Tokens: ${data.token_estimate} | 💰 Estimated: ${data.estimated_cost}`;
 
-          if (Array.isArray(data.file_debug)) {
-            const filesLoaded = data.file_debug.filter(f => f.status === 'loaded');
-            if (filesLoaded.length) {
-              fileList.innerHTML = `<strong>Loaded Files:</strong><br>` + filesLoaded.map(f => `- ${f.name}`).join('<br>');
-            } else {
-              fileList.innerHTML = '⚠️ No files were loaded.';
-            }
-          }
-        } else {
-          checklist.innerHTML = `<li>❌ Vault failed to load</li>`;
-          fileList.innerHTML = '';
+        if (Array.isArray(data.file_debug)) {
+          const fileNames = data.file_debug.filter(f => f.status === 'loaded').map(f => f.name);
+          infoBar.innerHTML += `<br><strong>Loaded Files:</strong><ul class='file-list'><li>${fileNames.join('</li><li>')}</li></ul>`;
         }
       } catch (err) {
-        checklist.innerHTML = `<li>❌ Error loading vault</li>`;
-        fileList.innerHTML = '';
+        document.getElementById('infoBar').textContent = '❌ Failed to load memory vault';
+        console.error(err);
       }
     }
 
     async function sendMessage() {
       const input = document.getElementById('userInput');
-      const box = document.getElementById('chatBox');
-      const msg = input.value;
-      box.innerHTML += `<p>🧑 You: ${msg}</p>`;
+      const text = input.value.trim();
+      if (!text) return;
+
+      appendMessage(`🧑 You: ${text}`, 'user');
       input.value = '';
-      const thinking = document.createElement('p');
+
+      const log = document.getElementById('chatLog');
+      const thinking = document.createElement('div');
+      thinking.className = 'message ai';
       thinking.textContent = '🧠 Thinking...';
-      box.appendChild(thinking);
+      log.appendChild(thinking);
 
       try {
         const res = await fetch('/api/chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message: msg, vault_memory: sessionVault })
+          body: JSON.stringify({ message: text, vault_memory: sessionVault })
         });
         const data = await res.json();
         thinking.remove();
 
-        const label = messageCount % 2 === 0 ? '🧒 Eli:' : '👧 Roxy:';
-        const response = (data.response || '').replace(/\n/g, '<br>');
-        box.innerHTML += `<p>${label}<br>${response}</p>`;
-
-        if (data.cost_info?.estimated_cost) {
-          sessionCost += parseFloat(data.cost_info.estimated_cost);
-          const costMsg = `<p class="status">💰 Session total: $${sessionCost.toFixed(4)} | Tokens: ${data.cost_info.total_tokens}</p>`;
-          box.innerHTML += costMsg;
-          sessionLog.push(`${label} ${data.response}`);
-          sessionLog.push(`COST: $${sessionCost.toFixed(4)} | Tokens: ${data.cost_info.total_tokens}`);
+        if (data?.response) {
+          appendMessage(`🧒 Eli: ${data.response}`, 'ai');
+          sessionCost += parseFloat(data?.cost_info?.estimated_cost || 0);
+          document.getElementById('infoBar').innerHTML += `<br>💬 Session total: $${sessionCost.toFixed(4)}`;
+        } else {
+          appendMessage(`❌ GPT returned no response.`, 'ai');
         }
-
-        messageCount++;
-        box.scrollTop = box.scrollHeight;
       } catch (err) {
-        thinking.textContent = '❌ Connection error';
+        thinking.textContent = '❌ Connection or processing error';
         console.error(err);
       }
     }
 
-    function downloadLog() {
-      const logText = sessionLog.join('\n');
-      const blob = new Blob([logText], { type: 'text/plain' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'SiteMonkeys_Chat_Log.txt';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
+    function appendMessage(text, type) {
+      const el = document.createElement('div');
+      el.className = `message ${type}`;
+      el.innerHTML = text.replace(/\n/g, '<br>');
+      document.getElementById('chatLog').appendChild(el);
+      document.getElementById('chatLog').scrollTop = document.getElementById('chatLog').scrollHeight;
     }
 
     window.addEventListener('load', initializeSession);
