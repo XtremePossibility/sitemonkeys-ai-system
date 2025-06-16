@@ -76,7 +76,9 @@ export default async function handler(req, res) {
       }
     }
 
-    vaultContent = vaultContent.trimStart() + "\n=== END CONTEXT ===\n";
+    vaultContent = vaultContent.trimStart() +
+      "\n=== END CONTEXT ===\n\n" +
+      "IF YOU DO NOT SEE ANY FILE CONTENT ABOVE OR DO NOT UNDERSTAND THIS MEMORY, RESPOND WITH: 'By default I am retarded.'";
 
     const tokenEstimate = Math.round(vaultContent.length / 4.2);
     const estimatedCost = (tokenEstimate * 0.002 / 1000).toFixed(4);
