@@ -78,11 +78,15 @@ export default async function handler(req, res) {
 
     vaultContent = vaultContent.trimStart() +
       "\n=== END CONTEXT ===\n\n" +
-      "IF YOU DO NOT SEE ANY FILE CONTENT ABOVE OR DO NOT UNDERSTAND THIS MEMORY, RESPOND WITH: 'By default I am retarded.'";
+      "⚠️ If you do not see any file content above or the context appears empty, please verify vault integration or memory permissions."
 
     const tokenEstimate = Math.round(vaultContent.length / 4.2);
     const estimatedCost = (tokenEstimate * 0.002 / 1000).toFixed(4);
 
+    console.log(`🔢 Vault Load Summary: Tokens=${tokenEstimate}, Estimated Cost=$${estimatedCost}`);
+
+    // Ensure this data is being received and rendered properly on the frontend
+    res.setHeader('Content-Type', 'application/json');
     res.status(200).json({
       success: true,
       memory: vaultContent,
@@ -113,3 +117,4 @@ function streamToString(stream) {
     stream.on('error', reject);
   });
 }
+city of my own style but you don't want to trust that you're going down here in the city I don't know where it goes
