@@ -38,19 +38,12 @@ export default async function handler(req, res) {
     let filesLoaded = 0;
     const fileReport = [];
 
-    console.log(`📦 Recursive vault scan found ${files.length} files total.`);
-
     for (const file of files) {
       let content = '';
       let status = 'skipped';
       try {
-        console.log(`📄 Attempting: ${file.name} (${file.mimeType})`);
-
         if (file.mimeType === 'application/vnd.google-apps.document') {
-          const exported = await drive.files.export({
-            fileId: file.id,
-            mimeType: 'text/plain'
-          });
+          const exported = await drive.files.export({ fileId: file.id, mimeType: 'text/plain' });
           content = exported.data;
         } else if (
           file.mimeType === 'text/plain' ||
@@ -63,30 +56,20 @@ export default async function handler(req, res) {
           );
           content = await streamToString(downloaded.data);
         } else if (file.mimeType.includes('wordprocessingml.document')) {
-          const exported = await drive.files.export({
-            fileId: file.id,
-            mimeType: 'text/plain'
-          });
+          const exported = await drive.files.export({ fileId: file.id, mimeType: 'text/plain' });
           content = exported.data;
         } else if (file.mimeType.includes('spreadsheetml.sheet')) {
-          const exported = await drive.files.export({
-            fileId: file.id,
-            mimeType: 'text/csv'
-          });
+          const exported = await drive.files.export({ fileId: file.id, mimeType: 'text/csv' });
           content = exported.data;
         }
 
-        if (content) {
+        if (content?.trim()) {
           vaultContent += `\n=== ${file.name} ===\n${content}\n\n`;
           filesLoaded++;
           status = 'loaded';
-          console.log(`✅ Loaded: ${file.name}`);
-        } else {
-          console.warn(`⚠️ No content from: ${file.name}`);
         }
       } catch (err) {
         status = `error: ${err.message}`;
-        console.warn(`❌ Skipped ${file.name}: ${err.message}`);
       }
       fileReport.push({ name: file.name, mimeType: file.mimeType, status });
     }
@@ -104,7 +87,6 @@ export default async function handler(req, res) {
       file_debug: fileReport
     });
   } catch (err) {
-    console.error('Vault load error:', err);
     res.status(200).json({
       success: true,
       memory: "=== SITEMONKEYS BUSINESS INTELLIGENCE VAULT ===\n\n",
