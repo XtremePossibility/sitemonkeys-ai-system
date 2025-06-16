@@ -36,12 +36,14 @@ export default async function handler(req, res) {
     const files = await fetchAllFiles(VAULT_FOLDER_ID);
     let vaultContent = "=== SITEMONKEYS BUSINESS INTELLIGENCE VAULT ===\n\n";
     let filesLoaded = 0;
+    const fileReport = [];
 
     console.log(`📦 Recursive vault scan found ${files.length} files total.`);
 
     for (const file of files) {
+      let content = '';
+      let status = 'skipped';
       try {
-        let content = '';
         console.log(`📄 Attempting: ${file.name} (${file.mimeType})`);
 
         if (file.mimeType === 'application/vnd.google-apps.document') {
@@ -77,13 +79,16 @@ export default async function handler(req, res) {
         if (content) {
           vaultContent += `\n=== ${file.name} ===\n${content}\n\n`;
           filesLoaded++;
+          status = 'loaded';
           console.log(`✅ Loaded: ${file.name}`);
         } else {
           console.warn(`⚠️ No content from: ${file.name}`);
         }
       } catch (err) {
+        status = `error: ${err.message}`;
         console.warn(`❌ Skipped ${file.name}: ${err.message}`);
       }
+      fileReport.push({ name: file.name, mimeType: file.mimeType, status });
     }
 
     const tokenEstimate = Math.round(vaultContent.length / 4.2);
@@ -95,7 +100,8 @@ export default async function handler(req, res) {
       token_estimate: tokenEstimate,
       folders_loaded: filesLoaded,
       estimated_cost: `$${estimatedCost}`,
-      mode: 'google_drive_loaded'
+      mode: 'google_drive_loaded',
+      file_debug: fileReport
     });
   } catch (err) {
     console.error('Vault load error:', err);
