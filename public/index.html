@@ -27,6 +27,11 @@
     .checklist li {
       margin: 4px 0;
     }
+    .file-list {
+      font-size: 0.9rem;
+      color: #ccc;
+      margin: 10px 0 20px 0;
+    }
   </style>
 </head>
 <body>
@@ -41,6 +46,8 @@
       <li>🔄 Loading Vault...</li>
     </ul>
   </div>
+
+  <div class="file-list" id="fileList"></div>
 
   <div class="chat-box" id="chatBox"></div>
 
@@ -58,6 +65,7 @@
 
     async function initializeSession() {
       const checklist = document.getElementById('checklist');
+      const fileList = document.getElementById('fileList');
       checklist.innerHTML = '<li>🔄 Loading Vault...</li>';
       try {
         const res = await fetch('/api/load-vault');
@@ -67,11 +75,22 @@
           checklist.innerHTML = `<li>✅ Vault loaded</li>
                                   <li>✅ Tokens: ${data.token_estimate}</li>
                                   <li>✅ Files: ${data.folders_loaded}</li>`;
+
+          if (Array.isArray(data.file_debug)) {
+            const filesLoaded = data.file_debug.filter(f => f.status === 'loaded');
+            if (filesLoaded.length) {
+              fileList.innerHTML = `<strong>Loaded Files:</strong><br>` + filesLoaded.map(f => `- ${f.name}`).join('<br>');
+            } else {
+              fileList.innerHTML = '⚠️ No files were loaded.';
+            }
+          }
         } else {
           checklist.innerHTML = `<li>❌ Vault failed to load</li>`;
+          fileList.innerHTML = '';
         }
       } catch (err) {
         checklist.innerHTML = `<li>❌ Error loading vault</li>`;
+        fileList.innerHTML = '';
       }
     }
 
