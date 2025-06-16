@@ -15,16 +15,16 @@ export default async function handler(req, res) {
 
     const drive = google.drive({ version: 'v3', auth });
 
-    async function fetchAllFiles(folderId, depth = 0) {
+    async function fetchAllFiles(folderId) {
       const results = [];
       const res = await drive.files.list({
         q: `'${folderId}' in parents and trashed = false`,
-        fields: 'files(id, name, mimeType)',
+        fields: 'files(id, name, mimeType)'
       });
 
       for (const file of res.data.files || []) {
         if (file.mimeType === 'application/vnd.google-apps.folder') {
-          const subfiles = await fetchAllFiles(file.id, depth + 1);
+          const subfiles = await fetchAllFiles(file.id);
           results.push(...subfiles);
         } else {
           results.push(file);
@@ -34,9 +34,9 @@ export default async function handler(req, res) {
     }
 
     const files = await fetchAllFiles(VAULT_FOLDER_ID);
-    let vaultContent = "=== SITEMONKEYS BUSINESS INTELLIGENCE VAULT ===\n\n";
-    let filesLoaded = 0;
+    let vaultContent = "=== CONTEXT OVERVIEW ===\nThe following files were loaded into memory from the SiteMonkeys business vault:\n";
     const fileReport = [];
+    let filesLoaded = 0;
 
     for (const file of files) {
       let content = '';
@@ -64,15 +64,19 @@ export default async function handler(req, res) {
         }
 
         if (content?.trim()) {
+          vaultContent += `- ${file.name}\n`;
+          fileReport.push({ name: file.name, mimeType: file.mimeType, status: 'loaded' });
           vaultContent += `\n=== ${file.name} ===\n${content}\n\n`;
           filesLoaded++;
           status = 'loaded';
         }
       } catch (err) {
         status = `error: ${err.message}`;
+        fileReport.push({ name: file.name, mimeType: file.mimeType, status });
       }
-      fileReport.push({ name: file.name, mimeType: file.mimeType, status });
     }
+
+    vaultContent = vaultContent.trimStart() + "\n=== END CONTEXT ===\n";
 
     const tokenEstimate = Math.round(vaultContent.length / 4.2);
     const estimatedCost = (tokenEstimate * 0.002 / 1000).toFixed(4);
