@@ -15,11 +15,7 @@ export default async function handler(req, res) {
       return res.status(400).json({ success: false, error: 'Missing message or vault memory' });
     }
 
-    const memoryPreview = vault_memory.substring(0, 300).replace(/\n/g, ' ↵ ');
-    console.log(`📥 Vault memory length: ${vault_memory.length}`);
-    console.log(`🧠 Vault preview: ${memoryPreview}...`);
-
-    const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
@@ -36,15 +32,17 @@ export default async function handler(req, res) {
       })
     });
 
-    const data = await openaiResponse.json();
+    const data = await response.json();
 
-    if (!openaiResponse.ok) {
-      console.error('❌ OpenAI Error:', data);
-      return res.status(500).json({ success: false, error: data.error?.message || 'OpenAI request failed' });
+    if (!response.ok || !data.choices || !data.choices[0]?.message?.content) {
+      console.error('❌ OpenAI returned no usable content:', data);
+      return res.status(500).json({
+        success: false,
+        error: 'OpenAI did not return a valid response.'
+      });
     }
 
-    // Ensure line breaks and paragraphs are preserved for frontend display
-    const reply = (data.choices?.[0]?.message?.content || 'No response.').replace(/\n/g, '<br>');
+    const reply = data.choices[0].message.content;
     const usage = data.usage || { total_tokens: 0 };
     const estimatedCost = (usage.total_tokens * 0.002 / 1000).toFixed(4);
 
