@@ -1,19 +1,8 @@
-// api/load-vault.js
-
 import { google } from 'googleapis';
 import mammoth from 'mammoth';
 import { Readable } from 'stream';
 
 const SCOPES = ['https://www.googleapis.com/auth/drive.readonly'];
-
-function bufferToStream(buffer) {
-  return new Readable({
-    read() {
-      this.push(buffer);
-      this.push(null);
-    },
-  });
-}
 
 function extractTextFromDocx(buffer) {
   return mammoth.extractRawText({ buffer }).then(result => result.value);
@@ -21,11 +10,30 @@ function extractTextFromDocx(buffer) {
 
 async function getDriveClient() {
   const credentials = JSON.parse(process.env.GOOGLE_CREDENTIALS_JSON);
-  const auth = new google.auth.GoogleAuth({
-    credentials,
-    scopes: SCOPES,
-  });
+  const auth = new google.auth.GoogleAuth({ credentials, scopes: SCOPES });
   return google.drive({ version: 'v3', auth });
+}
+
+async function fetchFileContent(drive, file) {
+  try {
+    const res = await drive.files.get({
+      fileId: file.id,
+      alt: 'media',
+    }, { responseType: 'arraybuffer' });
+
+    const buffer = Buffer.from(res.data);
+
+    if (file.mimeType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+      return await extractTextFromDocx(buffer);
+    } else if (file.mimeType === 'text/plain' || file.name.endsWith('.txt')) {
+      return buffer.toString('utf8');
+    } else {
+      return '';
+    }
+  } catch (err) {
+    console.error(`❌ Failed to load ${file.name}: ${err.message}`);
+    return '';
+  }
 }
 
 async function listFiles(drive) {
@@ -45,27 +53,6 @@ async function listFiles(drive) {
   return files;
 }
 
-async function fetchFileContent(drive, file) {
-  try {
-    const res = await drive.files.get({
-      fileId: file.id,
-      alt: 'media',
-    }, { responseType: 'arraybuffer' });
-
-    const buffer = Buffer.from(res.data);
-    if (file.mimeType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
-      return await extractTextFromDocx(buffer);
-    } else if (file.mimeType === 'text/plain' || file.name.endsWith('.txt')) {
-      return buffer.toString('utf-8');
-    } else {
-      return ''; // Skip unsupported files
-    }
-  } catch (error) {
-    console.error(`❌ Failed to load file ${file.name}:`, error.message);
-    return '';
-  }
-}
-
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
     return res.status(405).json({ success: false, error: 'Method not allowed' });
@@ -76,19 +63,17 @@ export default async function handler(req, res) {
     const files = await listFiles(drive);
 
     let fullMemory = '=== CONTEXT OVERVIEW ===\n';
-    const fileDebug = [];
     let totalTokens = 0;
+    const fileDebug = [];
 
     for (const file of files) {
       const content = await fetchFileContent(drive, file);
-      const tokenEstimate = Math.ceil(content.length / 4);
-
-      fileDebug.push({ name: file.name, mimeType: file.mimeType, tokens: tokenEstimate });
-
-      if (content.length > 0) {
-        fullMemory += `\n\n=== ${file.name} ===\n` + content;
-        totalTokens += tokenEstimate;
+      const tokens = Math.ceil(content.length / 4);
+      if (content.trim()) {
+        fullMemory += `\n\n=== ${file.name} ===\n${content}`;
+        totalTokens += tokens;
       }
+      fileDebug.push({ name: file.name, mimeType: file.mimeType, tokens });
     }
 
     const estimatedCost = (totalTokens * 0.002 / 1000).toFixed(4);
@@ -97,16 +82,22 @@ export default async function handler(req, res) {
       success: true,
       memory: fullMemory,
       token_estimate: totalTokens,
-      folders_loaded: files.length,
+      folders_loaded: fileDebug.length,
       estimated_cost: `$${estimatedCost}`,
-      mode: 'google_drive_loaded',
       file_debug: fileDebug,
+      mode: 'google_drive_loaded'
     });
+
   } catch (err) {
-    console.error('❌ Vault load error:', err);
+    console.error('💥 Vault Load Error:', err.message);
     return res.status(500).json({
       success: false,
-      error: err.message || 'Internal server error',
+      memory: '',
+      token_estimate: 0,
+      folders_loaded: 0,
+      estimated_cost: '$0.0000',
+      mode: 'fallback_mode',
+      error: err.message
     });
   }
 }
