@@ -1,160 +1,489 @@
-import os
-import json
-from google.oauth2.service_account import Credentials
-from googleapiclient.discovery import build
-from http.server import BaseHTTPRequestHandler
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Site Monkeys AI - Business Validation Engine</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-# Your exact Google Drive folder ID
-VAULT_FOLDER_ID = "1LAkbqjN7g-HJV9BRWV-AsmMpY1JzJiIM"
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            color: white;
+            overflow-x: hidden;
+        }
 
-def get_google_drive_service():
-    """Initialize Google Drive service with credentials"""
-    try:
-        # Get credentials from environment variable
-        creds_json = os.environ.get('GOOGLE_CREDENTIALS_JSON')
-        if not creds_json:
-            raise Exception("GOOGLE_CREDENTIALS_JSON environment variable not found")
-        
-        # Parse credentials
-        creds_info = json.loads(creds_json)
-        creds = Credentials.from_service_account_info(
-            creds_info,
-            scopes=['https://www.googleapis.com/auth/drive.readonly']
-        )
-        
-        # Build and return service
-        return build('drive', 'v3', credentials=creds)
-    except Exception as e:
-        raise Exception(f"Google Drive authentication failed: {str(e)}")
+        .header {
+            text-align: center;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-bottom: 2px solid #ffd700;
+        }
 
-def load_vault_content():
-    """Load all content from SiteMonkeys vault folders"""
-    vault_content = "=== SITEMONKEYS BUSINESS VALIDATION VAULT ===\n\n"
-    
-    try:
-        service = get_google_drive_service()
-        
-        # Core business intelligence (fallback included)
-        vault_content += """
-=== SITEMONKEYS CORE BUSINESS INTELLIGENCE ===
+        .header h1 {
+            font-size: 3em;
+            color: #ffd700;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            margin-bottom: 10px;
+        }
 
-FINANCIAL CONSTRAINTS:
-- Launch Budget: $15,000 total available
-- Monthly Burn Rate: $3,000 maximum
-- Profit Margins: Target 87% on core services
-- Break-even Timeline: 6 months maximum
+        .header p {
+            font-size: 1.3em;
+            opacity: 0.9;
+        }
 
-PRICING TIERS:
-1. Starter Package: $697 (Basic website + essentials)
-2. Professional Package: $1,497 (Full business setup)
-3. Enterprise Package: $2,997 (Complete system + support)
+        .main-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 30px 20px;
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 30px;
+            align-items: start;
+        }
 
-ZERO-FAILURE PROTOCOLS:
-- All deliverables must be tested before client delivery
-- Backup systems required for critical components
-- Client satisfaction guarantee with revision process
-- Quality checkpoints at 25%, 50%, 75%, and 100%
+        .mascot-sidebar {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
 
-LEGAL FRAMEWORK:
-- Service agreements must include clear scope boundaries
-- Intellectual property rights clearly defined
-- Payment terms: 50% upfront, 50% on completion
-- Limitation of liability clauses included
+        .system-info h3 {
+            color: #ffd700;
+            font-size: 1.4em;
+            margin-bottom: 15px;
+            text-align: center;
+        }
 
-ENFORCEMENT DIRECTIVES:
-- Never exceed budget constraints without explicit approval
-- All recommendations must align with $15K budget reality
-- Focus on sustainable, scalable solutions
-- Prioritize cash flow positive activities
+        .status-list {
+            list-style: none;
+            padding: 0;
+        }
 
-"""
-        
-        # Try to load from Google Drive
-        try:
-            # Get subfolders in vault
-            query = f"'{VAULT_FOLDER_ID}' in parents and mimeType='application/vnd.google-apps.folder'"
-            folders_result = service.files().list(q=query, fields="files(id, name)").execute()
-            folders = folders_result.get('files', [])
-            
-            vault_content += f"\n=== LIVE VAULT FOLDERS LOADED ({len(folders)} folders) ===\n"
-            
-            for folder in folders:
-                vault_content += f"\n--- FOLDER: {folder['name']} ---\n"
-                
-                # Get files in each folder
-                file_query = f"'{folder['id']}' in parents and mimeType!='application/vnd.google-apps.folder'"
-                files_result = service.files().list(q=file_query, fields="files(id, name, mimeType)").execute()
-                files = files_result.get('files', [])
-                
-                for file in files:
-                    try:
-                        # Download file content
-                        if 'text' in file.get('mimeType', '') or file['name'].endswith('.txt'):
-                            file_content = service.files().get_media(fileId=file['id']).execute()
-                            content = file_content.decode('utf-8')
-                            vault_content += f"\n=== {file['name']} ===\n{content}\n"
-                        elif file.get('mimeType') == 'application/vnd.google-apps.document':
-                            # Export Google Doc as plain text
-                            export_content = service.files().export(fileId=file['id'], mimeType='text/plain').execute()
-                            content = export_content.decode('utf-8')
-                            vault_content += f"\n=== {file['name']} ===\n{content}\n"
-                    except Exception as file_error:
-                        vault_content += f"\n[ERROR loading {file['name']}: {str(file_error)}]\n"
-                        
-        except Exception as drive_error:
-            vault_content += f"\n[Google Drive connection error: {str(drive_error)}]\n"
-            vault_content += "\n=== USING CACHED BUSINESS INTELLIGENCE ===\n"
-    
-    except Exception as e:
-        vault_content += f"\n[Vault initialization error: {str(e)}]\n"
-    
-    return vault_content
+        .status-list li {
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 0.95em;
+        }
 
-class handler(BaseHTTPRequestHandler):
-    def do_GET(self):
-        # Set CORS headers
-        self.send_response(200)
-        self.send_header('Content-type', 'application/json')
-        self.send_header('Access-Control-Allow-Origin', '*')
-        self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
-        self.send_header('Access-Control-Allow-Headers', 'Content-Type')
-        self.end_headers()
-        
-        try:
-            # Load vault content
-            vault_memory = load_vault_content()
-            
-            # Calculate tokens (rough estimate)
-            token_count = len(vault_memory) // 4
-            estimated_cost = (token_count * 0.002) / 1000
-            
-            # Return JSON response
-            response = {
-                "status": "OPERATIONAL",
-                "vault_content": vault_memory,
-                "tokens": token_count,
-                "estimated_cost": f"${estimated_cost:.4f}",
-                "folders_loaded": ["Core Intelligence", "Financial Constraints", "Legal Framework", "Zero-Failure Protocols"],
-                "message": "SiteMonkeys Business Validation Vault Loaded Successfully"
+        .status-list li:before {
+            content: "●";
+            color: #ffd700;
+            margin-right: 10px;
+        }
+
+        .chat-container {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            height: 600px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-header {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px 20px;
+            border-radius: 20px 20px 0 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        .chat-input-container {
+            padding: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0 0 20px 20px;
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .chat-input-wrapper {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 12px 15px;
+            border: 2px solid rgba(255, 215, 0, 0.3);
+            border-radius: 25px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 16px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .chat-input:focus {
+            border-color: #ffd700;
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .chat-input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .send-button {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #ffd700, #ffed4e);
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            transition: all 0.3s ease;
+            color: #333;
+        }
+
+        .send-button:hover {
+            transform: scale(1.1);
+            box-shadow: 0 5px 15px rgba(255, 215, 0, 0.4);
+        }
+
+        .mascot-images {
+            display: flex;
+            justify-content: space-between;
+            margin: 20px 0;
+            gap: 15px;
+        }
+
+        .mascot {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 3px solid #ffd700;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+
+        .mascot:hover {
+            transform: scale(1.1);
+        }
+
+        .vault-status {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .vault-status.loaded {
+            border-left: 4px solid #00ff00;
+        }
+
+        .vault-status.error {
+            border-left: 4px solid #ff4444;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            padding: 12px 15px;
+            border-radius: 15px;
+            max-width: 80%;
+            word-wrap: break-word;
+        }
+
+        .message.user {
+            background: linear-gradient(45deg, #ffd700, #ffed4e);
+            color: #333;
+            margin-left: auto;
+            border-bottom-right-radius: 5px;
+        }
+
+        .message.assistant {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            margin-right: auto;
+            border-bottom-left-radius: 5px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .loading-indicator {
+            display: none;
+            text-align: center;
+            padding: 10px;
+            color: #ffd700;
+        }
+
+        .loading-indicator.active {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .main-container {
+                grid-template-columns: 1fr;
+                gap: 20px;
             }
             
-            self.wfile.write(json.dumps(response).encode())
-            
-        except Exception as e:
-            error_response = {
-                "status": "ERROR",
-                "error": str(e),
-                "fallback_mode": True,
-                "message": "Using cached business intelligence"
+            .header h1 {
+                font-size: 2em;
             }
-            self.wfile.write(json.dumps(error_response).encode())
-    
-    def do_POST(self):
-        self.do_GET()
-    
-    def do_OPTIONS(self):
-        self.send_response(200)
-        self.send_header('Access-Control-Allow-Origin', '*')
-        self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
-        self.send_header('Access-Control-Allow-Headers', 'Content-Type')
-        self.end_headers()
+            
+            .chat-container {
+                height: 500px;
+            }
+        }
+
+        /* Floating elements */
+        .floating-elements {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .rocket {
+            position: absolute;
+            font-size: 30px;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .rocket:nth-child(1) { top: 20%; right: 10%; animation-delay: 0s; }
+        .rocket:nth-child(2) { bottom: 30%; left: 15%; animation-delay: 2s; }
+        .rocket:nth-child(3) { top: 60%; right: 20%; animation-delay: 4s; }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+    </style>
+</head>
+<body>
+    <div class="floating-elements">
+        <div class="rocket">🚀</div>
+        <div class="rocket">🚀</div>
+        <div class="rocket">🚀</div>
+    </div>
+
+    <div class="header">
+        <h1>🐒 SITE MONKEYS AI 🐒</h1>
+        <p>BUSINESS VALIDATION ENGINE</p>
+    </div>
+
+    <div class="main-container">
+        <div class="mascot-sidebar">
+            <div class="system-info">
+                <h3>SiteMonkeys<br>Business<br>Validation System</h3>
+                
+                <div class="mascot-images">
+                    <img src="boy-mascot.png" alt="Eli - Site Monkeys Mascot" class="mascot" id="eli-mascot">
+                    <img src="girl-mascot.png" alt="Roxy - Site Monkeys Mascot" class="mascot" id="roxy-mascot">
+                </div>
+                
+                <ul class="status-list">
+                    <li>Zero-Failure AI</li>
+                    <li>Complete Business Intelligence</li>
+                    <li>Real-World Validation Ready</li>
+                    <li id="vault-status-item">Site Monkeys memory vault loaded</li>
+                    <li>Zero Failure activated</li>
+                    <li>Legitimate data initiative activated</li>
+                    <li>Persistence driven activated</li>
+                    <li>helpful initiative activated</li>
+                    <li>Founder Protection activated</li>
+                    <li>Market leader Initiative</li>
+                </ul>
+            </div>
+            
+            <div class="vault-status loaded" id="vault-display">
+                <div id="vault-info">Loading SiteMonkeys business intelligence vault...</div>
+            </div>
+        </div>
+
+        <div class="chat-container">
+            <div class="chat-header">
+                <h3>🤖 Chat with Site Monkeys AI</h3>
+                <p>Ask about business validation, Site Monkeys system, or get strategic guidance</p>
+            </div>
+            
+            <div class="chat-messages" id="chat-messages">
+                <div class="message assistant">
+                    <strong>🐒 Eli & Roxy:</strong> Welcome to Site Monkeys AI! We're loaded with complete business intelligence and ready to help validate your ideas, analyze your Site Monkeys system, or provide strategic guidance. What would you like to explore?
+                </div>
+            </div>
+            
+            <div class="loading-indicator" id="loading">
+                <div>🐒 Processing with Site Monkeys intelligence...</div>
+            </div>
+            
+            <div class="chat-input-container">
+                <div class="chat-input-wrapper">
+                    <input type="text" class="chat-input" id="user-input" 
+                           placeholder="Ask about Site Monkeys business validation, pricing strategy, services..." 
+                           onkeypress="if(event.key==='Enter') sendMessage()">
+                    <button class="send-button" onclick="sendMessage()">
+                        🐒
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let vaultData = null;
+        let conversationHistory = [];
+
+        // Load vault data on page load
+        async function loadVault() {
+            try {
+                console.log('Loading Site Monkeys vault...');
+                const response = await fetch('/api/load-vault');
+                console.log('Vault response status:', response.status);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const contentType = response.headers.get('content-type');
+                console.log('Content-Type:', contentType);
+                
+                if (!contentType || !contentType.includes('application/json')) {
+                    const text = await response.text();
+                    console.log('Non-JSON response:', text.substring(0, 200));
+                    throw new Error('API returned HTML instead of JSON - vault API is broken');
+                }
+                
+                const data = await response.json();
+                console.log('Vault data loaded:', data);
+                
+                vaultData = data;
+                
+                // Update vault display
+                const vaultDisplay = document.getElementById('vault-display');
+                const vaultInfo = document.getElementById('vault-info');
+                
+                if (data.status === 'OPERATIONAL') {
+                    vaultDisplay.className = 'vault-status loaded';
+                    vaultInfo.innerHTML = `
+                        ✅ Vault loaded successfully<br>
+                        📊 ${data.tokens || 'Unknown'} tokens<br>
+                        💰 Est. cost: ${data.estimated_cost || 'Unknown'}<br>
+                        📁 ${data.folders_loaded?.length || 0} folders loaded
+                    `;
+                    
+                    // Update status in sidebar
+                    document.getElementById('vault-status-item').textContent = 
+                        `Site Monkeys vault loaded (${data.tokens || 'Unknown'} tokens)`;
+                } else {
+                    throw new Error(data.error || 'Unknown vault error');
+                }
+                
+            } catch (error) {
+                console.error('Vault loading error:', error);
+                
+                const vaultDisplay = document.getElementById('vault-display');
+                const vaultInfo = document.getElementById('vault-info');
+                
+                vaultDisplay.className = 'vault-status error';
+                vaultInfo.innerHTML = `
+                    ❌ Vault loading failed<br>
+                    Error: ${error.message}<br>
+                    <small>Check console for details</small>
+                `;
+                
+                document.getElementById('vault-status-item').textContent = 'Vault loading failed';
+            }
+        }
+
+        // Send message function
+        async function sendMessage() {
+            const input = document.getElementById('user-input');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            // Add user message to chat
+            addMessage(message, 'user');
+            input.value = '';
+            
+            // Show loading indicator
+            document.getElementById('loading').classList.add('active');
+            
+            try {
+                // Use your chat API endpoint instead of calling Claude directly
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        message: message,
+                        vault_data: vaultData,
+                        conversation_history: conversationHistory
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Chat API error: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                const reply = data.response || data.message || 'No response received';
+                
+                // Add assistant response with alternating mascots
+                const mascotName = conversationHistory.length % 2 === 0 ? '🧒 Eli' : '👧 Roxy';
+                addMessage(`${mascotName}: ${reply}`, 'assistant');
+                
+                // Update conversation history
+                conversationHistory.push(
+                    { role: 'user', content: message },
+                    { role: 'assistant', content: reply }
+                );
+                
+                // Keep history manageable
+                if (conversationHistory.length > 20) {
+                    conversationHistory = conversationHistory.slice(-20);
+                }
+                
+            } catch (error) {
+                console.error('Chat error:', error);
+                addMessage(`⚠️ No response received.`, 'assistant');
+            } finally {
+                document.getElementById('loading').classList.remove('active');
+            }
+        }
+
+        function addMessage(text, type) {
+            const messagesContainer = document.getElementById('chat-messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}`;
+            messageDiv.innerHTML = text;
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        // Error handling for missing images
+        document.getElementById('eli-mascot').onerror = function() {
+            this.style.display = 'none';
+        };
+        
+        document.getElementById('roxy-mascot').onerror = function() {
+            this.style.display = 'none';
+        };
+
+        // Load vault when page loads
+        window.addEventListener('load', loadVault);
+    </script>
+</body>
+</html>
