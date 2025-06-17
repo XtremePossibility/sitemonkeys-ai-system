@@ -10,22 +10,9 @@ class handler(BaseHTTPRequestHandler):
         self.send_header('Access-Control-Allow-Headers', 'Content-Type')
         self.end_headers()
         
-        self.send_vault_data()
-    
-    def do_POST(self):
-        self.do_GET()
-    
-    def do_OPTIONS(self):
-        self.send_response(200)
-        self.send_header('Access-Control-Allow-Origin', '*')
-        self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
-        self.send_header('Access-Control-Allow-Headers', 'Content-Type')
-        self.end_headers()
-    
-    def send_vault_data(self):
         try:
             # Core SiteMonkeys business intelligence
-        vault_content = """=== SITEMONKEYS BUSINESS VALIDATION VAULT ===
+            vault_content = """=== SITEMONKEYS BUSINESS VALIDATION VAULT ===
 
 === SITEMONKEYS CORE BUSINESS INTELLIGENCE ===
 
@@ -85,10 +72,10 @@ MARKET POSITIONING:
 - Value proposition: Complete business-ready solutions
 - Delivery timeline: 2-4 weeks depending on package
 
-=== VAULT STATUS: OPERATIONAL ===
-"""
+=== VAULT STATUS: OPERATIONAL ==="""
+            
             # Calculate token count and cost
-            token_count = len(vault_content) // 4  # Rough estimate
+            token_count = len(vault_content) // 4
             estimated_cost = (token_count * 0.002) / 1000
             
             # Prepare response
@@ -118,3 +105,13 @@ MARKET POSITIONING:
                 "message": "Using cached business intelligence"
             }
             self.wfile.write(json.dumps(error_response).encode())
+    
+    def do_POST(self):
+        self.do_GET()
+    
+    def do_OPTIONS(self):
+        self.send_response(200)
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+        self.send_header('Access-Control-Allow-Headers', 'Content-Type')
+        self.end_headers()
