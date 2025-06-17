@@ -44,18 +44,19 @@ export default async function handler(req, res) {
       let content = '';
       try {
         if (file.mimeType === 'application/vnd.google-apps.document') {
-          const exported = await drive.files.export({ fileId: file.id, mimeType: 'text/plain' });
-          content = exported.data;
+          const exported = await drive.files.export({ fileId: file.id, mimeType: 'text/plain' }, { responseType: 'stream' });
+          content = await streamToString(exported.data);
         } else if (file.mimeType === 'text/plain' || file.name.endsWith('.txt')) {
           const downloaded = await drive.files.get({ fileId: file.id, alt: 'media' }, { responseType: 'stream' });
           content = await streamToString(downloaded.data);
         } else if (file.mimeType.includes('wordprocessingml.document')) {
-          const exported = await drive.files.export({ fileId: file.id, mimeType: 'text/plain' });
-          content = exported.data;
+          const exported = await drive.files.export({ fileId: file.id, mimeType: 'text/plain' }, { responseType: 'stream' });
+          content = await streamToString(exported.data);
         } else if (file.mimeType.includes('spreadsheetml.sheet')) {
-          const exported = await drive.files.export({ fileId: file.id, mimeType: 'text/csv' });
-          content = exported.data;
+          const exported = await drive.files.export({ fileId: file.id, mimeType: 'text/csv' }, { responseType: 'stream' });
+          content = await streamToString(exported.data);
         }
+
         if (content.trim()) {
           vaultContent += `\n=== ${file.name} ===\n${content}\n`;
           fileReport.push({ name: file.name, mimeType: file.mimeType, status: 'loaded' });
@@ -69,7 +70,7 @@ export default async function handler(req, res) {
     const tokenEstimate = Math.round(vaultContent.length / 4.2);
     const estimatedCost = (tokenEstimate * 0.002 / 1000).toFixed(4);
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       memory: vaultContent,
       token_estimate: tokenEstimate,
@@ -79,7 +80,7 @@ export default async function handler(req, res) {
       file_debug: fileReport
     });
   } catch (err) {
-    res.status(200).json({
+    return res.status(500).json({
       success: false,
       memory: '',
       token_estimate: 0,
