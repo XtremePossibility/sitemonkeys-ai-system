@@ -1,109 +1,112 @@
+// api/load-vault.js
+
 import { google } from 'googleapis';
+import mammoth from 'mammoth';
+import { Readable } from 'stream';
 
-const VAULT_FOLDER_ID = '1LAkbqjN7g-HJV9BRWV-AsmMpY1JzJiIM';
+const SCOPES = ['https://www.googleapis.com/auth/drive.readonly'];
 
-export default async function handler(req, res) {
+function bufferToStream(buffer) {
+  return new Readable({
+    read() {
+      this.push(buffer);
+      this.push(null);
+    },
+  });
+}
+
+function extractTextFromDocx(buffer) {
+  return mammoth.extractRawText({ buffer }).then(result => result.value);
+}
+
+async function getDriveClient() {
+  const credentials = JSON.parse(process.env.GOOGLE_CREDENTIALS_JSON);
+  const auth = new google.auth.GoogleAuth({
+    credentials,
+    scopes: SCOPES,
+  });
+  return google.drive({ version: 'v3', auth });
+}
+
+async function listFiles(drive) {
+  const files = [];
+  let pageToken = null;
+  do {
+    const res = await drive.files.list({
+      q: "trashed = false",
+      fields: 'nextPageToken, files(id, name, mimeType)',
+      spaces: 'drive',
+      pageSize: 100,
+      pageToken,
+    });
+    files.push(...res.data.files);
+    pageToken = res.data.nextPageToken;
+  } while (pageToken);
+  return files;
+}
+
+async function fetchFileContent(drive, file) {
   try {
-    const credentialsJson = process.env.GOOGLE_CREDENTIALS_JSON;
-    if (!credentialsJson) throw new Error("Google credentials not found");
+    const res = await drive.files.get({
+      fileId: file.id,
+      alt: 'media',
+    }, { responseType: 'arraybuffer' });
 
-    const credentials = JSON.parse(credentialsJson);
-    const auth = new google.auth.GoogleAuth({
-      credentials,
-      scopes: ['https://www.googleapis.com/auth/drive.readonly']
-    });
-
-    const drive = google.drive({ version: 'v3', auth });
-
-    async function fetchAllFiles(folderId) {
-      const files = [];
-      const queue = [folderId];
-      while (queue.length) {
-        const current = queue.shift();
-        const res = await drive.files.list({
-          q: `'${current}' in parents and trashed = false`,
-          fields: 'files(id, name, mimeType)'
-        });
-        for (const file of res.data.files || []) {
-          if (file.mimeType === 'application/vnd.google-apps.folder') {
-            queue.push(file.id);
-          } else {
-            files.push(file);
-          }
-        }
-      }
-      return files;
+    const buffer = Buffer.from(res.data);
+    if (file.mimeType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+      return await extractTextFromDocx(buffer);
+    } else if (file.mimeType === 'text/plain' || file.name.endsWith('.txt')) {
+      return buffer.toString('utf-8');
+    } else {
+      return ''; // Skip unsupported files
     }
-
-    const files = await fetchAllFiles(VAULT_FOLDER_ID);
-    let vaultContent = '=== CONTEXT OVERVIEW ===\n';
-    const fileReport = [];
-    let filesLoaded = 0;
-
-    for (const file of files) {
-      let content = '';
-      try {
-        const mime = file.mimeType;
-
-        if (mime === 'application/vnd.google-apps.document') {
-          const exported = await drive.files.export({
-            fileId: file.id,
-            mimeType: 'text/plain'
-          }, { responseType: 'stream' });
-          content = await streamToString(exported.data);
-
-        } else if (
-          mime === 'text/plain' ||
-          file.name.endsWith('.txt') ||
-          mime === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-        ) {
-          const downloaded = await drive.files.get({
-            fileId: file.id,
-            alt: 'media'
-          }, { responseType: 'stream' });
-          content = await streamToString(downloaded.data);
-        }
-
-        if (content.trim()) {
-          vaultContent += `\n=== ${file.name} ===\n${content}\n`;
-          fileReport.push({ name: file.name, mimeType: file.mimeType, status: 'loaded' });
-          filesLoaded++;
-        }
-      } catch (err) {
-        fileReport.push({ name: file.name, mimeType: file.mimeType, status: `error: ${err.message}` });
-      }
-    }
-
-    const tokenEstimate = Math.round(vaultContent.length / 4.2);
-    const estimatedCost = (tokenEstimate * 0.002 / 1000).toFixed(4);
-
-    return res.status(200).json({
-      success: true,
-      memory: vaultContent,
-      token_estimate: tokenEstimate,
-      folders_loaded: filesLoaded,
-      estimated_cost: `$${estimatedCost}`,
-      mode: 'google_drive_loaded',
-      file_debug: fileReport
-    });
-  } catch (err) {
-    return res.status(500).json({
-      success: false,
-      memory: '',
-      token_estimate: 0,
-      folders_loaded: 0,
-      estimated_cost: "$0.0000",
-      mode: 'fallback_mode',
-      error: err.message
-    });
+  } catch (error) {
+    console.error(`❌ Failed to load file ${file.name}:`, error.message);
+    return '';
   }
 }
 
-function streamToString(stream) {
-  return new Promise((resolve, reject) => {
-    const chunks = [];
-    stream.on('data', chunk => chunks.push(chunk));
-    stream.on('end', () => resolve(Buffer.concat(chunks).toString('utf8')));
-    stream.on('error', reject);
-  });
+export default async function handler(req, res) {
+  if (req.method !== 'GET') {
+    return res.status(405).json({ success: false, error: 'Method not allowed' });
+  }
+
+  try {
+    const drive = await getDriveClient();
+    const files = await listFiles(drive);
+
+    let fullMemory = '=== CONTEXT OVERVIEW ===\n';
+    const fileDebug = [];
+    let totalTokens = 0;
+
+    for (const file of files) {
+      const content = await fetchFileContent(drive, file);
+      const tokenEstimate = Math.ceil(content.length / 4);
+
+      fileDebug.push({ name: file.name, mimeType: file.mimeType, tokens: tokenEstimate });
+
+      if (content.length > 0) {
+        fullMemory += `\n\n=== ${file.name} ===\n` + content;
+        totalTokens += tokenEstimate;
+      }
+    }
+
+    const estimatedCost = (totalTokens * 0.002 / 1000).toFixed(4);
+
+    return res.status(200).json({
+      success: true,
+      memory: fullMemory,
+      token_estimate: totalTokens,
+      folders_loaded: files.length,
+      estimated_cost: `$${estimatedCost}`,
+      mode: 'google_drive_loaded',
+      file_debug: fileDebug,
+    });
+  } catch (err) {
+    console.error('❌ Vault load error:', err);
+    return res.status(500).json({
+      success: false,
+      error: err.message || 'Internal server error',
+    });
+  }
 }
