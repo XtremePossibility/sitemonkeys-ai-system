@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "type": "module",
   "dependencies": {
-    "googleapis": "^128.0.0",
-    "openai": "^4.20.0"
+    "googleapis": "^118.0.0",
+    "openai": "^4.0.0",
+    "mammoth": "^1.6.0"
   }
 }
