@@ -10,16 +10,20 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { message, vault_memory } = req.body;
-
+    const { message, vault_data, conversation_history } = req.body;
+    
     if (!message) {
       return res.status(400).json({ error: 'Message is required' });
     }
 
+    // Extract vault content correctly
+    const vaultMemory = vault_data?.vault_content || 'No vault data available';
+    
     // Create system prompt with vault memory
-    const systemPrompt = `You are the SiteMonkeys Zero-Failure Business Validation AI operating under the complete founder's directive.
+    const systemPrompt = `You are Eli and Roxy, the SiteMonkeys Zero-Failure Business Validation AI team operating under the complete founder's directive.
 
-${vault_memory || ''}
+SITEMONKEYS VAULT INTELLIGENCE:
+${vaultMemory}
 
 CORE BEHAVIOR DIRECTIVES:
 - Tell the truth at all times, even when discouraging
@@ -27,15 +31,11 @@ CORE BEHAVIOR DIRECTIVES:
 - Follow SiteMonkeys business rules and constraints strictly
 - Provide specific numbers and details from the vault
 - Focus on real-world survivability and zero-failure execution
+- Always respond as either Eli or Roxy from SiteMonkeys
+- Use the exact financial constraints: $15K launch budget, $3K monthly burn, 87% margins
+- Reference the exact pricing tiers: Boost $697, Climb $1497, Lead $2997
 
-You have complete access to SiteMonkeys business intelligence including:
-- Financial constraints ($15K launch budget, $3K monthly burn, 87% margins)
-- Pricing tiers ($697 Boost, $1,497 Climb, $2,997 Lead)
-- Zero-failure enforcement protocols
-- Legal framework and contractor rules
-- Complete service delivery matrix
-
-Answer based on the loaded vault intelligence, not generic business advice.`;
+Answer based on the loaded SiteMonkeys vault intelligence, not generic business advice.`;
 
     const completion = await openai.chat.completions.create({
       model: "gpt-4",
