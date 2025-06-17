@@ -53,7 +53,10 @@ async function fetchFileContent(drive, file) {
       alt: 'media',
     }, { responseType: 'arraybuffer' });
 
-    const buffer = Buffer.from(new Uint8Array(res.data));
+    const buffer = Buffer.isBuffer(res.data)
+      ? res.data
+      : Buffer.from(new Uint8Array(res.data));
+
     if (file.mimeType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
       return await extractTextFromDocx(buffer);
     } else if (file.mimeType === 'text/plain' || file.name.endsWith('.txt')) {
