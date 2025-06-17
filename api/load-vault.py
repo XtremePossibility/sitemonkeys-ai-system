@@ -66,8 +66,18 @@ def load_vault_content():
                         export_content = service.files().export(fileId=file['id'], mimeType='text/plain').execute()
                         content = export_content.decode('utf-8')
                         vault_content += f"\n=== {file['name']} ===\n{content}\n"
+                    elif file['name'].endswith('.docx') or 'word' in file.get('mimeType', '').lower():
+                        # Handle .docx files by exporting as plain text
+                        try:
+                            export_content = service.files().export(fileId=file['id'], mimeType='text/plain').execute()
+                            content = export_content.decode('utf-8')
+                            vault_content += f"\n=== {file['name']} ===\n{content}\n"
+                        except:
+                            # If export fails, try downloading directly
+                            file_content = service.files().get_media(fileId=file['id']).execute()
+                            vault_content += f"\n=== {file['name']} ===\n[DOCX file - {len(file_content)} bytes loaded]\n"
                     else:
-                        vault_content += f"\n[SKIPPED: {file['name']} - unsupported format]\n"
+                        vault_content += f"\n[SKIPPED: {file['name']} - unsupported format: {file.get('mimeType', 'unknown')}]\n"
                 except Exception as file_error:
                     vault_content += f"\n[ERROR loading {file['name']}: {str(file_error)}]\n"
         
