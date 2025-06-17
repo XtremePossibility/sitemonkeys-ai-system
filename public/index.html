@@ -348,7 +348,7 @@
         async function loadVault() {
             try {
                 console.log('Loading Site Monkeys vault...');
-                const response = await fetch('/api/vault');
+                const response = await fetch('/api/load-vault');
                 console.log('Vault response status:', response.status);
                 
                 if (!response.ok) {
