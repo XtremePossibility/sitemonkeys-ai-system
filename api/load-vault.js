@@ -43,18 +43,25 @@ export default async function handler(req, res) {
     for (const file of files) {
       let content = '';
       try {
-        if (file.mimeType === 'application/vnd.google-apps.document') {
-          const exported = await drive.files.export({ fileId: file.id, mimeType: 'text/plain' }, { responseType: 'stream' });
+        const mime = file.mimeType;
+
+        if (mime === 'application/vnd.google-apps.document') {
+          const exported = await drive.files.export({
+            fileId: file.id,
+            mimeType: 'text/plain'
+          }, { responseType: 'stream' });
           content = await streamToString(exported.data);
-        } else if (file.mimeType === 'text/plain' || file.name.endsWith('.txt')) {
-          const downloaded = await drive.files.get({ fileId: file.id, alt: 'media' }, { responseType: 'stream' });
+
+        } else if (
+          mime === 'text/plain' ||
+          file.name.endsWith('.txt') ||
+          mime === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        ) {
+          const downloaded = await drive.files.get({
+            fileId: file.id,
+            alt: 'media'
+          }, { responseType: 'stream' });
           content = await streamToString(downloaded.data);
-        } else if (file.mimeType.includes('wordprocessingml.document')) {
-          const exported = await drive.files.export({ fileId: file.id, mimeType: 'text/plain' }, { responseType: 'stream' });
-          content = await streamToString(exported.data);
-        } else if (file.mimeType.includes('spreadsheetml.sheet')) {
-          const exported = await drive.files.export({ fileId: file.id, mimeType: 'text/csv' }, { responseType: 'stream' });
-          content = await streamToString(exported.data);
         }
 
         if (content.trim()) {
