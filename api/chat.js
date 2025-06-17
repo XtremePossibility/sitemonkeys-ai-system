@@ -2,6 +2,7 @@ import OpenAI from 'openai';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
+  // Remove the project ID - it's causing the 401 error
 });
 
 export default async function handler(req, res) {
