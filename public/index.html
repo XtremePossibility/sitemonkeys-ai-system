@@ -3,116 +3,115 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SiteMonkeys AI Chat</title>
-  <link rel="icon" href="logo.png" type="image/png">
+  <title>SiteMonkeys AI Assistant</title>
+  <link rel="icon" href="/logo.png">
   <style>
     body {
-      margin: 0;
+      background: #121212;
+      color: #f0f0f0;
       font-family: 'Segoe UI', Tahoma, sans-serif;
-      background-color: #111;
-      color: #fff;
+      margin: 0;
+      padding: 0;
     }
     header {
-      background: #1f2937;
-      padding: 10px 20px;
       display: flex;
-      align-items: center;
       justify-content: space-between;
-      border-bottom: 1px solid #333;
+      align-items: center;
+      background-color: #1f2937;
+      padding: 12px 20px;
+      border-bottom: 2px solid #444;
     }
     header img {
       height: 60px;
     }
     header h1 {
-      font-size: 1.5rem;
+      font-size: 1.4rem;
+      color: #ffcc00;
+      margin: 0;
     }
     .container {
-      padding: 20px;
-      max-width: 800px;
+      max-width: 850px;
       margin: auto;
+      padding: 20px;
     }
-    .vault-info {
+    .status {
       font-size: 14px;
       color: #ccc;
-      margin-bottom: 10px;
-    }
-    .chat-box {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      min-height: 400px;
-      background: #1a1a1a;
-      padding: 20px;
-      border-radius: 12px;
-      overflow-y: auto;
-    }
-    .msg {
-      max-width: 75%;
-      padding: 12px;
-      border-radius: 16px;
-      white-space: pre-wrap;
-    }
-    .msg.user {
-      background: #2563eb;
-      align-self: flex-end;
-      text-align: right;
-    }
-    .msg.assistant {
-      background: #2e2e2e;
-      align-self: flex-start;
-      border: 1px solid #444;
-    }
-    .msg.cost {
-      font-size: 13px;
-      color: #bbb;
-    }
-    .input-bar {
-      display: flex;
-      margin-top: 16px;
-    }
-    .input-bar input {
-      flex: 1;
-      padding: 12px;
-      border: none;
-      border-radius: 10px;
-      font-size: 1rem;
-    }
-    .input-bar button {
-      background: #ffc107;
-      border: none;
-      padding: 12px;
-      border-radius: 10px;
-      margin-left: 8px;
-      cursor: pointer;
+      margin-bottom: 12px;
     }
     .mascots {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin: 20px 0;
+      margin: 10px 0 20px;
     }
     .mascots img {
-      height: 120px;
+      height: 110px;
     }
-    .session-summary {
-      margin-top: 10px;
+    .chat-box {
+      min-height: 400px;
+      background-color: #1e1e1e;
+      padding: 20px;
+      border-radius: 10px;
+      overflow-y: auto;
+    }
+    .msg {
+      padding: 10px 16px;
+      margin: 10px 0;
+      border-radius: 12px;
+      max-width: 80%;
+      word-wrap: break-word;
+    }
+    .msg.user {
+      background: #2563eb;
+      text-align: right;
+      align-self: flex-end;
+      margin-left: auto;
+    }
+    .msg.assistant {
+      background: #2e2e2e;
+      border: 1px solid #444;
+      align-self: flex-start;
+      margin-right: auto;
+    }
+    .input-bar {
+      display: flex;
+      margin-top: 20px;
+    }
+    .input-bar input {
+      flex: 1;
+      padding: 14px;
+      font-size: 1rem;
+      border-radius: 8px;
+      border: none;
+    }
+    .input-bar button {
+      padding: 12px;
+      background-color: #ffcc00;
+      border: none;
+      margin-left: 8px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .summary {
       font-size: 14px;
-      color: #ccc;
+      color: #aaa;
+      margin-top: 10px;
     }
   </style>
 </head>
 <body>
   <header>
-    <img src="logo.png" alt="Logo">
-    <h1>🐒 SiteMonkeys AI Chat</h1>
+    <img src="/logo.png" alt="SiteMonkeys Logo">
+    <h1>🐒 SiteMonkeys AI</h1>
   </header>
 
   <div class="container">
-    <div class="vault-info" id="vaultInfo">Loading memory vault...</div>
+    <div class="status" id="vaultStatus">Loading Vault Memory...</div>
 
     <div class="mascots">
-      <img src="boy-mascot.png" alt="Eli">
-      <img src="girl-mascot.png" alt="Roxy">
+      <img src="/boy-mascot.png" alt="Eli">
+      <img src="/girl-mascot.png" alt="Roxy">
     </div>
 
     <div class="chat-box" id="chatBox"></div>
@@ -120,41 +119,41 @@
     <div class="input-bar">
       <input id="userInput" type="text" placeholder="Ask Eli or Roxy anything about your business...">
       <button onclick="sendMessage()">
-        <img src="rocket-no-smoke.png" style="height:24px;">
+        <img src="/rocket-no-smoke.png" height="24">
       </button>
     </div>
 
-    <div class="session-summary" id="sessionSummary"></div>
+    <div class="summary" id="sessionSummary"></div>
   </div>
 
   <script>
     let sessionVault = null;
-    let sessionCost = 0;
-    let messageIndex = 0;
+    let totalCost = 0;
+    let messageCounter = 0;
 
     async function initializeSession() {
       try {
         const res = await fetch('/api/load-vault');
         const data = await res.json();
         sessionVault = data.memory || '';
-
-        const vaultInfo = document.getElementById('vaultInfo');
-        vaultInfo.innerHTML = `✅ Vault loaded<br>📄 Files: ${data.folders_loaded}<br>🔢 Tokens: ${data.token_estimate}<br>💰 Est. Cost: ${data.estimated_cost}`;
+        document.getElementById('vaultStatus').innerHTML = `✅ Vault loaded<br>📄 Files: ${data.folders_loaded}<br>🔢 Tokens: ${data.token_estimate}<br>💰 Est. Cost: ${data.estimated_cost}`;
       } catch (err) {
-        document.getElementById('vaultInfo').textContent = '❌ Failed to load memory vault.';
+        document.getElementById('vaultStatus').textContent = '❌ Failed to load vault memory.';
       }
     }
 
     function appendMessage(content, role, cost = null) {
       const box = document.getElementById('chatBox');
-      const div = document.createElement('div');
-      div.className = `msg ${role}`;
-      div.innerHTML = content;
-      box.appendChild(div);
+      const msgDiv = document.createElement('div');
+      msgDiv.className = `msg ${role}`;
+      msgDiv.innerHTML = content;
+      box.appendChild(msgDiv);
       if (cost) {
         const costDiv = document.createElement('div');
-        costDiv.className = 'msg cost';
-        costDiv.textContent = `💵 Cost: $${cost.estimated_cost} | Tokens: ${cost.total_tokens}`;
+        costDiv.className = 'msg assistant';
+        costDiv.style.fontSize = '13px';
+        costDiv.style.color = '#aaa';
+        costDiv.innerHTML = `💵 Cost: $${cost.estimated_cost} | Tokens: ${cost.total_tokens}`;
         box.appendChild(costDiv);
       }
       box.scrollTop = box.scrollHeight;
@@ -162,34 +161,34 @@
 
     async function sendMessage() {
       const input = document.getElementById('userInput');
-      const userText = input.value.trim();
-      if (!userText) return;
+      const question = input.value.trim();
+      if (!question) return;
 
-      appendMessage(`🧑 You: ${userText}`, 'user');
+      appendMessage(`🧑 You: ${question}`, 'user');
       input.value = '';
 
-      const thinking = document.createElement('div');
-      thinking.className = 'msg assistant';
-      thinking.textContent = '🧠 Thinking...';
-      document.getElementById('chatBox').appendChild(thinking);
+      const placeholder = document.createElement('div');
+      placeholder.className = 'msg assistant';
+      placeholder.textContent = '🧠 Thinking...';
+      document.getElementById('chatBox').appendChild(placeholder);
 
       try {
         const res = await fetch('/api/chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message: userText, vault_memory: sessionVault })
+          body: JSON.stringify({ message: question, vault_memory: sessionVault })
         });
         const data = await res.json();
-        thinking.remove();
+        placeholder.remove();
 
-        const responder = messageIndex % 2 === 0 ? '🧒 Eli' : '👧 Roxy';
-        messageIndex++;
+        const responder = messageCounter % 2 === 0 ? '🧒 Eli' : '👧 Roxy';
+        messageCounter++;
         appendMessage(`${responder}: ${data.response || '⚠️ No response received.'}`, 'assistant', data.cost_info);
 
-        sessionCost += parseFloat(data.cost_info?.estimated_cost || 0);
-        document.getElementById('sessionSummary').textContent = `📊 Session total: $${sessionCost.toFixed(4)}`;
+        totalCost += parseFloat(data.cost_info?.estimated_cost || 0);
+        document.getElementById('sessionSummary').textContent = `📊 Session Total: $${totalCost.toFixed(4)}`;
       } catch (err) {
-        thinking.textContent = '❌ Error reaching assistant.';
+        placeholder.textContent = '❌ Error reaching assistant.';
       }
     }
 
@@ -197,4 +196,3 @@
   </script>
 </body>
 </html>
-
