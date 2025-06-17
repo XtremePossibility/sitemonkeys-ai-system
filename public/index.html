@@ -348,7 +348,7 @@
         async function loadVault() {
             try {
                 console.log('Loading Site Monkeys vault...');
-                const response = await fetch('/api/load-vault');
+                const response = await fetch('/api/vault');
                 console.log('Vault response status:', response.status);
                 
                 if (!response.ok) {
@@ -373,12 +373,12 @@
                 const vaultDisplay = document.getElementById('vault-display');
                 const vaultInfo = document.getElementById('vault-info');
                 
-                if (data.status === 'Loaded') {
+                if (data.status === 'OPERATIONAL') {
                     vaultDisplay.className = 'vault-status loaded';
                     vaultInfo.innerHTML = `
                         ✅ Vault loaded successfully<br>
                         📊 ${data.tokens || 'Unknown'} tokens<br>
-                        💰 Est. cost: ${data.estimatedCost || 'Unknown'}<br>
+                        💰 Est. cost: ${data.estimated_cost || 'Unknown'}<br>
                         📁 ${data.folders_loaded?.length || 0} folders loaded
                     `;
                     
@@ -421,42 +421,29 @@
             document.getElementById('loading').classList.add('active');
             
             try {
-                // Prepare conversation context
-                const context = vaultData ? 
-                    `Site Monkeys Vault Intelligence:\n${vaultData.vault_content}\n\nConversation:\n` : 
-                    'Site Monkeys AI (vault data unavailable):\n';
-                
-                const fullContext = context + conversationHistory.map(h => 
-                    `${h.role}: ${h.content}`
-                ).join('\n') + `\nUser: ${message}\nAssistant:`;
-                
-                // Make API call to Claude
-                const response = await fetch('https://api.anthropic.com/v1/messages', {
+                // Use your chat API endpoint instead of calling Claude directly
+                const response = await fetch('/api/chat', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
-                        'x-api-key': 'YOUR_CLAUDE_API_KEY', // Replace with actual key
-                        'anthropic-version': '2023-06-01'
+                        'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        model: 'claude-3-sonnet-20240229',
-                        max_tokens: 1000,
-                        messages: [{
-                            role: 'user',
-                            content: fullContext
-                        }]
+                        message: message,
+                        vault_data: vaultData,
+                        conversation_history: conversationHistory
                     })
                 });
                 
                 if (!response.ok) {
-                    throw new Error('API call failed');
+                    throw new Error(`Chat API error: ${response.status}`);
                 }
                 
                 const data = await response.json();
-                const reply = data.content[0].text;
+                const reply = data.response || data.message || 'No response received';
                 
-                // Add assistant response
-                addMessage(`🐒 **Eli & Roxy:** ${reply}`, 'assistant');
+                // Add assistant response with alternating mascots
+                const mascotName = conversationHistory.length % 2 === 0 ? '🧒 Eli' : '👧 Roxy';
+                addMessage(`${mascotName}: ${reply}`, 'assistant');
                 
                 // Update conversation history
                 conversationHistory.push(
@@ -471,7 +458,7 @@
                 
             } catch (error) {
                 console.error('Chat error:', error);
-                addMessage(`🐒 **System Error:** Unable to process your request. ${error.message}`, 'assistant');
+                addMessage(`⚠️ No response received.`, 'assistant');
             } finally {
                 document.getElementById('loading').classList.remove('active');
             }
