@@ -1,35 +1,62 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Site Monkeys AI</title>
+  <!-- Fonts -->
+  <link href="https://fonts.cdnfonts.com/css/luckiest-guy" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css?family=Carlito:400,700&display=swap" rel="stylesheet">
   <style>
     body {
       margin: 0;
-      font-family: 'Segoe UI', sans-serif;
+      font-family: 'Carlito', Arial, sans-serif;
       background: #1A1A1A;
       color: white;
     }
-
     header {
-      background: black;
+      background: #1A1A1A;
+      padding: 0 0 10px 0;
+      position: relative;
+    }
+    .header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 40px 0 40px;
+      position: relative;
+    }
+    .logo {
+      height: 80px;
+    }
+    .header-center {
+      flex: 1;
       text-align: center;
-      padding: 10px;
     }
-
-    header img.logo {
-      height: 100px;
-      margin: 10px auto;
+    .site-title {
+      font-family: 'Luckiest Guy', cursive, sans-serif;
+      color: #FFD811;
+      font-size: 2.5em;
+      margin: 0;
+      letter-spacing: 2px;
     }
-
+    .subtitle {
+      font-family: 'Carlito', Arial, sans-serif;
+      color: #fff;
+      font-size: 1.2em;
+      margin-top: 5px;
+    }
+    .ai-robot {
+      height: 60px;
+      margin-right: 10px;
+    }
     .rocket-top {
+      width: 80px;
       position: absolute;
-      top: 10px;
-      right: 20px;
-      width: 100px;
+      right: 0;
+      top: -20px;
+      z-index: 2;
     }
-
     .main {
       display: flex;
       justify-content: space-between;
@@ -37,31 +64,35 @@
       padding: 20px;
       flex-wrap: wrap;
     }
-
     .sidebar {
       width: 25%;
-      background: #111;
+      background: rgba(17,17,17,0.95);
       padding: 20px;
       border-radius: 10px;
+      box-shadow: 0 0 30px 10px #54545444 inset;
+      position: relative;
+      min-width: 250px;
     }
-
+    .mascot-left {
+      width: 120px;
+      display: block;
+      margin: 0 auto 10px auto;
+    }
     .sidebar h3 {
       color: #FFD811;
       font-size: 1.2em;
       margin-bottom: 10px;
+      text-align: center;
     }
-
     .status-list {
       list-style: none;
       padding-left: 0;
       margin-bottom: 20px;
     }
-
     .status-list li::before {
       content: "✅ ";
       color: #00FF00;
     }
-
     .status-panel {
       margin-top: 10px;
       background: #222;
@@ -69,16 +100,9 @@
       border-radius: 6px;
       font-size: 0.95em;
     }
-
     .status-panel div {
       margin-bottom: 5px;
     }
-
-    .mascot-left,
-    .mascot-right {
-      width: 250px;
-    }
-
     .chat-wrapper {
       flex-grow: 1;
       max-width: 800px;
@@ -89,50 +113,49 @@
       padding: 20px;
       display: flex;
       flex-direction: column;
+      min-width: 320px;
     }
-
     .chat-box {
       flex: 1;
       overflow-y: auto;
       height: 400px;
       margin-bottom: 15px;
     }
-
     .bubble {
       display: flex;
       align-items: flex-start;
       margin: 10px 0;
       max-width: 85%;
     }
-
     .bubble img.avatar {
       width: 40px;
       height: 40px;
       border-radius: 50%;
       margin-right: 10px;
     }
-
     .bubble.roxy {
       flex-direction: row-reverse;
       margin-left: auto;
     }
-
     .bubble.roxy img.avatar {
       margin-left: 10px;
       margin-right: 0;
     }
-
     .bubble-content {
       background: #FFD811;
       color: black;
       padding: 10px 15px;
       border-radius: 20px;
     }
-
-    .bubble.roxy .bubble-content {
-      background: #b38eff;
+    .bubble.eli .bubble-content {
+      background: #FFD811;
+      color: black;
     }
-
+    .bubble.roxy .bubble-content {
+      background: #545454;
+      color: #fff;
+      border: 1px solid #FFD811;
+    }
     .input-area {
       display: flex;
       align-items: center;
@@ -140,7 +163,6 @@
       border-radius: 30px;
       padding: 10px;
     }
-
     .chat-input {
       flex: 1;
       padding: 12px;
@@ -150,7 +172,6 @@
       background: transparent;
       color: white;
     }
-
     .send-button {
       background: #FFD811;
       color: black;
@@ -163,48 +184,50 @@
       align-items: center;
       cursor: pointer;
     }
-
     .send-button img {
       height: 20px;
       margin-left: 6px;
     }
-
-    @media (max-width: 768px) {
+    .mascot-right {
+      width: 120px;
+      align-self: flex-end;
+      margin-left: 20px;
+    }
+    @media (max-width: 900px) {
       .main {
         flex-direction: column;
         align-items: center;
       }
-
-      .sidebar,
-      .chat-wrapper {
+      .sidebar, .chat-wrapper {
         width: 95%;
         margin: 10px 0;
       }
-
-      .mascot-left,
-      .mascot-right {
-        width: 160px;
+      .mascot-left, .mascot-right {
+        width: 80px;
       }
-
       .rocket-top {
-        width: 60px;
+        width: 50px;
       }
     }
   </style>
 </head>
 <body>
-  <!-- Header with logo -->
+  <!-- Header with logo, title, subtitle, AI robot, and rocket -->
   <header>
-    <img src="logo.png" alt="Site Monkeys Logo" class="logo" />
+    <div class="header-row">
+      <img src="/logo.png" alt="Site Monkeys Logo" class="logo">
+      <div class="header-center">
+        <div class="site-title">SITE MONKEYS AI</div>
+        <div class="subtitle">Business Validation Engine</div>
+      </div>
+      <img src="/AI Robot.png" alt="AI Robot" class="ai-robot">
+      <img src="/rocket-no-smoke.png" alt="Rocket" class="rocket-top">
+    </div>
   </header>
-
-  <!-- 🚀 Rocket top-right -->
-  <img src="rocket-no-smoke.png" alt="Rocket" class="rocket-top" />
-
   <div class="main">
     <!-- Left Sidebar -->
     <div class="sidebar">
-      <img src="boy-mascot.png" alt="Eli" class="mascot-left" />
+      <img src="/boy-mascot.png" alt="Eli Mascot" class="mascot-left">
       <h3>System Load Sequence</h3>
       <ul class="status-list">
         <li>Vault memory loaded</li>
@@ -212,7 +235,6 @@
         <li>Files validated</li>
         <li>AI loop engaged</li>
       </ul>
-
       <div class="status-panel" id="vault-status">
         <div>📁 Folders: <span id="vault-folders">—</span></div>
         <div>🔢 Tokens: <span id="token-count">—</span></div>
@@ -220,85 +242,58 @@
         <div style="color: #00ff00; margin-top: 5px;">✅ VALIDATION SYSTEM CONFIRMED</div>
       </div>
     </div>
-
     <!-- Center Chat UI -->
     <div class="chat-wrapper">
       <div class="chat-box" id="chat-box">
         <div class="bubble eli">
-          <img src="boy-mascot.png" class="avatar" />
+          <img src="/boy-mascot.png" class="avatar" alt="Eli">
           <div class="bubble-content"><strong>Eli:</strong> Welcome to Site Monkeys AI. What would you like to validate today?</div>
         </div>
       </div>
-
       <div class="input-area">
         <input type="text" class="chat-input" id="user-input" placeholder="Ask a business question..." />
         <button class="send-button" onclick="sendMessage()">
-          Send <img src="rocket-no-smoke.png" alt="Send Rocket" />
+          Send <img src="/rocket-no-smoke.png" alt="Rocket Send" />
         </button>
       </div>
     </div>
-
     <!-- Right-side mascot: Roxy -->
-    <img src="girl-mascot.png" alt="Roxy" class="mascot-right" />
+    <img src="/girl-mascot.png" alt="Roxy Mascot" class="mascot-right">
   </div>
   <script>
     let toggle = true;
-
     function sendMessage() {
       const input = document.getElementById('user-input');
       const text = input.value.trim();
       if (!text) return;
-
       const box = document.getElementById('chat-box');
       const bubble = document.createElement('div');
       const isRoxy = toggle;
       const who = isRoxy ? 'Roxy' : 'Eli';
-      const avatar = isRoxy ? 'girl-mascot.png' : 'boy-mascot.png';
+      const avatar = isRoxy
+        ? "/girl-mascot.png"
+        : "/boy-mascot.png";
       const bubbleClass = isRoxy ? 'bubble roxy' : 'bubble eli';
-
       bubble.className = bubbleClass;
       bubble.innerHTML = `
-        <img src="${avatar}" class="avatar" />
+        <img src="${avatar}" class="avatar" alt="${who}">
         <div class="bubble-content"><strong>${who}:</strong> ${text}</div>
       `;
-
       box.appendChild(bubble);
       box.scrollTop = box.scrollHeight;
       input.value = '';
       toggle = !toggle;
     }
-
-    // Simulate token + cost updates
     function updateVaultStatus() {
       const tokenCount = Math.floor(Math.random() * 30000 + 10000);
       const costEstimate = ((tokenCount / 1000) * 0.02).toFixed(2);
-      const folderCount = Math.floor(Math.random() * 7 + 6); // Approx 6–12 folders
-
+      const folderCount = Math.floor(Math.random() * 7 + 6);
       document.getElementById('token-count').textContent = `${tokenCount.toLocaleString()}`;
       document.getElementById('cost-estimate').textContent = `$${costEstimate}`;
       document.getElementById('vault-folders').textContent = folderCount;
     }
-
-    // Simulate vault failure message if needed
-    function checkVault() {
-      const vaultLoaded = true; // set to false to simulate failure
-
-      if (!vaultLoaded) {
-        const box = document.getElementById('chat-box');
-        const errorMsg = document.createElement('div');
-        errorMsg.className = "bubble-content";
-        errorMsg.style.color = 'red';
-        errorMsg.style.background = 'black';
-        errorMsg.style.margin = '10px auto';
-        errorMsg.style.textAlign = 'center';
-        errorMsg.innerHTML = "<strong>⚠️ My Environment has left me Retarded</strong>";
-        box.appendChild(errorMsg);
-      }
-    }
-
     window.onload = () => {
       updateVaultStatus();
-      checkVault();
     };
   </script>
 </body>
