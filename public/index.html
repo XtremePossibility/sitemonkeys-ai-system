@@ -1,611 +1,284 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SiteMonkeys AI - Business Validation Engine</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Site Monkeys AI</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: #1a1a1a;
+      color: white;
+    }
 
-        body {
-            font-family: 'Arial', sans-serif;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-            color: white;
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
+    header {
+      background: black;
+      padding: 10px;
+      text-align: center;
+    }
 
-        /* Main Container - matches your exact layout */
-        .main-container {
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
+    header img.logo {
+      height: 100px;
+    }
 
-        /* Header Section - exactly like your PDF */
-        .header-section {
-            text-align: center;
-            padding: 30px 20px;
-            position: relative;
-        }
+    .rocket-top {
+      position: absolute;
+      top: 10px;
+      right: 20px;
+      width: 100px;
+    }
 
-        .main-logo-container {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 30px;
-            margin-bottom: 20px;
-        }
+    .main {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding: 20px;
+      flex-wrap: wrap;
+    }
 
-        .logo-image {
-            width: 100px;
-            height: 100px;
-            background: url('logo.png') center/contain no-repeat;
-        }
+    .sidebar {
+      width: 25%;
+      background: #111;
+      padding: 20px;
+      border-radius: 10px;
+    }
 
-        .site-monkeys-title {
-            font-size: 4rem;
-            font-weight: bold;
-            color: #FFD700;
-            text-shadow: 3px 3px 6px rgba(0,0,0,0.5);
-            letter-spacing: 3px;
-            line-height: 1;
-        }
+    .sidebar h3 {
+      color: #ffd700;
+      margin-bottom: 10px;
+    }
 
-        .business-validation-subtitle {
-            font-size: 1.8rem;
-            color: #87CEEB;
-            font-weight: 300;
-            margin-top: 10px;
-        }
+    .status-list {
+      list-style: none;
+      padding-left: 0;
+    }
 
-        .small-ai-bot {
-            position: absolute;
-            top: 30px;
-            right: 30px;
-            width: 60px;
-            height: 60px;
-            background: linear-gradient(45deg, #4169E1, #00BFFF);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            animation: pulse 2s infinite;
-        }
+    .status-list li::before {
+      content: "✅ ";
+      color: #00ff00;
+    }
 
-        .small-rocket {
-            position: absolute;
-            top: 30px;
-            right: 120px;
-            width: 80px;
-            height: 80px;
-            font-size: 50px;
-            animation: rocket-float 3s ease-in-out infinite;
-        }
+    .mascot-large {
+      width: 250px;
+      margin-bottom: 20px;
+    }
 
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-        }
+    .chat-wrapper {
+      flex: 1;
+      background: #2a2a2a;
+      border: 3px solid white;
+      border-radius: 10px;
+      padding: 20px;
+      margin: 0 20px;
+      display: flex;
+      flex-direction: column;
+      max-width: 800px;
+    }
 
-        @keyframes rocket-float {
-            0%, 100% { transform: translateY(0) rotate(-10deg); }
-            50% { transform: translateY(-10px) rotate(10deg); }
-        }
+    .chat-box {
+      flex: 1;
+      overflow-y: auto;
+      margin-bottom: 15px;
+      height: 400px;
+    }
 
-        /* Content Area - Three Column Layout like your PDF */
-        .content-area {
-            flex: 1;
-            display: grid;
-            grid-template-columns: 350px 1fr 350px;
-            gap: 30px;
-            padding: 0 30px 30px 30px;
-            min-height: 600px;
-        }
+    .bubble {
+      display: flex;
+      align-items: flex-start;
+      margin: 10px 0;
+      max-width: 80%;
+    }
 
-        /* Left Column - Status Panel exactly like your PDF */
-        .left-panel {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 20px;
-            padding: 30px;
-            backdrop-filter: blur(10px);
-            border: 2px solid rgba(255, 215, 0, 0.3);
-            position: relative;
-        }
+    .bubble img.avatar {
+      width: 40px;
+      height: 40px;
+      margin-right: 10px;
+    }
 
-        .panel-title {
-            color: #FFD700;
-            font-size: 1.4rem;
-            font-weight: bold;
-            margin-bottom: 25px;
-            text-align: left;
-        }
+    .bubble.roxy {
+      margin-left: auto;
+      flex-direction: row-reverse;
+    }
 
-        .status-list {
-            list-style: none;
-        }
+    .bubble.roxy img.avatar {
+      margin-left: 10px;
+      margin-right: 0;
+    }
 
-        .status-list li {
-            display: flex;
-            align-items: center;
-            margin: 12px 0;
-            padding: 8px 0;
-            font-size: 0.95rem;
-            line-height: 1.4;
-        }
+    .bubble-content {
+      background: #ffd700;
+      color: #000;
+      padding: 10px 15px;
+      border-radius: 20px;
+      font-size: 1em;
+    }
 
-        .status-list li::before {
-            content: '✓';
-            color: #00FF00;
-            font-weight: bold;
-            margin-right: 15px;
-            font-size: 16px;
-        }
+    .bubble.roxy .bubble-content {
+      background: #b38eff;
+    }
 
-        /* Vault Statistics at bottom of left panel */
-        .vault-statistics {
-            position: absolute;
-            bottom: 30px;
-            left: 30px;
-            right: 30px;
-            background: rgba(255, 215, 0, 0.15);
-            border-radius: 15px;
-            padding: 20px;
-            text-align: center;
-            border: 1px solid rgba(255, 215, 0, 0.3);
-        }
+    .input-area {
+      display: flex;
+      align-items: center;
+    }
 
-        .stat-item {
-            margin: 10px 0;
-        }
+    .chat-input {
+      flex: 1;
+      padding: 12px;
+      font-size: 1em;
+      border-radius: 20px;
+      border: none;
+    }
 
-        .stat-number {
-            font-size: 1.8rem;
-            color: #FFD700;
-            font-weight: bold;
-        }
+    .send-button {
+      background: #ffd700;
+      color: black;
+      font-weight: bold;
+      border: none;
+      border-radius: 20px;
+      padding: 10px 20px;
+      margin-left: 10px;
+      display: flex;
+      align-items: center;
+    }
 
-        .stat-label {
-            font-size: 0.9rem;
-            color: #87CEEB;
-            margin-top: 3px;
-        }
+    .send-button img {
+      height: 20px;
+      margin-left: 8px;
+    }
 
-        /* Center Column - Main Chat Area like your PDF */
-        .center-panel {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 20px;
-            backdrop-filter: blur(10px);
-            border: 2px solid rgba(135, 206, 235, 0.3);
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
+    .mascot-right {
+      width: 250px;
+    }
 
-        .chat-header {
-            padding: 20px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            text-align: center;
-        }
+    @media (max-width: 768px) {
+      .main {
+        flex-direction: column;
+        align-items: center;
+      }
 
-        .chat-messages {
-            flex: 1;
-            padding: 20px;
-            overflow-y: auto;
-            min-height: 300px;
-        }
+      .sidebar,
+      .chat-wrapper {
+        width: 90%;
+        margin: 10px 0;
+      }
 
-        .message-bubble {
-            margin: 15px 0;
-            display: flex;
-            align-items: flex-start;
-        }
+      .mascot-large,
+      .mascot-right {
+        width: 160px;
+      }
 
-        .message-bubble.eli {
-            justify-content: flex-start;
-        }
-
-        .message-bubble.roxy {
-            justify-content: flex-end;
-            flex-direction: row-reverse;
-        }
-
-        .message-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            margin: 0 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-            background: linear-gradient(45deg, #4169E1, #FFD700);
-        }
-
-        .message-content {
-            max-width: 75%;
-            padding: 15px 20px;
-            border-radius: 20px;
-            background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(5px);
-            line-height: 1.5;
-        }
-
-        /* Chat Input Area - exactly like your PDF */
-        .chat-input-section {
-            padding: 25px;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .input-row {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .message-input {
-            flex: 1;
-            padding: 18px 25px;
-            border: 2px solid rgba(255, 215, 0, 0.4);
-            border-radius: 30px;
-            background: rgba(0, 0, 0, 0.3);
-            color: white;
-            font-size: 16px;
-            outline: none;
-            backdrop-filter: blur(5px);
-        }
-
-        .message-input::placeholder {
-            color: rgba(255, 255, 255, 0.6);
-        }
-
-        .message-input:focus {
-            border-color: #FFD700;
-            background: rgba(0, 0, 0, 0.4);
-        }
-
-        /* Send Button with Rocket - exactly like your PDF */
-        .send-btn {
-            width: 70px;
-            height: 70px;
-            border-radius: 50%;
-            background: linear-gradient(45deg, #FFD700, #FFA500);
-            border: none;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s ease;
-            box-shadow: 0 5px 15px rgba(255, 215, 0, 0.3);
-        }
-
-        .send-btn:hover {
-            transform: scale(1.1);
-            box-shadow: 0 10px 25px rgba(255, 215, 0, 0.5);
-        }
-
-        .send-btn::before {
-            content: '🚀';
-            font-size: 28px;
-        }
-
-        /* Right Column - matches left but different content */
-        .right-panel {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 20px;
-            padding: 30px;
-            backdrop-filter: blur(10px);
-            border: 2px solid rgba(255, 215, 0, 0.3);
-            text-align: center;
-        }
-
-        /* Big Mascots - exactly positioned like your PDF */
-        .eli-mascot {
-            position: fixed;
-            left: 50px;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 220px;
-            height: 220px;
-            background: url('boy-mascot.png') center/contain no-repeat;
-            z-index: 5;
-            transition: transform 0.3s ease;
-            pointer-events: none;
-        }
-
-        .roxy-mascot {
-            position: fixed;
-            right: 50px;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 220px;
-            height: 220px;
-            background: url('girl-mascot.png') center/contain no-repeat;
-            z-index: 5;
-            transition: transform 0.3s ease;
-            pointer-events: none;
-        }
-
-        /* Error Modal */
-        .error-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
-
-        .error-dialog {
-            background: linear-gradient(45deg, #ff4757, #ff3838);
-            padding: 40px;
-            border-radius: 20px;
-            text-align: center;
-            max-width: 500px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
-        }
-
-        .error-title {
-            font-size: 2rem;
-            margin-bottom: 20px;
-            color: white;
-        }
-
-        .error-text {
-            font-size: 1.3rem;
-            color: white;
-            margin-bottom: 30px;
-            font-weight: bold;
-        }
-
-        .error-close-btn {
-            background: white;
-            color: #ff4757;
-            border: none;
-            padding: 15px 30px;
-            border-radius: 25px;
-            font-size: 1.1rem;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .error-close-btn:hover {
-            transform: scale(1.05);
-        }
-
-        /* Mobile Responsive */
-        @media (max-width: 1200px) {
-            .content-area {
-                grid-template-columns: 1fr;
-                grid-template-rows: auto auto auto;
-                gap: 20px;
-            }
-            
-            .eli-mascot, .roxy-mascot {
-                display: none;
-            }
-            
-            .site-monkeys-title {
-                font-size: 3rem;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .content-area {
-                padding: 0 15px 15px 15px;
-            }
-            
-            .left-panel, .center-panel, .right-panel {
-                padding: 20px;
-            }
-            
-            .site-monkeys-title {
-                font-size: 2.5rem;
-            }
-            
-            .small-ai-bot, .small-rocket {
-                display: none;
-            }
-        }
-    </style>
+      .rocket-top {
+        width: 60px;
+      }
+    }
+  </style>
 </head>
 <body>
-    <div class="main-container">
-        <!-- Header - exactly like your PDF -->
-        <div class="header-section">
-            <div class="main-logo-container">
-                <div class="logo-image"></div>
-                <div>
-                    <h1 class="site-monkeys-title">SITE MONKEYS AI</h1>
-                    <p class="business-validation-subtitle">BUSINESS VALIDATION ENGINE</p>
-                </div>
-            </div>
-            <div class="small-ai-bot">🤖</div>
-            <div class="small-rocket">🚀</div>
-        </div>
+  <header>
+    <img src="logo.png" alt="Site Monkeys Logo" class="logo" />
+  </header>
 
-        <!-- Three Column Layout - exactly like your PDF -->
-        <div class="content-area">
-            <!-- Left Panel - Status List like your PDF -->
-            <div class="left-panel">
-                <h3 class="panel-title">SiteMonkeys Business Validation System</h3>
-                <ul class="status-list">
-                    <li>Zero-Failure AI</li>
-                    <li>Complete Business Intelligence</li>
-                    <li>Real-World Validation Ready</li>
-                    <li>Site Monkeys memory vault loaded</li>
-                    <li>Zero Failure activated</li>
-                    <li>Legitimate data initiative activated</li>
-                    <li>Persistence driven activated</li>
-                    <li>helpful initiative activated</li>
-                    <li>Founder Protection activated</li>
-                    <li>Market leader Initiative</li>
-                </ul>
-                
-                <div class="vault-statistics">
-                    <div class="stat-item">
-                        <div class="stat-number" id="token-display">1,500</div>
-                        <div class="stat-label">Tokens Loaded</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-number" id="cost-display">$0.0030</div>
-                        <div class="stat-label">Estimated Cost</div>
-                    </div>
-                </div>
-            </div>
+  <!-- 🚀 Rocket top-right -->
+  <img src="rocket-no-smoke.png" alt="Rocket" class="rocket-top" />
 
-            <!-- Center Panel - Chat Area like your PDF -->
-            <div class="center-panel">
-                <div class="chat-messages" id="chat-messages">
-                    <div class="message-bubble eli">
-                        <div class="message-avatar">🐵</div>
-                        <div class="message-content">
-                            Hi! I'm Eli from SiteMonkeys. I'm ready to help validate your business ideas with our zero-failure protocols!
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="chat-input-section">
-                    <div class="input-row">
-                        <input type="text" class="message-input" id="user-input" placeholder="Ask me about your business idea...">
-                        <button class="send-btn" id="send-message"></button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Right Panel - Additional Info -->
-            <div class="right-panel">
-                <h3 class="panel-title">System Status</h3>
-                <p style="color: #87CEEB; margin: 20px 0;">Business validation engine is ready and all systems are operational.</p>
-                <div style="font-size: 3rem; margin: 30px 0;">🚀</div>
-                <p style="color: #FFD700;">Ready for Launch!</p>
-            </div>
-        </div>
+  <div class="main">
+    <!-- Left Sidebar -->
+    <div class="sidebar">
+      <img src="boy-mascot.png" alt="Eli" class="mascot-large" />
+      <h3>Status Panel</h3>
+      <ul class="status-list">
+        <li>Vault memory loaded</li>
+        <li>Tokens active</li>
+        <li>Zero-Failure Protocol</li>
+        <li>Business Logic Online</li>
+        <li>Pricing Frameworks Loaded</li>
+        <li>EnforcementShell verified</li>
+        <li>Roxy/Eli Intelligence Synced</li>
+      </ul>
+      <div id="vault-status" style="margin-top: 10px; color: #ccc;">
+        📊 Tokens: <span id="token-count">—</span><br>
+        💰 Cost: <span id="cost-estimate">—</span>
+      </div>
     </div>
 
-    <!-- Big Mascots - positioned exactly like your PDF -->
-    <div class="eli-mascot"></div>
-    <div class="roxy-mascot"></div>
-
-    <!-- Error Modal -->
-    <div class="error-overlay" id="error-modal">
-        <div class="error-dialog">
-            <div class="error-title">⚠️ System Error</div>
-            <div class="error-text">My Environment has left me Retarded</div>
-            <button class="error-close-btn" onclick="hideError()">Close</button>
+    <!-- Chat Section -->
+    <div class="chat-wrapper">
+      <div class="chat-box" id="chat-box">
+        <div class="bubble eli">
+          <img src="boy-mascot.png" class="avatar" />
+          <div class="bubble-content"><strong>Eli:</strong> Welcome to Site Monkeys. Ready to validate something?</div>
         </div>
+      </div>
+
+      <div class="input-area">
+        <input type="text" class="chat-input" id="user-input" placeholder="Ask something..." />
+        <button class="send-button" onclick="sendMessage()">
+          Send <img src="rocket-no-smoke.png" alt="Send Rocket" />
+        </button>
+      </div>
     </div>
 
-    <script>
-        let currentSpeaker = 'eli';
-        
-        // Load vault data when page loads
-        window.addEventListener('DOMContentLoaded', function() {
-            loadVaultData();
-        });
+    <!-- Right Mascot -->
+    <img src="girl-mascot.png" alt="Roxy" class="mascot-right" />
+  </div>
+  <script>
+    let toggle = true;
 
-        // Load vault statistics
-        async function loadVaultData() {
-            try {
-                const response = await fetch('/api/load-vault');
-                const data = await response.json();
-                
-                if (data.tokens) {
-                    document.getElementById('token-display').textContent = data.tokens.toLocaleString();
-                }
-                if (data.estimated_cost) {
-                    document.getElementById('cost-display').textContent = data.estimated_cost;
-                }
-            } catch (error) {
-                console.error('Failed to load vault:', error);
-                showError();
-            }
-        }
+    function sendMessage() {
+      const input = document.getElementById('user-input');
+      const text = input.value.trim();
+      if (!text) return;
 
-        // Send message functionality
-        document.getElementById('send-message').addEventListener('click', sendUserMessage);
-        document.getElementById('user-input').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                sendUserMessage();
-            }
-        });
+      const box = document.getElementById('chat-box');
+      const bubble = document.createElement('div');
+      const isRoxy = toggle;
+      const who = isRoxy ? 'Roxy' : 'Eli';
+      const avatar = isRoxy ? 'girl-mascot.png' : 'boy-mascot.png';
+      const bubbleClass = isRoxy ? 'bubble roxy' : 'bubble eli';
 
-        async function sendUserMessage() {
-            const input = document.getElementById('user-input');
-            const messageText = input.value.trim();
-            
-            if (!messageText) return;
-            
-            // Add user message
-            addChatMessage(messageText, 'user');
-            input.value = '';
-            
-            try {
-                // Send to chat API
-                const response = await fetch('/api/chat', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ message: messageText })
-                });
-                
-                const result = await response.json();
-                
-                // Add AI response alternating between Eli and Roxy
-                addChatMessage(result.response || result.message, currentSpeaker);
-                
-                // Switch speaker for next time
-                currentSpeaker = currentSpeaker === 'eli' ? 'roxy' : 'eli';
-                
-            } catch (error) {
-                console.error('Chat error:', error);
-                showError();
-            }
-        }
+      bubble.className = bubbleClass;
+      bubble.innerHTML = `
+        <img src="${avatar}" class="avatar" />
+        <div class="bubble-content"><strong>${who}:</strong> ${text}</div>
+      `;
 
-        function addChatMessage(text, sender) {
-            const chatArea = document.getElementById('chat-messages');
-            const messageDiv = document.createElement('div');
-            
-            if (sender === 'user') {
-                messageDiv.innerHTML = `
-                    <div class="message-bubble roxy">
-                        <div class="message-content">${text}</div>
-                        <div class="message-avatar">👤</div>
-                    </div>
-                `;
-            } else {
-                const emoji = sender === 'eli' ? '🐵' : '🐒';
-                messageDiv.innerHTML = `
-                    <div class="message-bubble ${sender}">
-                        <div class="message-avatar">${emoji}</div>
-                        <div class="message-content">${text}</div>
-                    </div>
-                `;
-            }
-            
-            chatArea.appendChild(messageDiv);
-            chatArea.scrollTop = chatArea.scrollHeight;
-        }
+      box.appendChild(bubble);
+      box.scrollTop = box.scrollHeight;
+      input.value = '';
+      toggle = !toggle;
+    }
 
-        function showError() {
-            document.getElementById('error-modal').style.display = 'flex';
-        }
+    // Simulate token + cost updates
+    function updateVaultStatus() {
+      const tokenCount = Math.floor(Math.random() * 30000 + 10000);
+      const costEstimate = ((tokenCount / 1000) * 0.02).toFixed(2);
 
-        function hideError() {
-            document.getElementById('error-modal').style.display = 'none';
-        }
-    </script>
+      document.getElementById('token-count').textContent = `${tokenCount.toLocaleString()} tokens`;
+      document.getElementById('cost-estimate').textContent = `$${costEstimate}`;
+    }
+
+    // Simulate vault loading check
+    function checkVault() {
+      const vaultLoaded = true; // toggle this to false to simulate failure
+
+      if (!vaultLoaded) {
+        const box = document.getElementById('chat-box');
+        const errorMsg = document.createElement('div');
+        errorMsg.className = "bubble-content";
+        errorMsg.style.color = 'red';
+        errorMsg.style.background = 'black';
+        errorMsg.style.margin = '10px auto';
+        errorMsg.innerHTML = "<strong>⚠️ My Environment has left me Retarded</strong>";
+        box.appendChild(errorMsg);
+      }
+    }
+
+    window.onload = () => {
+      updateVaultStatus();
+      checkVault();
+    };
+  </script>
 </body>
 </html>
