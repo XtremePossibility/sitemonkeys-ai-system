@@ -41,9 +41,12 @@
     }
     .logo {
       height: 180px;
-      margin-right: 12px;
+      margin-right: 0;
+      margin-left: 0;
       flex-shrink: 0;
       transition: height 0.3s;
+      /* Move closer to text */
+      margin-right: -40px;
     }
     .header-center {
       flex: 1;
@@ -74,7 +77,7 @@
     }
     .ai-robot {
       height: 120px;
-      margin-left: 12px;
+      margin-left: -40px;
       flex-shrink: 0;
       transition: height 0.3s;
     }
@@ -102,7 +105,7 @@
       position: relative;
       min-height: 800px;
       background: #373534;
-      border-radius: 0 0 30px 30px;
+      border-radius: 30px;
       box-shadow: 0 8px 32px #0004;
       margin-bottom: 24px;
       border: 2px solid #fff;
@@ -113,23 +116,23 @@
       top: 54%;
       transform: translateY(-50%);
       z-index: 2;
-      width: 300px;
+      width: 360px;
       pointer-events: none;
       transition: width 0.3s;
     }
     .mascot-left {
-      left: 10px;
+      left: 30px;
     }
     .mascot-right {
-      right: 10px;
+      right: 30px;
     }
     @media (max-width: 1400px) {
-      .mascot { width: 200px; }
+      .mascot { width: 240px; }
       .mascot-left { left: 0; }
       .mascot-right { right: 0; }
     }
     @media (max-width: 1100px) {
-      .mascot { width: 120px; }
+      .mascot { width: 140px; }
       .mascot-left { left: 0; }
       .mascot-right { right: 0; }
     }
@@ -145,7 +148,7 @@
       width: 30%;
       min-width: 240px;
       background: rgba(17,17,17,0.97);
-      border-radius: 18px 0 0 18px;
+      border-radius: 30px 0 0 30px;
       box-shadow: 0 0 30px 10px #54545444 inset;
       padding: 36px 18px 36px 18px;
       display: flex;
@@ -224,7 +227,7 @@
     }
     .vault-info {
       background: #545454;
-      border-radius: 8px;
+      border-radius: 10px;
       padding: 12px 16px;
       margin-top: 10px;
       width: 100%;
@@ -246,7 +249,7 @@
       width: 70%;
       min-width: 320px;
       background: #545454;
-      border-radius: 0 18px 18px 0;
+      border-radius: 0 30px 30px 0;
       border-left: 2px solid #FFD811;
       padding: 36px 24px 24px 24px;
       display: flex;
@@ -286,28 +289,33 @@
       border-radius: 50%;
       margin: 0 12px;
       background: #545454;
-      border: 2px solid #FFD811;
+      border: 2px solid #fff;
       object-fit: cover;
+      object-position: top;
     }
     .bubble-content {
       padding: 16px 26px;
       font-size: 1.13em;
-      border-radius: 32px 32px 32px 10px;
-      background: #545454;
-      color: #FFD811;
+      border-radius: 32px;
+      background: #373534;
+      color: #fff;
       font-family: 'Carlito', Arial, sans-serif;
       box-shadow: 0 2px 8px #0002;
       min-width: 80px;
       max-width: 340px;
       word-break: break-word;
-      border: 2px solid #FFD811;
+      border: 1.5px solid #fff;
       backdrop-filter: blur(1px);
     }
     .bubble.roxy .bubble-content {
       background: #FFD811;
-      color: #545454;
-      border: 2px solid #FFD811;
-      border-radius: 32px 32px 10px 32px;
+      color: #373534;
+      border: 1.5px solid #fff;
+    }
+    .bubble.user .bubble-content {
+      background: #f5f5f5;
+      color: #373534;
+      border: 1.5px solid #fff;
     }
     /* Input Area */
     .input-area {
@@ -331,6 +339,13 @@
       background: transparent;
       color: white;
       outline: none;
+    }
+    .chat-input::placeholder {
+      color: #FFD811;
+      opacity: 1;
+      font-size: 1.1em;
+      font-family: 'Carlito', Arial, sans-serif;
+      letter-spacing: 1px;
     }
     .send-button {
       background: none;
@@ -357,7 +372,7 @@
     }
     @media (max-width: 900px) {
       .main-content { flex-direction: column; align-items: center; }
-      .status-panel, .chat-panel { width: 95%; min-width: 0; border-radius: 18px; }
+      .status-panel, .chat-panel { width: 95%; min-width: 0; border-radius: 30px; }
       .chat-panel { border-left: none; border-top: 2px solid #FFD811; }
       .header-row { flex-direction: column; }
       .logo, .ai-robot { margin: 0 0 10px 0; }
@@ -383,6 +398,11 @@
     }
     .footer-line {
       margin: 0;
+    }
+    .footer-two {
+      font-size: 1.15em;
+      font-weight: bold;
+      margin-top: 2px;
     }
   </style>
 </head>
@@ -437,7 +457,7 @@
         </div>
       </div>
       <div class="input-area">
-        <input type="text" class="chat-input" id="user-input" placeholder="Ask a business question..." />
+        <input type="text" class="chat-input" id="user-input" placeholder="Ask a business validation question..." />
         <button class="send-button" onclick="sendMessage()" aria-label="Send">
           <img src="/rocket-no-smoke.png" alt="Rocket Send" />
         </button>
@@ -446,10 +466,8 @@
   </div>
   <!-- Footer -->
   <div class="footer">
-    <div class="footer-line">THE FIRST AND ONLY BUSINESS VALIDATION CHAT SYSTEM</div>
-    <div class="footer-line">THAT PUTS HONESTY, REAL DATA, TRANSPARENCY, PERSISTENCE,</div>
-    <div class="footer-line">&amp; INITIATIVE BEFORE ALL ELSE!</div>
-    <div class="footer-line">AI YOU CAN TRUST!</div>
+    <div class="footer-two">THE FIRST AND ONLY BUSINESS VALIDATION CHAT SYSTEM THAT PUTS HONESTY, REAL DATA, TRANSPARENCY, PERSISTENCE, &amp; INITIATIVE BEFORE ALL ELSE!</div>
+    <div class="footer-two">AI YOU CAN TRUST!</div>
   </div>
   <script>
     // Status loading animation
