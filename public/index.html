@@ -6,7 +6,7 @@
   <title>Site Monkeys AI</title>
   <style>
     body {
-      background: #1e3c72;
+      background: #0e1d3a;
       color: white;
       font-family: 'Segoe UI', sans-serif;
       margin: 0;
@@ -14,27 +14,58 @@
     }
     .main-container {
       display: flex;
-      padding: 20px;
+      height: 100vh;
     }
     .mascot-sidebar {
       width: 30%;
-      background: rgba(255,255,255,0.05);
+      background: #182c53;
       padding: 20px;
-      border-radius: 10px;
-      margin-right: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .mascot-sidebar img.logo {
+      max-width: 80%;
+      margin-bottom: 30px;
+    }
+    .mascot {
+      width: 160px;
+      margin-bottom: 20px;
+    }
+    .rocket-corner {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: 90px;
     }
     .chat-container {
       width: 70%;
-      background: rgba(255,255,255,0.05);
       padding: 20px;
-      border-radius: 10px;
+      background: #1e3c72;
       display: flex;
       flex-direction: column;
     }
     .chat-messages {
       flex: 1;
       overflow-y: auto;
-      margin-bottom: 10px;
+      margin-bottom: 20px;
+      padding-right: 10px;
+    }
+    .message {
+      margin-bottom: 15px;
+      padding: 12px 15px;
+      border-radius: 12px;
+      max-width: 75%;
+    }
+    .message.eli {
+      background: #ffe07b;
+      color: black;
+      align-self: flex-start;
+    }
+    .message.roxy {
+      background: #b38eff;
+      color: black;
+      align-self: flex-end;
     }
     .chat-input-wrapper {
       display: flex;
@@ -42,9 +73,10 @@
     }
     .chat-input {
       flex: 1;
-      padding: 10px;
+      padding: 12px;
       border-radius: 20px;
       border: none;
+      font-size: 1em;
     }
     .send-button {
       background: transparent;
@@ -52,43 +84,32 @@
       margin-left: 10px;
     }
     .send-button img {
-      width: 40px;
-      height: 40px;
+      width: 48px;
+      height: 48px;
     }
-    .token-usage, .checklist-box {
-      margin-top: 15px;
-      background: rgba(0,0,0,0.3);
-      padding: 10px;
-      border-radius: 5px;
+    .token-box, .checklist-box {
+      margin-top: 20px;
+      width: 100%;
       font-size: 0.95em;
     }
     .checklist-box h4 {
-      margin: 0 0 8px 0;
-      font-size: 1em;
       color: #ffd700;
     }
     .checklist-box ul {
-      margin: 0;
       padding-left: 20px;
-      font-size: 0.9em;
     }
   </style>
 </head>
 <body>
+  <img src="rocket-no-smoke.png" class="rocket-corner" alt="Rocket">
   <div class="main-container">
     <div class="mascot-sidebar">
-      <h2>🐒 Site Monkeys AI</h2>
-      <p>Status: <strong style="color: lime;">Vault Loaded</strong></p>
-      <p>📂 Main Vault Files:</p>
-      <ul>
-        <li>00_AI_MANDATORY_PROACTIVITY_PROTOCOL</li>
-        <li>04_QAProtocols.docx</li>
-        <li>Services_Offered.docx</li>
-        <li>Pricing_Billing_Monetization_Strategy.docx</li>
-      </ul>
-      <div class="token-usage">
-        💰 Token Usage: <strong id="token-count">--</strong><br/>
-        ⛽ Estimated Burn: <strong id="burn-estimate">$--</strong>
+      <img src="logo.png" class="logo" alt="Site Monkeys Logo">
+      <img src="boy-mascot.png" alt="Eli" class="mascot" style="border: none;">
+      <img src="girl-mascot.png" alt="Roxy" class="mascot" style="border: none;">
+      <div class="token-box">
+        <p><strong>💰 Token Usage:</strong> <span id="token-count">542</span></p>
+        <p><strong>⛽ Est. Burn:</strong> <span id="burn-estimate">$0.47</span></p>
       </div>
       <div class="checklist-box">
         <h4>🧾 Section 21 Checklist</h4>
@@ -102,37 +123,33 @@
         </ul>
       </div>
     </div>
-
     <div class="chat-container">
       <div class="chat-messages" id="chat-messages">
-        <div><strong>Eli:</strong> System is ready. What do you want to validate today?</div>
+        <div class="message eli"><strong>Eli:</strong> System ready. What would you like to validate?</div>
       </div>
       <div class="chat-input-wrapper">
-        <input class="chat-input" type="text" id="user-input" placeholder="Ask something smart...">
+        <input type="text" class="chat-input" id="user-input" placeholder="Ask something smart...">
         <button class="send-button" onclick="sendMessage()">
           <img src="rocket-no-smoke.png" alt="Send">
         </button>
       </div>
     </div>
   </div>
-
   <script>
+    let toggle = true;
     function sendMessage() {
       const input = document.getElementById("user-input");
       const message = input.value.trim();
       if (!message) return;
-      const msgBox = document.createElement("div");
-      msgBox.innerHTML = `<strong>You:</strong> ${message}`;
-      document.getElementById("chat-messages").appendChild(msgBox);
-      input.value = '';
-      document.getElementById("chat-messages").scrollTop = document.getElementById("chat-messages").scrollHeight;
+      const messagesDiv = document.getElementById("chat-messages");
+      const msgDiv = document.createElement("div");
+      msgDiv.className = "message " + (toggle ? "roxy" : "eli");
+      msgDiv.innerHTML = "<strong>" + (toggle ? "Roxy" : "Eli") + ":</strong> " + message;
+      messagesDiv.appendChild(msgDiv);
+      input.value = "";
+      toggle = !toggle;
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
     }
-
-    // Simulate loading token data
-    window.onload = () => {
-      document.getElementById("token-count").textContent = "542";
-      document.getElementById("burn-estimate").textContent = "$0.47";
-    };
   </script>
 </body>
 </html>
