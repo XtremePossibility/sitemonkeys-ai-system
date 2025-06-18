@@ -17,7 +17,6 @@
       display: flex;
       flex-direction: column;
     }
-    /* Header */
     header {
       background: #1A1A1A;
       position: relative;
@@ -41,7 +40,7 @@
     }
     .logo {
       height: 180px;
-      margin-right: -60px; /* Closer to text */
+      margin-right: -80px;
       flex-shrink: 0;
       transition: height 0.3s;
     }
@@ -67,14 +66,23 @@
     .subtitle {
       font-family: 'Carlito', Arial, sans-serif;
       color: #fff;
-      font-size: 1.5em;
+      font-size: 2em;
       margin-top: 10px;
       letter-spacing: 1px;
       text-align: center;
+      font-weight: bold;
+      width: 100%;
+      max-width: 600px;
+      display: flex;
+      justify-content: center;
+    }
+    .subtitle span {
+      display: inline-block;
+      min-width: 0;
     }
     .ai-robot {
       height: 120px;
-      margin-left: -60px; /* Closer to text */
+      margin-left: -80px;
       flex-shrink: 0;
       transition: height 0.3s;
     }
@@ -87,12 +95,10 @@
       pointer-events: none;
       transform: rotate(-18deg);
     }
-    /* Space between header and main */
     .header-gap {
       height: 32px;
       width: 100%;
     }
-    /* Main Layout */
     .main-content {
       display: flex;
       justify-content: center;
@@ -107,13 +113,12 @@
       margin-bottom: 24px;
       border: 2px solid #fff;
     }
-    /* Mascots */
     .mascot {
       position: absolute;
       top: 54%;
       transform: translateY(-50%);
       z-index: 2;
-      width: 900px; /* 3x larger */
+      width: 900px;
       pointer-events: none;
       transition: width 0.3s;
     }
@@ -140,7 +145,6 @@
       .logo, .ai-robot { margin: 0 0 10px 0; }
       .rocket-top { right: 10px; top: -20px; width: 90px; }
     }
-    /* Panels */
     .status-panel {
       width: 30%;
       min-width: 240px;
@@ -203,12 +207,13 @@
       text-align: left;
       letter-spacing: 1px;
       background: #222;
-      border-radius: 30px;
+      border-radius: 18px;
       padding: 8px 18px;
       box-shadow: 0 2px 8px #0002;
       border: 2px solid #FF2222;
       animation: pulse 1.2s infinite alternate;
       width: 100%;
+      box-sizing: border-box;
     }
     .system-ready .check {
       color: #00FF00;
@@ -224,7 +229,7 @@
     }
     .vault-info {
       background: #fff;
-      border-radius: 30px;
+      border-radius: 18px;
       padding: 12px 16px;
       margin-top: 10px;
       width: 100%;
@@ -242,7 +247,6 @@
       color: #373534;
       font-weight: bold;
     }
-    /* Chat Panel */
     .chat-panel {
       width: 70%;
       min-width: 320px;
@@ -315,13 +319,12 @@
       color: #373534;
       border: 1.5px solid #fff;
     }
-    /* Input Area */
     .input-area {
       display: flex;
       align-items: center;
       justify-content: flex-end;
       background: #222;
-      border-radius: 30px;
+      border-radius: 18px;
       padding: 10px 16px;
       margin-top: 8px;
       margin-bottom: 0;
@@ -331,7 +334,7 @@
     .chat-input {
       flex: 1;
       padding: 12px;
-      border-radius: 20px;
+      border-radius: 18px;
       border: none;
       font-size: 1em;
       background: transparent;
@@ -346,7 +349,7 @@
       letter-spacing: 1px;
     }
     .send-button {
-      background: none;
+      background: #FFD811;
       border: none;
       margin-left: 10px;
       cursor: pointer;
@@ -358,9 +361,10 @@
       justify-content: center;
       transition: background 0.2s;
       outline: none;
+      box-shadow: 0 2px 8px #0002;
     }
     .send-button:active, .send-button:focus {
-      background: #FFD81133;
+      background: #ffe96a;
     }
     .send-button img {
       width: 44px;
@@ -376,7 +380,6 @@
       .logo, .ai-robot { margin: 0 0 10px 0; }
       .rocket-top { right: 10px; top: -20px; width: 90px; }
     }
-    /* Footer */
     .footer {
       width: 100vw;
       background: #1A1A1A;
@@ -389,13 +392,16 @@
       margin-top: auto;
       box-shadow: 0 -2px 8px #0008;
       display: flex;
+      justify-content: center;
+    }
+    .footer-inner {
+      max-width: 1300px;
+      width: 100%;
+      margin: 0 auto;
+      line-height: 1.4;
+      display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
-      line-height: 1.4;
-      max-width: 1300px;
-      margin-left: auto;
-      margin-right: auto;
     }
     .footer-line {
       margin: 0;
@@ -416,7 +422,7 @@
       <img src="/logo.png" alt="Site Monkeys Logo" class="logo">
       <div class="header-center">
         <div class="site-title">SITE MONKEYS AI</div>
-        <div class="subtitle">Business Validation Engine</div>
+        <div class="subtitle"><span>Business Validation Engine</span></div>
       </div>
       <img src="/AI Robot.png" alt="AI Robot" class="ai-robot">
       <img src="/rocket-no-smoke.png" alt="Rocket" class="rocket-top">
@@ -460,7 +466,7 @@
         </div>
       </div>
       <div class="input-area">
-        <input type="text" class="chat-input" id="user-input" placeholder="Ask a business validation question..." />
+        <input type="text" class="chat-input" id="user-input" placeholder="Ask Eli, Roxy, and AI about business validation, pricing, strategy, services, and more." />
         <button class="send-button" onclick="sendMessage()" aria-label="Send">
           <img src="/rocket-no-smoke.png" alt="Rocket Send" />
         </button>
@@ -469,8 +475,10 @@
   </div>
   <!-- Footer -->
   <div class="footer">
-    <div class="footer-two">THE FIRST AND ONLY BUSINESS VALIDATION CHAT SYSTEM THAT PUTS HONESTY, REAL DATA, TRANSPARENCY, PERSISTENCE, &amp; INITIATIVE BEFORE ALL ELSE!</div>
-    <div class="footer-two">AI YOU CAN TRUST!</div>
+    <div class="footer-inner">
+      <div class="footer-two">THE FIRST AND ONLY BUSINESS VALIDATION CHAT SYSTEM THAT PUTS HONESTY, REAL DATA, TRANSPARENCY, PERSISTENCE, &amp; INITIATIVE BEFORE ALL ELSE!</div>
+      <div class="footer-two">AI YOU CAN TRUST!</div>
+    </div>
   </div>
   <script>
     // Status loading animation
