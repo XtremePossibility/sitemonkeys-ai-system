@@ -16,6 +16,9 @@
       min-height: 100vh;
       position: relative;
       overflow-x: hidden;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
     }
     /* Header */
     header {
@@ -155,22 +158,6 @@
     .status-list li.loaded .check {
       display: inline;
     }
-    .system-ready {
-      color: #00FF00;
-      font-weight: bold;
-      font-size: 1.1em;
-      margin-top: 18px;
-      display: none;
-      text-align: center;
-    }
-    .system-ready.active {
-      display: block;
-      animation: fadeIn 1s;
-    }
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
     .vault-info {
       background: #222;
       border-radius: 8px;
@@ -180,6 +167,41 @@
       font-size: 1em;
       color: #FFD811;
       text-align: left;
+      min-height: 70px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .vault-info span {
+      color: #fff;
+      font-weight: bold;
+    }
+    .system-ready {
+      color: #FF2222;
+      font-weight: bold;
+      font-size: 1.3em;
+      margin-top: 22px;
+      display: none;
+      text-align: center;
+      letter-spacing: 1px;
+      background: #fff;
+      border-radius: 10px;
+      padding: 8px 18px;
+      box-shadow: 0 2px 8px #0002;
+      border: 2px solid #FF2222;
+      animation: pulse 1.2s infinite alternate;
+    }
+    .system-ready .check {
+      color: #00FF00;
+      font-size: 1.2em;
+      margin-right: 8px;
+    }
+    .system-ready.active {
+      display: inline-block;
+    }
+    @keyframes pulse {
+      from { box-shadow: 0 0 8px #FF2222; }
+      to { box-shadow: 0 0 24px #FF2222; }
     }
     /* Chat Panel */
     .chat-panel {
@@ -289,6 +311,19 @@
       .status-panel, .chat-panel { width: 95%; min-width: 0; border-radius: 18px; }
       .chat-panel { border-left: none; border-top: 2px solid #FFD811; }
     }
+    /* Footer */
+    .footer {
+      width: 100vw;
+      background: #1A1A1A;
+      color: #FFD811;
+      text-align: center;
+      font-size: 1.1em;
+      font-family: 'Carlito', Arial, sans-serif;
+      padding: 18px 0 12px 0;
+      letter-spacing: 1px;
+      margin-top: auto;
+      box-shadow: 0 -2px 8px #0008;
+    }
   </style>
 </head>
 <body>
@@ -313,17 +348,17 @@
     <div class="status-panel">
       <div class="status-title">System Load Sequence</div>
       <ul class="status-list" id="status-list">
-        <li><span class="check">✅</span> Vault memory loaded</li>
-        <li><span class="check">✅</span> Protocol active</li>
-        <li><span class="check">✅</span> Files validated</li>
-        <li><span class="check">✅</span> AI loop engaged</li>
+        <li><span class="check">✅</span> Vault loaded successfully</li>
+        <li><span class="check">✅</span> Tokens loaded</li>
+        <li><span class="check">✅</span> Estimated cost calculated</li>
+        <li><span class="check">✅</span> Folders loaded</li>
       </ul>
-      <div class="vault-info">
-        📁 Folders: <span id="vault-folders">—</span><br>
-        🔢 Tokens: <span id="token-count">—</span><br>
-        💰 Cost: <span id="cost-estimate">—</span>
+      <div class="vault-info" id="vault-info">
+        <div>🔢 Tokens: <span id="token-count">—</span></div>
+        <div>💰 Estimated Cost: <span id="cost-estimate">—</span></div>
+        <div>📁 Folders: <span id="vault-folders">—</span></div>
       </div>
-      <div class="system-ready" id="system-ready">✅ SYSTEM READY</div>
+      <div class="system-ready" id="system-ready"><span class="check">✅</span> SYSTEM READY</div>
     </div>
     <!-- Chat Panel -->
     <div class="chat-panel">
@@ -340,6 +375,10 @@
         </button>
       </div>
     </div>
+  </div>
+  <!-- Footer -->
+  <div class="footer">
+    THE FIRST AND ONLY BUSINESS VALIDATION CHAT SYSTEM THAT PUTS HONESTY, REAL DATA, TRANSPARENCY, PERSISTENCE, &amp; INITIATIVE BEFORE ALL ELSE! AI YOU CAN TRUST!
   </div>
   <script>
     // Status loading animation
