@@ -41,12 +41,9 @@
     }
     .logo {
       height: 180px;
-      margin-right: 0;
-      margin-left: 0;
+      margin-right: -60px; /* Closer to text */
       flex-shrink: 0;
       transition: height 0.3s;
-      /* Move closer to text */
-      margin-right: -40px;
     }
     .header-center {
       flex: 1;
@@ -77,7 +74,7 @@
     }
     .ai-robot {
       height: 120px;
-      margin-left: -40px;
+      margin-left: -60px; /* Closer to text */
       flex-shrink: 0;
       transition: height 0.3s;
     }
@@ -116,23 +113,23 @@
       top: 54%;
       transform: translateY(-50%);
       z-index: 2;
-      width: 360px;
+      width: 900px; /* 3x larger */
       pointer-events: none;
       transition: width 0.3s;
     }
     .mascot-left {
-      left: 30px;
+      left: 60px;
     }
     .mascot-right {
-      right: 30px;
+      right: 60px;
     }
     @media (max-width: 1400px) {
-      .mascot { width: 240px; }
+      .mascot { width: 600px; }
       .mascot-left { left: 0; }
       .mascot-right { right: 0; }
     }
     @media (max-width: 1100px) {
-      .mascot { width: 140px; }
+      .mascot { width: 300px; }
       .mascot-left { left: 0; }
       .mascot-right { right: 0; }
     }
@@ -206,7 +203,7 @@
       text-align: left;
       letter-spacing: 1px;
       background: #222;
-      border-radius: 10px;
+      border-radius: 30px;
       padding: 8px 18px;
       box-shadow: 0 2px 8px #0002;
       border: 2px solid #FF2222;
@@ -226,22 +223,23 @@
       to { box-shadow: 0 0 24px #FF2222; }
     }
     .vault-info {
-      background: #545454;
-      border-radius: 10px;
+      background: #fff;
+      border-radius: 30px;
       padding: 12px 16px;
       margin-top: 10px;
       width: 100%;
       font-size: 1em;
-      color: #FFD811;
+      color: #373534;
       text-align: left;
       min-height: 70px;
       display: flex;
       flex-direction: column;
       justify-content: center;
-      border: 1.5px solid #fff;
+      border: 2px solid #fff;
+      box-sizing: border-box;
     }
     .vault-info span {
-      color: #fff;
+      color: #373534;
       font-weight: bold;
     }
     /* Chat Panel */
@@ -395,14 +393,542 @@
       align-items: center;
       justify-content: center;
       line-height: 1.4;
+      max-width: 1300px;
+      margin-left: auto;
+      margin-right: auto;
     }
     .footer-line {
       margin: 0;
+      word-break: break-word;
     }
     .footer-two {
       font-size: 1.15em;
       font-weight: bold;
       margin-top: 2px;
+      word-break: break-word;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header>
+    <div class="header-row">
+      <img src="/logo.png" alt="Site Monkeys Logo" class="logo">
+      <div class="header-center">
+        <div class="site-title">SITE MONKEYS AI</div>
+        <div class="subtitle">Business Validation Engine</div>
+      </div>
+      <img src="/AI Robot.png" alt="AI Robot" class="ai-robot">
+      <img src="/rocket-no-smoke.png" alt="Rocket" class="rocket-top">
+    </div>
+  </header>
+  <div class="header-gap"></div>
+  <!-- Mascots (outside main block) -->
+  <img src="/boy-mascot.png" alt="Eli Mascot" class="mascot mascot-left">
+  <img src="/girl-mascot.png" alt="Roxy Mascot" class="mascot mascot-right">
+  <!-- Main Content -->
+  <div class="main-content">
+    <!-- Status Panel -->
+    <div class="status-panel">
+      <div class="status-title">SiteMonkeys Business Validation System</div>
+      <ul class="status-list" id="status-list">
+        <li><span class="check">✅</span> Zero-Failure AI</li>
+        <li><span class="check">✅</span> Complete Business Intelligence</li>
+        <li><span class="check">✅</span> Real-World Validation Ready</li>
+        <li><span class="check">✅</span> Site Monkeys memory vault loaded</li>
+        <li><span class="check">✅</span> Zero Failure activated</li>
+        <li><span class="check">✅</span> Legitimate data initiative activated</li>
+        <li><span class="check">✅</span> Persistence driven activated</li>
+        <li><span class="check">✅</span> helpful initiative activated</li>
+        <li><span class="check">✅</span> Founder Protection activated</li>
+        <li><span class="check">✅</span> Market leader Initiative</li>
+      </ul>
+      <div class="system-ready" id="system-ready"><span class="check">✅</span> SYSTEM READY</div>
+      <div class="vault-info" id="vault-info">
+        <div><span style="color:#00FF00;">✅</span> Vault loaded successfully</div>
+        <div>🔢 Tokens: <span id="token-count">—</span></div>
+        <div>💰 Estimated Cost: <span id="cost-estimate">—</span></div>
+        <div>📁 Folders: <span id="vault-folders">—</span></div>
+      </div>
+    </div>
+    <!-- Chat Panel -->
+    <div class="chat-panel">
+      <div class="chat-box" id="chat-box">
+        <div class="bubble eli">
+          <img src="/boy-mascot.png" class="avatar" alt="Eli" style="object-position: top;">
+          <div class="bubble-content"><strong>Eli:</strong> Welcome to Site Monkeys AI. What would you like to validate today?</div>
+        </div>
+      </div>
+      <div class="input-area">
+        <input type="text" class="chat-input" id="user-input" placeholder="Ask a business validation question..." />
+        <button class="send-button" onclick="sendMessage()" aria-label="Send">
+          <img src="/rocket-no-smoke.png" alt="Rocket Send" />
+        </button>
+      </div>
+    </div>
+  </div>
+  <!-- Footer -->
+  <div class="footer">
+    <div class="footer-two">THE FIRST AND ONLY BUSINESS VALIDATION CHAT SYSTEM THAT PUTS HONESTY, REAL DATA, TRANSPARENCY, PERSISTENCE, &amp; INITIATIVE BEFORE ALL ELSE!</div>
+    <div class="footer-two">AI YOU CAN TRUST!</div>
+  </div>
+  <script>
+    // Status loading animation
+    const statusItems = document.querySelectorAll('#status-list li');
+    const systemReady = document.getElementById('system-ready');
+    let statusIndex = 0;
+    function loadStatus() {
+      if (statusIndex < statusItems.length) {
+        statusItems[statusIndex].classList.add('loaded');
+        statusIndex++;
+        setTimeout(loadStatus, 400);
+      } else {
+        systemReady.classList.add('active');
+      }
+    }
+    // Vault info (accumulated total for session)
+    let sessionTokens = 0;
+    let sessionFolders = 0;
+    function updateVaultStatus() {
+      const tokensThisSession = Math.floor(Math.random() * 3000 + 1000);
+      const foldersThisSession = Math.floor(Math.random() * 2 + 1);
+      sessionTokens += tokensThisSession;
+      sessionFolders += foldersThisSession;
+      const costEstimate = ((sessionTokens / 1000) * 0.02).toFixed(2);
+      document.getElementById('token-count').textContent = `${sessionTokens.toLocaleString()}`;
+      document.getElementById('cost-estimate').textContent = `$${costEstimate}`;
+      document.getElementById('vault-folders').textContent = sessionFolders;
+    }
+    // Chat logic
+    let toggle = true;
+    function sendMessage() {
+      const input = document.getElementById('user-input');
+      const text = input.value.trim();
+      if (!text) return;
+      const box = document.getElementById('chat-box');
+      const bubble = document.createElement('div');
+      const isRoxy = toggle;
+      const who = isRoxy ? 'Roxy' : 'Eli';
+      const avatar = isRoxy
+        ? "/girl-mascot.png"
+        : "/boy-mascot.png";
+      const bubbleClass = isRoxy ? 'bubble roxy' : 'bubble eli';
+      bubble.className = bubbleClass;
+      bubble.innerHTML = `
+        <img src="${avatar}" class="avatar" alt="${who}" style="object-position: top;">
+        <div class="bubble-content"><strong>${who}:</strong> ${text}</div>
+      `;
+      box.appendChild(bubble);
+      box.scrollTop = box.scrollHeight;
+      input.value = '';
+      toggle = !toggle<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Site Monkeys AI</title>
+  <!-- Fonts -->
+  <link href="https://fonts.cdnfonts.com/css/luckiest-guy" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css?family=Carlito:400,700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Carlito', Arial, sans-serif;
+      background: #373534;
+      color: white;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    /* Header */
+    header {
+      background: #1A1A1A;
+      position: relative;
+      width: 100vw;
+      min-height: 170px;
+      box-shadow: 0 2px 8px #0008;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .header-row {
+      width: 100%;
+      max-width: 1300px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      margin: 0 auto;
+      padding-top: 18px;
+    }
+    .logo {
+      height: 180px;
+      margin-right: -60px; /* Closer to text */
+      flex-shrink: 0;
+      transition: height 0.3s;
+    }
+    .header-center {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      z-index: 2;
+      margin: 0 12px;
+    }
+    .site-title {
+      font-family: 'Luckiest Guy', cursive, sans-serif;
+      color: #FFD811;
+      font-size: 4.2em;
+      margin: 0;
+      letter-spacing: 2px;
+      line-height: 1;
+      text-align: center;
+    }
+    .subtitle {
+      font-family: 'Carlito', Arial, sans-serif;
+      color: #fff;
+      font-size: 1.5em;
+      margin-top: 10px;
+      letter-spacing: 1px;
+      text-align: center;
+    }
+    .ai-robot {
+      height: 120px;
+      margin-left: -60px; /* Closer to text */
+      flex-shrink: 0;
+      transition: height 0.3s;
+    }
+    .rocket-top {
+      position: absolute;
+      right: -60px;
+      top: -60px;
+      width: 170px;
+      z-index: 3;
+      pointer-events: none;
+      transform: rotate(-18deg);
+    }
+    /* Space between header and main */
+    .header-gap {
+      height: 32px;
+      width: 100%;
+    }
+    /* Main Layout */
+    .main-content {
+      display: flex;
+      justify-content: center;
+      align-items: stretch;
+      max-width: 1300px;
+      margin: 0 auto;
+      position: relative;
+      min-height: 800px;
+      background: #373534;
+      border-radius: 30px;
+      box-shadow: 0 8px 32px #0004;
+      margin-bottom: 24px;
+      border: 2px solid #fff;
+    }
+    /* Mascots */
+    .mascot {
+      position: absolute;
+      top: 54%;
+      transform: translateY(-50%);
+      z-index: 2;
+      width: 900px; /* 3x larger */
+      pointer-events: none;
+      transition: width 0.3s;
+    }
+    .mascot-left {
+      left: 60px;
+    }
+    .mascot-right {
+      right: 60px;
+    }
+    @media (max-width: 1400px) {
+      .mascot { width: 600px; }
+      .mascot-left { left: 0; }
+      .mascot-right { right: 0; }
+    }
+    @media (max-width: 1100px) {
+      .mascot { width: 300px; }
+      .mascot-left { left: 0; }
+      .mascot-right { right: 0; }
+    }
+    @media (max-width: 900px) {
+      .main-content { flex-direction: column; align-items: center; }
+      .mascot { display: none; }
+      .header-row { flex-direction: column; }
+      .logo, .ai-robot { margin: 0 0 10px 0; }
+      .rocket-top { right: 10px; top: -20px; width: 90px; }
+    }
+    /* Panels */
+    .status-panel {
+      width: 30%;
+      min-width: 240px;
+      background: rgba(17,17,17,0.97);
+      border-radius: 30px 0 0 30px;
+      box-shadow: 0 0 30px 10px #54545444 inset;
+      padding: 36px 18px 36px 18px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      position: relative;
+      z-index: 2;
+      justify-content: flex-start;
+    }
+    .status-title {
+      color: #FFD811;
+      font-size: 1.3em;
+      margin-bottom: 10px;
+      font-weight: bold;
+      text-align: left;
+      width: 100%;
+    }
+    .status-list {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 18px 0;
+      width: 100%;
+    }
+    .status-list li {
+      font-size: 1.08em;
+      margin-bottom: 8px;
+      opacity: 0.5;
+      transition: opacity 0.5s;
+      display: flex;
+      align-items: center;
+      color: #fff;
+      justify-content: flex-start;
+      text-align: left;
+      padding-left: 0;
+    }
+    .status-list li.loaded {
+      opacity: 1;
+      color: #fff;
+    }
+    .status-list li .check {
+      color: #00FF00;
+      margin-right: 8px;
+      font-size: 1.1em;
+      display: none;
+    }
+    .status-list li.loaded .check {
+      display: inline;
+    }
+    .system-ready {
+      color: #FF2222;
+      font-weight: bold;
+      font-size: 1.3em;
+      margin: 18px 0 10px 0;
+      display: none;
+      text-align: left;
+      letter-spacing: 1px;
+      background: #222;
+      border-radius: 30px;
+      padding: 8px 18px;
+      box-shadow: 0 2px 8px #0002;
+      border: 2px solid #FF2222;
+      animation: pulse 1.2s infinite alternate;
+      width: 100%;
+    }
+    .system-ready .check {
+      color: #00FF00;
+      font-size: 1.2em;
+      margin-right: 8px;
+    }
+    .system-ready.active {
+      display: inline-block;
+    }
+    @keyframes pulse {
+      from { box-shadow: 0 0 8px #FF2222; }
+      to { box-shadow: 0 0 24px #FF2222; }
+    }
+    .vault-info {
+      background: #fff;
+      border-radius: 30px;
+      padding: 12px 16px;
+      margin-top: 10px;
+      width: 100%;
+      font-size: 1em;
+      color: #373534;
+      text-align: left;
+      min-height: 70px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      border: 2px solid #fff;
+      box-sizing: border-box;
+    }
+    .vault-info span {
+      color: #373534;
+      font-weight: bold;
+    }
+    /* Chat Panel */
+    .chat-panel {
+      width: 70%;
+      min-width: 320px;
+      background: #545454;
+      border-radius: 0 30px 30px 0;
+      border-left: 2px solid #FFD811;
+      padding: 36px 24px 24px 24px;
+      display: flex;
+      flex-direction: column;
+      min-height: 800px;
+      position: relative;
+      z-index: 2;
+      justify-content: flex-end;
+    }
+    .chat-box {
+      flex: 1;
+      overflow-y: auto;
+      margin-bottom: 18px;
+      padding-right: 8px;
+      max-height: 600px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+    }
+    .bubble {
+      display: flex;
+      align-items: flex-end;
+      margin: 18px 0;
+      max-width: 80%;
+    }
+    .bubble.eli {
+      flex-direction: row;
+      align-self: flex-start;
+    }
+    .bubble.roxy {
+      flex-direction: row-reverse;
+      align-self: flex-end;
+    }
+    .bubble img.avatar {
+      width: 54px;
+      height: 54px;
+      border-radius: 50%;
+      margin: 0 12px;
+      background: #545454;
+      border: 2px solid #fff;
+      object-fit: cover;
+      object-position: top;
+    }
+    .bubble-content {
+      padding: 16px 26px;
+      font-size: 1.13em;
+      border-radius: 32px;
+      background: #373534;
+      color: #fff;
+      font-family: 'Carlito', Arial, sans-serif;
+      box-shadow: 0 2px 8px #0002;
+      min-width: 80px;
+      max-width: 340px;
+      word-break: break-word;
+      border: 1.5px solid #fff;
+      backdrop-filter: blur(1px);
+    }
+    .bubble.roxy .bubble-content {
+      background: #FFD811;
+      color: #373534;
+      border: 1.5px solid #fff;
+    }
+    .bubble.user .bubble-content {
+      background: #f5f5f5;
+      color: #373534;
+      border: 1.5px solid #fff;
+    }
+    /* Input Area */
+    .input-area {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      background: #222;
+      border-radius: 30px;
+      padding: 10px 16px;
+      margin-top: 8px;
+      margin-bottom: 0;
+      border: 1.5px solid #fff;
+      box-shadow: 0 2px 8px #0002;
+    }
+    .chat-input {
+      flex: 1;
+      padding: 12px;
+      border-radius: 20px;
+      border: none;
+      font-size: 1em;
+      background: transparent;
+      color: white;
+      outline: none;
+    }
+    .chat-input::placeholder {
+      color: #FFD811;
+      opacity: 1;
+      font-size: 1.1em;
+      font-family: 'Carlito', Arial, sans-serif;
+      letter-spacing: 1px;
+    }
+    .send-button {
+      background: none;
+      border: none;
+      margin-left: 10px;
+      cursor: pointer;
+      border-radius: 50%;
+      width: 54px;
+      height: 54px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+      outline: none;
+    }
+    .send-button:active, .send-button:focus {
+      background: #FFD81133;
+    }
+    .send-button img {
+      width: 44px;
+      height: 44px;
+      display: block;
+      transform: rotate(-18deg);
+    }
+    @media (max-width: 900px) {
+      .main-content { flex-direction: column; align-items: center; }
+      .status-panel, .chat-panel { width: 95%; min-width: 0; border-radius: 30px; }
+      .chat-panel { border-left: none; border-top: 2px solid #FFD811; }
+      .header-row { flex-direction: column; }
+      .logo, .ai-robot { margin: 0 0 10px 0; }
+      .rocket-top { right: 10px; top: -20px; width: 90px; }
+    }
+    /* Footer */
+    .footer {
+      width: 100vw;
+      background: #1A1A1A;
+      color: #FFD811;
+      text-align: center;
+      font-size: 1.1em;
+      font-family: 'Carlito', Arial, sans-serif;
+      padding: 18px 0 12px 0;
+      letter-spacing: 1px;
+      margin-top: auto;
+      box-shadow: 0 -2px 8px #0008;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      line-height: 1.4;
+      max-width: 1300px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .footer-line {
+      margin: 0;
+      word-break: break-word;
+    }
+    .footer-two {
+      font-size: 1.15em;
+      font-weight: bold;
+      margin-top: 2px;
+      word-break: break-word;
     }
   </style>
 </head>
@@ -519,6 +1045,20 @@
       box.scrollTop = box.scrollHeight;
       input.value = '';
       toggle = !toggle;
+      updateVaultStatus();
+    }
+    // Enter key for chat
+    document.addEventListener('DOMContentLoaded', function() {
+      document.getElementById('user-input').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') sendMessage();
+      });
+      updateVaultStatus();
+      setTimeout(loadStatus, 600);
+    });
+  </script>
+</body>
+</html>
+
       updateVaultStatus();
     }
     // Enter key for chat
