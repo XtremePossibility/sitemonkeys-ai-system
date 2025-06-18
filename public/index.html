@@ -14,11 +14,8 @@
       background: #373534;
       color: white;
       min-height: 100vh;
-      position: relative;
-      overflow-x: hidden;
       display: flex;
       flex-direction: column;
-      min-height: 100vh;
     }
     /* Header */
     header {
@@ -26,7 +23,6 @@
       position: relative;
       width: 100vw;
       min-height: 170px;
-      z-index: 2;
       box-shadow: 0 2px 8px #0008;
       display: flex;
       flex-direction: column;
@@ -45,7 +41,7 @@
     }
     .logo {
       height: 120px;
-      margin-right: 12px;
+      margin-right: 8px;
       flex-shrink: 0;
     }
     .header-center {
@@ -54,11 +50,13 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
+      position: relative;
+      z-index: 2;
     }
     .site-title {
       font-family: 'Luckiest Guy', cursive, sans-serif;
       color: #FFD811;
-      font-size: 4em;
+      font-size: 4.2em;
       margin: 0;
       letter-spacing: 2px;
       line-height: 1;
@@ -74,15 +72,16 @@
     }
     .ai-robot {
       height: 120px;
-      margin-left: 12px;
+      margin-left: 8px;
       flex-shrink: 0;
     }
     .rocket-top {
       position: absolute;
-      right: 0;
-      top: -30px;
-      width: 130px;
+      right: -40px;
+      top: -40px;
+      width: 150px;
       z-index: 3;
+      pointer-events: none;
     }
     /* Main Layout */
     .main-content {
@@ -92,8 +91,7 @@
       max-width: 1200px;
       margin: 0 auto;
       position: relative;
-      z-index: 1;
-      min-height: 650px;
+      min-height: 700px;
       background: #373534;
       border-radius: 0 0 30px 30px;
       box-shadow: 0 8px 32px #0004;
@@ -105,40 +103,41 @@
       top: 50%;
       transform: translateY(-50%);
       z-index: 2;
-      width: 260px;
+      width: 240px;
       pointer-events: none;
       transition: width 0.3s;
     }
     .mascot-left {
-      left: -60px;
+      left: -40px;
     }
     .mascot-right {
-      right: -60px;
+      right: -40px;
     }
     @media (max-width: 1400px) {
-      .mascot { width: 180px; }
-      .mascot-left { left: -30px; }
-      .mascot-right { right: -30px; }
-    }
-    @media (max-width: 1100px) {
-      .mascot { width: 120px; }
+      .mascot { width: 160px; }
       .mascot-left { left: -10px; }
       .mascot-right { right: -10px; }
+    }
+    @media (max-width: 1100px) {
+      .mascot { width: 100px; }
+      .mascot-left { left: 0; }
+      .mascot-right { right: 0; }
     }
     @media (max-width: 900px) {
       .main-content { flex-direction: column; align-items: center; }
       .mascot { display: none; }
       .header-row { flex-direction: column; }
       .logo, .ai-robot { margin: 0 0 10px 0; }
+      .rocket-top { right: 10px; top: -20px; width: 90px; }
     }
     /* Panels */
     .status-panel {
-      width: 28%;
-      min-width: 220px;
+      width: 26%;
+      min-width: 200px;
       background: rgba(17,17,17,0.97);
       border-radius: 18px 0 0 18px;
       box-shadow: 0 0 30px 10px #54545444 inset;
-      padding: 36px 18px 36px 18px;
+      padding: 36px 12px 36px 12px;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -227,7 +226,7 @@
     }
     /* Chat Panel */
     .chat-panel {
-      width: 72%;
+      width: 74%;
       min-width: 320px;
       background: #545454;
       border-radius: 0 18px 18px 0;
@@ -235,7 +234,7 @@
       padding: 36px 24px 24px 24px;
       display: flex;
       flex-direction: column;
-      min-height: 650px;
+      min-height: 700px;
       position: relative;
       z-index: 2;
       justify-content: flex-start;
@@ -245,7 +244,7 @@
       overflow-y: auto;
       margin-bottom: 18px;
       padding-right: 8px;
-      max-height: 480px;
+      max-height: 520px;
     }
     .bubble {
       display: flex;
@@ -274,7 +273,7 @@
       padding: 16px 26px;
       font-size: 1.13em;
       border-radius: 32px 32px 32px 10px;
-      background: rgba(255,216,17,0.95);
+      background: #FFD811;
       color: #222;
       font-family: 'Carlito', Arial, sans-serif;
       box-shadow: 0 2px 8px #0002;
@@ -285,7 +284,7 @@
       backdrop-filter: blur(1px);
     }
     .bubble.roxy .bubble-content {
-      background: rgba(84,84,84,0.92);
+      background: #545454;
       color: #fff;
       border: 2px solid #FFD811;
       border-radius: 32px 32px 10px 32px;
@@ -338,6 +337,7 @@
       .chat-panel { border-left: none; border-top: 2px solid #FFD811; }
       .header-row { flex-direction: column; }
       .logo, .ai-robot { margin: 0 0 10px 0; }
+      .rocket-top { right: 10px; top: -20px; width: 90px; }
     }
     /* Footer */
     .footer {
