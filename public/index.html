@@ -31,7 +31,7 @@
     }
     .header-row {
       width: 100%;
-      max-width: 1200px;
+      max-width: 1300px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -40,9 +40,8 @@
       padding-top: 18px;
     }
     .logo {
-      height: 156px; /* 30% larger */
-      margin-right: 0;
-      margin-left: 0;
+      height: 180px;
+      margin-right: 12px;
       flex-shrink: 0;
       transition: height 0.3s;
     }
@@ -54,7 +53,7 @@
       justify-content: center;
       position: relative;
       z-index: 2;
-      margin: 0 24px;
+      margin: 0 12px;
     }
     .site-title {
       font-family: 'Luckiest Guy', cursive, sans-serif;
@@ -75,17 +74,18 @@
     }
     .ai-robot {
       height: 120px;
-      margin-left: 0;
+      margin-left: 12px;
       flex-shrink: 0;
       transition: height 0.3s;
     }
     .rocket-top {
       position: absolute;
-      right: -40px;
-      top: -40px;
-      width: 150px;
+      right: -60px;
+      top: -60px;
+      width: 170px;
       z-index: 3;
       pointer-events: none;
+      transform: rotate(-18deg);
     }
     /* Space between header and main */
     .header-gap {
@@ -97,40 +97,41 @@
       display: flex;
       justify-content: center;
       align-items: stretch;
-      max-width: 1200px;
+      max-width: 1300px;
       margin: 0 auto;
       position: relative;
-      min-height: 700px;
+      min-height: 800px;
       background: #373534;
       border-radius: 0 0 30px 30px;
       box-shadow: 0 8px 32px #0004;
       margin-bottom: 24px;
+      border: 2px solid #fff;
     }
     /* Mascots */
     .mascot {
       position: absolute;
-      top: 50%;
+      top: 54%;
       transform: translateY(-50%);
       z-index: 2;
-      width: 600px; /* 2.5x larger */
+      width: 300px;
       pointer-events: none;
       transition: width 0.3s;
     }
     .mascot-left {
-      left: -120px;
+      left: 10px;
     }
     .mascot-right {
-      right: -120px;
+      right: 10px;
     }
     @media (max-width: 1400px) {
-      .mascot { width: 400px; }
-      .mascot-left { left: -60px; }
-      .mascot-right { right: -60px; }
+      .mascot { width: 200px; }
+      .mascot-left { left: 0; }
+      .mascot-right { right: 0; }
     }
     @media (max-width: 1100px) {
-      .mascot { width: 220px; }
-      .mascot-left { left: -10px; }
-      .mascot-right { right: -10px; }
+      .mascot { width: 120px; }
+      .mascot-left { left: 0; }
+      .mascot-right { right: 0; }
     }
     @media (max-width: 900px) {
       .main-content { flex-direction: column; align-items: center; }
@@ -141,15 +142,15 @@
     }
     /* Panels */
     .status-panel {
-      width: 26%;
-      min-width: 200px;
+      width: 30%;
+      min-width: 240px;
       background: rgba(17,17,17,0.97);
       border-radius: 18px 0 0 18px;
       box-shadow: 0 0 30px 10px #54545444 inset;
-      padding: 36px 12px 36px 12px;
+      padding: 36px 18px 36px 18px;
       display: flex;
       flex-direction: column;
-      align-items: center;
+      align-items: flex-start;
       position: relative;
       z-index: 2;
       justify-content: flex-start;
@@ -157,9 +158,10 @@
     .status-title {
       color: #FFD811;
       font-size: 1.3em;
-      margin-bottom: 18px;
+      margin-bottom: 10px;
       font-weight: bold;
-      text-align: center;
+      text-align: left;
+      width: 100%;
     }
     .status-list {
       list-style: none;
@@ -169,16 +171,19 @@
     }
     .status-list li {
       font-size: 1.08em;
-      margin-bottom: 10px;
+      margin-bottom: 8px;
       opacity: 0.5;
       transition: opacity 0.5s;
       display: flex;
       align-items: center;
-      justify-content: center;
+      color: #fff;
+      justify-content: flex-start;
+      text-align: left;
+      padding-left: 0;
     }
     .status-list li.loaded {
       opacity: 1;
-      color: #FFD811;
+      color: #fff;
     }
     .status-list li .check {
       color: #00FF00;
@@ -195,7 +200,7 @@
       font-size: 1.3em;
       margin: 18px 0 10px 0;
       display: none;
-      text-align: center;
+      text-align: left;
       letter-spacing: 1px;
       background: #222;
       border-radius: 10px;
@@ -203,6 +208,7 @@
       box-shadow: 0 2px 8px #0002;
       border: 2px solid #FF2222;
       animation: pulse 1.2s infinite alternate;
+      width: 100%;
     }
     .system-ready .check {
       color: #00FF00;
@@ -217,7 +223,7 @@
       to { box-shadow: 0 0 24px #FF2222; }
     }
     .vault-info {
-      background: #222;
+      background: #545454;
       border-radius: 8px;
       padding: 12px 16px;
       margin-top: 10px;
@@ -229,6 +235,7 @@
       display: flex;
       flex-direction: column;
       justify-content: center;
+      border: 1.5px solid #fff;
     }
     .vault-info span {
       color: #fff;
@@ -236,7 +243,7 @@
     }
     /* Chat Panel */
     .chat-panel {
-      width: 74%;
+      width: 70%;
       min-width: 320px;
       background: #545454;
       border-radius: 0 18px 18px 0;
@@ -244,17 +251,20 @@
       padding: 36px 24px 24px 24px;
       display: flex;
       flex-direction: column;
-      min-height: 700px;
+      min-height: 800px;
       position: relative;
       z-index: 2;
-      justify-content: flex-start;
+      justify-content: flex-end;
     }
     .chat-box {
       flex: 1;
       overflow-y: auto;
       margin-bottom: 18px;
       padding-right: 8px;
-      max-height: 520px;
+      max-height: 600px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
     }
     .bubble {
       display: flex;
@@ -275,7 +285,7 @@
       height: 54px;
       border-radius: 50%;
       margin: 0 12px;
-      background: #fff;
+      background: #545454;
       border: 2px solid #FFD811;
       object-fit: cover;
     }
@@ -283,19 +293,19 @@
       padding: 16px 26px;
       font-size: 1.13em;
       border-radius: 32px 32px 32px 10px;
-      background: #FFD811;
-      color: #222;
+      background: #545454;
+      color: #FFD811;
       font-family: 'Carlito', Arial, sans-serif;
       box-shadow: 0 2px 8px #0002;
       min-width: 80px;
       max-width: 340px;
       word-break: break-word;
-      border: none;
+      border: 2px solid #FFD811;
       backdrop-filter: blur(1px);
     }
     .bubble.roxy .bubble-content {
-      background: #545454;
-      color: #fff;
+      background: #FFD811;
+      color: #545454;
       border: 2px solid #FFD811;
       border-radius: 32px 32px 10px 32px;
     }
@@ -304,10 +314,13 @@
       display: flex;
       align-items: center;
       justify-content: flex-end;
-      background: #333;
+      background: #222;
       border-radius: 30px;
       padding: 10px 16px;
       margin-top: 8px;
+      margin-bottom: 0;
+      border: 1.5px solid #fff;
+      box-shadow: 0 2px 8px #0002;
     }
     .chat-input {
       flex: 1;
@@ -340,6 +353,7 @@
       width: 44px;
       height: 44px;
       display: block;
+      transform: rotate(-18deg);
     }
     @media (max-width: 900px) {
       .main-content { flex-direction: column; align-items: center; }
@@ -361,6 +375,14 @@
       letter-spacing: 1px;
       margin-top: auto;
       box-shadow: 0 -2px 8px #0008;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      line-height: 1.4;
+    }
+    .footer-line {
+      margin: 0;
     }
   </style>
 </head>
@@ -385,17 +407,22 @@
   <div class="main-content">
     <!-- Status Panel -->
     <div class="status-panel">
-      <div class="status-title">System Load Sequence</div>
+      <div class="status-title">SiteMonkeys Business Validation System</div>
       <ul class="status-list" id="status-list">
-        <li><span class="check">✅</span> Vault loaded successfully</li>
-        <li><span class="check">✅</span> Tokens loaded</li>
-        <li><span class="check">✅</span> Estimated cost calculated</li>
-        <li><span class="check">✅</span> Folders loaded</li>
-        <li><span class="check">✅</span> Real-world validation ready</li>
-        <li><span class="check">✅</span> Market leader initiative</li>
+        <li><span class="check">✅</span> Zero-Failure AI</li>
+        <li><span class="check">✅</span> Complete Business Intelligence</li>
+        <li><span class="check">✅</span> Real-World Validation Ready</li>
+        <li><span class="check">✅</span> Site Monkeys memory vault loaded</li>
+        <li><span class="check">✅</span> Zero Failure activated</li>
+        <li><span class="check">✅</span> Legitimate data initiative activated</li>
+        <li><span class="check">✅</span> Persistence driven activated</li>
+        <li><span class="check">✅</span> helpful initiative activated</li>
+        <li><span class="check">✅</span> Founder Protection activated</li>
+        <li><span class="check">✅</span> Market leader Initiative</li>
       </ul>
       <div class="system-ready" id="system-ready"><span class="check">✅</span> SYSTEM READY</div>
       <div class="vault-info" id="vault-info">
+        <div><span style="color:#00FF00;">✅</span> Vault loaded successfully</div>
         <div>🔢 Tokens: <span id="token-count">—</span></div>
         <div>💰 Estimated Cost: <span id="cost-estimate">—</span></div>
         <div>📁 Folders: <span id="vault-folders">—</span></div>
@@ -405,7 +432,7 @@
     <div class="chat-panel">
       <div class="chat-box" id="chat-box">
         <div class="bubble eli">
-          <img src="/boy-mascot.png" class="avatar" alt="Eli">
+          <img src="/boy-mascot.png" class="avatar" alt="Eli" style="object-position: top;">
           <div class="bubble-content"><strong>Eli:</strong> Welcome to Site Monkeys AI. What would you like to validate today?</div>
         </div>
       </div>
@@ -419,7 +446,10 @@
   </div>
   <!-- Footer -->
   <div class="footer">
-    THE FIRST AND ONLY BUSINESS VALIDATION CHAT SYSTEM THAT PUTS HONESTY, REAL DATA, TRANSPARENCY, PERSISTENCE, &amp; INITIATIVE BEFORE ALL ELSE! AI YOU CAN TRUST!
+    <div class="footer-line">THE FIRST AND ONLY BUSINESS VALIDATION CHAT SYSTEM</div>
+    <div class="footer-line">THAT PUTS HONESTY, REAL DATA, TRANSPARENCY, PERSISTENCE,</div>
+    <div class="footer-line">&amp; INITIATIVE BEFORE ALL ELSE!</div>
+    <div class="footer-line">AI YOU CAN TRUST!</div>
   </div>
   <script>
     // Status loading animation
@@ -430,19 +460,23 @@
       if (statusIndex < statusItems.length) {
         statusItems[statusIndex].classList.add('loaded');
         statusIndex++;
-        setTimeout(loadStatus, 500);
+        setTimeout(loadStatus, 400);
       } else {
         systemReady.classList.add('active');
       }
     }
-    // Vault info
+    // Vault info (accumulated total for session)
+    let sessionTokens = 0;
+    let sessionFolders = 0;
     function updateVaultStatus() {
-      const tokenCount = Math.floor(Math.random() * 30000 + 10000);
-      const costEstimate = ((tokenCount / 1000) * 0.02).toFixed(2);
-      const folderCount = Math.floor(Math.random() * 7 + 6);
-      document.getElementById('token-count').textContent = `${tokenCount.toLocaleString()}`;
+      const tokensThisSession = Math.floor(Math.random() * 3000 + 1000);
+      const foldersThisSession = Math.floor(Math.random() * 2 + 1);
+      sessionTokens += tokensThisSession;
+      sessionFolders += foldersThisSession;
+      const costEstimate = ((sessionTokens / 1000) * 0.02).toFixed(2);
+      document.getElementById('token-count').textContent = `${sessionTokens.toLocaleString()}`;
       document.getElementById('cost-estimate').textContent = `$${costEstimate}`;
-      document.getElementById('vault-folders').textContent = folderCount;
+      document.getElementById('vault-folders').textContent = sessionFolders;
     }
     // Chat logic
     let toggle = true;
@@ -460,13 +494,14 @@
       const bubbleClass = isRoxy ? 'bubble roxy' : 'bubble eli';
       bubble.className = bubbleClass;
       bubble.innerHTML = `
-        <img src="${avatar}" class="avatar" alt="${who}">
+        <img src="${avatar}" class="avatar" alt="${who}" style="object-position: top;">
         <div class="bubble-content"><strong>${who}:</strong> ${text}</div>
       `;
       box.appendChild(bubble);
       box.scrollTop = box.scrollHeight;
       input.value = '';
       toggle = !toggle;
+      updateVaultStatus();
     }
     // Enter key for chat
     document.addEventListener('DOMContentLoaded', function() {
