@@ -11,158 +11,246 @@
     body {
       margin: 0;
       font-family: 'Carlito', Arial, sans-serif;
-      background: #1A1A1A;
+      background: #373534;
       color: white;
+      min-height: 100vh;
+      position: relative;
+      overflow-x: hidden;
     }
+    /* Header */
     header {
       background: #1A1A1A;
-      padding: 0 0 10px 0;
       position: relative;
-      min-height: 120px;
+      width: 100vw;
+      min-height: 140px;
+      z-index: 2;
+      box-shadow: 0 2px 8px #0008;
     }
-    .header-row {
+    .header-content {
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      padding: 20px 40px 0 40px;
+      justify-content: center;
       position: relative;
+      padding: 30px 0 20px 0;
+      max-width: 1100px;
+      margin: 0 auto;
     }
     .logo {
-      height: 80px;
+      height: 110px;
+      margin-right: 30px;
     }
-    .header-center {
+    .header-titles {
+      text-align: left;
       flex: 1;
-      text-align: center;
     }
     .site-title {
       font-family: 'Luckiest Guy', cursive, sans-serif;
       color: #FFD811;
-      font-size: 2.5em;
+      font-size: 3.2em;
       margin: 0;
       letter-spacing: 2px;
+      line-height: 1;
     }
     .subtitle {
       font-family: 'Carlito', Arial, sans-serif;
       color: #fff;
-      font-size: 1.2em;
-      margin-top: 5px;
+      font-size: 1.3em;
+      margin-top: 8px;
+      letter-spacing: 1px;
     }
     .ai-robot {
-      height: 60px;
-      margin-right: 10px;
+      height: 80px;
+      margin-left: 30px;
     }
     .rocket-top {
-      width: 80px;
       position: absolute;
       right: 40px;
-      top: -20px;
-      z-index: 2;
+      top: -30px;
+      width: 110px;
+      z-index: 3;
     }
-    .main {
+    /* Main Layout */
+    .main-content {
       display: flex;
-      justify-content: space-between;
+      justify-content: center;
       align-items: flex-start;
-      padding: 20px;
-      flex-wrap: wrap;
-    }
-    .sidebar {
-      width: 25%;
-      background: rgba(17,17,17,0.95);
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 0 30px 10px #54545444 inset;
+      max-width: 1100px;
+      margin: 0 auto;
       position: relative;
-      min-width: 250px;
+      z-index: 1;
+      min-height: 500px;
+      background: #373534;
+      border-radius: 0 0 30px 30px;
+      box-shadow: 0 8px 32px #0004;
+    }
+    /* Mascots */
+    .mascot {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 2;
+      width: 220px;
+      pointer-events: none;
     }
     .mascot-left {
-      width: 120px;
-      display: block;
-      margin: 0 auto 10px auto;
+      left: -110px;
     }
-    .sidebar h3 {
+    .mascot-right {
+      right: -110px;
+    }
+    @media (max-width: 1200px) {
+      .mascot { width: 140px; }
+      .mascot-left { left: -70px; }
+      .mascot-right { right: -70px; }
+    }
+    @media (max-width: 900px) {
+      .main-content { flex-direction: column; align-items: center; }
+      .mascot { display: none; }
+    }
+    /* Panels */
+    .status-panel {
+      width: 25%;
+      min-width: 240px;
+      background: rgba(17,17,17,0.95);
+      border-radius: 18px 0 0 18px;
+      box-shadow: 0 0 30px 10px #54545444 inset;
+      padding: 30px 20px 30px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      z-index: 2;
+    }
+    .status-title {
       color: #FFD811;
-      font-size: 1.2em;
-      margin-bottom: 10px;
+      font-size: 1.3em;
+      margin-bottom: 18px;
+      font-weight: bold;
       text-align: center;
     }
     .status-list {
       list-style: none;
-      padding-left: 0;
-      margin-bottom: 20px;
+      padding: 0;
+      margin: 0 0 18px 0;
+      width: 100%;
     }
-    .status-list li::before {
-      content: "✅ ";
+    .status-list li {
+      font-size: 1.08em;
+      margin-bottom: 10px;
+      opacity: 0.5;
+      transition: opacity 0.5s;
+      display: flex;
+      align-items: center;
+    }
+    .status-list li.loaded {
+      opacity: 1;
+      color: #FFD811;
+    }
+    .status-list li .check {
       color: #00FF00;
+      margin-right: 8px;
+      font-size: 1.1em;
+      display: none;
     }
-    .status-panel {
-      margin-top: 10px;
+    .status-list li.loaded .check {
+      display: inline;
+    }
+    .system-ready {
+      color: #00FF00;
+      font-weight: bold;
+      font-size: 1.1em;
+      margin-top: 18px;
+      display: none;
+      text-align: center;
+    }
+    .system-ready.active {
+      display: block;
+      animation: fadeIn 1s;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    .vault-info {
       background: #222;
-      padding: 10px;
-      border-radius: 6px;
-      font-size: 0.95em;
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin-top: 18px;
+      width: 100%;
+      font-size: 1em;
+      color: #FFD811;
+      text-align: left;
     }
-    .status-panel div {
-      margin-bottom: 5px;
-    }
-    .chat-wrapper {
-      flex-grow: 1;
-      max-width: 800px;
-      margin: 0 20px;
+    /* Chat Panel */
+    .chat-panel {
+      width: 75%;
+      min-width: 320px;
       background: #545454;
-      border: 2px solid white;
-      border-radius: 10px;
-      padding: 20px;
+      border-radius: 0 18px 18px 0;
+      border-left: 2px solid #FFD811;
+      padding: 30px 24px 24px 24px;
       display: flex;
       flex-direction: column;
-      min-width: 320px;
+      min-height: 500px;
+      position: relative;
+      z-index: 2;
     }
     .chat-box {
       flex: 1;
       overflow-y: auto;
-      height: 400px;
-      margin-bottom: 15px;
+      margin-bottom: 18px;
+      padding-right: 8px;
+      max-height: 340px;
     }
     .bubble {
       display: flex;
-      align-items: flex-start;
-      margin: 10px 0;
-      max-width: 85%;
+      align-items: flex-end;
+      margin: 16px 0;
+      max-width: 80%;
     }
-    .bubble img.avatar {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      margin-right: 10px;
+    .bubble.eli {
+      flex-direction: row;
+      align-self: flex-start;
     }
     .bubble.roxy {
       flex-direction: row-reverse;
-      margin-left: auto;
+      align-self: flex-end;
     }
-    .bubble.roxy img.avatar {
-      margin-left: 10px;
-      margin-right: 0;
+    .bubble img.avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      margin: 0 12px;
+      background: #fff;
+      border: 2px solid #FFD811;
     }
     .bubble-content {
+      padding: 14px 22px;
+      font-size: 1.08em;
+      border-radius: 30px 30px 30px 8px;
       background: #FFD811;
-      color: black;
-      padding: 10px 15px;
-      border-radius: 20px;
-    }
-    .bubble.eli .bubble-content {
-      background: #FFD811;
-      color: black;
+      color: #222;
+      font-family: 'Carlito', Arial, sans-serif;
+      box-shadow: 0 2px 8px #0002;
+      min-width: 80px;
+      max-width: 340px;
+      word-break: break-word;
     }
     .bubble.roxy .bubble-content {
       background: #545454;
       color: #fff;
-      border: 1px solid #FFD811;
+      border: 2px solid #FFD811;
+      border-radius: 30px 30px 8px 30px;
     }
+    /* Input Area */
     .input-area {
       display: flex;
       align-items: center;
+      justify-content: flex-end;
       background: #333;
       border-radius: 30px;
-      padding: 10px;
+      padding: 10px 16px;
+      margin-top: 8px;
     }
     .chat-input {
       flex: 1;
@@ -172,52 +260,43 @@
       font-size: 1em;
       background: transparent;
       color: white;
+      outline: none;
     }
     .send-button {
-      background: #FFD811;
-      color: black;
-      font-weight: bold;
+      background: none;
       border: none;
-      border-radius: 20px;
-      padding: 10px 20px;
       margin-left: 10px;
+      cursor: pointer;
+      border-radius: 50%;
+      width: 48px;
+      height: 48px;
       display: flex;
       align-items: center;
-      cursor: pointer;
+      justify-content: center;
+      transition: background 0.2s;
+      outline: none;
+    }
+    .send-button:active, .send-button:focus {
+      background: #FFD81133;
     }
     .send-button img {
-      height: 20px;
-      margin-left: 6px;
-    }
-    .mascot-right {
-      width: 120px;
-      align-self: flex-end;
-      margin-left: 20px;
+      width: 38px;
+      height: 38px;
+      display: block;
     }
     @media (max-width: 900px) {
-      .main {
-        flex-direction: column;
-        align-items: center;
-      }
-      .sidebar, .chat-wrapper {
-        width: 95%;
-        margin: 10px 0;
-      }
-      .mascot-left, .mascot-right {
-        width: 80px;
-      }
-      .rocket-top {
-        width: 50px;
-      }
+      .main-content { flex-direction: column; align-items: center; }
+      .status-panel, .chat-panel { width: 95%; min-width: 0; border-radius: 18px; }
+      .chat-panel { border-left: none; border-top: 2px solid #FFD811; }
     }
   </style>
 </head>
 <body>
-  <!-- Header with logo, title, subtitle, AI robot, and rocket -->
+  <!-- Header -->
   <header>
-    <div class="header-row">
+    <div class="header-content">
       <img src="/logo.png" alt="Site Monkeys Logo" class="logo">
-      <div class="header-center">
+      <div class="header-titles">
         <div class="site-title">SITE MONKEYS AI</div>
         <div class="subtitle">Business Validation Engine</div>
       </div>
@@ -225,26 +304,29 @@
       <img src="/rocket-no-smoke.png" alt="Rocket" class="rocket-top">
     </div>
   </header>
-  <div class="main">
-    <!-- Left Sidebar -->
-    <div class="sidebar">
-      <img src="/boy-mascot.png" alt="Eli Mascot" class="mascot-left">
-      <h3>System Load Sequence</h3>
-      <ul class="status-list">
-        <li>Vault memory loaded</li>
-        <li>Protocol active</li>
-        <li>Files validated</li>
-        <li>AI loop engaged</li>
+  <!-- Mascots (outside main block) -->
+  <img src="/boy-mascot.png" alt="Eli Mascot" class="mascot mascot-left">
+  <img src="/girl-mascot.png" alt="Roxy Mascot" class="mascot mascot-right">
+  <!-- Main Content -->
+  <div class="main-content">
+    <!-- Status Panel -->
+    <div class="status-panel">
+      <div class="status-title">System Load Sequence</div>
+      <ul class="status-list" id="status-list">
+        <li><span class="check">✅</span> Vault memory loaded</li>
+        <li><span class="check">✅</span> Protocol active</li>
+        <li><span class="check">✅</span> Files validated</li>
+        <li><span class="check">✅</span> AI loop engaged</li>
       </ul>
-      <div class="status-panel" id="vault-status">
-        <div>📁 Folders: <span id="vault-folders">—</span></div>
-        <div>🔢 Tokens: <span id="token-count">—</span></div>
-        <div>💰 Cost: <span id="cost-estimate">—</span></div>
-        <div style="color: #00ff00; margin-top: 5px;">✅ VALIDATION SYSTEM CONFIRMED</div>
+      <div class="vault-info">
+        📁 Folders: <span id="vault-folders">—</span><br>
+        🔢 Tokens: <span id="token-count">—</span><br>
+        💰 Cost: <span id="cost-estimate">—</span>
       </div>
+      <div class="system-ready" id="system-ready">✅ SYSTEM READY</div>
     </div>
-    <!-- Center Chat UI -->
-    <div class="chat-wrapper">
+    <!-- Chat Panel -->
+    <div class="chat-panel">
       <div class="chat-box" id="chat-box">
         <div class="bubble eli">
           <img src="/boy-mascot.png" class="avatar" alt="Eli">
@@ -253,15 +335,36 @@
       </div>
       <div class="input-area">
         <input type="text" class="chat-input" id="user-input" placeholder="Ask a business question..." />
-        <button class="send-button" onclick="sendMessage()">
-          Send <img src="/rocket-no-smoke.png" alt="Rocket Send" />
+        <button class="send-button" onclick="sendMessage()" aria-label="Send">
+          <img src="/rocket-no-smoke.png" alt="Rocket Send" />
         </button>
       </div>
     </div>
-    <!-- Right-side mascot: Roxy -->
-    <img src="/girl-mascot.png" alt="Roxy Mascot" class="mascot-right">
   </div>
   <script>
+    // Status loading animation
+    const statusItems = document.querySelectorAll('#status-list li');
+    const systemReady = document.getElementById('system-ready');
+    let statusIndex = 0;
+    function loadStatus() {
+      if (statusIndex < statusItems.length) {
+        statusItems[statusIndex].classList.add('loaded');
+        statusIndex++;
+        setTimeout(loadStatus, 600);
+      } else {
+        systemReady.classList.add('active');
+      }
+    }
+    // Vault info
+    function updateVaultStatus() {
+      const tokenCount = Math.floor(Math.random() * 30000 + 10000);
+      const costEstimate = ((tokenCount / 1000) * 0.02).toFixed(2);
+      const folderCount = Math.floor(Math.random() * 7 + 6);
+      document.getElementById('token-count').textContent = `${tokenCount.toLocaleString()}`;
+      document.getElementById('cost-estimate').textContent = `$${costEstimate}`;
+      document.getElementById('vault-folders').textContent = folderCount;
+    }
+    // Chat logic
     let toggle = true;
     function sendMessage() {
       const input = document.getElementById('user-input');
@@ -285,17 +388,14 @@
       input.value = '';
       toggle = !toggle;
     }
-    function updateVaultStatus() {
-      const tokenCount = Math.floor(Math.random() * 30000 + 10000);
-      const costEstimate = ((tokenCount / 1000) * 0.02).toFixed(2);
-      const folderCount = Math.floor(Math.random() * 7 + 6);
-      document.getElementById('token-count').textContent = `${tokenCount.toLocaleString()}`;
-      document.getElementById('cost-estimate').textContent = `$${costEstimate}`;
-      document.getElementById('vault-folders').textContent = folderCount;
-    }
-    window.onload = () => {
+    // Enter key for chat
+    document.addEventListener('DOMContentLoaded', function() {
+      document.getElementById('user-input').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') sendMessage();
+      });
       updateVaultStatus();
-    };
+      setTimeout(loadStatus, 600);
+    });
   </script>
 </body>
 </html>
