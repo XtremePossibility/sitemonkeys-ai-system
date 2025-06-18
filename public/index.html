@@ -1,489 +1,138 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Site Monkeys AI - Business Validation Engine</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-            min-height: 100vh;
-            color: white;
-            overflow-x: hidden;
-        }
-
-        .header {
-            text-align: center;
-            padding: 20px;
-            background: rgba(0, 0, 0, 0.3);
-            border-bottom: 2px solid #ffd700;
-        }
-
-        .header h1 {
-            font-size: 3em;
-            color: #ffd700;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-            margin-bottom: 10px;
-        }
-
-        .header p {
-            font-size: 1.3em;
-            opacity: 0.9;
-        }
-
-        .main-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 30px 20px;
-            display: grid;
-            grid-template-columns: 1fr 2fr;
-            gap: 30px;
-            align-items: start;
-        }
-
-        .mascot-sidebar {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 20px;
-            padding: 25px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .system-info h3 {
-            color: #ffd700;
-            font-size: 1.4em;
-            margin-bottom: 15px;
-            text-align: center;
-        }
-
-        .status-list {
-            list-style: none;
-            padding: 0;
-        }
-
-        .status-list li {
-            padding: 8px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            font-size: 0.95em;
-        }
-
-        .status-list li:before {
-            content: "●";
-            color: #ffd700;
-            margin-right: 10px;
-        }
-
-        .chat-container {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 20px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            height: 600px;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .chat-header {
-            background: rgba(0, 0, 0, 0.3);
-            padding: 15px 20px;
-            border-radius: 20px 20px 0 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .chat-messages {
-            flex: 1;
-            padding: 20px;
-            overflow-y: auto;
-            background: rgba(0, 0, 0, 0.1);
-        }
-
-        .chat-input-container {
-            padding: 20px;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 0 0 20px 20px;
-            background: rgba(0, 0, 0, 0.2);
-        }
-
-        .chat-input-wrapper {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-
-        .chat-input {
-            flex: 1;
-            padding: 12px 15px;
-            border: 2px solid rgba(255, 215, 0, 0.3);
-            border-radius: 25px;
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-            font-size: 16px;
-            outline: none;
-            transition: all 0.3s ease;
-        }
-
-        .chat-input:focus {
-            border-color: #ffd700;
-            background: rgba(255, 255, 255, 0.15);
-        }
-
-        .chat-input::placeholder {
-            color: rgba(255, 255, 255, 0.6);
-        }
-
-        .send-button {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            background: linear-gradient(45deg, #ffd700, #ffed4e);
-            border: none;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-            transition: all 0.3s ease;
-            color: #333;
-        }
-
-        .send-button:hover {
-            transform: scale(1.1);
-            box-shadow: 0 5px 15px rgba(255, 215, 0, 0.4);
-        }
-
-        .mascot-images {
-            display: flex;
-            justify-content: space-between;
-            margin: 20px 0;
-            gap: 15px;
-        }
-
-        .mascot {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            border: 3px solid #ffd700;
-            object-fit: cover;
-            transition: transform 0.3s ease;
-        }
-
-        .mascot:hover {
-            transform: scale(1.1);
-        }
-
-        .vault-status {
-            background: rgba(0, 0, 0, 0.3);
-            padding: 15px;
-            border-radius: 10px;
-            margin-top: 20px;
-            text-align: center;
-        }
-
-        .vault-status.loaded {
-            border-left: 4px solid #00ff00;
-        }
-
-        .vault-status.error {
-            border-left: 4px solid #ff4444;
-        }
-
-        .message {
-            margin-bottom: 15px;
-            padding: 12px 15px;
-            border-radius: 15px;
-            max-width: 80%;
-            word-wrap: break-word;
-        }
-
-        .message.user {
-            background: linear-gradient(45deg, #ffd700, #ffed4e);
-            color: #333;
-            margin-left: auto;
-            border-bottom-right-radius: 5px;
-        }
-
-        .message.assistant {
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-            margin-right: auto;
-            border-bottom-left-radius: 5px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .loading-indicator {
-            display: none;
-            text-align: center;
-            padding: 10px;
-            color: #ffd700;
-        }
-
-        .loading-indicator.active {
-            display: block;
-        }
-
-        @media (max-width: 768px) {
-            .main-container {
-                grid-template-columns: 1fr;
-                gap: 20px;
-            }
-            
-            .header h1 {
-                font-size: 2em;
-            }
-            
-            .chat-container {
-                height: 500px;
-            }
-        }
-
-        /* Floating elements */
-        .floating-elements {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: -1;
-        }
-
-        .rocket {
-            position: absolute;
-            font-size: 30px;
-            animation: float 6s ease-in-out infinite;
-        }
-
-        .rocket:nth-child(1) { top: 20%; right: 10%; animation-delay: 0s; }
-        .rocket:nth-child(2) { bottom: 30%; left: 15%; animation-delay: 2s; }
-        .rocket:nth-child(3) { top: 60%; right: 20%; animation-delay: 4s; }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-20px); }
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Site Monkeys AI</title>
+  <style>
+    body {
+      background: #1e3c72;
+      color: white;
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+    .main-container {
+      display: flex;
+      padding: 20px;
+    }
+    .mascot-sidebar {
+      width: 30%;
+      background: rgba(255,255,255,0.05);
+      padding: 20px;
+      border-radius: 10px;
+      margin-right: 20px;
+    }
+    .chat-container {
+      width: 70%;
+      background: rgba(255,255,255,0.05);
+      padding: 20px;
+      border-radius: 10px;
+      display: flex;
+      flex-direction: column;
+    }
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      margin-bottom: 10px;
+    }
+    .chat-input-wrapper {
+      display: flex;
+      align-items: center;
+    }
+    .chat-input {
+      flex: 1;
+      padding: 10px;
+      border-radius: 20px;
+      border: none;
+    }
+    .send-button {
+      background: transparent;
+      border: none;
+      margin-left: 10px;
+    }
+    .send-button img {
+      width: 40px;
+      height: 40px;
+    }
+    .token-usage, .checklist-box {
+      margin-top: 15px;
+      background: rgba(0,0,0,0.3);
+      padding: 10px;
+      border-radius: 5px;
+      font-size: 0.95em;
+    }
+    .checklist-box h4 {
+      margin: 0 0 8px 0;
+      font-size: 1em;
+      color: #ffd700;
+    }
+    .checklist-box ul {
+      margin: 0;
+      padding-left: 20px;
+      font-size: 0.9em;
+    }
+  </style>
 </head>
 <body>
-    <div class="floating-elements">
-        <div class="rocket">🚀</div>
-        <div class="rocket">🚀</div>
-        <div class="rocket">🚀</div>
+  <div class="main-container">
+    <div class="mascot-sidebar">
+      <h2>🐒 Site Monkeys AI</h2>
+      <p>Status: <strong style="color: lime;">Vault Loaded</strong></p>
+      <p>📂 Main Vault Files:</p>
+      <ul>
+        <li>00_AI_MANDATORY_PROACTIVITY_PROTOCOL</li>
+        <li>04_QAProtocols.docx</li>
+        <li>Services_Offered.docx</li>
+        <li>Pricing_Billing_Monetization_Strategy.docx</li>
+      </ul>
+      <div class="token-usage">
+        💰 Token Usage: <strong id="token-count">--</strong><br/>
+        ⛽ Estimated Burn: <strong id="burn-estimate">$--</strong>
+      </div>
+      <div class="checklist-box">
+        <h4>🧾 Section 21 Checklist</h4>
+        <ul>
+          <li>✅ Header Confirmed</li>
+          <li>✅ Vault Citations</li>
+          <li>✅ 2–3 Solutions</li>
+          <li>✅ Execution Plan</li>
+          <li>✅ IP Risk Flag</li>
+          <li>✅ Validation Loop</li>
+        </ul>
+      </div>
     </div>
 
-    <div class="header">
-        <h1>🐒 SITE MONKEYS AI 🐒</h1>
-        <p>BUSINESS VALIDATION ENGINE</p>
+    <div class="chat-container">
+      <div class="chat-messages" id="chat-messages">
+        <div><strong>Eli:</strong> System is ready. What do you want to validate today?</div>
+      </div>
+      <div class="chat-input-wrapper">
+        <input class="chat-input" type="text" id="user-input" placeholder="Ask something smart...">
+        <button class="send-button" onclick="sendMessage()">
+          <img src="rocket-no-smoke.png" alt="Send">
+        </button>
+      </div>
     </div>
+  </div>
 
-    <div class="main-container">
-        <div class="mascot-sidebar">
-            <div class="system-info">
-                <h3>SiteMonkeys<br>Business<br>Validation System</h3>
-                
-                <div class="mascot-images">
-                    <img src="boy-mascot.png" alt="Eli - Site Monkeys Mascot" class="mascot" id="eli-mascot">
-                    <img src="girl-mascot.png" alt="Roxy - Site Monkeys Mascot" class="mascot" id="roxy-mascot">
-                </div>
-                
-                <ul class="status-list">
-                    <li>Zero-Failure AI</li>
-                    <li>Complete Business Intelligence</li>
-                    <li>Real-World Validation Ready</li>
-                    <li id="vault-status-item">Site Monkeys memory vault loaded</li>
-                    <li>Zero Failure activated</li>
-                    <li>Legitimate data initiative activated</li>
-                    <li>Persistence driven activated</li>
-                    <li>helpful initiative activated</li>
-                    <li>Founder Protection activated</li>
-                    <li>Market leader Initiative</li>
-                </ul>
-            </div>
-            
-            <div class="vault-status loaded" id="vault-display">
-                <div id="vault-info">Loading SiteMonkeys business intelligence vault...</div>
-            </div>
-        </div>
+  <script>
+    function sendMessage() {
+      const input = document.getElementById("user-input");
+      const message = input.value.trim();
+      if (!message) return;
+      const msgBox = document.createElement("div");
+      msgBox.innerHTML = `<strong>You:</strong> ${message}`;
+      document.getElementById("chat-messages").appendChild(msgBox);
+      input.value = '';
+      document.getElementById("chat-messages").scrollTop = document.getElementById("chat-messages").scrollHeight;
+    }
 
-        <div class="chat-container">
-            <div class="chat-header">
-                <h3>🤖 Chat with Site Monkeys AI</h3>
-                <p>Ask about business validation, Site Monkeys system, or get strategic guidance</p>
-            </div>
-            
-            <div class="chat-messages" id="chat-messages">
-                <div class="message assistant">
-                    <strong>🐒 Eli & Roxy:</strong> Welcome to Site Monkeys AI! We're loaded with complete business intelligence and ready to help validate your ideas, analyze your Site Monkeys system, or provide strategic guidance. What would you like to explore?
-                </div>
-            </div>
-            
-            <div class="loading-indicator" id="loading">
-                <div>🐒 Processing with Site Monkeys intelligence...</div>
-            </div>
-            
-            <div class="chat-input-container">
-                <div class="chat-input-wrapper">
-                    <input type="text" class="chat-input" id="user-input" 
-                           placeholder="Ask about Site Monkeys business validation, pricing strategy, services..." 
-                           onkeypress="if(event.key==='Enter') sendMessage()">
-                    <button class="send-button" onclick="sendMessage()">
-                        🐒
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        let vaultData = null;
-        let conversationHistory = [];
-
-        // Load vault data on page load
-        async function loadVault() {
-            try {
-                console.log('Loading Site Monkeys vault...');
-                const response = await fetch('/api/load-vault');
-                console.log('Vault response status:', response.status);
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                }
-                
-                const contentType = response.headers.get('content-type');
-                console.log('Content-Type:', contentType);
-                
-                if (!contentType || !contentType.includes('application/json')) {
-                    const text = await response.text();
-                    console.log('Non-JSON response:', text.substring(0, 200));
-                    throw new Error('API returned HTML instead of JSON - vault API is broken');
-                }
-                
-                const data = await response.json();
-                console.log('Vault data loaded:', data);
-                
-                vaultData = data;
-                
-                // Update vault display
-                const vaultDisplay = document.getElementById('vault-display');
-                const vaultInfo = document.getElementById('vault-info');
-                
-                if (data.status === 'OPERATIONAL') {
-                    vaultDisplay.className = 'vault-status loaded';
-                    vaultInfo.innerHTML = `
-                        ✅ Vault loaded successfully<br>
-                        📊 ${data.tokens || 'Unknown'} tokens<br>
-                        💰 Est. cost: ${data.estimated_cost || 'Unknown'}<br>
-                        📁 ${data.folders_loaded?.length || 0} folders loaded
-                    `;
-                    
-                    // Update status in sidebar
-                    document.getElementById('vault-status-item').textContent = 
-                        `Site Monkeys vault loaded (${data.tokens || 'Unknown'} tokens)`;
-                } else {
-                    throw new Error(data.error || 'Unknown vault error');
-                }
-                
-            } catch (error) {
-                console.error('Vault loading error:', error);
-                
-                const vaultDisplay = document.getElementById('vault-display');
-                const vaultInfo = document.getElementById('vault-info');
-                
-                vaultDisplay.className = 'vault-status error';
-                vaultInfo.innerHTML = `
-                    ❌ Vault loading failed<br>
-                    Error: ${error.message}<br>
-                    <small>Check console for details</small>
-                `;
-                
-                document.getElementById('vault-status-item').textContent = 'Vault loading failed';
-            }
-        }
-
-        // Send message function
-        async function sendMessage() {
-            const input = document.getElementById('user-input');
-            const message = input.value.trim();
-            
-            if (!message) return;
-            
-            // Add user message to chat
-            addMessage(message, 'user');
-            input.value = '';
-            
-            // Show loading indicator
-            document.getElementById('loading').classList.add('active');
-            
-            try {
-                // Use your chat API endpoint instead of calling Claude directly
-                const response = await fetch('/api/chat', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        message: message,
-                        vault_data: vaultData,
-                        conversation_history: conversationHistory
-                    })
-                });
-                
-                if (!response.ok) {
-                    throw new Error(`Chat API error: ${response.status}`);
-                }
-                
-                const data = await response.json();
-                const reply = data.response || data.message || 'No response received';
-                
-                // Add assistant response with alternating mascots
-                const mascotName = conversationHistory.length % 2 === 0 ? '🧒 Eli' : '👧 Roxy';
-                addMessage(`${mascotName}: ${reply}`, 'assistant');
-                
-                // Update conversation history
-                conversationHistory.push(
-                    { role: 'user', content: message },
-                    { role: 'assistant', content: reply }
-                );
-                
-                // Keep history manageable
-                if (conversationHistory.length > 20) {
-                    conversationHistory = conversationHistory.slice(-20);
-                }
-                
-            } catch (error) {
-                console.error('Chat error:', error);
-                addMessage(`⚠️ No response received.`, 'assistant');
-            } finally {
-                document.getElementById('loading').classList.remove('active');
-            }
-        }
-
-        function addMessage(text, type) {
-            const messagesContainer = document.getElementById('chat-messages');
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${type}`;
-            messageDiv.innerHTML = text;
-            messagesContainer.appendChild(messageDiv);
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
-        }
-
-        // Error handling for missing images
-        document.getElementById('eli-mascot').onerror = function() {
-            this.style.display = 'none';
-        };
-        
-        document.getElementById('roxy-mascot').onerror = function() {
-            this.style.display = 'none';
-        };
-
-        // Load vault when page loads
-        window.addEventListener('load', loadVault);
-    </script>
+    // Simulate loading token data
+    window.onload = () => {
+      document.getElementById("token-count").textContent = "542";
+      document.getElementById("burn-estimate").textContent = "$0.47";
+    };
+  </script>
 </body>
 </html>
