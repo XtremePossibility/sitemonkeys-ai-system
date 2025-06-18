@@ -40,9 +40,11 @@
       padding-top: 18px;
     }
     .logo {
-      height: 120px;
-      margin-right: 8px;
+      height: 156px; /* 30% larger */
+      margin-right: 0;
+      margin-left: 0;
       flex-shrink: 0;
+      transition: height 0.3s;
     }
     .header-center {
       flex: 1;
@@ -52,6 +54,7 @@
       justify-content: center;
       position: relative;
       z-index: 2;
+      margin: 0 24px;
     }
     .site-title {
       font-family: 'Luckiest Guy', cursive, sans-serif;
@@ -72,8 +75,9 @@
     }
     .ai-robot {
       height: 120px;
-      margin-left: 8px;
+      margin-left: 0;
       flex-shrink: 0;
+      transition: height 0.3s;
     }
     .rocket-top {
       position: absolute;
@@ -82,6 +86,11 @@
       width: 150px;
       z-index: 3;
       pointer-events: none;
+    }
+    /* Space between header and main */
+    .header-gap {
+      height: 32px;
+      width: 100%;
     }
     /* Main Layout */
     .main-content {
@@ -103,25 +112,25 @@
       top: 50%;
       transform: translateY(-50%);
       z-index: 2;
-      width: 240px;
+      width: 600px; /* 2.5x larger */
       pointer-events: none;
       transition: width 0.3s;
     }
     .mascot-left {
-      left: -40px;
+      left: -120px;
     }
     .mascot-right {
-      right: -40px;
+      right: -120px;
     }
     @media (max-width: 1400px) {
-      .mascot { width: 160px; }
-      .mascot-left { left: -10px; }
-      .mascot-right { right: -10px; }
+      .mascot { width: 400px; }
+      .mascot-left { left: -60px; }
+      .mascot-right { right: -60px; }
     }
     @media (max-width: 1100px) {
-      .mascot { width: 100px; }
-      .mascot-left { left: 0; }
-      .mascot-right { right: 0; }
+      .mascot { width: 220px; }
+      .mascot-left { left: -10px; }
+      .mascot-right { right: -10px; }
     }
     @media (max-width: 900px) {
       .main-content { flex-direction: column; align-items: center; }
@@ -165,6 +174,7 @@
       transition: opacity 0.5s;
       display: flex;
       align-items: center;
+      justify-content: center;
     }
     .status-list li.loaded {
       opacity: 1;
@@ -367,6 +377,7 @@
       <img src="/rocket-no-smoke.png" alt="Rocket" class="rocket-top">
     </div>
   </header>
+  <div class="header-gap"></div>
   <!-- Mascots (outside main block) -->
   <img src="/boy-mascot.png" alt="Eli Mascot" class="mascot mascot-left">
   <img src="/girl-mascot.png" alt="Roxy Mascot" class="mascot mascot-right">
