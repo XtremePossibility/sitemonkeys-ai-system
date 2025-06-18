@@ -1,155 +1,95 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Site Monkeys AI</title>
-  <style>
-    body {
-      background: #0e1d3a;
-      color: white;
-      font-family: 'Segoe UI', sans-serif;
-      margin: 0;
-      padding: 0;
-    }
-    .main-container {
-      display: flex;
-      height: 100vh;
-    }
-    .mascot-sidebar {
-      width: 30%;
-      background: #182c53;
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-    .mascot-sidebar img.logo {
-      max-width: 80%;
-      margin-bottom: 30px;
-    }
-    .mascot {
-      width: 160px;
-      margin-bottom: 20px;
-    }
-    .rocket-corner {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      width: 90px;
-    }
-    .chat-container {
-      width: 70%;
-      padding: 20px;
-      background: #1e3c72;
-      display: flex;
-      flex-direction: column;
-    }
-    .chat-messages {
-      flex: 1;
-      overflow-y: auto;
-      margin-bottom: 20px;
-      padding-right: 10px;
-    }
-    .message {
-      margin-bottom: 15px;
-      padding: 12px 15px;
-      border-radius: 12px;
-      max-width: 75%;
-    }
-    .message.eli {
-      background: #ffe07b;
-      color: black;
-      align-self: flex-start;
-    }
-    .message.roxy {
-      background: #b38eff;
-      color: black;
-      align-self: flex-end;
-    }
-    .chat-input-wrapper {
-      display: flex;
-      align-items: center;
-    }
-    .chat-input {
-      flex: 1;
-      padding: 12px;
-      border-radius: 20px;
-      border: none;
-      font-size: 1em;
-    }
-    .send-button {
-      background: transparent;
-      border: none;
-      margin-left: 10px;
-    }
-    .send-button img {
-      width: 48px;
-      height: 48px;
-    }
-    .token-box, .checklist-box {
-      margin-top: 20px;
-      width: 100%;
-      font-size: 0.95em;
-    }
-    .checklist-box h4 {
-      color: #ffd700;
-    }
-    .checklist-box ul {
-      padding-left: 20px;
-    }
-  </style>
-</head>
-<body>
-  <img src="rocket-no-smoke.png" class="rocket-corner" alt="Rocket">
-  <div class="main-container">
-    <div class="mascot-sidebar">
-      <img src="logo.png" class="logo" alt="Site Monkeys Logo">
-      <img src="boy-mascot.png" alt="Eli" class="mascot" style="border: none;">
-      <img src="girl-mascot.png" alt="Roxy" class="mascot" style="border: none;">
-      <div class="token-box">
-        <p><strong>💰 Token Usage:</strong> <span id="token-count">542</span></p>
-        <p><strong>⛽ Est. Burn:</strong> <span id="burn-estimate">$0.47</span></p>
-      </div>
-      <div class="checklist-box">
-        <h4>🧾 Section 21 Checklist</h4>
-        <ul>
-          <li>✅ Header Confirmed</li>
-          <li>✅ Vault Citations</li>
-          <li>✅ 2–3 Solutions</li>
-          <li>✅ Execution Plan</li>
-          <li>✅ IP Risk Flag</li>
-          <li>✅ Validation Loop</li>
-        </ul>
-      </div>
-    </div>
-    <div class="chat-container">
-      <div class="chat-messages" id="chat-messages">
-        <div class="message eli"><strong>Eli:</strong> System ready. What would you like to validate?</div>
-      </div>
-      <div class="chat-input-wrapper">
-        <input type="text" class="chat-input" id="user-input" placeholder="Ask something smart...">
-        <button class="send-button" onclick="sendMessage()">
-          <img src="rocket-no-smoke.png" alt="Send">
-        </button>
-      </div>
-    </div>
-  </div>
-  <script>
-    let toggle = true;
-    function sendMessage() {
-      const input = document.getElementById("user-input");
-      const message = input.value.trim();
-      if (!message) return;
-      const messagesDiv = document.getElementById("chat-messages");
-      const msgDiv = document.createElement("div");
-      msgDiv.className = "message " + (toggle ? "roxy" : "eli");
-      msgDiv.innerHTML = "<strong>" + (toggle ? "Roxy" : "Eli") + ":</strong> " + message;
-      messagesDiv.appendChild(msgDiv);
-      input.value = "";
-      toggle = !toggle;
-      messagesDiv.scrollTop = messagesDiv.scrollHeight;
-    }
-  </script>
-</body>
-</html>
+**SiteMonkeys\_AI\_UI\_EXECUTION\_STANDARD\_v1.0**
+
+**Issued under: 00\_AI\_MANDATORY\_PROACTIVITY\_PROTOCOL**
+**Purpose:** Define the minimum interface requirements for displaying, validating, and interacting with Zero-Failure protocol-enforced AI output across desktop and mobile platforms.
+
+---
+
+### **1. Dual-Panel Chat Interface**
+
+* **Left Panel:** User messages (including AI prompts and override requests)
+* **Right Panel:** AI responses (e.g., Eli or Roxy)
+* Must support alternating response chains for rapid multi-turn auditability
+
+---
+
+### **2. Rocket Send Button**
+
+* The message send button must display a large **rocket icon** similar in size and style to the reference image provided (`Rocket no smoke.png` or equivalent)
+* Rocket must appear on mobile and desktop interfaces and may animate on message submission for visual confirmation
+
+---
+
+### **3. Vault Upload Confirmation Ribbon**
+
+* Sidebar or status ribbon that shows:
+
+  * ✅ Vault files successfully loaded
+  * 🔄 Active protocol: 00\_AI\_MANDATORY\_PROACTIVITY\_PROTOCOL
+  * 📂 Files referenced in current conversation
+* Visual cue if vault data is incomplete, out of sync, or not cited in current message
+
+---
+
+### **4. Token + Cost Tracker**
+
+* **Display token usage per message**
+* Track cumulative token cost toward the \$3K monthly burn cap
+* Display a visible warning if token usage or projected API billing exceeds 80% of monthly limit
+* Optional: burn rate “fuel gauge” styled like a vertical or circular meter
+
+---
+
+### **5. Output Validation Checklist (Section 21)**
+
+* A collapsible checklist or visual audit overlay should display:
+
+  * ✅ Protocol header detected
+  * ✅ Scenario summary present
+  * ✅ Vault citations listed
+  * ✅ At least 2–3 structured solutions
+  * ✅ IP risk flagged (if applicable)
+  * ✅ Preferred recommendation given
+  * ✅ Validation loop included
+* If any item is missing, system should show a flag (“⚠️ Incomplete Protocol Response”)
+
+---
+
+### **6. Response Bubble Behavior**
+
+* Each AI message bubble should include:
+
+  * 🔎 Hover/clickable view of Section 21 compliance markers
+  * 📄 Button to download response + vault citation audit as PDF
+  * 🔁 Regenerate option (with note: “Recheck for protocol compliance”)
+
+---
+
+### **7. Mobile Optimization Requirements**
+
+* Chat column must collapse to single stacked mode on mobile
+* Rocket button must remain fully visible and tappable
+* Vault upload status should convert to a small badge or icon top-right
+* Output checklist can be toggled from a floating menu or swipe panel
+
+---
+
+### **8. Styling Consistency**
+
+* Branding must match SiteMonkeys style guide (colors, icons, fonts)
+* Rocket icon and interface cues must reflect energy, precision, and authority
+* Error messages, flex flags, and audit failures should use icon-enhanced alerts (🚨, ⚠️, 🔴)
+
+---
+
+### **Enforcement Layer Alignment**
+
+This UI shell exists to surface, enforce, and visualize the behavioral logic defined in:
+
+* **00\_AI\_MANDATORY\_PROACTIVITY\_PROTOCOL**
+* **04\_QAProtocols.docx**
+* **EnforcementShell\_Addendum.docx**
+
+Any deviation from Section 21 formatting or failure to visualize constraint compliance constitutes a protocol breach and must be flagged in the UI.
+
+**This standard is now in force across all SiteMonkeys interfaces.**
