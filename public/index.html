@@ -1,214 +1,674 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Site Monkeys AI</title>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SiteMonkeys AI - Business Validation Engine</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background: #1e1e1e;
-      color: white;
-    }
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            color: white;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
 
-    header {
-      text-align: center;
-      padding: 10px 20px;
-      background: #000;
-    }
+        .container {
+            display: grid;
+            grid-template-areas: 
+                "header header header"
+                "sidebar main mascot"
+                "sidebar chat mascot";
+            grid-template-columns: 300px 1fr 200px;
+            grid-template-rows: auto 1fr 300px;
+            min-height: 100vh;
+            gap: 20px;
+            padding: 20px;
+        }
 
-    header img.logo {
-      height: 100px;
-      margin-top: 20px;
-    }
+        /* Header */
+        .header {
+            grid-area: header;
+            text-align: center;
+            padding: 20px 0;
+            position: relative;
+        }
 
-    .rocket-top {
-      position: absolute;
-      top: 20px;
-      right: 20px;
-      width: 100px;
-    }
+        .main-logo {
+            width: 400px;
+            height: auto;
+            max-width: 80vw;
+        }
 
-    .main {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      padding: 20px;
-    }
+        .site-monkeys-title {
+            font-size: 3.5rem;
+            font-weight: bold;
+            color: #FFD700;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.5);
+            margin: 10px 0;
+            letter-spacing: 2px;
+        }
 
-    .mascot {
-      width: 280px;
-      max-width: 30vw;
-    }
+        .subtitle {
+            font-size: 1.5rem;
+            color: #87CEEB;
+            margin-bottom: 20px;
+            font-weight: 300;
+        }
 
-    .chat-wrapper {
-      flex-grow: 1;
-      max-width: 800px;
-      margin: 0 30px;
-      background: #2a2a2a;
-      border: 3px solid white;
-      border-radius: 15px;
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      height: 600px;
-    }
+        .ai-character {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(45deg, #4169E1, #00BFFF);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            animation: pulse 2s infinite;
+        }
 
-    .chat-box {
-      flex: 1;
-      overflow-y: auto;
-      margin-bottom: 15px;
-    }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
 
-    .bubble {
-      display: flex;
-      align-items: flex-start;
-      margin: 10px 0;
-      max-width: 80%;
-    }
+        /* Sidebar */
+        .sidebar {
+            grid-area: sidebar;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 215, 0, 0.3);
+        }
 
-    .bubble img.avatar {
-      width: 42px;
-      height: 42px;
-      margin-right: 10px;
-    }
+        .sidebar h3 {
+            color: #FFD700;
+            margin-bottom: 20px;
+            font-size: 1.4rem;
+            text-align: center;
+        }
 
-    .bubble.roxy {
-      margin-left: auto;
-      flex-direction: row-reverse;
-    }
+        .status-item {
+            display: flex;
+            align-items: center;
+            margin: 15px 0;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
 
-    .bubble.roxy img.avatar {
-      margin-left: 10px;
-      margin-right: 0;
-    }
+        .status-item:hover {
+            background: rgba(255, 215, 0, 0.1);
+        }
 
-    .bubble-content {
-      background: #ffd700;
-      color: #000;
-      padding: 10px 14px;
-      border-radius: 20px;
-      font-size: 1rem;
-    }
+        .checkmark {
+            color: #00FF00;
+            margin-right: 10px;
+            font-size: 16px;
+            font-weight: bold;
+        }
 
-    .bubble.roxy .bubble-content {
-      background: #b38eff;
-    }
+        .vault-stats {
+            background: rgba(255, 215, 0, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+            text-align: center;
+        }
 
-    .input-area {
-      display: flex;
-      align-items: center;
-      margin-top: 10px;
-    }
+        .stat-number {
+            font-size: 2rem;
+            color: #FFD700;
+            font-weight: bold;
+        }
 
-    .chat-input {
-      flex: 1;
-      padding: 12px;
-      border-radius: 20px;
-      border: none;
-      font-size: 1em;
-    }
+        .stat-label {
+            font-size: 0.9rem;
+            color: #87CEEB;
+            margin-top: 5px;
+        }
 
-    .send-button {
-      background: transparent;
-      border: none;
-      margin-left: 10px;
-      padding: 8px;
-      cursor: pointer;
-    }
+        /* Main Content */
+        .main-content {
+            grid-area: main;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(135, 206, 235, 0.3);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
 
-    .send-button img {
-      height: 28px;
-    }
+        .loading-message {
+            font-size: 1.5rem;
+            color: #87CEEB;
+            margin-bottom: 20px;
+        }
 
-    @media (max-width: 768px) {
-      .main {
-        flex-direction: column;
-        align-items: center;
-      }
+        .rocket-animation {
+            width: 120px;
+            height: 120px;
+            margin: 20px 0;
+            animation: rocket-fly 3s ease-in-out infinite;
+        }
 
-      .mascot {
-        width: 180px;
-        margin-bottom: 10px;
-      }
+        @keyframes rocket-fly {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            25% { transform: translateY(-10px) rotate(5deg); }
+            75% { transform: translateY(-5px) rotate(-5deg); }
+        }
 
-      .chat-wrapper {
-        width: 95%;
-        margin: 20px 0;
-        height: auto;
-      }
+        /* Chat Area */
+        .chat-area {
+            grid-area: chat;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 215, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
 
-      .rocket-top {
-        width: 60px;
-        top: 10px;
-        right: 10px;
-      }
-    }
-  </style>
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .chat-bubble {
+            display: flex;
+            align-items: flex-start;
+            margin: 15px 0;
+        }
+
+        .chat-bubble.eli {
+            justify-content: flex-start;
+        }
+
+        .chat-bubble.roxy {
+            justify-content: flex-end;
+        }
+
+        .bubble-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin: 0 10px;
+            background: linear-gradient(45deg, #4169E1, #FFD700);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .bubble-content {
+            max-width: 70%;
+            padding: 15px;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(5px);
+        }
+
+        .chat-input-area {
+            padding: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .input-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 15px 20px;
+            border: 2px solid rgba(255, 215, 0, 0.3);
+            border-radius: 25px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 16px;
+            outline: none;
+            backdrop-filter: blur(5px);
+        }
+
+        .chat-input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .send-button {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .send-button:hover {
+            transform: scale(1.1);
+            box-shadow: 0 10px 25px rgba(255, 215, 0, 0.4);
+        }
+
+        .send-button::before {
+            content: '🚀';
+            position: absolute;
+            font-size: 20px;
+        }
+
+        /* Mascots */
+        .mascot-container {
+            grid-area: mascot;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .mascot {
+            width: 150px;
+            height: 150px;
+            background: url('boy-mascot.png') center/contain no-repeat;
+            transition: transform 0.3s ease;
+        }
+
+        .mascot.roxy {
+            background-image: url('girl-mascot.png');
+        }
+
+        .mascot:hover {
+            transform: scale(1.1);
+        }
+
+        .eli-mascot {
+            position: fixed;
+            left: 20px;
+            bottom: 50%;
+            transform: translateY(50%);
+            width: 200px;
+            height: 200px;
+            background: url('boy-mascot.png') center/contain no-repeat;
+            z-index: 10;
+            transition: transform 0.3s ease;
+        }
+
+        .roxy-mascot {
+            position: fixed;
+            right: 20px;
+            bottom: 50%;
+            transform: translateY(50%);
+            width: 200px;
+            height: 200px;
+            background: url('girl-mascot.png') center/contain no-repeat;
+            z-index: 10;
+            transition: transform 0.3s ease;
+        }
+
+        .eli-mascot:hover, .roxy-mascot:hover {
+            transform: translateY(50%) scale(1.1);
+        }
+
+        /* Error Modal */
+        .error-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .error-content {
+            background: linear-gradient(45deg, #ff4757, #ff3838);
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 500px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        .error-title {
+            font-size: 2rem;
+            margin-bottom: 20px;
+            color: white;
+        }
+
+        .error-message {
+            font-size: 1.2rem;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .error-close {
+            background: white;
+            color: #ff4757;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .error-close:hover {
+            transform: scale(1.05);
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 1024px) {
+            .container {
+                grid-template-areas: 
+                    "header"
+                    "sidebar"
+                    "main"
+                    "chat";
+                grid-template-columns: 1fr;
+                grid-template-rows: auto auto 1fr auto;
+            }
+
+            .eli-mascot, .roxy-mascot {
+                display: none;
+            }
+
+            .site-monkeys-title {
+                font-size: 2.5rem;
+            }
+
+            .main-logo {
+                width: 300px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+                gap: 10px;
+            }
+
+            .sidebar, .main-content, .chat-area {
+                padding: 20px;
+            }
+
+            .site-monkeys-title {
+                font-size: 2rem;
+            }
+
+            .main-logo {
+                width: 250px;
+            }
+
+            .ai-character {
+                top: 10px;
+                right: 10px;
+                width: 40px;
+                height: 40px;
+                font-size: 16px;
+            }
+        }
+    </style>
 </head>
 <body>
-  <header>
-    <img src="logo.png" alt="Site Monkeys Logo" class="logo" />
-  </header>
-  <img src="rocket-no-smoke.png" alt="Rocket" class="rocket-top" />
-
-  <!-- 🔴 TEST INJECTION STARTS HERE -->
-  <h1 style="color: red; text-align: center; margin-top: 20px;">
-    🚨 TEST INJECTION — DO YOU SEE THIS? 🚨
-  </h1>
-  <!-- 🔴 TEST INJECTION ENDS HERE -->
-
-  <div class="main">
-    <img src="boy-mascot.png" alt="Eli" class="mascot" />
-    <div class="chat-wrapper">
-      <div id="chat-box" class="chat-box">
-        <div class="bubble eli">
-          <img src="boy-mascot.png" class="avatar" />
-          <div class="bubble-content"><strong>Eli:</strong> Welcome to Site Monkeys. What would you like to validate?</div>
+    <!-- Header -->
+    <div class="container">
+        <div class="header">
+            <img src="logo.png" alt="SiteMonkeys Logo" class="main-logo">
+            <h1 class="site-monkeys-title">SITE MONKEYS AI</h1>
+            <p class="subtitle">BUSINESS VALIDATION ENGINE</p>
+            <div class="ai-character">🤖</div>
         </div>
-      </div>
-      <div class="input-area">
-        <input type="text" class="chat-input" id="user-input" placeholder="Type your question..." />
-        <button class="send-button" onclick="sendMessage()">
-          <img src="rocket-no-smoke.png" alt="Send Rocket" />
-        </button>
-      </div>
+
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <h3>SiteMonkeys Business Validation System</h3>
+            
+            <div class="status-item">
+                <span class="checkmark">✓</span>
+                <span>Zero-Failure AI</span>
+            </div>
+            
+            <div class="status-item">
+                <span class="checkmark">✓</span>
+                <span>Complete Business Intelligence</span>
+            </div>
+            
+            <div class="status-item">
+                <span class="checkmark">✓</span>
+                <span>Real-World Validation Ready</span>
+            </div>
+            
+            <div class="status-item">
+                <span class="checkmark">✓</span>
+                <span>Site Monkeys memory vault loaded</span>
+            </div>
+            
+            <div class="status-item">
+                <span class="checkmark">✓</span>
+                <span>Zero Failure activated</span>
+            </div>
+            
+            <div class="status-item">
+                <span class="checkmark">✓</span>
+                <span>Legitimate data initiative activated</span>
+            </div>
+            
+            <div class="status-item">
+                <span class="checkmark">✓</span>
+                <span>Persistence driven activated</span>
+            </div>
+            
+            <div class="status-item">
+                <span class="checkmark">✓</span>
+                <span>Helpful initiative activated</span>
+            </div>
+            
+            <div class="status-item">
+                <span class="checkmark">✓</span>
+                <span>Founder Protection activated</span>
+            </div>
+            
+            <div class="status-item">
+                <span class="checkmark">✓</span>
+                <span>Market leader Initiative</span>
+            </div>
+
+            <div class="vault-stats">
+                <div class="stat-number" id="token-count">1,500</div>
+                <div class="stat-label">Tokens Loaded</div>
+                
+                <div class="stat-number" id="cost-estimate" style="margin-top: 15px;">$0.0030</div>
+                <div class="stat-label">Estimated Cost</div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="loading-message">Business Validation Engine Ready</div>
+            <div class="rocket-animation">🚀</div>
+            <p style="color: #87CEEB; font-size: 1.1rem;">Your SiteMonkeys AI is loaded with complete business intelligence and ready to validate your ideas with zero-failure protocols.</p>
+        </div>
+
+        <!-- Chat Area -->
+        <div class="chat-area">
+            <div class="chat-messages" id="chat-messages">
+                <div class="chat-bubble eli">
+                    <div class="bubble-avatar">🐵</div>
+                    <div class="bubble-content">
+                        Hi! I'm Eli, your SiteMonkeys business validation assistant. I'm ready to help validate your business ideas with our zero-failure protocols!
+                    </div>
+                </div>
+            </div>
+            
+            <div class="chat-input-area">
+                <div class="input-container">
+                    <input type="text" class="chat-input" id="chat-input" placeholder="Ask me about your business idea...">
+                    <button class="send-button" id="send-button"></button>
+                </div>
+            </div>
+        </div>
     </div>
-    <img src="girl-mascot.png" alt="Roxy" class="mascot" />
-  </div>
 
-  <script>
-    let toggle = true;
+    <!-- Large Mascots -->
+    <div class="eli-mascot"></div>
+    <div class="roxy-mascot"></div>
 
-    function sendMessage() {
-      const input = document.getElementById('user-input');
-      const text = input.value.trim();
-      if (!text) return;
+    <!-- Error Modal -->
+    <div class="error-modal" id="error-modal">
+        <div class="error-content">
+            <div class="error-title">⚠️ System Error</div>
+            <div class="error-message">My Environment has left me Retarded</div>
+            <button class="error-close" onclick="closeError()">Close</button>
+        </div>
+    </div>
 
-      const box = document.getElementById('chat-box');
-      const bubble = document.createElement('div');
-      const isRoxy = toggle;
-      const who = isRoxy ? 'Roxy' : 'Eli';
-      const avatar = isRoxy ? 'girl-mascot.png' : 'boy-mascot.png';
-      const bubbleClass = isRoxy ? 'bubble roxy' : 'bubble eli';
+    <script>
+        let isEliTurn = false;
+        
+        // Initialize vault loading
+        document.addEventListener('DOMContentLoaded', function() {
+            loadVault();
+        });
 
-      bubble.className = bubbleClass;
-      bubble.innerHTML = `
-        <img src="${avatar}" class="avatar" />
-        <div class="bubble-content"><strong>${who}:</strong> ${text}</div>
-      `;
+        // Load vault data
+        async function loadVault() {
+            try {
+                const response = await fetch('/api/load-vault');
+                const data = await response.json();
+                
+                if (data.tokens) {
+                    document.getElementById('token-count').textContent = data.tokens.toLocaleString();
+                }
+                if (data.estimated_cost) {
+                    document.getElementById('cost-estimate').textContent = data.estimated_cost;
+                }
+            } catch (error) {
+                console.error('Vault loading error:', error);
+                showError();
+            }
+        }
 
-      box.appendChild(bubble);
-      box.scrollTop = box.scrollHeight;
-      input.value = '';
-      toggle = !toggle;
-    }
-  </script>
+        // Chat functionality
+        document.getElementById('send-button').addEventListener('click', sendMessage);
+        document.getElementById('chat-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        async function sendMessage() {
+            const input = document.getElementById('chat-input');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            // Add user message
+            addMessage(message, 'user');
+            input.value = '';
+            
+            try {
+                // Send to API
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ message: message })
+                });
+                
+                const data = await response.json();
+                
+                // Add AI response
+                addMessage(data.response || data.message, 'ai');
+                
+            } catch (error) {
+                console.error('Chat error:', error);
+                showError();
+            }
+        }
+
+        function addMessage(text, sender) {
+            const messagesDiv = document.getElementById('chat-messages');
+            const messageDiv = document.createElement('div');
+            
+            if (sender === 'user') {
+                messageDiv.innerHTML = `
+                    <div class="chat-bubble roxy">
+                        <div class="bubble-content">${text}</div>
+                        <div class="bubble-avatar">👤</div>
+                    </div>
+                `;
+            } else {
+                const character = isEliTurn ? 'eli' : 'roxy';
+                const emoji = isEliTurn ? '🐵' : '🐒';
+                const name = isEliTurn ? 'Eli' : 'Roxy';
+                
+                messageDiv.innerHTML = `
+                    <div class="chat-bubble ${character}">
+                        <div class="bubble-avatar">${emoji}</div>
+                        <div class="bubble-content">${text}</div>
+                    </div>
+                `;
+                
+                isEliTurn = !isEliTurn; // Alternate between Eli and Roxy
+            }
+            
+            messagesDiv.appendChild(messageDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        function showError() {
+            document.getElementById('error-modal').style.display = 'flex';
+        }
+
+        function closeError() {
+            document.getElementById('error-modal').style.display = 'none';
+        }
+
+        // Add some animation to mascots
+        document.querySelectorAll('.eli-mascot, .roxy-mascot').forEach(mascot => {
+            mascot.addEventListener('click', function() {
+                this.style.animation = 'bounce 0.6s ease';
+                setTimeout(() => {
+                    this.style.animation = '';
+                }, 600);
+            });
+        });
+    </script>
+
+    <style>
+        @keyframes bounce {
+            0%, 20%, 60%, 100% { transform: translateY(50%); }
+            40% { transform: translateY(30%); }
+            80% { transform: translateY(40%); }
+        }
+    </style>
 </body>
 </html>
