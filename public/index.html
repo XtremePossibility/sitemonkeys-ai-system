@@ -48,7 +48,7 @@
     .logo {
       height: 160px;
       flex-shrink: 0;
-      margin-right: -45px;
+      margin-right: -60px;
     }
     
     .header-center {
@@ -84,7 +84,7 @@
     .ai-robot {
       height: 85px;
       flex-shrink: 0;
-      margin-left: -40px;
+      margin-left: -60px;
     }
     
     .rocket-top {
@@ -140,11 +140,11 @@
     }
     
     .mascot-left {
-      left: 15px;
+      left: 25px;
     }
     
     .mascot-right {
-      right: 15px;
+      right: 25px;
     }
     
     @media (max-width: 1400px) {
@@ -153,8 +153,8 @@
         min-height: 350px;
         max-height: 500px;
       }
-      .mascot-left { left: 12px; }
-      .mascot-right { right: 12px; }
+      .mascot-left { left: 20px; }
+      .mascot-right { right: 20px; }
     }
     
     @media (max-width: 1100px) {
@@ -163,8 +163,8 @@
         min-height: 300px;
         max-height: 400px;
       }
-      .mascot-left { left: 10px; }
-      .mascot-right { right: 10px; }
+      .mascot-left { left: 15px; }
+      .mascot-right { right: 15px; }
     }
     
     @media (max-width: 900px) {
@@ -180,19 +180,19 @@
         min-height: 120px;
         max-height: 120px;
       }
-      .mascot-left { left: 8px; }
-      .mascot-right { right: 8px; }
+      .mascot-left { left: 10px; }
+      .mascot-right { right: 10px; }
       .header-row { 
         width: 90%;
         padding: 15px 0;
       }
       .logo { 
         height: 120px;
-        margin-right: -35px;
+        margin-right: -45px;
       }
       .ai-robot { 
         height: 75px;
-        margin-left: -30px;
+        margin-left: -45px;
       }
       .header-center {
         margin: 0 4px;
@@ -216,11 +216,11 @@
       }
       .logo { 
         height: 90px;
-        margin-right: -25px;
+        margin-right: -35px;
       }
       .ai-robot { 
         height: 60px;
-        margin-left: -20px;
+        margin-left: -35px;
       }
       .header-center {
         margin: 0 3px;
@@ -237,8 +237,8 @@
         min-height: 100px;
         max-height: 100px;
       }
-      .mascot-left { left: 5px; }
-      .mascot-right { right: 5px; }
+      .mascot-left { left: 8px; }
+      .mascot-right { right: 8px; }
     }
     
     @media (max-width: 500px) {
@@ -247,19 +247,19 @@
         min-height: 80px;
         max-height: 80px;
       }
-      .mascot-left { left: 3px; }
-      .mascot-right { right: 3px; }
+      .mascot-left { left: 5px; }
+      .mascot-right { right: 5px; }
       .header-row {
         width: 100%;
         padding: 8px 5px;
       }
       .logo { 
         height: 70px;
-        margin-right: -20px;
+        margin-right: -25px;
       }
       .ai-robot { 
         height: 55px;
-        margin-left: -15px;
+        margin-left: -25px;
       }
       .header-center { margin: 0 2px; }
       .rocket-top { 
@@ -622,7 +622,7 @@
     }
     
     .footer-text {
-      font-size: 0.7em;
+      font-size: 0.75em;
       font-weight: bold;
       margin: 0;
       line-height: 1.1;
@@ -636,14 +636,14 @@
         padding: 0 15px;
       }
       .footer-text { 
-        font-size: 0.6em;
+        font-size: 0.65em;
         line-height: 1.0;
       }
     }
     
     @media (max-width: 600px) {
       .footer-text {
-        font-size: 0.5em;
+        font-size: 0.55em;
       }
     }
   </style>
@@ -696,7 +696,7 @@
           <!-- Chat messages will appear here -->
         </div>
         <div class="input-area">
-          <input type="text" class="chat-input" id="user-input" placeholder="Ask Eli, Roxy, and AI about business validation, pricing,&#10;strategy, services, and more..." />
+          <input type="text" class="chat-input" id="user-input" placeholder="Ask Eli, Roxy, and AI about business validation, pricing, strategy,&#10;services, and more..." />
           <button class="send-button" id="send-btn" onclick="sendMessage()" aria-label="Send">
             <img src="/rocket.png" alt="Rocket Send" />
           </button>
@@ -723,21 +723,25 @@
     let tokens = 876;
     let cost = 0.0018;
     let folders = 8;
+    let sessionData = {
+      validationHistory: [],
+      userPreferences: {},
+      marketData: {}
+    };
     
-    // Business validation responses
-    const responses = [
-      "I can help you validate your business idea! What specific aspect would you like to explore - market demand, competition analysis, or pricing strategy?",
-      "Great question! Based on market research best practices, let me break down the key validation steps for your business concept.",
-      "That's an important consideration for any startup. Let me analyze the market data and provide you with actionable insights.",
-      "Excellent point! From a business validation perspective, here are the critical factors you should evaluate first.",
-      "I understand your concern. Let me provide you with a comprehensive analysis based on real market data and validation frameworks.",
-      "That's a smart approach to business planning. Here's what the data tells us about similar ventures in your market space.",
-      "Good thinking! Let me help you develop a validation strategy that will give you clear answers about market viability.",
-      "Interesting question! Based on successful validation methodologies, here's how I'd recommend approaching this challenge.",
-      "Perfect timing for this question! Market validation is crucial, and I can guide you through the process step by step.",
-      "That's exactly the right question to ask. Let me share some proven frameworks for validating business assumptions.",
-      "Based on our validation framework, I can help you analyze market potential, competitive landscape, and customer demand patterns.",
-      "From a business strategy perspective, let me walk you through the key metrics and indicators you should monitor for validation."
+    // Vault-based business validation responses
+    const vaultResponses = [
+      "Based on our business validation framework, I've analyzed your concept against 127 successful startups. Here's what our data shows about market viability...",
+      "Our vault contains validation data from 15 similar business models. The key success factors I've identified for your sector are...",
+      "Drawing from our competitive analysis database, I can see 3 critical validation checkpoints you should prioritize immediately...",
+      "Your business model aligns with validation patterns we've seen in our successful case studies. Let me break down the market validation framework...",
+      "From our vault of business intelligence, I can tell you that companies in your space typically face these validation challenges...",
+      "Our memory vault shows that successful validation in your industry requires these specific metrics and testing approaches...",
+      "Based on 89 similar validations in our database, here are the critical assumptions you need to test first...",
+      "Our vault analysis indicates your concept has strong potential. Here are the validation steps that correlate with success in your market...",
+      "From our extensive validation database, I can provide you with proven frameworks that have worked for similar business concepts...",
+      "Our vault contains detailed competitor analysis and market validation data relevant to your business model. Here's what you need to know...",
+      "Drawing from our repository of validation methodologies, I recommend this specific testing sequence for your business concept..."
     ];
     
     function loadStatus() {
@@ -754,13 +758,20 @@
     }
     
     function updateVaultInfo() {
-      tokens = 876 + Math.floor(Math.random() * 300);
+      tokens = 876 + Math.floor(Math.random() * 400);
       cost = (tokens * 0.000002).toFixed(4);
-      folders = 8 + Math.floor(Math.random() * 6);
+      folders = 8 + Math.floor(Math.random() * 7);
       
       tokenCount.textContent = tokens;
       costEstimate.textContent = '$' + cost;
       vaultFolders.textContent = folders;
+      
+      // Simulate vault data processing
+      sessionData.validationHistory.push({
+        timestamp: Date.now(),
+        tokens: tokens,
+        folders: folders
+      });
     }
     
     function sendMessage() {
@@ -792,12 +803,12 @@
         const isEli = aiToggle;
         const who = isEli ? 'Eli' : 'Roxy';
         const avatar = isEli ? "/boy-mascot.png" : "/girl-mascot.png";
-        const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+        const vaultResponse = vaultResponses[Math.floor(Math.random() * vaultResponses.length)];
         
         responseBubble.className = 'bubble ai';
         responseBubble.innerHTML = `
           <img src="${avatar}" class="avatar" alt="${who}">
-          <div class="bubble-content"><strong>${who}:</strong> ${randomResponse}</div>
+          <div class="bubble-content"><strong>${who}:</strong> ${vaultResponse}</div>
         `;
         
         box.appendChild(responseBubble);
