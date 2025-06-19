@@ -48,7 +48,7 @@
     .logo {
       height: 160px;
       flex-shrink: 0;
-      margin-right: -60px;
+      margin-right: -80px;
     }
     
     .header-center {
@@ -84,7 +84,7 @@
     .ai-robot {
       height: 85px;
       flex-shrink: 0;
-      margin-left: -60px;
+      margin-left: -80px;
     }
     
     .rocket-top {
@@ -140,11 +140,11 @@
     }
     
     .mascot-left {
-      left: 25px;
+      left: 35px;
     }
     
     .mascot-right {
-      right: 25px;
+      right: 35px;
     }
     
     @media (max-width: 1400px) {
@@ -153,8 +153,8 @@
         min-height: 350px;
         max-height: 500px;
       }
-      .mascot-left { left: 20px; }
-      .mascot-right { right: 20px; }
+      .mascot-left { left: 30px; }
+      .mascot-right { right: 30px; }
     }
     
     @media (max-width: 1100px) {
@@ -163,8 +163,8 @@
         min-height: 300px;
         max-height: 400px;
       }
-      .mascot-left { left: 15px; }
-      .mascot-right { right: 15px; }
+      .mascot-left { left: 25px; }
+      .mascot-right { right: 25px; }
     }
     
     @media (max-width: 900px) {
@@ -176,23 +176,23 @@
         width: 95vw;
       }
       .mascot { 
-        height: 120px;
-        min-height: 120px;
-        max-height: 120px;
+        height: 140px;
+        min-height: 140px;
+        max-height: 140px;
       }
-      .mascot-left { left: 10px; }
-      .mascot-right { right: 10px; }
+      .mascot-left { left: 15px; }
+      .mascot-right { right: 15px; }
       .header-row { 
         width: 90%;
         padding: 15px 0;
       }
       .logo { 
         height: 120px;
-        margin-right: -45px;
+        margin-right: -60px;
       }
       .ai-robot { 
         height: 75px;
-        margin-left: -45px;
+        margin-left: -60px;
       }
       .header-center {
         margin: 0 4px;
@@ -216,11 +216,11 @@
       }
       .logo { 
         height: 90px;
-        margin-right: -35px;
+        margin-right: -45px;
       }
       .ai-robot { 
         height: 60px;
-        margin-left: -35px;
+        margin-left: -45px;
       }
       .header-center {
         margin: 0 3px;
@@ -233,33 +233,33 @@
       .site-title { font-size: 2em; }
       .subtitle { font-size: 1.1em; }
       .mascot { 
-        height: 100px;
-        min-height: 100px;
-        max-height: 100px;
+        height: 110px;
+        min-height: 110px;
+        max-height: 110px;
       }
-      .mascot-left { left: 8px; }
-      .mascot-right { right: 8px; }
+      .mascot-left { left: 10px; }
+      .mascot-right { right: 10px; }
     }
     
     @media (max-width: 500px) {
       .mascot { 
-        height: 80px;
-        min-height: 80px;
-        max-height: 80px;
+        height: 90px;
+        min-height: 90px;
+        max-height: 90px;
       }
-      .mascot-left { left: 5px; }
-      .mascot-right { right: 5px; }
+      .mascot-left { left: 8px; }
+      .mascot-right { right: 8px; }
       .header-row {
         width: 100%;
         padding: 8px 5px;
       }
       .logo { 
         height: 70px;
-        margin-right: -25px;
+        margin-right: -35px;
       }
       .ai-robot { 
         height: 55px;
-        margin-left: -25px;
+        margin-left: -35px;
       }
       .header-center { margin: 0 2px; }
       .rocket-top { 
@@ -497,17 +497,17 @@
       align-items: center;
       background: #222;
       border-radius: 25px;
-      padding: 8px 12px;
+      padding: 12px 15px;
       margin-top: 8px;
       border: 1.5px solid #fff;
       box-shadow: 0 2px 8px #0002;
-      gap: 10px;
-      height: 72px;
+      gap: 12px;
+      min-height: 70px;
     }
     
     .chat-input {
       flex: 1;
-      padding: 18px 16px;
+      padding: 16px 18px;
       border-radius: 18px;
       border: none;
       font-size: 1em;
@@ -516,9 +516,8 @@
       outline: none;
       text-align: left;
       line-height: 1.4;
-      height: 56px;
-      display: flex;
-      align-items: center;
+      min-height: 45px;
+      resize: none;
     }
     
     .chat-input::placeholder {
@@ -529,7 +528,7 @@
       letter-spacing: 0.5px;
       text-align: left;
       line-height: 1.4;
-      white-space: pre-line;
+      white-space: pre-wrap;
     }
     
     .send-button {
@@ -577,9 +576,9 @@
         min-height: 400px;
       }
       .input-area {
-        padding: 10px 15px;
+        padding: 12px 18px;
         gap: 15px;
-        height: 76px;
+        min-height: 75px;
       }
       .send-button {
         width: 105px;
@@ -591,8 +590,8 @@
       }
       .chat-input {
         font-size: 1.1em;
-        padding: 20px 18px;
-        height: 60px;
+        padding: 18px 20px;
+        min-height: 50px;
       }
     }
     
@@ -622,7 +621,7 @@
     }
     
     .footer-text {
-      font-size: 0.75em;
+      font-size: 0.72em;
       font-weight: bold;
       margin: 0;
       line-height: 1.1;
@@ -636,14 +635,14 @@
         padding: 0 15px;
       }
       .footer-text { 
-        font-size: 0.65em;
+        font-size: 0.62em;
         line-height: 1.0;
       }
     }
     
     @media (max-width: 600px) {
       .footer-text {
-        font-size: 0.55em;
+        font-size: 0.52em;
       }
     }
   </style>
@@ -696,7 +695,7 @@
           <!-- Chat messages will appear here -->
         </div>
         <div class="input-area">
-          <input type="text" class="chat-input" id="user-input" placeholder="Ask Eli, Roxy, and AI about business validation, pricing, strategy,&#10;services, and more..." />
+          <textarea class="chat-input" id="user-input" placeholder="Ask Eli, Roxy, and AI about business validation, pricing, strategy,&#10;services, and more..." rows="2"></textarea>
           <button class="send-button" id="send-btn" onclick="sendMessage()" aria-label="Send">
             <img src="/rocket.png" alt="Rocket Send" />
           </button>
@@ -707,7 +706,7 @@
   
   <div class="footer">
     <div class="footer-inner">
-      <div class="footer-text">THE FIRST AND ONLY BUSINESS VALIDATION CHAT SYSTEM THAT PUTS HONESTY, REAL DATA, TRANSPARENCY,<br>PERSISTENCE, & INITIATIVE BEFORE ALL ELSE! AI YOU CAN TRUST!</div>
+      <div class="footer-text">THE FIRST AND ONLY BUSINESS VALIDATION CHAT SYSTEM THAT PUTS HONESTY, REAL DATA, TRANSPARENCY,<br>PERSISTENCE, &amp; INITIATIVE BEFORE ALL ELSE! AI YOU CAN TRUST!</div>
     </div>
   </div>
 
@@ -723,26 +722,26 @@
     let tokens = 876;
     let cost = 0.0018;
     let folders = 8;
-    let sessionData = {
-      validationHistory: [],
-      userPreferences: {},
-      marketData: {}
-    };
+    let vaultActive = false;
     
-    // Vault-based business validation responses
-    const vaultResponses = [
-      "Based on our business validation framework, I've analyzed your concept against 127 successful startups. Here's what our data shows about market viability...",
-      "Our vault contains validation data from 15 similar business models. The key success factors I've identified for your sector are...",
-      "Drawing from our competitive analysis database, I can see 3 critical validation checkpoints you should prioritize immediately...",
-      "Your business model aligns with validation patterns we've seen in our successful case studies. Let me break down the market validation framework...",
-      "From our vault of business intelligence, I can tell you that companies in your space typically face these validation challenges...",
-      "Our memory vault shows that successful validation in your industry requires these specific metrics and testing approaches...",
-      "Based on 89 similar validations in our database, here are the critical assumptions you need to test first...",
-      "Our vault analysis indicates your concept has strong potential. Here are the validation steps that correlate with success in your market...",
-      "From our extensive validation database, I can provide you with proven frameworks that have worked for similar business concepts...",
-      "Our vault contains detailed competitor analysis and market validation data relevant to your business model. Here's what you need to know...",
-      "Drawing from our repository of validation methodologies, I recommend this specific testing sequence for your business concept..."
-    ];
+    // Vault-linked business validation knowledge base
+    const vaultKnowledge = {
+      marketValidation: [
+        "Based on our vault analysis of 247 successful startups, your business model shows strong validation potential in the current market environment.",
+        "Our memory vault contains competitive intelligence data showing 89% success rate for similar business concepts when these validation steps are followed.",
+        "Drawing from our extensive database of validation case studies, I can see critical market indicators that align with your business concept."
+      ],
+      pricing: [
+        "Our vault contains pricing analysis from 156 similar businesses. The optimal pricing strategy for your model appears to be value-based pricing.",
+        "From our database of successful pricing validations, businesses in your sector typically achieve 34% higher conversion with these pricing approaches.",
+        "Based on vault data from competitive pricing analysis, your target market responds best to tiered pricing structures."
+      ],
+      strategy: [
+        "Our business strategy vault shows that companies with your profile achieve 67% faster growth when implementing these strategic frameworks.",
+        "From our vault of strategic validation data, I can identify 5 critical success factors that directly apply to your business model.",
+        "Based on our comprehensive strategy database, your business concept aligns with patterns we've seen in our most successful case studies."
+      ]
+    };
     
     function loadStatus() {
       if (statusIndex < statusItems.length) {
@@ -752,32 +751,43 @@
       } else {
         setTimeout(() => {
           systemReady.classList.add('active');
+          vaultActive = true;
           updateVaultInfo();
         }, 500);
       }
     }
     
     function updateVaultInfo() {
-      tokens = 876 + Math.floor(Math.random() * 400);
+      if (!vaultActive) return;
+      
+      tokens = 876 + Math.floor(Math.random() * 500);
       cost = (tokens * 0.000002).toFixed(4);
-      folders = 8 + Math.floor(Math.random() * 7);
+      folders = 8 + Math.floor(Math.random() * 8);
       
       tokenCount.textContent = tokens;
       costEstimate.textContent = '$' + cost;
       vaultFolders.textContent = folders;
+    }
+    
+    function getVaultResponse(userMessage) {
+      const message = userMessage.toLowerCase();
       
-      // Simulate vault data processing
-      sessionData.validationHistory.push({
-        timestamp: Date.now(),
-        tokens: tokens,
-        folders: folders
-      });
+      if (message.includes('price') || message.includes('pricing') || message.includes('cost')) {
+        return vaultKnowledge.pricing[Math.floor(Math.random() * vaultKnowledge.pricing.length)];
+      } else if (message.includes('strategy') || message.includes('strategic') || message.includes('plan')) {
+        return vaultKnowledge.strategy[Math.floor(Math.random() * vaultKnowledge.strategy.length)];
+      } else if (message.includes('market') || message.includes('validation') || message.includes('validate')) {
+        return vaultKnowledge.marketValidation[Math.floor(Math.random() * vaultKnowledge.marketValidation.length)];
+      } else {
+        // Default vault response
+        return "Based on our comprehensive business validation database, I can help you analyze your concept using proven frameworks from our vault of successful startups. What specific aspect would you like to explore?";
+      }
     }
     
     function sendMessage() {
       const input = document.getElementById('user-input');
       const text = input.value.trim();
-      if (!text) return;
+      if (!text || !vaultActive) return;
       
       const box = document.getElementById('chat-box');
       
@@ -803,7 +813,7 @@
         const isEli = aiToggle;
         const who = isEli ? 'Eli' : 'Roxy';
         const avatar = isEli ? "/boy-mascot.png" : "/girl-mascot.png";
-        const vaultResponse = vaultResponses[Math.floor(Math.random() * vaultResponses.length)];
+        const vaultResponse = getVaultResponse(text);
         
         responseBubble.className = 'bubble ai';
         responseBubble.innerHTML = `
@@ -824,9 +834,9 @@
       const input = document.getElementById('user-input');
       const sendBtn = document.getElementById('send-btn');
       
-      // Enter key functionality
+      // Enter key functionality for textarea
       input.addEventListener('keydown', function(e) {
-        if (e.key === 'Enter') {
+        if (e.key === 'Enter' && !e.shiftKey) {
           e.preventDefault();
           sendMessage();
         }
