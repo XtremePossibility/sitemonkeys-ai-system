@@ -39,27 +39,25 @@
       max-width: 1200px;
       display: flex;
       align-items: center;
-      justify-content: space-between;
+      justify-content: center;
       position: relative;
       margin: 0 auto;
       padding: 20px 0;
+      gap: 5px;
     }
     
     .logo {
       height: 160px;
-      margin-right: 2px;
       flex-shrink: 0;
     }
     
     .header-center {
-      flex: 1;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       position: relative;
       z-index: 2;
-      margin: 0 8px;
     }
     
     .site-title {
@@ -84,7 +82,6 @@
     
     .ai-robot {
       height: 85px;
-      margin-left: 2px;
       flex-shrink: 0;
     }
     
@@ -141,11 +138,11 @@
     }
     
     .mascot-left {
-      left: -50px;
+      left: -15px;
     }
     
     .mascot-right {
-      right: -50px;
+      right: -15px;
     }
     
     @media (max-width: 1400px) {
@@ -154,8 +151,8 @@
         min-height: 350px;
         max-height: 500px;
       }
-      .mascot-left { left: -40px; }
-      .mascot-right { right: -40px; }
+      .mascot-left { left: -12px; }
+      .mascot-right { right: -12px; }
     }
     
     @media (max-width: 1100px) {
@@ -164,8 +161,8 @@
         min-height: 300px;
         max-height: 400px;
       }
-      .mascot-left { left: -30px; }
-      .mascot-right { right: -30px; }
+      .mascot-left { left: -10px; }
+      .mascot-right { right: -10px; }
     }
     
     @media (max-width: 900px) {
@@ -177,26 +174,22 @@
         width: 95vw;
       }
       .mascot { 
-        height: 180px;
-        min-height: 180px;
-        max-height: 180px;
+        height: 120px;
+        min-height: 120px;
+        max-height: 120px;
       }
-      .mascot-left { left: -20px; }
-      .mascot-right { right: -20px; }
+      .mascot-left { left: -8px; }
+      .mascot-right { right: -8px; }
       .header-row { 
         width: 90%;
         padding: 15px 0;
+        gap: 3px;
       }
       .logo { 
         height: 120px;
-        margin-right: 1px;
       }
       .ai-robot { 
         height: 75px;
-        margin-left: 1px;
-      }
-      .header-center {
-        margin: 0 6px;
       }
       .rocket-top { 
         right: -80px; 
@@ -214,14 +207,13 @@
       .header-row {
         width: 95%;
         padding: 10px 0;
+        gap: 2px;
       }
       .logo { 
         height: 90px;
-        margin-right: 1px;
       }
       .ai-robot { 
         height: 60px;
-        margin-left: 1px;
       }
       .rocket-top { 
         width: 120px;
@@ -231,25 +223,20 @@
       .site-title { font-size: 2em; }
       .subtitle { font-size: 1.1em; }
       .mascot { 
-        height: 140px;
-        min-height: 140px;
-        max-height: 140px;
-      }
-      .mascot-left { left: -15px; }
-      .mascot-right { right: -15px; }
-    }
-    
-    @media (max-width: 500px) {
-      .mascot { 
         height: 100px;
         min-height: 100px;
         max-height: 100px;
       }
-      .mascot-left { left: -10px; }
-      .mascot-right { right: -10px; }
+      .mascot-left { left: -5px; }
+      .mascot-right { right: -5px; }
+    }
+    
+    @media (max-width: 500px) {
+      .mascot { display: none; }
       .header-row {
         width: 100%;
         padding: 8px 5px;
+        gap: 1px;
       }
       .logo { height: 70px; }
       .ai-robot { height: 55px; }
@@ -500,7 +487,7 @@
       background: transparent;
       color: white;
       outline: none;
-      text-align: center;
+      text-align: left;
       line-height: 1.3;
       height: 50px;
     }
@@ -508,11 +495,12 @@
     .chat-input::placeholder {
       color: rgba(255,255,255,0.3);
       opacity: 1;
-      font-size: 0.95em;
+      font-size: 0.9em;
       font-family: 'Carlito', Arial, sans-serif;
       letter-spacing: 0.5px;
-      text-align: center;
+      text-align: left;
       line-height: 1.3;
+      white-space: pre-line;
     }
     
     .send-button {
@@ -604,7 +592,7 @@
     }
     
     .footer-line {
-      font-size: 0.75em;
+      font-size: 0.7em;
       font-weight: bold;
       margin: 0;
       line-height: 1.0;
@@ -618,14 +606,14 @@
         padding: 0 15px;
       }
       .footer-line { 
-        font-size: 0.65em;
+        font-size: 0.6em;
         line-height: 0.9;
       }
     }
     
     @media (max-width: 600px) {
       .footer-line {
-        font-size: 0.55em;
+        font-size: 0.5em;
       }
     }
   </style>
@@ -678,7 +666,7 @@
           <!-- Chat messages will appear here -->
         </div>
         <div class="input-area">
-          <input type="text" class="chat-input" id="user-input" placeholder="Ask Eli, Roxy, and AI about business validation, pricing, strategy, services, and more..." />
+          <input type="text" class="chat-input" id="user-input" placeholder="Ask Eli, Roxy, and AI about business validation, pricing,&#10;strategy, services, and more..." />
           <button class="send-button" id="send-btn" onclick="sendMessage()" aria-label="Send">
             <img src="/rocket.png" alt="Rocket Send" />
           </button>
@@ -708,7 +696,9 @@
       "I understand your concern. Let me provide you with a comprehensive analysis based on real market data and validation frameworks.",
       "That's a smart approach to business planning. Here's what the data tells us about similar ventures in your market space.",
       "Good thinking! Let me help you develop a validation strategy that will give you clear answers about market viability.",
-      "Interesting question! Based on successful validation methodologies, here's how I'd recommend approaching this challenge."
+      "Interesting question! Based on successful validation methodologies, here's how I'd recommend approaching this challenge.",
+      "Perfect timing for this question! Market validation is crucial, and I can guide you through the process step by step.",
+      "That's exactly the right question to ask. Let me share some proven frameworks for validating business assumptions."
     ];
     
     function loadStatus() {
@@ -740,6 +730,9 @@
       box.appendChild(userBubble);
       box.scrollTop = box.scrollHeight;
       
+      // Clear input immediately
+      input.value = '';
+      
       // Add AI response (LEFT side - gray bubble) after delay
       setTimeout(() => {
         const responseBubble = document.createElement('div');
@@ -758,14 +751,13 @@
         box.scrollTop = box.scrollHeight;
         aiToggle = !aiToggle;
       }, 1000);
-      
-      input.value = '';
     }
     
     document.addEventListener('DOMContentLoaded', function() {
       const input = document.getElementById('user-input');
       const sendBtn = document.getElementById('send-btn');
       
+      // Enter key functionality
       input.addEventListener('keydown', function(e) {
         if (e.key === 'Enter') {
           e.preventDefault();
@@ -773,6 +765,7 @@
         }
       });
       
+      // Send button click
       sendBtn.addEventListener('click', function(e) {
         e.preventDefault();
         sendMessage();
