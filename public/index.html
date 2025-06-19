@@ -48,7 +48,9 @@
     .logo {
       height: 160px;
       flex-shrink: 0;
-      margin-right: -80px;
+      position: absolute;
+      left: calc(50% - 450px);
+      z-index: 1;
     }
     
     .header-center {
@@ -58,7 +60,6 @@
       justify-content: center;
       position: relative;
       z-index: 2;
-      margin: 0 5px;
     }
     
     .site-title {
@@ -84,7 +85,9 @@
     .ai-robot {
       height: 85px;
       flex-shrink: 0;
-      margin-left: -80px;
+      position: absolute;
+      right: calc(50% - 450px);
+      z-index: 1;
     }
     
     .rocket-top {
@@ -140,11 +143,11 @@
     }
     
     .mascot-left {
-      left: 35px;
+      left: 50px;
     }
     
     .mascot-right {
-      right: 35px;
+      right: 50px;
     }
     
     @media (max-width: 1400px) {
@@ -153,8 +156,10 @@
         min-height: 350px;
         max-height: 500px;
       }
-      .mascot-left { left: 30px; }
-      .mascot-right { right: 30px; }
+      .mascot-left { left: 40px; }
+      .mascot-right { right: 40px; }
+      .logo { left: calc(50% - 400px); }
+      .ai-robot { right: calc(50% - 400px); }
     }
     
     @media (max-width: 1100px) {
@@ -163,8 +168,10 @@
         min-height: 300px;
         max-height: 400px;
       }
-      .mascot-left { left: 25px; }
-      .mascot-right { right: 25px; }
+      .mascot-left { left: 35px; }
+      .mascot-right { right: 35px; }
+      .logo { left: calc(50% - 350px); }
+      .ai-robot { right: calc(50% - 350px); }
     }
     
     @media (max-width: 900px) {
@@ -180,22 +187,29 @@
         min-height: 140px;
         max-height: 140px;
       }
-      .mascot-left { left: 15px; }
-      .mascot-right { right: 15px; }
+      .mascot-left { left: 20px; }
+      .mascot-right { right: 20px; }
+      
       .header-row { 
         width: 90%;
         padding: 15px 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 15px;
       }
       .logo { 
-        height: 120px;
-        margin-right: -60px;
+        height: 100px;
+        position: static;
+        left: auto;
       }
       .ai-robot { 
         height: 75px;
-        margin-left: -60px;
+        position: static;
+        right: auto;
       }
       .header-center {
-        margin: 0 4px;
+        margin: 0 10px;
       }
       .rocket-top { 
         right: -80px; 
@@ -213,17 +227,16 @@
       .header-row {
         width: 95%;
         padding: 10px 0;
+        gap: 10px;
       }
       .logo { 
-        height: 90px;
-        margin-right: -45px;
+        height: 80px;
       }
       .ai-robot { 
         height: 60px;
-        margin-left: -45px;
       }
       .header-center {
-        margin: 0 3px;
+        margin: 0 8px;
       }
       .rocket-top { 
         width: 120px;
@@ -237,8 +250,8 @@
         min-height: 110px;
         max-height: 110px;
       }
-      .mascot-left { left: 10px; }
-      .mascot-right { right: 10px; }
+      .mascot-left { left: 15px; }
+      .mascot-right { right: 15px; }
     }
     
     @media (max-width: 500px) {
@@ -247,21 +260,19 @@
         min-height: 90px;
         max-height: 90px;
       }
-      .mascot-left { left: 8px; }
-      .mascot-right { right: 8px; }
+      .mascot-left { left: 10px; }
+      .mascot-right { right: 10px; }
       .header-row {
         width: 100%;
         padding: 8px 5px;
+        gap: 8px;
       }
       .logo { 
-        height: 70px;
-        margin-right: -35px;
+        height: 60px;
       }
       .ai-robot { 
-        height: 55px;
-        margin-left: -35px;
+        height: 50px;
       }
-      .header-center { margin: 0 2px; }
       .rocket-top { 
         width: 90px;
         right: -45px;
@@ -510,25 +521,26 @@
       padding: 16px 18px;
       border-radius: 18px;
       border: none;
-      font-size: 1em;
+      font-size: 0.95em;
       background: transparent;
       color: white;
       outline: none;
       text-align: left;
-      line-height: 1.4;
-      min-height: 45px;
+      line-height: 1.3;
+      height: 45px;
       resize: none;
+      overflow: hidden;
+      font-family: 'Carlito', Arial, sans-serif;
     }
     
     .chat-input::placeholder {
-      color: rgba(255,255,255,0.7);
+      color: rgba(255,255,255,0.4);
       opacity: 1;
-      font-size: 0.95em;
+      font-size: 0.9em;
       font-family: 'Carlito', Arial, sans-serif;
       letter-spacing: 0.5px;
       text-align: left;
-      line-height: 1.4;
-      white-space: pre-wrap;
+      line-height: 1.3;
     }
     
     .send-button {
@@ -589,9 +601,9 @@
         height: 64px;
       }
       .chat-input {
-        font-size: 1.1em;
+        font-size: 1em;
         padding: 18px 20px;
-        min-height: 50px;
+        height: 50px;
       }
     }
     
@@ -601,7 +613,7 @@
       color: #FFD811;
       text-align: center;
       font-family: 'Carlito', Arial, sans-serif;
-      padding: 4px 0;
+      padding: 8px 0;
       letter-spacing: 1px;
       box-shadow: 0 -2px 8px #0008;
       display: flex;
@@ -621,28 +633,28 @@
     }
     
     .footer-text {
-      font-size: 0.72em;
+      font-size: 0.95em;
       font-weight: bold;
       margin: 0;
-      line-height: 1.1;
+      line-height: 1.2;
     }
     
     @media (max-width: 900px) {
       .footer {
-        padding: 3px 0;
+        padding: 6px 0;
       }
       .footer-inner { 
         padding: 0 15px;
       }
       .footer-text { 
-        font-size: 0.62em;
-        line-height: 1.0;
+        font-size: 0.8em;
+        line-height: 1.1;
       }
     }
     
     @media (max-width: 600px) {
       .footer-text {
-        font-size: 0.52em;
+        font-size: 0.7em;
       }
     }
   </style>
@@ -695,7 +707,7 @@
           <!-- Chat messages will appear here -->
         </div>
         <div class="input-area">
-          <textarea class="chat-input" id="user-input" placeholder="Ask Eli, Roxy, and AI about business validation, pricing, strategy,&#10;services, and more..." rows="2"></textarea>
+          <input type="text" class="chat-input" id="user-input" placeholder="Ask Eli, Roxy, and AI about business validation, pricing, strategy,&#10;services, and more..." />
           <button class="send-button" id="send-btn" onclick="sendMessage()" aria-label="Send">
             <img src="/rocket.png" alt="Rocket Send" />
           </button>
@@ -722,26 +734,19 @@
     let tokens = 876;
     let cost = 0.0018;
     let folders = 8;
-    let vaultActive = false;
+    let systemActive = false;
     
-    // Vault-linked business validation knowledge base
-    const vaultKnowledge = {
-      marketValidation: [
-        "Based on our vault analysis of 247 successful startups, your business model shows strong validation potential in the current market environment.",
-        "Our memory vault contains competitive intelligence data showing 89% success rate for similar business concepts when these validation steps are followed.",
-        "Drawing from our extensive database of validation case studies, I can see critical market indicators that align with your business concept."
-      ],
-      pricing: [
-        "Our vault contains pricing analysis from 156 similar businesses. The optimal pricing strategy for your model appears to be value-based pricing.",
-        "From our database of successful pricing validations, businesses in your sector typically achieve 34% higher conversion with these pricing approaches.",
-        "Based on vault data from competitive pricing analysis, your target market responds best to tiered pricing structures."
-      ],
-      strategy: [
-        "Our business strategy vault shows that companies with your profile achieve 67% faster growth when implementing these strategic frameworks.",
-        "From our vault of strategic validation data, I can identify 5 critical success factors that directly apply to your business model.",
-        "Based on our comprehensive strategy database, your business concept aligns with patterns we've seen in our most successful case studies."
-      ]
-    };
+    // Professional business validation simulation responses
+    const businessResponses = [
+      "Based on current market analysis, I can help you validate your business concept using proven frameworks. What specific aspect would you like to explore?",
+      "I'm analyzing your business model against successful validation patterns. Let me break down the key factors that will determine market viability.",
+      "From a strategic perspective, there are several critical validation checkpoints for your business type. Here's what we should prioritize:",
+      "Market validation requires a systematic approach. I can guide you through the essential steps to prove demand and refine your value proposition.",
+      "Your business concept shows promise. Let me help you identify the most important assumptions to test and the metrics that matter most.",
+      "I'm here to provide data-driven insights for your validation process. What's the primary challenge or question you're facing with your business idea?",
+      "Business validation is crucial for success. I can help you develop a testing strategy that minimizes risk and maximizes learning.",
+      "Let's focus on the fundamentals: target market, value proposition, and business model viability. Which area needs the most attention?"
+    ];
     
     function loadStatus() {
       if (statusIndex < statusItems.length) {
@@ -751,43 +756,28 @@
       } else {
         setTimeout(() => {
           systemReady.classList.add('active');
-          vaultActive = true;
+          systemActive = true;
           updateVaultInfo();
         }, 500);
       }
     }
     
     function updateVaultInfo() {
-      if (!vaultActive) return;
+      if (!systemActive) return;
       
-      tokens = 876 + Math.floor(Math.random() * 500);
+      tokens = 876 + Math.floor(Math.random() * 400);
       cost = (tokens * 0.000002).toFixed(4);
-      folders = 8 + Math.floor(Math.random() * 8);
+      folders = 8 + Math.floor(Math.random() * 7);
       
       tokenCount.textContent = tokens;
       costEstimate.textContent = '$' + cost;
       vaultFolders.textContent = folders;
     }
     
-    function getVaultResponse(userMessage) {
-      const message = userMessage.toLowerCase();
-      
-      if (message.includes('price') || message.includes('pricing') || message.includes('cost')) {
-        return vaultKnowledge.pricing[Math.floor(Math.random() * vaultKnowledge.pricing.length)];
-      } else if (message.includes('strategy') || message.includes('strategic') || message.includes('plan')) {
-        return vaultKnowledge.strategy[Math.floor(Math.random() * vaultKnowledge.strategy.length)];
-      } else if (message.includes('market') || message.includes('validation') || message.includes('validate')) {
-        return vaultKnowledge.marketValidation[Math.floor(Math.random() * vaultKnowledge.marketValidation.length)];
-      } else {
-        // Default vault response
-        return "Based on our comprehensive business validation database, I can help you analyze your concept using proven frameworks from our vault of successful startups. What specific aspect would you like to explore?";
-      }
-    }
-    
     function sendMessage() {
       const input = document.getElementById('user-input');
       const text = input.value.trim();
-      if (!text || !vaultActive) return;
+      if (!text || !systemActive) return;
       
       const box = document.getElementById('chat-box');
       
@@ -813,12 +803,12 @@
         const isEli = aiToggle;
         const who = isEli ? 'Eli' : 'Roxy';
         const avatar = isEli ? "/boy-mascot.png" : "/girl-mascot.png";
-        const vaultResponse = getVaultResponse(text);
+        const response = businessResponses[Math.floor(Math.random() * businessResponses.length)];
         
         responseBubble.className = 'bubble ai';
         responseBubble.innerHTML = `
           <img src="${avatar}" class="avatar" alt="${who}">
-          <div class="bubble-content"><strong>${who}:</strong> ${vaultResponse}</div>
+          <div class="bubble-content"><strong>${who}:</strong> ${response}</div>
         `;
         
         box.appendChild(responseBubble);
@@ -834,9 +824,9 @@
       const input = document.getElementById('user-input');
       const sendBtn = document.getElementById('send-btn');
       
-      // Enter key functionality for textarea
+      // Enter key functionality
       input.addEventListener('keydown', function(e) {
-        if (e.key === 'Enter' && !e.shiftKey) {
+        if (e.key === 'Enter') {
           e.preventDefault();
           sendMessage();
         }
