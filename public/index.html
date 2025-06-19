@@ -46,8 +46,8 @@
     }
     
     .logo {
-      height: 125px;
-      margin-right: 5px;
+      height: 140px;
+      margin-right: 10px;
       flex-shrink: 0;
     }
     
@@ -59,7 +59,7 @@
       justify-content: center;
       position: relative;
       z-index: 2;
-      margin: 0 4px;
+      margin: 0 8px;
     }
     
     .site-title {
@@ -90,12 +90,12 @@
     
     .rocket-top {
       position: absolute;
-      right: 15px;
-      top: -15px;
-      width: 115px;
+      right: 20px;
+      top: 10px;
+      width: 200px;
       z-index: 3;
       pointer-events: none;
-      transform: rotate(8deg);
+      transform: rotate(45deg);
     }
     
     .main-wrapper {
@@ -141,11 +141,11 @@
     }
     
     .mascot-left {
-      left: -40px;
+      left: -35px;
     }
     
     .mascot-right {
-      right: -40px;
+      right: -35px;
     }
     
     @media (max-width: 1400px) {
@@ -154,8 +154,8 @@
         min-height: 450px;
         max-height: 600px;
       }
-      .mascot-left { left: -30px; }
-      .mascot-right { right: -30px; }
+      .mascot-left { left: -25px; }
+      .mascot-right { right: -25px; }
     }
     
     @media (max-width: 1100px) {
@@ -177,32 +177,32 @@
         width: 95vw;
       }
       .mascot { 
-        height: 200px;
-        min-height: 200px;
-        max-height: 200px;
+        height: 150px;
+        min-height: 150px;
+        max-height: 150px;
       }
-      .mascot-left { left: -15px; }
-      .mascot-right { right: -15px; }
+      .mascot-left { left: -10px; }
+      .mascot-right { right: -10px; }
       .header-row { 
         flex-wrap: nowrap;
         padding: 12px 15px;
         justify-content: center;
       }
       .logo { 
-        height: 85px;
-        margin: 0 3px 0 0;
+        height: 100px;
+        margin: 0 5px 0 0;
       }
       .ai-robot { 
         height: 85px;
-        margin: 0 0 0 3px;
+        margin: 0 0 0 5px;
       }
       .header-center {
-        margin: 0 6px;
+        margin: 0 8px;
       }
       .rocket-top { 
-        right: 8px; 
-        top: -12px; 
-        width: 75px; 
+        right: 10px; 
+        top: 5px; 
+        width: 120px; 
       }
       .site-title { font-size: 2.2em; }
       .subtitle { font-size: 1.1em; }
@@ -216,12 +216,12 @@
         padding: 8px 10px;
       }
       .logo, .ai-robot { 
-        height: 65px;
+        height: 70px;
       }
       .rocket-top { 
-        width: 55px;
+        width: 80px;
         right: 5px;
-        top: -10px;
+        top: 0px;
       }
       .site-title { font-size: 1.8em; }
       .subtitle { font-size: 0.9em; }
@@ -262,7 +262,8 @@
       font-size: 1.05em;
       margin-bottom: 8px;
       opacity: 0;
-      transition: opacity 0.5s ease-in-out;
+      transform: translateX(-20px);
+      transition: all 0.5s ease-in-out;
       display: flex;
       align-items: center;
       color: #fff;
@@ -273,6 +274,7 @@
     
     .status-list li.loaded {
       opacity: 1;
+      transform: translateX(0);
       color: #fff;
     }
     
@@ -282,16 +284,17 @@
       font-size: 1.1em;
       display: none;
       flex-shrink: 0;
-      animation: fadeInCheck 0.3s ease-in-out;
+      animation: bounceInCheck 0.6s ease-out;
     }
     
     .status-list li.loaded .check {
       display: inline;
     }
     
-    @keyframes fadeInCheck {
-      from { opacity: 0; transform: scale(0); }
-      to { opacity: 1; transform: scale(1); }
+    @keyframes bounceInCheck {
+      0% { opacity: 0; transform: scale(0) rotate(-180deg); }
+      50% { opacity: 1; transform: scale(1.2) rotate(0deg); }
+      100% { opacity: 1; transform: scale(1) rotate(0deg); }
     }
     
     .system-ready {
@@ -309,6 +312,8 @@
       width: 100%;
       box-sizing: border-box;
       border: 2px solid rgba(255, 255, 255, 0.2);
+      transform: scale(0.8);
+      transition: all 0.3s ease-in-out;
     }
     
     .system-ready .check {
@@ -320,6 +325,7 @@
     
     .system-ready.active {
       display: block;
+      transform: scale(1);
       animation: systemGlow 2s ease-in-out infinite alternate;
     }
     
@@ -383,14 +389,14 @@
       max-width: 85%;
     }
     
-    .bubble.eli {
-      flex-direction: row;
-      align-self: flex-start;
-    }
-    
-    .bubble.roxy {
+    .bubble.user {
       flex-direction: row-reverse;
       align-self: flex-end;
+    }
+    
+    .bubble.ai {
+      flex-direction: row;
+      align-self: flex-start;
     }
     
     .bubble img.avatar {
@@ -410,8 +416,6 @@
       font-size: 1.15em;
       line-height: 1.5;
       border-radius: 8px;
-      background: #373534;
-      color: #fff;
       font-family: 'Carlito', Arial, sans-serif;
       box-shadow: 0 2px 8px #0002;
       min-width: 80px;
@@ -420,9 +424,15 @@
       border: 1.5px solid #fff;
     }
     
-    .bubble.roxy .bubble-content {
+    .bubble.user .bubble-content {
       background: #FFD811;
       color: #373534;
+      border: 1.5px solid #fff;
+    }
+    
+    .bubble.ai .bubble-content {
+      background: #888;
+      color: #fff;
       border: 1.5px solid #fff;
     }
     
@@ -462,9 +472,9 @@
     .send-button {
       background: #FFD811;
       border: 2px solid #fff;
-      border-radius: 50%;
-      width: 60px;
-      height: 52px;
+      border-radius: 20px;
+      width: 80px;
+      height: 50px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -485,10 +495,10 @@
     }
     
     .send-button img {
-      width: 36px;
-      height: 36px;
+      width: 40px;
+      height: 40px;
       display: block;
-      transform: rotate(20deg);
+      transform: rotate(18deg);
     }
     
     @media (max-width: 900px) {
@@ -508,12 +518,12 @@
         gap: 15px;
       }
       .send-button {
-        width: 64px;
-        height: 56px;
+        width: 85px;
+        height: 55px;
       }
       .send-button img {
-        width: 38px;
-        height: 38px;
+        width: 42px;
+        height: 42px;
       }
       .chat-input {
         font-size: 1.2em;
@@ -527,15 +537,15 @@
       color: #FFD811;
       text-align: center;
       font-family: 'Carlito', Arial, sans-serif;
-      padding: 10px 0;
+      padding: 8px 0;
       letter-spacing: 1px;
       box-shadow: 0 -2px 8px #0008;
       display: flex;
       justify-content: center;
       flex-shrink: 0;
-      margin-top: auto;
       position: sticky;
       bottom: 0;
+      z-index: 100;
     }
     
     .footer-inner {
@@ -547,20 +557,20 @@
     }
     
     .footer-line {
-      font-size: 0.95em;
+      font-size: 0.9em;
       font-weight: bold;
-      margin: 2px 0;
-      line-height: 1.2;
+      margin: 1px 0;
+      line-height: 1.1;
     }
     
     @media (max-width: 900px) {
       .footer {
-        padding: 8px 0;
+        padding: 6px 0;
       }
       .footer-line { 
-        font-size: 0.8em; 
-        margin: 1px 0;
-        line-height: 1.1;
+        font-size: 0.75em; 
+        margin: 0;
+        line-height: 1.0;
       }
       .footer-inner {
         padding: 0 15px;
@@ -569,7 +579,7 @@
     
     @media (max-width: 600px) {
       .footer-line {
-        font-size: 0.7em;
+        font-size: 0.65em;
       }
     }
   </style>
@@ -642,6 +652,7 @@
     const statusItems = document.querySelectorAll('#status-list li');
     const systemReady = document.getElementById('system-ready');
     let statusIndex = 0;
+    let aiToggle = true; // Toggle between Eli and Roxy
     
     function loadStatus() {
       if (statusIndex < statusItems.length) {
@@ -651,11 +662,9 @@
       } else {
         setTimeout(() => {
           systemReady.classList.add('active');
-        }, 200);
+        }, 300);
       }
     }
-    
-    let toggle = true;
     
     function sendMessage() {
       const input = document.getElementById('user-input');
@@ -664,35 +673,34 @@
       
       const box = document.getElementById('chat-box');
       
-      // Add user message first
+      // Add user message (RIGHT side - yellow bubble)
       const userBubble = document.createElement('div');
-      userBubble.className = 'bubble roxy';
+      userBubble.className = 'bubble user';
       userBubble.innerHTML = `
-        <img src="/girl-mascot.png" class="avatar" alt="You">
+        <img src="/user-avatar.png" onerror="this.style.display='none'" class="avatar" alt="You">
         <div class="bubble-content"><strong>You:</strong> ${text}</div>
       `;
       box.appendChild(userBubble);
+      box.scrollTop = box.scrollHeight;
       
-      // Add response
+      // Add AI response (LEFT side - gray bubble) after delay
       setTimeout(() => {
         const responseBubble = document.createElement('div');
-        const isEli = toggle;
+        const isEli = aiToggle;
         const who = isEli ? 'Eli' : 'Roxy';
         const avatar = isEli ? "/boy-mascot.png" : "/girl-mascot.png";
-        const bubbleClass = isEli ? 'bubble eli' : 'bubble roxy';
         
-        responseBubble.className = bubbleClass;
+        responseBubble.className = 'bubble ai';
         responseBubble.innerHTML = `
           <img src="${avatar}" class="avatar" alt="${who}">
-          <div class="bubble-content"><strong>${who}:</strong> Thanks for your question! I'm here to help with business validation.</div>
+          <div class="bubble-content"><strong>${who}:</strong> Thanks for your question! I'm here to help with business validation and strategy.</div>
         `;
         
         box.appendChild(responseBubble);
         box.scrollTop = box.scrollHeight;
-        toggle = !toggle;
-      }, 500);
+        aiToggle = !aiToggle; // Alternate between Eli and Roxy
+      }, 800);
       
-      box.scrollTop = box.scrollHeight;
       input.value = '';
     }
     
