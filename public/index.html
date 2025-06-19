@@ -20,7 +20,6 @@
       display: flex;
       flex-direction: column;
     }
-    
     header {
       background: #1A1A1A;
       position: relative;
@@ -33,7 +32,6 @@
       justify-content: center;
       flex-shrink: 0;
     }
-    
     .header-row {
       width: 100%;
       max-width: 1200px;
@@ -44,7 +42,6 @@
       margin: 0 auto;
       padding: 20px 0;
     }
-    
     .logo {
       height: 160px;
       flex-shrink: 0;
@@ -52,7 +49,6 @@
       left: calc(50% - 450px);
       z-index: 1;
     }
-    
     .header-center {
       display: flex;
       flex-direction: column;
@@ -61,7 +57,6 @@
       position: relative;
       z-index: 2;
     }
-    
     .site-title {
       font-family: 'Luckiest Guy', cursive, sans-serif;
       color: #FFD811;
@@ -71,7 +66,6 @@
       line-height: 1;
       text-align: center;
     }
-    
     .subtitle {
       font-family: 'Carlito', Arial, sans-serif;
       color: #fff;
@@ -81,7 +75,6 @@
       text-align: center;
       font-weight: bold;
     }
-    
     .ai-robot {
       height: 85px;
       flex-shrink: 0;
@@ -89,7 +82,6 @@
       right: calc(50% - 450px);
       z-index: 1;
     }
-    
     .rocket-top {
       position: absolute;
       right: -120px;
@@ -99,7 +91,6 @@
       pointer-events: none;
       transform: rotate(45deg);
     }
-    
     .main-wrapper {
       flex: 1;
       display: flex;
@@ -110,7 +101,6 @@
       min-height: 0;
       padding: 20px 0;
     }
-    
     .main-content {
       display: flex;
       justify-content: center;
@@ -128,7 +118,6 @@
       z-index: 1;
       box-sizing: border-box;
     }
-    
     .mascot {
       position: absolute;
       top: 50%;
@@ -141,151 +130,10 @@
       pointer-events: none;
       transition: all 0.3s ease;
     }
-    
-    .mascot-left {
-      left: 50px;
-    }
-    
-    .mascot-right {
-      right: 50px;
-    }
-    
-    @media (max-width: 1400px) {
-      .mascot {
-        height: calc(100vh - 320px);
-        min-height: 350px;
-        max-height: 500px;
-      }
-      .mascot-left { left: 40px; }
-      .mascot-right { right: 40px; }
-      .logo { left: calc(50% - 400px); }
-      .ai-robot { right: calc(50% - 400px); }
-    }
-    
-    @media (max-width: 1100px) {
-      .mascot {
-        height: calc(100vh - 350px);
-        min-height: 300px;
-        max-height: 400px;
-      }
-      .mascot-left { left: 35px; }
-      .mascot-right { right: 35px; }
-      .logo { left: calc(50% - 350px); }
-      .ai-robot { right: calc(50% - 350px); }
-    }
-    
-    @media (max-width: 900px) {
-      .main-content { 
-        flex-direction: column; 
-        align-items: center;
-        height: auto;
-        min-height: 600px;
-        width: 95vw;
-      }
-      .mascot { 
-        height: 140px;
-        min-height: 140px;
-        max-height: 140px;
-      }
-      .mascot-left { left: 20px; }
-      .mascot-right { right: 20px; }
-      
-      .header-row { 
-        width: 90%;
-        padding: 15px 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 15px;
-      }
-      .logo { 
-        height: 100px;
-        position: static;
-        left: auto;
-      }
-      .ai-robot { 
-        height: 75px;
-        position: static;
-        right: auto;
-      }
-      .header-center {
-        margin: 0 10px;
-      }
-      .rocket-top { 
-        right: -80px; 
-        top: 70px; 
-        width: 180px; 
-      }
-      .site-title { font-size: 2.4em; }
-      .subtitle { font-size: 1.3em; }
-      .main-wrapper {
-        padding: 10px 0;
-      }
-    }
-    
-    @media (max-width: 600px) {
-      .header-row {
-        width: 95%;
-        padding: 10px 0;
-        gap: 10px;
-      }
-      .logo { 
-        height: 80px;
-      }
-      .ai-robot { 
-        height: 60px;
-      }
-      .header-center {
-        margin: 0 8px;
-      }
-      .rocket-top { 
-        width: 120px;
-        right: -60px;
-        top: 60px;
-      }
-      .site-title { font-size: 2em; }
-      .subtitle { font-size: 1.1em; }
-      .mascot { 
-        height: 110px;
-        min-height: 110px;
-        max-height: 110px;
-      }
-      .mascot-left { left: 15px; }
-      .mascot-right { right: 15px; }
-    }
-    
-    @media (max-width: 500px) {
-      .mascot { 
-        height: 90px;
-        min-height: 90px;
-        max-height: 90px;
-      }
-      .mascot-left { left: 10px; }
-      .mascot-right { right: 10px; }
-      .header-row {
-        width: 100%;
-        padding: 8px 5px;
-        gap: 8px;
-      }
-      .logo { 
-        height: 60px;
-      }
-      .ai-robot { 
-        height: 50px;
-      }
-      .rocket-top { 
-        width: 90px;
-        right: -45px;
-        top: 50px;
-      }
-      .site-title { font-size: 1.8em; }
-      .subtitle { font-size: 1em; }
-    }
-    
-    @media (max-width: 400px) {
-      .mascot { display: none; }
-    }
-    
+    /* === FINAL DESKTOP MASCOT FIX: 33% closer === */
+    .mascot-left { left: 33.5px; }
+    .mascot-right { right: 33.5px; }
+    /* --- END DESKTOP MASCOT FIX --- */
     .status-panel {
       width: 38%;
       min-width: 280px;
@@ -299,7 +147,6 @@
       z-index: 2;
       justify-content: space-between;
     }
-    
     .status-title {
       color: #FFD811;
       font-size: 1.25em;
@@ -308,14 +155,12 @@
       text-align: left;
       width: 100%;
     }
-    
     .status-list {
       list-style: none;
       padding: 0;
       margin: 0 0 20px 0;
       width: 100%;
     }
-    
     .status-list li {
       font-size: 1.05em;
       margin-bottom: 8px;
@@ -329,13 +174,11 @@
       text-align: left;
       line-height: 1.4;
     }
-    
     .status-list li.loaded {
       opacity: 1;
       transform: translateX(0);
       color: #fff;
     }
-    
     .status-list li .check {
       color: #00FF00;
       margin-right: 8px;
@@ -344,26 +187,14 @@
       flex-shrink: 0;
       animation: checkmarkPop 0.8s ease-out;
     }
-    
     .status-list li.loaded .check {
       display: inline;
     }
-    
     @keyframes checkmarkPop {
-      0% { 
-        opacity: 0; 
-        transform: scale(0) rotate(-180deg); 
-      }
-      50% { 
-        opacity: 1; 
-        transform: scale(1.3) rotate(0deg); 
-      }
-      100% { 
-        opacity: 1; 
-        transform: scale(1) rotate(0deg); 
-      }
+      0% { opacity: 0; transform: scale(0) rotate(-180deg);}
+      50% { opacity: 1; transform: scale(1.3) rotate(0deg);}
+      100% { opacity: 1; transform: scale(1) rotate(0deg);}
     }
-    
     .system-ready {
       color: #fff;
       font-weight: bold;
@@ -382,25 +213,21 @@
       transform: scale(0.8);
       transition: all 0.4s ease-in-out;
     }
-    
     .system-ready .check {
       color: #fff;
       font-size: 1.2em;
       margin-right: 8px;
       display: inline;
     }
-    
     .system-ready.active {
       display: block;
       transform: scale(1);
       animation: systemGlow 2s ease-in-out infinite alternate;
     }
-    
     @keyframes systemGlow {
-      from { box-shadow: 0 4px 12px rgba(255, 34, 34, 0.4); }
-      to { box-shadow: 0 4px 20px rgba(255, 34, 34, 0.7); }
+      from { box-shadow: 0 4px 12px rgba(255, 34, 34, 0.4);}
+      to { box-shadow: 0 4px 20px rgba(255, 34, 34, 0.7);}
     }
-    
     .vault-info {
       background: #545454;
       border-radius: 16px;
@@ -418,12 +245,10 @@
       box-sizing: border-box;
       line-height: 1.4;
     }
-    
     .vault-info span {
       color: #fff;
       font-weight: bold;
     }
-    
     .chat-panel {
       width: 62%;
       min-width: 400px;
@@ -437,7 +262,6 @@
       z-index: 2;
       justify-content: flex-end;
     }
-    
     .chat-box {
       flex: 1;
       overflow-y: auto;
@@ -448,24 +272,20 @@
       justify-content: flex-end;
       min-height: 0;
     }
-    
     .bubble {
       display: flex;
       align-items: flex-end;
       margin: 12px 0;
       max-width: 85%;
     }
-    
     .bubble.user {
       flex-direction: row-reverse;
       align-self: flex-end;
     }
-    
     .bubble.ai {
       flex-direction: row;
       align-self: flex-start;
     }
-    
     .bubble img.avatar {
       width: 48px;
       height: 48px;
@@ -477,7 +297,6 @@
       object-position: top;
       flex-shrink: 0;
     }
-    
     .bubble-content {
       padding: 18px 24px;
       font-size: 1.15em;
@@ -490,19 +309,16 @@
       word-break: break-word;
       border: 1.5px solid #fff;
     }
-    
     .bubble.user .bubble-content {
       background: #FFD811;
       color: #373534;
       border: 1.5px solid #fff;
     }
-    
     .bubble.ai .bubble-content {
       background: #888;
       color: #fff;
       border: 1.5px solid #fff;
     }
-    
     .input-area {
       display: flex;
       align-items: center;
@@ -515,7 +331,6 @@
       gap: 12px;
       min-height: 70px;
     }
-    
     .chat-input {
       flex: 1;
       padding: 16px 18px;
@@ -532,7 +347,6 @@
       overflow: hidden;
       font-family: 'Carlito', Arial, sans-serif;
     }
-    
     .chat-input::placeholder {
       color: rgba(255,255,255,0.4);
       opacity: 1;
@@ -541,8 +355,8 @@
       letter-spacing: 0.5px;
       text-align: left;
       line-height: 1.3;
+      white-space: pre-line;
     }
-    
     .send-button {
       background: #FFD811;
       border: 2px solid #fff;
@@ -558,55 +372,19 @@
       cursor: pointer;
       flex-shrink: 0;
     }
-    
     .send-button:hover {
       background: #ffe96a;
       transform: scale(1.05);
     }
-    
     .send-button:active {
       transform: scale(0.95);
     }
-    
     .send-button img {
       width: 60px;
       height: 60px;
       display: block;
       transform: rotate(90deg);
     }
-    
-    @media (max-width: 900px) {
-      .status-panel, .chat-panel { 
-        width: 100%; 
-        min-width: 0; 
-        border-radius: 24px; 
-        padding: 20px 15px;
-      }
-      .chat-panel { 
-        border-left: none; 
-        border-top: 2px solid #FFD811; 
-        min-height: 400px;
-      }
-      .input-area {
-        padding: 12px 18px;
-        gap: 15px;
-        min-height: 75px;
-      }
-      .send-button {
-        width: 105px;
-        height: 60px;
-      }
-      .send-button img {
-        width: 64px;
-        height: 64px;
-      }
-      .chat-input {
-        font-size: 1em;
-        padding: 18px 20px;
-        height: 50px;
-      }
-    }
-    
     .footer {
       width: 100vw;
       background: #1A1A1A;
@@ -623,7 +401,6 @@
       bottom: 0;
       z-index: 100;
     }
-    
     .footer-inner {
       max-width: 900px;
       width: 100%;
@@ -631,30 +408,76 @@
       padding: 0 20px;
       box-sizing: border-box;
     }
-    
     .footer-text {
       font-size: 0.95em;
       font-weight: bold;
       margin: 0;
       line-height: 1.2;
     }
-    
-    @media (max-width: 900px) {
-      .footer {
-        padding: 6px 0;
+    /* === MOBILE: Isolated fixes for layout, mascots, header, input, footer === */
+    @media (max-width: 768px) {
+      .header-row {
+        flex-direction: column;
+        align-items: center;
+        gap: 0;
+        padding: 10px 0;
+        width: 100vw;
+        max-width: 100vw;
+        position: static;
       }
-      .footer-inner { 
-        padding: 0 15px;
+      .logo, .ai-robot {
+        position: static;
+        margin: 0 auto;
+        display: block;
+        left: auto;
+        right: auto;
+        height: 60px;
       }
-      .footer-text { 
-        font-size: 0.8em;
-        line-height: 1.1;
+      .header-center {
+        margin: 0;
+        text-align: center;
       }
-    }
-    
-    @media (max-width: 600px) {
+      .site-title { font-size: 1.35em; }
+      .subtitle { font-size: 1em; }
+      .mascot { display: none !important; }
+      .main-content {
+        flex-direction: column;
+        max-width: 98vw;
+        width: 98vw;
+        min-width: 0;
+        margin: 0 auto;
+        border-radius: 16px;
+      }
+      .chat-panel, .status-panel {
+        width: 100% !important;
+        min-width: 0;
+        border-radius: 0;
+        padding: 16px 6px;
+      }
+      .input-area {
+        flex-direction: row;
+        padding: 10px 6px;
+        min-height: 60px;
+      }
+      .chat-input {
+        font-size: 0.9em;
+        padding: 10px 8px;
+        height: 38px;
+        min-height: 38px;
+        max-height: 60px;
+      }
+      .send-button img {
+        width: 40px !important;
+        height: 40px !important;
+      }
+      .footer-inner {
+        max-width: 98vw;
+        font-size: 1em;
+        padding: 0 2vw;
+      }
       .footer-text {
-        font-size: 0.7em;
+        font-size: 1.1em !important;
+        line-height: 1.2;
       }
     }
   </style>
@@ -671,11 +494,9 @@
       <img src="/rocket.png" alt="Rocket" class="rocket-top">
     </div>
   </header>
-  
   <div class="main-wrapper">
     <img src="/boy-mascot.png" alt="Eli Mascot" class="mascot mascot-left">
     <img src="/girl-mascot.png" alt="Roxy Mascot" class="mascot mascot-right">
-    
     <div class="main-content">
       <div class="status-panel">
         <div>
@@ -701,53 +522,35 @@
           <div>📁 <span id="vault-folders">8</span> FOLDERS LOADED</div>
         </div>
       </div>
-      
       <div class="chat-panel">
-        <div class="chat-box" id="chat-box">
-          <!-- Chat messages will appear here -->
-        </div>
+        <div class="chat-box" id="chat-box"></div>
         <div class="input-area">
           <input type="text" class="chat-input" id="user-input" placeholder="Ask Eli, Roxy, and AI about business validation, pricing, strategy,&#10;services, and more..." />
-          <button class="send-button" id="send-btn" onclick="sendMessage()" aria-label="Send">
+          <button class="send-button" id="send-btn" aria-label="Send">
             <img src="/rocket.png" alt="Rocket Send" />
           </button>
         </div>
       </div>
     </div>
   </div>
-  
   <div class="footer">
     <div class="footer-inner">
       <div class="footer-text">THE FIRST AND ONLY BUSINESS VALIDATION CHAT SYSTEM THAT PUTS HONESTY, REAL DATA, TRANSPARENCY,<br>PERSISTENCE, &amp; INITIATIVE BEFORE ALL ELSE! AI YOU CAN TRUST!</div>
     </div>
   </div>
-
   <script>
+    // Simulated checklist animation and vault info for demo
     const statusItems = document.querySelectorAll('#status-list li');
     const systemReady = document.getElementById('system-ready');
     const tokenCount = document.getElementById('token-count');
     const costEstimate = document.getElementById('cost-estimate');
     const vaultFolders = document.getElementById('vault-folders');
-    
     let statusIndex = 0;
     let aiToggle = true;
     let tokens = 876;
     let cost = 0.0018;
     let folders = 8;
     let systemActive = false;
-    
-    // Professional business validation simulation responses
-    const businessResponses = [
-      "Based on current market analysis, I can help you validate your business concept using proven frameworks. What specific aspect would you like to explore?",
-      "I'm analyzing your business model against successful validation patterns. Let me break down the key factors that will determine market viability.",
-      "From a strategic perspective, there are several critical validation checkpoints for your business type. Here's what we should prioritize:",
-      "Market validation requires a systematic approach. I can guide you through the essential steps to prove demand and refine your value proposition.",
-      "Your business concept shows promise. Let me help you identify the most important assumptions to test and the metrics that matter most.",
-      "I'm here to provide data-driven insights for your validation process. What's the primary challenge or question you're facing with your business idea?",
-      "Business validation is crucial for success. I can help you develop a testing strategy that minimizes risk and maximizes learning.",
-      "Let's focus on the fundamentals: target market, value proposition, and business model viability. Which area needs the most attention?"
-    ];
-    
     function loadStatus() {
       if (statusIndex < statusItems.length) {
         statusItems[statusIndex].classList.add('loaded');
@@ -761,27 +564,31 @@
         }, 500);
       }
     }
-    
     function updateVaultInfo() {
       if (!systemActive) return;
-      
       tokens = 876 + Math.floor(Math.random() * 400);
       cost = (tokens * 0.000002).toFixed(4);
       folders = 8 + Math.floor(Math.random() * 7);
-      
       tokenCount.textContent = tokens;
       costEstimate.textContent = '$' + cost;
       vaultFolders.textContent = folders;
     }
-    
+    // Simulated chat for demo
+    const businessResponses = [
+      "Based on current market analysis, I can help you validate your business concept using proven frameworks. What specific aspect would you like to explore?",
+      "I'm analyzing your business model against successful validation patterns. Let me break down the key factors that will determine market viability.",
+      "From a strategic perspective, there are several critical validation checkpoints for your business type. Here's what we should prioritize:",
+      "Market validation requires a systematic approach. I can guide you through the essential steps to prove demand and refine your value proposition.",
+      "Your business concept shows promise. Let me help you identify the most important assumptions to test and the metrics that matter most.",
+      "I'm here to provide data-driven insights for your validation process. What's the primary challenge or question you're facing with your business idea?",
+      "Business validation is crucial for success. I can help you develop a testing strategy that minimizes risk and maximizes learning.",
+      "Let's focus on the fundamentals: target market, value proposition, and business model viability. Which area needs the most attention?"
+    ];
     function sendMessage() {
       const input = document.getElementById('user-input');
       const text = input.value.trim();
       if (!text || !systemActive) return;
-      
       const box = document.getElementById('chat-box');
-      
-      // Add user message (RIGHT side - yellow bubble)
       const userBubble = document.createElement('div');
       userBubble.className = 'bubble user';
       userBubble.innerHTML = `
@@ -790,55 +597,38 @@
       `;
       box.appendChild(userBubble);
       box.scrollTop = box.scrollHeight;
-      
-      // Clear input immediately
       input.value = '';
-      
-      // Update vault info
       updateVaultInfo();
-      
-      // Add AI response (LEFT side - gray bubble) after delay
       setTimeout(() => {
         const responseBubble = document.createElement('div');
         const isEli = aiToggle;
         const who = isEli ? 'Eli' : 'Roxy';
         const avatar = isEli ? "/boy-mascot.png" : "/girl-mascot.png";
         const response = businessResponses[Math.floor(Math.random() * businessResponses.length)];
-        
         responseBubble.className = 'bubble ai';
         responseBubble.innerHTML = `
           <img src="${avatar}" class="avatar" alt="${who}">
           <div class="bubble-content"><strong>${who}:</strong> ${response}</div>
         `;
-        
         box.appendChild(responseBubble);
         box.scrollTop = box.scrollHeight;
         aiToggle = !aiToggle;
-        
-        // Update vault info again after response
         updateVaultInfo();
       }, 1200);
     }
-    
     document.addEventListener('DOMContentLoaded', function() {
       const input = document.getElementById('user-input');
       const sendBtn = document.getElementById('send-btn');
-      
-      // Enter key functionality
       input.addEventListener('keydown', function(e) {
         if (e.key === 'Enter') {
           e.preventDefault();
           sendMessage();
         }
       });
-      
-      // Send button click
       sendBtn.addEventListener('click', function(e) {
         e.preventDefault();
         sendMessage();
       });
-      
-      // Initialize status loading
       setTimeout(loadStatus, 800);
     });
   </script>
