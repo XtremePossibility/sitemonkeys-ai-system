@@ -17,6 +17,8 @@
       width: 100vw;
       box-sizing: border-box;
       overflow-x: hidden;
+      display: flex;
+      flex-direction: column;
     }
     header {
       background: #1A1A1A;
@@ -41,7 +43,7 @@
     }
     .logo {
       height: 140px;
-      margin-right: -25px;
+      margin-right: -15px;
       margin-left: 10px;
       flex-shrink: 0;
       transition: height 0.3s;
@@ -59,7 +61,7 @@
     .site-title {
       font-family: 'Luckiest Guy', cursive, sans-serif;
       color: #FFD811;
-      font-size: 3.3em;
+      font-size: 3.8em;
       margin: 0;
       letter-spacing: 2px;
       line-height: 1;
@@ -68,7 +70,7 @@
     .subtitle {
       font-family: 'Carlito', Arial, sans-serif;
       color: #fff;
-      font-size: 1.5em;
+      font-size: 1.8em;
       margin-top: 10px;
       letter-spacing: 1px;
       text-align: center;
@@ -80,37 +82,45 @@
     }
     .ai-robot {
       height: 110px;
-      margin-left: -25px;
+      margin-left: -15px;
       margin-right: 10px;
       flex-shrink: 0;
       transition: height 0.3s;
     }
     .rocket-top {
       position: absolute;
-      right: 30px;
-      top: -40px;
-      width: 110px;
+      right: 40px;
+      top: -30px;
+      width: 120px;
       z-index: 3;
       pointer-events: none;
       transform: rotate(0deg);
     }
     .header-gap {
-      height: 20px;
+      height: 40px;
       width: 100%;
+    }
+    .main-wrapper {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+      width: 100%;
+      min-height: 700px;
     }
     .main-content {
       display: flex;
       justify-content: center;
       align-items: stretch;
-      max-width: 1100px;
-      width: 95vw;
+      max-width: 1200px;
+      width: 90vw;
       margin: 0 auto;
       position: relative;
-      min-height: 600px;
+      min-height: 700px;
       background: #373534;
       border-radius: 24px;
       box-shadow: 0 8px 32px #0004;
-      margin-bottom: 24px;
       border: 2px solid #fff;
       z-index: 1;
       box-sizing: border-box;
@@ -120,25 +130,25 @@
       top: 50%;
       transform: translateY(-50%);
       z-index: 20;
-      width: 390px;
+      width: 450px;
       pointer-events: none;
       transition: width 0.3s;
     }
     .mascot-left {
-      left: -110px;
+      left: -80px;
     }
     .mascot-right {
-      right: -110px;
+      right: -80px;
     }
     @media (max-width: 1400px) {
-      .mascot { width: 260px; }
-      .mascot-left { left: -50px; }
-      .mascot-right { right: -50px; }
+      .mascot { width: 320px; }
+      .mascot-left { left: -40px; }
+      .mascot-right { right: -40px; }
     }
     @media (max-width: 1100px) {
-      .mascot { width: 160px; }
-      .mascot-left { left: 0; }
-      .mascot-right { right: 0; }
+      .mascot { width: 200px; }
+      .mascot-left { left: -10px; }
+      .mascot-right { right: -10px; }
     }
     @media (max-width: 900px) {
       .main-content { flex-direction: column; align-items: center; }
@@ -147,15 +157,15 @@
       .logo, .ai-robot { margin: 0 0 10px 0; }
       .rocket-top { right: 10px; top: -20px; width: 70px; }
       .footer-inner { max-width: 95vw; }
-      .footer-two { font-size: 1em; }
+      .footer-line { font-size: 0.9em; }
     }
     .status-panel {
-      width: 36%;
-      min-width: 230px;
+      width: 38%;
+      min-width: 280px;
       background: rgba(17,17,17,0.97);
       border-radius: 24px 0 0 24px;
       box-shadow: 0 0 30px 10px #54545444 inset;
-      padding: 30px 15px 30px 15px;
+      padding: 40px 20px 40px 20px;
       display: flex;
       flex-direction: column;
       align-items: flex-start;
@@ -165,8 +175,8 @@
     }
     .status-title {
       color: #FFD811;
-      font-size: 1.15em;
-      margin-bottom: 10px;
+      font-size: 1.3em;
+      margin-bottom: 15px;
       font-weight: bold;
       text-align: left;
       width: 100%;
@@ -174,12 +184,12 @@
     .status-list {
       list-style: none;
       padding: 0;
-      margin: 0 0 18px 0;
+      margin: 0 0 20px 0;
       width: 100%;
     }
     .status-list li {
-      font-size: 1em;
-      margin-bottom: 7px;
+      font-size: 1.1em;
+      margin-bottom: 8px;
       opacity: 0.5;
       transition: opacity 0.5s;
       display: flex;
@@ -205,14 +215,14 @@
     .system-ready {
       color: #FF2222;
       font-weight: bold;
-      font-size: 1.1em;
-      margin: 18px 0 10px 0;
+      font-size: 1.2em;
+      margin: 20px 0 15px 0;
       display: none;
       text-align: left;
       letter-spacing: 1px;
       background: #222;
       border-radius: 16px;
-      padding: 8px 18px;
+      padding: 10px 20px;
       box-shadow: 0 2px 8px #0002;
       border: 2px solid #FF2222;
       animation: pulse 1.2s infinite alternate;
@@ -234,13 +244,13 @@
     .vault-info {
       background: #e0e0e0;
       border-radius: 16px;
-      padding: 12px 16px;
+      padding: 15px 20px;
       margin-top: 10px;
       width: 100%;
-      font-size: 1em;
+      font-size: 1.1em;
       color: #373534;
       text-align: left;
-      min-height: 70px;
+      min-height: 80px;
       display: flex;
       flex-direction: column;
       justify-content: center;
@@ -252,15 +262,15 @@
       font-weight: bold;
     }
     .chat-panel {
-      width: 64%;
-      min-width: 320px;
+      width: 62%;
+      min-width: 400px;
       background: #545454;
       border-radius: 0 24px 24px 0;
       border-left: 2px solid #FFD811;
-      padding: 30px 20px 20px 20px;
+      padding: 40px 25px 25px 25px;
       display: flex;
       flex-direction: column;
-      min-height: 600px;
+      min-height: 700px;
       position: relative;
       z-index: 2;
       justify-content: flex-end;
@@ -268,9 +278,9 @@
     .chat-box {
       flex: 1;
       overflow-y: auto;
-      margin-bottom: 16px;
+      margin-bottom: 20px;
       padding-right: 8px;
-      max-height: 380px;
+      max-height: 500px;
       display: flex;
       flex-direction: column;
       justify-content: flex-end;
@@ -278,7 +288,7 @@
     .bubble {
       display: flex;
       align-items: flex-end;
-      margin: 14px 0;
+      margin: 16px 0;
       max-width: 80%;
     }
     .bubble.eli {
@@ -290,10 +300,10 @@
       align-self: flex-end;
     }
     .bubble img.avatar {
-      width: 48px;
-      height: 48px;
+      width: 50px;
+      height: 50px;
       border-radius: 50%;
-      margin: 0 10px;
+      margin: 0 12px;
       background: #545454;
       border: 2px solid #fff;
       object-fit: cover;
@@ -301,15 +311,15 @@
       z-index: 30;
     }
     .bubble-content {
-      padding: 14px 22px;
-      font-size: 1em;
+      padding: 16px 24px;
+      font-size: 1.1em;
       border-radius: 32px;
       background: #373534;
       color: #fff;
       font-family: 'Carlito', Arial, sans-serif;
       box-shadow: 0 2px 8px #0002;
       min-width: 80px;
-      max-width: 340px;
+      max-width: 360px;
       word-break: break-word;
       border: 1.5px solid #fff;
       backdrop-filter: blur(1px);
@@ -327,21 +337,21 @@
     .input-area {
       display: flex;
       align-items: center;
-      justify-content: flex-end;
+      justify-content: space-between;
       background: #222;
-      border-radius: 16px;
-      padding: 10px 16px;
-      margin-top: 8px;
+      border-radius: 20px;
+      padding: 12px 18px;
+      margin-top: 10px;
       margin-bottom: 0;
       border: 1.5px solid #fff;
       box-shadow: 0 2px 8px #0002;
     }
     .chat-input {
       flex: 1;
-      padding: 12px;
-      border-radius: 16px;
+      padding: 14px;
+      border-radius: 18px;
       border: none;
-      font-size: 1em;
+      font-size: 1.1em;
       background: transparent;
       color: white;
       outline: none;
@@ -360,22 +370,23 @@
       background: #FFD811;
       border: 2px solid #fff;
       border-radius: 32px;
-      width: 70px;
-      height: 44px;
+      width: 80px;
+      height: 50px;
       display: flex;
       align-items: center;
       justify-content: center;
       transition: background 0.2s;
       outline: none;
       box-shadow: 0 2px 8px #0002;
-      margin-left: 10px;
+      margin-left: 12px;
+      cursor: pointer;
     }
     .send-button:active, .send-button:focus {
       background: #ffe96a;
     }
     .send-button img {
-      width: 34px;
-      height: 34px;
+      width: 38px;
+      height: 38px;
       display: block;
       transform: rotate(0deg);
     }
@@ -387,7 +398,7 @@
       .logo, .ai-robot { margin: 0 0 10px 0; }
       .rocket-top { right: 10px; top: -20px; width: 60px; }
       .footer-inner { max-width: 95vw; }
-      .footer-two { font-size: 1em; }
+      .footer-line { font-size: 0.9em; }
     }
     .footer {
       width: 100vw;
@@ -396,7 +407,7 @@
       text-align: center;
       font-size: 1.1em;
       font-family: 'Carlito', Arial, sans-serif;
-      padding: 18px 0 12px 0;
+      padding: 20px 0 15px 0;
       letter-spacing: 1px;
       margin-top: auto;
       box-shadow: 0 -2px 8px #0008;
@@ -404,7 +415,7 @@
       justify-content: center;
     }
     .footer-inner {
-      max-width: 1100px;
+      max-width: 1200px;
       width: 100%;
       margin: 0 auto;
       line-height: 1.4;
@@ -412,10 +423,10 @@
       flex-direction: column;
       align-items: center;
     }
-    .footer-two {
-      font-size: 1.15em;
+    .footer-line {
+      font-size: 1.1em;
       font-weight: bold;
-      margin-top: 2px;
+      margin: 2px 0;
       word-break: break-word;
     }
   </style>
@@ -434,58 +445,63 @@
     </div>
   </header>
   <div class="header-gap"></div>
-  <!-- Mascots (in front of main block) -->
-  <img src="/boy-mascot.png" alt="Eli Mascot" class="mascot mascot-left">
-  <img src="/girl-mascot.png" alt="Roxy Mascot" class="mascot mascot-right">
-  <!-- Main Content -->
-  <div class="main-content">
-    <!-- Status Panel -->
-    <div class="status-panel">
-      <div>
-        <div class="status-title">SiteMonkeys Business Validation System</div>
-        <ul class="status-list" id="status-list">
-          <li><span class="check">✅</span> Zero-Failure AI</li>
-          <li><span class="check">✅</span> Complete Business Intelligence</li>
-          <li><span class="check">✅</span> Real-World Validation Ready</li>
-          <li><span class="check">✅</span> Site Monkeys memory vault loaded</li>
-          <li><span class="check">✅</span> Zero Failure activated</li>
-          <li><span class="check">✅</span> Legitimate data initiative activated</li>
-          <li><span class="check">✅</span> Persistence driven activated</li>
-          <li><span class="check">✅</span> helpful initiative activated</li>
-          <li><span class="check">✅</span> Founder Protection activated</li>
-          <li><span class="check">✅</span> Market leader Initiative</li>
-        </ul>
-        <div class="system-ready" id="system-ready"><span class="check">✅</span> SYSTEM READY</div>
-      </div>
-      <div class="vault-info" id="vault-info">
-        <div><span style="color:#00FF00;">✅</span> Vault loaded successfully</div>
-        <div>🔢 Tokens: <span id="token-count">—</span></div>
-        <div>💰 Estimated Cost: <span id="cost-estimate">—</span></div>
-        <div>📁 Folders: <span id="vault-folders">—</span></div>
-      </div>
-    </div>
-    <!-- Chat Panel -->
-    <div class="chat-panel">
-      <div class="chat-box" id="chat-box">
-        <div class="bubble eli">
-          <img src="/boy-mascot.png" class="avatar" alt="Eli" style="object-position: top;">
-          <div class="bubble-content"><strong>Eli:</strong> Welcome to Site Monkeys AI. What would you like to validate today?</div>
+  
+  <div class="main-wrapper">
+    <!-- Mascots (in front of main block) -->
+    <img src="/boy-mascot.png" alt="Eli Mascot" class="mascot mascot-left">
+    <img src="/girl-mascot.png" alt="Roxy Mascot" class="mascot mascot-right">
+    
+    <!-- Main Content -->
+    <div class="main-content">
+      <!-- Status Panel -->
+      <div class="status-panel">
+        <div>
+          <div class="status-title">SiteMonkeys Business Validation System</div>
+          <ul class="status-list" id="status-list">
+            <li><span class="check">✅</span> Zero-Failure AI</li>
+            <li><span class="check">✅</span> Complete Business Intelligence</li>
+            <li><span class="check">✅</span> Real-World Validation Ready</li>
+            <li><span class="check">✅</span> Site Monkeys memory vault loaded</li>
+            <li><span class="check">✅</span> Zero Failure activated</li>
+            <li><span class="check">✅</span> Legitimate data initiative activated</li>
+            <li><span class="check">✅</span> Persistence driven activated</li>
+            <li><span class="check">✅</span> helpful initiative activated</li>
+            <li><span class="check">✅</span> Founder Protection activated</li>
+            <li><span class="check">✅</span> Market leader Initiative</li>
+          </ul>
+          <div class="system-ready" id="system-ready"><span class="check">✅</span> SYSTEM READY</div>
+        </div>
+        <div class="vault-info" id="vault-info">
+          <div><span style="color:#00FF00;">✅</span> Vault loaded successfully</div>
+          <div>🔢 Tokens: <span id="token-count">—</span></div>
+          <div>💰 Estimated Cost: <span id="cost-estimate">—</span></div>
+          <div>📁 Folders: <span id="vault-folders">—</span></div>
         </div>
       </div>
-      <div class="input-area">
-        <input type="text" class="chat-input" id="user-input" placeholder="Ask Eli, Roxy, and AI about business validation, pricing, strategy,
+      <!-- Chat Panel -->
+      <div class="chat-panel">
+        <div class="chat-box" id="chat-box">
+          <div class="bubble eli">
+            <img src="/boy-mascot.png" class="avatar" alt="Eli" style="object-position: top;">
+            <div class="bubble-content"><strong>Eli:</strong> Welcome to Site Monkeys AI. What would you like to validate today?</div>
+          </div>
+        </div>
+        <div class="input-area">
+          <input type="text" class="chat-input" id="user-input" placeholder="Ask Eli, Roxy, and AI about business validation, pricing, strategy,
 services, and more." />
-        <button class="send-button" onclick="sendMessage()" aria-label="Send">
-          <img src="/rocket.png" alt="Rocket Send" />
-        </button>
+          <button class="send-button" onclick="sendMessage()" aria-label="Send">
+            <img src="/rocket.png" alt="Rocket Send" />
+          </button>
+        </div>
       </div>
     </div>
   </div>
+  
   <!-- Footer -->
   <div class="footer">
     <div class="footer-inner">
-      <div class="footer-two">THE FIRST AND ONLY BUSINESS VALIDATION CHAT SYSTEM THAT PUTS HONESTY, REAL DATA, TRANSPARENCY, PERSISTENCE, &amp; INITIATIVE BEFORE ALL ELSE!</div>
-      <div class="footer-two">AI YOU CAN TRUST!</div>
+      <div class="footer-line">THE FIRST AND ONLY BUSINESS VALIDATION CHAT SYSTEM THAT PUTS HONESTY, REAL DATA, TRANSPARENCY, PERSISTENCE, &amp; INITIATIVE BEFORE ALL ELSE!</div>
+      <div class="footer-line">AI YOU CAN TRUST!</div>
     </div>
   </div>
   <script>
