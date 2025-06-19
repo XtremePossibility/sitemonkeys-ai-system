@@ -40,7 +40,7 @@
     }
     .logo {
       height: 180px;
-      margin-right: -80px;
+      margin-right: -40px;
       flex-shrink: 0;
       transition: height 0.3s;
     }
@@ -82,7 +82,7 @@
     }
     .ai-robot {
       height: 120px;
-      margin-left: -80px;
+      margin-left: -40px;
       flex-shrink: 0;
       transition: height 0.3s;
     }
@@ -112,26 +112,27 @@
       box-shadow: 0 8px 32px #0004;
       margin-bottom: 24px;
       border: 2px solid #fff;
+      z-index: 1;
     }
     .mascot {
       position: absolute;
-      top: 54%;
+      top: 50%;
       transform: translateY(-50%);
-      z-index: 2;
+      z-index: 20;
       width: 900px;
       pointer-events: none;
       transition: width 0.3s;
     }
     .mascot-left {
-      left: 60px;
+      left: -120px;
     }
     .mascot-right {
-      right: 60px;
+      right: -120px;
     }
     @media (max-width: 1400px) {
       .mascot { width: 600px; }
-      .mascot-left { left: 0; }
-      .mascot-right { right: 0; }
+      .mascot-left { left: -60px; }
+      .mascot-right { right: -60px; }
     }
     @media (max-width: 1100px) {
       .mascot { width: 300px; }
@@ -294,6 +295,7 @@
       border: 2px solid #fff;
       object-fit: cover;
       object-position: top;
+      z-index: 30;
     }
     .bubble-content {
       padding: 16px 26px;
@@ -342,33 +344,33 @@
       outline: none;
     }
     .chat-input::placeholder {
-      color: #FFD811;
+      color: rgba(255,255,255,0.7);
       opacity: 1;
       font-size: 1.1em;
       font-family: 'Carlito', Arial, sans-serif;
       letter-spacing: 1px;
+      white-space: pre-line;
     }
     .send-button {
-      background: #FFD811;
-      border: none;
-      margin-left: 10px;
-      cursor: pointer;
-      border-radius: 50%;
-      width: 54px;
-      height: 54px;
+      background: rgba(255,255,255,0.7);
+      border: 1.5px solid #fff;
+      border-radius: 32px;
+      width: 90px;
+      height: 48px;
       display: flex;
       align-items: center;
       justify-content: center;
       transition: background 0.2s;
       outline: none;
       box-shadow: 0 2px 8px #0002;
+      margin-left: 10px;
     }
     .send-button:active, .send-button:focus {
       background: #ffe96a;
     }
     .send-button img {
-      width: 44px;
-      height: 44px;
+      width: 38px;
+      height: 38px;
       display: block;
       transform: rotate(-18deg);
     }
@@ -429,7 +431,7 @@
     </div>
   </header>
   <div class="header-gap"></div>
-  <!-- Mascots (outside main block) -->
+  <!-- Mascots (in front of main block) -->
   <img src="/boy-mascot.png" alt="Eli Mascot" class="mascot mascot-left">
   <img src="/girl-mascot.png" alt="Roxy Mascot" class="mascot mascot-right">
   <!-- Main Content -->
@@ -466,7 +468,8 @@
         </div>
       </div>
       <div class="input-area">
-        <input type="text" class="chat-input" id="user-input" placeholder="Ask Eli, Roxy, and AI about business validation, pricing, strategy, services, and more." />
+        <input type="text" class="chat-input" id="user-input" placeholder="Ask Eli, Roxy, and AI about business validation, pricing, strategy,
+services, and more." />
         <button class="send-button" onclick="sendMessage()" aria-label="Send">
           <img src="/rocket.png" alt="Rocket Send" />
         </button>
