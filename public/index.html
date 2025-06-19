@@ -35,7 +35,7 @@
     }
     
     .header-row {
-      width: 80%;
+      width: 100%;
       max-width: 1200px;
       display: flex;
       align-items: center;
@@ -43,12 +43,12 @@
       position: relative;
       margin: 0 auto;
       padding: 20px 0;
-      gap: 5px;
     }
     
     .logo {
       height: 160px;
       flex-shrink: 0;
+      margin-right: 0;
     }
     
     .header-center {
@@ -58,6 +58,7 @@
       justify-content: center;
       position: relative;
       z-index: 2;
+      margin: 0 5px;
     }
     
     .site-title {
@@ -83,6 +84,7 @@
     .ai-robot {
       height: 85px;
       flex-shrink: 0;
+      margin-left: 0;
     }
     
     .rocket-top {
@@ -138,11 +140,11 @@
     }
     
     .mascot-left {
-      left: -15px;
+      left: -7px;
     }
     
     .mascot-right {
-      right: -15px;
+      right: -7px;
     }
     
     @media (max-width: 1400px) {
@@ -151,8 +153,8 @@
         min-height: 350px;
         max-height: 500px;
       }
-      .mascot-left { left: -12px; }
-      .mascot-right { right: -12px; }
+      .mascot-left { left: -6px; }
+      .mascot-right { right: -6px; }
     }
     
     @media (max-width: 1100px) {
@@ -161,8 +163,8 @@
         min-height: 300px;
         max-height: 400px;
       }
-      .mascot-left { left: -10px; }
-      .mascot-right { right: -10px; }
+      .mascot-left { left: -5px; }
+      .mascot-right { right: -5px; }
     }
     
     @media (max-width: 900px) {
@@ -178,18 +180,20 @@
         min-height: 120px;
         max-height: 120px;
       }
-      .mascot-left { left: -8px; }
-      .mascot-right { right: -8px; }
+      .mascot-left { left: -4px; }
+      .mascot-right { right: -4px; }
       .header-row { 
         width: 90%;
         padding: 15px 0;
-        gap: 3px;
       }
       .logo { 
         height: 120px;
       }
       .ai-robot { 
         height: 75px;
+      }
+      .header-center {
+        margin: 0 4px;
       }
       .rocket-top { 
         right: -80px; 
@@ -207,13 +211,15 @@
       .header-row {
         width: 95%;
         padding: 10px 0;
-        gap: 2px;
       }
       .logo { 
         height: 90px;
       }
       .ai-robot { 
         height: 60px;
+      }
+      .header-center {
+        margin: 0 3px;
       }
       .rocket-top { 
         width: 120px;
@@ -227,19 +233,25 @@
         min-height: 100px;
         max-height: 100px;
       }
-      .mascot-left { left: -5px; }
-      .mascot-right { right: -5px; }
+      .mascot-left { left: -3px; }
+      .mascot-right { right: -3px; }
     }
     
     @media (max-width: 500px) {
-      .mascot { display: none; }
+      .mascot { 
+        height: 80px;
+        min-height: 80px;
+        max-height: 80px;
+      }
+      .mascot-left { left: -2px; }
+      .mascot-right { right: -2px; }
       .header-row {
         width: 100%;
         padding: 8px 5px;
-        gap: 1px;
       }
       .logo { height: 70px; }
       .ai-robot { height: 55px; }
+      .header-center { margin: 0 2px; }
       .rocket-top { 
         width: 90px;
         right: -45px;
@@ -247,6 +259,10 @@
       }
       .site-title { font-size: 1.8em; }
       .subtitle { font-size: 1em; }
+    }
+    
+    @media (max-width: 400px) {
+      .mascot { display: none; }
     }
     
     .status-panel {
@@ -677,17 +693,25 @@
   
   <div class="footer">
     <div class="footer-inner">
-      <div class="footer-line">THE FIRST AND ONLY BUSINESS VALIDATION CHAT SYSTEM THAT PUTS HONESTY, REAL DATA, TRANSPARENCY, PERSISTENCE, & INITIATIVE BEFORE ALL ELSE!</div>
-      <div class="footer-line">AI YOU CAN TRUST!</div>
+      <div class="footer-line">THE FIRST AND ONLY BUSINESS VALIDATION CHAT SYSTEM THAT PUTS HONESTY, REAL DATA, TRANSPARENCY,</div>
+      <div class="footer-line">PERSISTENCE, & INITIATIVE BEFORE ALL ELSE! AI YOU CAN TRUST!</div>
     </div>
   </div>
 
   <script>
     const statusItems = document.querySelectorAll('#status-list li');
     const systemReady = document.getElementById('system-ready');
+    const tokenCount = document.getElementById('token-count');
+    const costEstimate = document.getElementById('cost-estimate');
+    const vaultFolders = document.getElementById('vault-folders');
+    
     let statusIndex = 0;
     let aiToggle = true;
+    let tokens = 876;
+    let cost = 0.0018;
+    let folders = 8;
     
+    // Business validation responses
     const responses = [
       "I can help you validate your business idea! What specific aspect would you like to explore - market demand, competition analysis, or pricing strategy?",
       "Great question! Based on market research best practices, let me break down the key validation steps for your business concept.",
@@ -698,7 +722,9 @@
       "Good thinking! Let me help you develop a validation strategy that will give you clear answers about market viability.",
       "Interesting question! Based on successful validation methodologies, here's how I'd recommend approaching this challenge.",
       "Perfect timing for this question! Market validation is crucial, and I can guide you through the process step by step.",
-      "That's exactly the right question to ask. Let me share some proven frameworks for validating business assumptions."
+      "That's exactly the right question to ask. Let me share some proven frameworks for validating business assumptions.",
+      "Based on our validation framework, I can help you analyze market potential, competitive landscape, and customer demand patterns.",
+      "From a business strategy perspective, let me walk you through the key metrics and indicators you should monitor for validation."
     ];
     
     function loadStatus() {
@@ -709,8 +735,19 @@
       } else {
         setTimeout(() => {
           systemReady.classList.add('active');
+          updateVaultInfo();
         }, 500);
       }
+    }
+    
+    function updateVaultInfo() {
+      tokens = 876 + Math.floor(Math.random() * 200);
+      cost = (tokens * 0.000002).toFixed(4);
+      folders = 8 + Math.floor(Math.random() * 5);
+      
+      tokenCount.textContent = tokens;
+      costEstimate.textContent = '$' + cost;
+      vaultFolders.textContent = folders;
     }
     
     function sendMessage() {
@@ -733,6 +770,9 @@
       // Clear input immediately
       input.value = '';
       
+      // Update vault info
+      updateVaultInfo();
+      
       // Add AI response (LEFT side - gray bubble) after delay
       setTimeout(() => {
         const responseBubble = document.createElement('div');
@@ -750,7 +790,10 @@
         box.appendChild(responseBubble);
         box.scrollTop = box.scrollHeight;
         aiToggle = !aiToggle;
-      }, 1000);
+        
+        // Update vault info again after response
+        updateVaultInfo();
+      }, 1200);
     }
     
     document.addEventListener('DOMContentLoaded', function() {
@@ -771,6 +814,7 @@
         sendMessage();
       });
       
+      // Initialize status loading
       setTimeout(loadStatus, 800);
     });
   </script>
