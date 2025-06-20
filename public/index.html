@@ -26,7 +26,7 @@
     }
     
     header {
-      background: #1A1A1A;
+      background: #1A1极A1A;
       width: 100vw;
       min-height: 140px;
       box-shadow: 0 2px 8px #0008;
@@ -152,7 +152,7 @@
       width: 38%;
       min-width: 280px;
       background: rgba(17,17,17,0.97);
-      border-radius: 24px 0 0 24极;
+      border-radius: 24px 0 0 24px;
       box-shadow: 0 0 30px 10px #54545444 inset;
       padding: 30px 20px;
       display: flex;
@@ -252,7 +252,7 @@
     
     @keyframes systemGlow {
       from { box-shadow: 0 4px 12px rgba(255, 34, 34, 0.4);}
-      to { box-shad极ow: 0 4px 20px rgba(255, 34, 34, 0.7);}
+      to { box-shadow: 0 4px 20px rgba(255, 34, 34, 0.7);}
     }
     
     .vault-info {
@@ -337,7 +337,7 @@
       font-size: 1.15em;
       line-height: 1.5;
       border-radius: 8px;
-      font-family: 'Carlito', Arial, sans-serif;
+      font-family: 'Carlito', A极rial, sans-serif;
       box-shadow: 0 2px 8px #0002;
       min-width: 80px;
       max-width: 350px;
@@ -574,7 +574,7 @@
       
       .status-title {
         position: absolute;
-        top: 80px;
+        top: 100px;
         left: 10px;
         font-size: 0.9rem;
         color: #FFD811;
@@ -582,6 +582,7 @@
         padding: 5px;
         border-radius: 5px;
         white-space: normal;
+        margin-bottom: 5px;
       }
       
       .status-list {
@@ -589,7 +590,7 @@
       }
       
       .system-ready {
-        margin: 1rem 0 0.5rem 0;
+        margin: 0.5rem 0;
         font-size: 0.9rem;
         padding: 10px;
       }
@@ -693,6 +694,40 @@
       .chat-box {
         min-height: 30vh;
       }
+    }
+    
+    /* Fixes from search results */
+    .debug-banner, body::before {
+      display: none !important;
+      content: none !important;
+    }
+    
+    @media (max-width: 768px) {
+      .status-title {
+        top: 100px !important;
+        border: none !important;
+        background: transparent !important;
+        padding: 0 !important;
+        margin-bottom: 0 !important;
+      }
+      .system-ready {
+        margin-top: 8px !important;
+      }
+      .status-title {
+        margin-bottom: 8px !important;
+      }
+    }
+    
+    .footer {
+      position: fixed !important;
+      bottom: 0 !important;
+      left: 0 !important;
+      right: 0 !important;
+      z-index: 10000 !important;
+    }
+    
+    .chat-panel {
+      margin-bottom: 60px !important;
     }
   </style>
 </head>
