@@ -216,73 +216,152 @@
     /* --- LANDSCAPE MOBILE ONLY --- */
     @media screen and (max-width: 768px) and (orientation: landscape) {
       header {
-        padding: 6px !important;
-        height: auto !important;
+        padding: 4px 10px !important;
+        height: 48px !important;
+        min-height: 48px !important;
         flex-wrap: nowrap !important;
         align-items: center !important;
-        min-height: 52px !important;
       }
       .header-row {
         padding: 0 !important;
-        min-height: unset !important;
-        height: 52px !important;
+        height: 48px !important;
         align-items: center !important;
+        gap: 60px !important;
+        justify-content: center !important;
       }
       .logo, .ai-robot {
-        width: 40px !important;
-        height: 40px !important;
+        width: 36px !important;
+        height: 36px !important;
         position: static !important;
       }
       .header-center .site-title {
-        font-size: 1.2em !important;
+        font-size: 1.1em !important;
       }
       .header-center .subtitle {
-        font-size: 0.85em !important;
+        font-size: 0.75em !important;
+      }
+      .main-wrapper {
+        padding: 0.5rem !important;
       }
       .main-content {
         flex-direction: row !important;
-        justify-content: space-between !important;
-        align-items: flex-start !important;
-        height: calc(100vh - 120px) !important;
-        margin-bottom: 40px !important;
+        width: 95vw !important;
+        height: calc(100vh - 100px) !important;
+        margin-bottom: 32px !important;
+        border: 2px solid #fff !important;
+        border-radius: 24px !important;
+        box-shadow: 0 8px 32px #0004 !important;
+        background: #545454 !important;
+      }
+      .card-panel {
+        flex-direction: row !important;
+        border: none !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        background: transparent !important;
+      }
+      .status-panel {
+        width: 35% !important;
+        min-width: 200px !important;
+        max-width: 35% !important;
+        border-radius: 24px 0 0 24px !important;
+        background: rgba(17,17,17,0.97) !important;
+        padding: 12px 8px !important;
+      }
+      .status-title {
+        font-size: 0.85em !important;
+        margin-bottom: 6px !important;
+        text-align: left !important;
+        white-space: normal !important;
+      }
+      .system-ready {
+        font-size: 0.8em !important;
+        padding: 6px 8px !important;
+        margin: 4px 0 !important;
+      }
+      .vault-info {
+        font-size: 0.75em !important;
+        padding: 6px 8px !important;
+        margin-top: 4px !important;
       }
       .chat-panel {
         width: 65% !important;
-        margin: 0 auto !important;
+        min-width: 300px !important;
+        border-radius: 0 24px 24px 0 !important;
+        background: #545454 !important;
+        padding: 12px 8px !important;
+        margin: 0 !important;
+      }
+      .chat-box {
+        margin: 8px 0 0 0 !important;
+        min-height: 120px !important;
       }
       .input-area {
-        flex-direction: row !important;
-        justify-content: space-between !important;
+        margin: 8px 0 0 0 !important;
+        height: 32px !important;
+        min-height: 32px !important;
+        padding: 4px 8px !important;
+        border-radius: 16px !important;
       }
       .chat-input {
-        width: 80% !important;
+        height: 24px !important;
+        font-size: 0.85em !important;
+        padding: 0 8px !important;
       }
       .send-button {
-        width: 40px !important;
-      }
-      .footer-mascot {
-        width: 24px !important;
+        width: 32px !important;
         height: 24px !important;
+        border-radius: 12px !important;
       }
-      .mobile-footer {
-        max-height: 40px !important;
-        font-size: 0.85em !important;
-        display: flex !important;
-        justify-content: center !important;
-        align-items: center !important;
+      .send-button img {
+        width: 18px !important;
+        height: 18px !important;
       }
-      .mascot { display: block !important; }
-      .mascot-left, .mascot-right {
+      .mascot { 
+        display: block !important;
         position: absolute !important;
-        top: 50px !important;
-        width: 60px !important;
-        height: 60px !important;
-        min-height: 60px !important;
-        max-height: 60px !important;
+        z-index: 50 !important;
+      }
+      .mascot-left, .mascot-right {
+        width: 45px !important;
+        height: 45px !important;
+        min-height: 45px !important;
+        max-height: 45px !important;
+        top: 60px !important;
         transform: none !important;
       }
-      .mascot-left { left: 5px !important; }
-      .mascot-right { right: 5px !important; }
+      .mascot-left { left: 8px !important; }
+      .mascot-right { right: 8px !important; }
+      .mobile-rocket {
+        width: 60px !important;
+        height: 60px !important;
+        right: 35% !important;
+        top: 65px !important;
+        z-index: 30 !important;
+      }
+      .mobile-footer {
+        display: flex !important;
+        height: 32px !important;
+        max-height: 32px !important;
+        padding: 4px 10px !important;
+        font-size: 0.8em !important;
+        gap: 8px !important;
+        justify-content: center !important;
+        align-items: center !important;
+        position: fixed !important;
+        bottom: 0 !important;
+        width: 100vw !important;
+        background: #1A1A1A !important;
+        white-space: nowrap !important;
+      }
+      .footer-mascot {
+        width: 20px !important;
+        height: 20px !important;
+      }
+      .mobile-footer-text {
+        font-size: 0.8em !important;
+        font-weight: bold !important;
+      }
     }
   </style>
 </head>
