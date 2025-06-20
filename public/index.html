@@ -19,64 +19,44 @@
       background: #1A1A1A; width: 100vw; min-height: 140px;
       box-shadow: 0 2px 8px #0008;
       display: flex; flex-direction: column; align-items: center; justify-content: center; flex-shrink: 0;
-      padding: 20px 0;
     }
     .header-row {
       width: 100%; max-width: 1200px;
       display: flex; align-items: center; justify-content: center;
-      position: relative; margin: 0 auto;
+      position: relative; margin: 0 auto; padding: 20px 0;
     }
-    .logo { height: 160px; width: auto; flex-shrink: 0; position: absolute; left: calc(50% - 450px); z-index: 1; }
+    .logo { height: 160px; flex-shrink: 0; position: absolute; left: calc(50% - 450px); z-index: 1; }
     .header-center { display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; z-index: 2; }
     .site-title {
       font-family: 'Luckiest Guy', cursive, sans-serif; color: #FFD811;
-      font-size: 2.1em; margin: 0; letter-spacing: 2px; line-height: 1; text-align: center;
-      white-space: nowrap; width: 100%; text-align: center;
+      font-size: 3.2em; margin: 0; letter-spacing: 2px; line-height: 1; text-align: center;
     }
     .subtitle {
-      font-family: 'Carlito', Arial, sans-serif; color: #fff; font-size: 1.2em;
+      font-family: 'Carlito', Arial, sans-serif; color: #fff; font-size: 1.5em;
       margin-top: 8px; letter-spacing: 1px; text-align: center; font-weight: bold;
     }
-    .ai-robot { height: 85px; width: auto; flex-shrink: 0; position: absolute; right: calc(50% - 450px); z-index: 1; }
+    .ai-robot { height: 85px; flex-shrink: 0; position: absolute; right: calc(50% - 450px); z-index: 1; }
+    .rocket-top { position: absolute; right: -120px; top: 100px; width: 250px; z-index: 3; pointer-events: none; transform: rotate(45deg); }
     .main-wrapper { flex: 1; display: flex; justify-content: center; align-items: center; position: relative; width: 100%; min-height: 0; padding: 20px 0; }
     .main-content {
-      display: flex; justify-content: stretch; align-items: stretch;
+      display: flex; justify-content: center; align-items: stretch;
       max-width: 900px; width: 75vw; margin: 0 auto; position: relative;
-      height: calc(100vh - 300px);
-      min-height: 500px;
-      background: transparent;
-      border-radius: 24px; box-shadow: none;
-      border: none; z-index: 1; box-sizing: border-box;
+      height: calc(100vh - 300px); min-height: 500px;
+      background: #373534; border-radius: 24px; box-shadow: 0 8px 32px #0004;
+      border: 2px solid #fff; z-index: 1; box-sizing: border-box;
     }
-    .mascot { display: none; }
-    .mascot-left { }
-    .mascot-right { }
-    .card-panel {
-      display: flex;
-      flex-direction: row;
-      width: 100%;
-      height: 100%;
-      border-radius: 24px;
-      box-shadow: 0 8px 32px #0004;
-      border: 2px solid #fff;
-      background: #545454;
-      overflow: hidden;
-      position: relative;
-    }
+    .mascot { position: absolute; top: 50%; transform: translateY(-50%); z-index: 20; height: calc(100vh - 280px); min-height: 400px; max-height: 600px; width: auto; pointer-events: none; transition: all 0.3s ease; }
+    .mascot-left { left: 63.5px; }
+    .mascot-right { right: 63.5px; }
     .status-panel {
-      width: 38%; min-width: 370px; max-width: 400px;
-      background: rgba(17,17,17,0.97);
-      border-radius: 24px 0 0 24px;
-      box-shadow: 0 0 30px 10px #54545444 inset;
-      padding: 30px 20px;
+      width: 38%; min-width: 370px;
+      background: rgba(17,17,17,0.97); border-radius: 24px 0 0 24px;
+      box-shadow: 0 0 30px 10px #54545444 inset; padding: 30px 20px;
       display: flex; flex-direction: column; position: relative; z-index: 2; justify-content: flex-start;
-      border: none;
-      height: 100%;
     }
     .status-title {
       color: #FFD811; font-size: 1.10em; margin-bottom: 10px;
       font-weight: bold; text-align: center; width: 100%; white-space: nowrap;
-      position: static; background: none; border: none; padding: 0;
       line-height: 1.2;
     }
     .status-list { list-style: none; padding: 0; margin: 0 0 20px 0; width: 100%; }
@@ -102,22 +82,13 @@
     }
     .vault-info span { color: #fff; font-weight: bold; }
     .chat-panel {
-      width: 62%; min-width: 400px; max-width: 530px;
-      background: #545454;
-      border-radius: 0 24px 24px 0;
-      border: none;
-      padding: 0;
-      display: flex; flex-direction: column; position: relative; z-index: 2; justify-content: flex-end;
-      height: 100%;
+      width: 62%; min-width: 400px;
+      background: #545454; border-radius: 0 24px 24px 0; border-left: 2px solid #FFD811;
+      padding: 30px 20px 20px 20px; display: flex; flex-direction: column; position: relative; z-index: 2; justify-content: flex-end;
     }
     .chat-box {
-      flex: 1;
-      overflow-y: auto;
-      margin: 30px 20px 0 20px;
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-end;
-      min-height: 0;
+      flex: 1; overflow-y: auto; margin-bottom: 15px; padding-right: 8px;
+      display: flex; flex-direction: column; justify-content: flex-end; min-height: 0;
     }
     .bubble { display: flex; align-items: flex-end; margin: 12px 0; max-width: 85%; }
     .bubble.user { flex-direction: row-reverse; align-self: flex-end; }
@@ -128,17 +99,17 @@
     .bubble.ai .bubble-content { background: #888; color: #fff; border: 1.5px solid #fff; }
     .input-area {
       display: flex; align-items: center; background: #222; border-radius: 25px;
-      margin: 20px 20px 30px 20px;
-      border: 1.5px solid #fff;
-      box-shadow: 0 2px 8px #0002; gap: 12px; min-height: 56px;
-      height: 56px;
+      padding: 12px 15px; margin-top: 8px; border: 1.5px solid #fff;
+      box-shadow: 0 2px 8px #0002; gap: 12px; min-height: 70px;
     }
     .chat-input {
-      flex: 1; padding: 0 1em; border-radius: 18px; border: none; font-size: 1em;
-      background: transparent; color: white; outline: none; text-align: center; height: 45px; resize: none; overflow: hidden; font-family: 'Carlito', Arial, sans-serif; display: flex; align-items: center; justify-content: center;
+      flex: 1; padding: 16px 18px; border-radius: 18px; border: none; font-size: 0.95em;
+      background: transparent; color: white; outline: none; text-align: left; line-height: 1.3;
+      height: 45px; resize: none; overflow: hidden; font-family: 'Carlito', Arial, sans-serif;
     }
     .chat-input::placeholder {
-      color: rgba(255,255,255,0.45); opacity: 1; font-size: 1em; font-family: 'Carlito', Arial, sans-serif; letter-spacing: 0.5px; text-align: center; line-height: 45px; display: flex; align-items: center; justify-content: center;
+      color: rgba(255,255,255,0.4); opacity: 1; font-size: 0.9em; font-family: 'Carlito', Arial, sans-serif;
+      letter-spacing: 0.5px; text-align: left; line-height: 1.3; white-space: pre-line;
     }
     .send-button {
       background: #FFD811; border: 2px solid #fff; border-radius: 30px;
@@ -147,11 +118,11 @@
     }
     .send-button:hover { background: #ffe96a; transform: scale(1.05); }
     .send-button:active { transform: scale(0.95); }
-    .send-button img { width: 70px; height: 70px; display: block; transform: rotate(90deg); }
+    .send-button img { width: 60px; height: 60px; display: block; transform: rotate(90deg); }
     .footer {
       width: 100vw; background: #1A1A1A; color: #FFD811; text-align: center;
       font-family: 'Carlito', Arial, sans-serif; padding: 8px 0; letter-spacing: 1px;
-      box-shadow: 0 -2px 8px #0008; display: flex; justify-content: center; flex-shrink: 0; position: fixed; bottom: 0; left: 0; z-index: 100;
+      box-shadow: 0 -2px 8px #0008; display: flex; justify-content: center; flex-shrink: 0; z-index: 100;
     }
     .footer-inner { max-width: 900px; width: 100%; margin: 0 auto; padding: 0 20px; box-sizing: border-box; }
     .footer-text { font-size: 0.95em; font-weight: bold; margin: 0; line-height: 1.2; }
@@ -162,192 +133,106 @@
     .footer-mascot { width: 1.5rem; height: 1.5rem; object-fit: contain; }
     .mobile-footer-text { font-size: 1rem; font-weight: bold; color: #FFD811; }
     .mobile-rocket {
-      display: none; position: absolute; width: 90px; height: 90px;
-      right: 16px; top: 102px; z-index: 10; transform: rotate(45deg); opacity: 1;
+      display: none; position: absolute; width: 160px; height: 160px;
+      right: 10px; top: 130px; z-index: 10; transform: rotate(45deg); opacity: 1;
     }
-    @media screen and (max-width: 768px) and (orientation: landscape) {
-      /* HEADER AREA */
-      header {
-        padding: 6px 10px !important;
-        height: auto !important;
-        min-height: unset !important;
-        flex-wrap: nowrap !important;
-        align-items: center !important;
-      }
-      .header-row {
-        padding: 0 !important;
-        min-height: unset !important;
-        height: 52px !important;
-        align-items: center !important;
-      }
-      .logo, .ai-robot {
-        width: 40px !important;
-        height: 40px !important;
-        position: static !important;
-      }
-      .header-center .site-title {
-        font-size: 1.2em !important;
-      }
-      .header-center .subtitle {
-        font-size: 0.85em !important;
-      }
 
-      /* MASCOTS */
-      .mascot {
-        display: block !important;
-        position: absolute !important;
-        width: 60px !important;
-        height: 60px !important;
-        min-height: 60px !important;
-        max-height: 60px !important;
-        top: 60px !important;
-        z-index: 50 !important;
-      }
-      .mascot-left { left: 5px !important; }
-      .mascot-right { right: 5px !important; }
-
-      /* MAIN CONTENT BOX */
+    @media (max-width: 768px) {
+      header { min-height: 70px; }
+      .header-row { max-width: 100vw; padding: 0.25rem 0; flex-direction: row; justify-content: center; gap: 20px; align-items: center; }
+      .logo { position: static; height: 120px; margin: 0; order: 1; }
+      .ai-robot { position: static; height: 60px; margin: 0; order: 3; }
+      .header-center { margin: 0; text-align: center; order: 2; flex: none; }
+      .site-title { font-size: 1.4rem; }
+      .subtitle { font-size: 0.8rem; }
+      .mascot { display: none; }
+      .rocket-top { display: none; }
+      .mobile-rocket { display: block; }
+      .main-wrapper { padding: 0.5rem 0; }
       .main-content {
-        flex-direction: row !important;
-        width: 100vw !important;
-        height: calc(100vh - 120px) !important;
-        margin-bottom: 40px !important;
-        align-items: flex-start !important;
-        justify-content: center !important;
-      }
-      .card-panel {
-        flex-direction: row !important;
-        border-radius: 24px !important;
-        box-shadow: 0 8px 32px #0004 !important;
-        border: 2px solid #fff !important;
-        background: #545454 !important;
-        width: 90vw !important;
-        margin: 0 auto !important;
-        min-height: 220px !important;
-        max-height: 75vh !important;
-        position: relative !important;
+        flex-direction: column; width: 95vw; height: auto; min-height: calc(100vh - 200px); position: relative; margin-bottom: 60px; border: none; box-shadow: none;
       }
       .status-panel {
-        width: 32% !important;
-        min-width: 140px !important;
-        max-width: 220px !important;
-        border-radius: 24px 0 0 24px !important;
-        background: rgba(17,17,17,0.97) !important;
-        padding: 10px !important;
-        align-items: flex-start !important;
-        justify-content: flex-start !important;
-        display: flex !important;
+        width: 100%; min-width: 0; border-radius: 0; padding: 0.5rem; background: transparent; border: none; box-shadow: none; position: relative;
       }
       .status-title {
-        margin-top: 0 !important;
-        margin-bottom: 6px !important;
-        font-size: 1em !important;
-        text-align: left !important;
-        width: 100% !important;
-        white-space: normal !important;
+        position: static; margin-top: 16px; margin-bottom: 8px; background: none !important; border: none !important; padding: 0 !important; font-size: 1.1em; text-align: center; width: 100%; white-space: normal; line-height: 1.2;
       }
-      .status-list {
-        margin-bottom: 8px !important;
-      }
-      .system-ready {
-        margin: 4px 0 !important;
-        font-size: 0.95em !important;
-        padding: 6px 10px !important;
-      }
-      .vault-info {
-        margin-top: 6px !important;
-        padding: 8px 10px !important;
-        font-size: 0.85em !important;
-        border-radius: 10px !important;
-      }
-
+      .status-list { display: none; }
+      .system-ready { margin: 0.5rem 0; font-size: 0.9rem; padding: 10px; }
+      .vault-info { margin: 0.5rem 0; padding: 0.75rem; font-size: 0.8rem; border: none; }
       .chat-panel {
-        margin-top: 5px !important;
-        padding: 10px !important;
-        width: 68% !important;
-        margin-left: auto !important;
-        margin-right: auto !important;
-        border-radius: 0 24px 24px 0 !important;
-        background: #545454 !important;
-        display: flex !important;
-        flex-direction: column !important;
-        justify-content: flex-end !important;
-        min-height: 220px !important;
+        width: 100%; min-width: 0; border-radius: 0; border-left: none;
+        padding: 0.5rem; flex: 1; min-height: 50vh; margin-top: 10px; border: none; margin-bottom: 60px; background: #545454;
       }
-
-      .chat-box {
-        flex: 1 !important;
-        min-height: 80px !important;
-        margin: 8px 0 0 0 !important;
-        padding: 0 0 2px 0 !important;
+      .chat-box { min-height: 40vh; margin-bottom: 0.5rem; }
+      .input-area { padding: 0.5rem; min-height: 3rem; margin-bottom: 0.5rem; border-radius: 20px; }
+      .chat-input {
+        font-size: 1em; padding: 0 1em; height: 2.5rem; line-height: 2.5rem; text-align: center; display: flex; align-items: center; justify-content: center;
       }
+      .chat-input::placeholder { text-align: center; line-height: 2.5rem; font-size: 1em; }
+      .send-button { width: 3.5rem; height: 2.5rem; border-radius: 20px; display: flex; align-items: center; justify-content: center; }
+      .send-button img { width: 2rem; height: 2rem; }
+      .footer { display: none; }
+      .mobile-footer { display: flex; position: fixed; bottom: 0; width: 100%; }
+    }
 
-      /* INPUT + SEND BUTTON */
+    @media screen and (max-width: 768px) and (orientation: landscape) {
+      header {
+        padding: 6px;
+        height: auto;
+        flex-wrap: nowrap;
+        align-items: center;
+        min-height: 52px;
+      }
+      .logo, .ai-robot {
+        width: 40px;
+        height: 40px;
+      }
+      .main-content {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: flex-start;
+        height: calc(100vh - 120px);
+        margin-bottom: 40px;
+      }
+      .chat-panel {
+        width: 65%;
+        margin: 0 auto;
+      }
       .input-area {
-        flex-direction: row !important;
-        align-items: center !important;
-        justify-content: space-between !important;
-        margin: 10px 10px 10px 10px !important;
-        min-height: 36px !important;
-        height: 36px !important;
-        padding: 0 !important;
+        flex-direction: row;
+        justify-content: space-between;
       }
       .chat-input {
-        width: 80% !important;
-        font-size: 1em !important;
-        height: 36px !important;
-        min-height: 36px !important;
-        max-height: 36px !important;
-        padding: 0 8px !important;
-        border-radius: 14px !important;
+        width: 80%;
       }
       .send-button {
-        width: 40px !important;
-        height: 36px !important;
-        min-width: 40px !important;
-        min-height: 36px !important;
-        font-size: 1em !important;
-        border-radius: 14px !important;
-        margin-left: 8px !important;
-        padding: 0 !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-      }
-      .send-button img {
-        width: 30px !important;
-        height: 30px !important;
-      }
-
-      /* FOOTER */
-      .footer { display: none !important; }
-      .mobile-footer {
-        display: flex !important;
-        flex-direction: row !important;
-        align-items: center !important;
-        justify-content: center !important;
-        padding: 4px 10px !important;
-        height: 40px !important;
-        font-size: 0.85em !important;
-        gap: 10px !important;
-        background: #1A1A1A !important;
-        position: fixed !important;
-        bottom: 0 !important;
-        left: 0 !important;
-        width: 100vw !important;
-        z-index: 1000 !important;
-        box-shadow: 0 -2px 8px #0008 !important;
+        width: 40px;
       }
       .footer-mascot {
-        width: 24px !important;
-        height: 24px !important;
+        width: 24px;
+        height: 24px;
       }
-      .mobile-footer-text {
-        font-size: 1em !important;
-        font-weight: bold !important;
-        color: #FFD811 !important;
-        white-space: nowrap !important;
+      .mobile-footer {
+        max-height: 40px;
+        font-size: 0.85em;
+        display: flex;
+        justify-content: center;
+        align-items: center;
       }
+      .mascot { display: block; }
+      .mascot-left, .mascot-right {
+        position: absolute;
+        top: 50px;
+        width: 60px;
+        height: 60px;
+        min-height: 60px;
+        max-height: 60px;
+        transform: none;
+      }
+      .mascot-left { left: 5px; }
+      .mascot-right { right: 5px; }
     }
   </style>
 </head>
@@ -360,45 +245,45 @@
         <div class="subtitle">BUSINESS VALIDATION ENGINE</div>
       </div>
       <img src="/AI Robot.png" alt="AI Robot" class="ai-robot">
+      <img src="/rocket.png" alt="Rocket" class="rocket-top">
     </div>
   </header>
   <div class="main-wrapper">
     <img src="/boy-mascot.png" alt="Eli Mascot" class="mascot mascot-left">
     <img src="/girl-mascot.png" alt="Roxy Mascot" class="mascot mascot-right">
+    <img src="/rocket.png" alt="Mobile Rocket" class="mobile-rocket">
     <div class="main-content">
-      <div class="card-panel">
-        <div class="status-panel">
-          <div>
-            <div class="status-title">Site Monkeys Business Validation System</div>
-            <ul class="status-list" id="status-list">
-              <li><span class="check">✅</span> Zero-Failure AI</li>
-              <li><span class="check">✅</span> Complete Business Intelligence</li>
-              <li><span class="check">✅</span> Real-World Validation Ready</li>
-              <li><span class="check">✅</span> Site Monkeys memory vault loaded</li>
-              <li><span class="check">✅</span> Zero Failure activated</li>
-              <li><span class="check">✅</span> Legitimate data initiative activated</li>
-              <li><span class="check">✅</span> Persistence driven activated</li>
-              <li><span class="check">✅</span> helpful initiative activated</li>
-              <li><span class="check">✅</span> Founder Protection activated</li>
-              <li><span class="check">✅</span> Market leader Initiative</li>
-            </ul>
-            <div class="system-ready" id="system-ready"><span class="check">✅</span> SYSTEM READY</div>
-          </div>
-          <div class="vault-info" id="vault-info">
-            <div><span style="color:#00FF00;">✅</span> VAULT LOADED SUCCESSFULLY</div>
-            <div>🔢 <span id="token-count">876</span> TOKENS</div>
-            <div>💰 EST. COST: <span id="cost-estimate">$0.0018</span></div>
-            <div>📁 <span id="vault-folders">8</span> FOLDERS LOADED</div>
-          </div>
+      <div class="status-panel">
+        <div>
+          <div class="status-title">Site Monkeys Business Validation System</div>
+          <ul class="status-list" id="status-list">
+            <li><span class="check">✅</span> Zero-Failure AI</li>
+            <li><span class="check">✅</span> Complete Business Intelligence</li>
+            <li><span class="check">✅</span> Real-World Validation Ready</li>
+            <li><span class="check">✅</span> Site Monkeys memory vault loaded</li>
+            <li><span class="check">✅</span> Zero Failure activated</li>
+            <li><span class="check">✅</span> Legitimate data initiative activated</li>
+            <li><span class="check">✅</span> Persistence driven activated</li>
+            <li><span class="check">✅</span> helpful initiative activated</li>
+            <li><span class="check">✅</span> Founder Protection activated</li>
+            <li><span class="check">✅</span> Market leader Initiative</li>
+          </ul>
+          <div class="system-ready" id="system-ready"><span class="check">✅</span> SYSTEM READY</div>
         </div>
-        <div class="chat-panel">
-          <div class="chat-box" id="chat-box"></div>
-          <div class="input-area">
-            <input type="text" class="chat-input" id="user-input" placeholder="Ask Eli, Roxy, and AI about business validation…" />
-            <button class="send-button" id="send-btn" aria-label="Send">
-              <img src="/rocket.png" alt="Rocket Send" />
-            </button>
-          </div>
+        <div class="vault-info" id="vault-info">
+          <div><span style="color:#00FF00;">✅</span> VAULT LOADED SUCCESSFULLY</div>
+          <div>🔢 <span id="token-count">876</span> TOKENS</div>
+          <div>💰 EST. COST: <span id="cost-estimate">$0.0018</span></div>
+          <div>📁 <span id="vault-folders">8</span> FOLDERS LOADED</div>
+        </div>
+      </div>
+      <div class="chat-panel">
+        <div class="chat-box" id="chat-box"></div>
+        <div class="input-area">
+          <input type="text" class="chat-input" id="user-input" placeholder="Ask Eli, Roxy, and AI about business validation, pricing, strategy, services, and more..." />
+          <button class="send-button" id="send-btn" aria-label="Send">
+            <img src="/rocket.png" alt="Rocket Send" />
+          </button>
         </div>
       </div>
     </div>
@@ -507,4 +392,3 @@
   </script>
 </body>
 </html>
-
