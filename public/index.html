@@ -42,11 +42,11 @@
     .main-content {
       display: flex; justify-content: stretch; align-items: stretch;
       max-width: 900px; width: 75vw; margin: 0 auto; position: relative;
+      height: calc(100vh - 300px);
       min-height: 500px;
       background: transparent;
       border-radius: 24px; box-shadow: none;
       border: none; z-index: 1; box-sizing: border-box;
-      height: auto;
     }
     .mascot { position: absolute; top: 50%; transform: translateY(-50%); z-index: 20; height: calc(100vh - 280px); min-height: 400px; max-height: 600px; width: auto; pointer-events: none; transition: all 0.3s ease; }
     .mascot-left { left: 63.5px; }
@@ -55,11 +55,11 @@
       display: flex;
       flex-direction: row;
       width: 100%;
+      height: 100%;
       border-radius: 24px;
       box-shadow: 0 8px 32px #0004;
       border: 2px solid #fff;
-      background: #ededed;
-      min-height: 500px;
+      background: #545454;
       overflow: hidden;
     }
     .status-panel {
@@ -94,14 +94,15 @@
     .system-ready.active { display: block; transform: scale(1); animation: systemGlow 2s ease-in-out infinite alternate; }
     @keyframes systemGlow { from { box-shadow: 0 4px 12px rgba(255,34,34,0.4);} to { box-shadow: 0 4px 20px rgba(255,34,34,0.7);} }
     .vault-info {
-      background: #545454; border-radius: 0 0 0 24px; padding: 12px 14px; margin-top: 0;
+      background: #545454; border-radius: 16px; padding: 12px 14px; margin-top: auto;
       width: 100%; font-size: 0.98em; color: #fff; text-align: left; min-height: 60px;
-      display: flex; flex-direction: column; justify-content: center; border-top: 2px solid #fff; border-bottom: none; border-right: none; border-left: none; box-sizing: border-box; line-height: 1.4;
+      display: flex; flex-direction: column; justify-content: center; 
+      border: 2px solid #fff; box-sizing: border-box; line-height: 1.4;
     }
     .vault-info span { color: #fff; font-weight: bold; }
     .chat-panel {
       width: 62%; min-width: 400px; max-width: 530px;
-      background: transparent;
+      background: #545454;
       border-radius: 0 24px 24px 0;
       border: none;
       padding: 0;
@@ -180,26 +181,26 @@
       }
       .card-panel {
         flex-direction: column;
-        border-radius: 24px;
-        box-shadow: 0 8px 32px #0004;
+        border-radius: 0;
+        box-shadow: none;
         border: none;
-        background: #ededed;
+        background: transparent;
         min-height: 500px;
         width: 100%;
         overflow: hidden;
       }
       .status-panel {
-        width: 100%; min-width: 0; border-radius: 24px 24px 0 0; padding: 0.5rem; background: rgba(17,17,17,0.97); border: none; box-shadow: none; position: relative;
+        width: 100%; min-width: 0; border-radius: 0; padding: 0.5rem; background: transparent; border: none; box-shadow: none; position: relative;
       }
       .status-title {
         position: static; margin-top: 14px; margin-bottom: 8px; background: none !important; border: none !important; padding: 0 !important; font-size: 1.1em; text-align: center; width: 100%; white-space: normal; line-height: 1.2;
       }
       .status-list { display: none; }
       .system-ready { margin: 0.5rem 0; font-size: 0.9rem; padding: 10px; }
-      .vault-info { margin: 0.5rem 0; padding: 0.75rem; font-size: 0.8rem; border: none; }
+      .vault-info { margin: 0.5rem 0; padding: 0.75rem; font-size: 0.8rem; border: 2px solid #fff; }
       .chat-panel {
-        width: 100%; min-width: 0; border-radius: 0 0 24px 24px; border: none;
-        padding: 0; flex: 1; min-height: 50vh; margin-top: 0; margin-bottom: 60px; background: #ededed;
+        width: 100%; min-width: 0; border-radius: 0; border: none;
+        padding: 0; flex: 1; min-height: 50vh; margin-top: 0; margin-bottom: 60px; background: #545454;
       }
       .chat-box { min-height: 40vh; margin: 30px 20px 0 20px; }
       .input-area { margin: 20px 20px 30px 20px; border-radius: 20px; }
@@ -226,16 +227,20 @@
         width: 100vw !important;
         min-height: 0 !important;
         height: 90vh !important;
+        border-radius: 24px;
+        box-shadow: 0 8px 32px #0004;
+        border: 2px solid #fff;
+        background: #545454;
       }
       .status-panel {
         width: 45vw !important; min-width: 200px !important; max-width: 50vw !important;
         padding: 1vw 1vw !important; border-radius: 18px 0 0 18px !important;
-        height: 100% !important;
+        height: 100% !important; background: rgba(17,17,17,0.97);
       }
       .chat-panel {
         width: 55vw !important; min-width: 200px !important; max-width: 100vw !important;
         border-radius: 0 18px 18px 0 !important; margin-bottom: 60px !important;
-        height: 100% !important;
+        height: 100% !important; background: #545454;
       }
       .chat-box { margin: 30px 20px 0 20px; }
       .input-area { margin: 20px 20px 30px 20px; }
