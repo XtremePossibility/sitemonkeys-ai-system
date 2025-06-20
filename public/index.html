@@ -19,13 +19,14 @@
       background: #1A1A1A; width: 100vw; min-height: 140px;
       box-shadow: 0 2px 8px #0008;
       display: flex; flex-direction: column; align-items: center; justify-content: center; flex-shrink: 0;
+      padding: 20px 0;
     }
     .header-row {
       width: 100%; max-width: 1200px;
       display: flex; align-items: center; justify-content: center;
-      position: relative; margin: 0 auto; padding: 20px 0;
+      position: relative; margin: 0 auto;
     }
-    .logo { height: 160px; flex-shrink: 0; position: absolute; left: calc(50% - 450px); z-index: 1; }
+    .logo { height: 160px; width: auto; flex-shrink: 0; position: absolute; left: calc(50% - 450px); z-index: 1; }
     .header-center { display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; z-index: 2; }
     .site-title {
       font-family: 'Luckiest Guy', cursive, sans-serif; color: #FFD811;
@@ -36,8 +37,7 @@
       font-family: 'Carlito', Arial, sans-serif; color: #fff; font-size: 1.2em;
       margin-top: 8px; letter-spacing: 1px; text-align: center; font-weight: bold;
     }
-    .ai-robot { height: 85px; flex-shrink: 0; position: absolute; right: calc(50% - 450px); z-index: 1; }
-    .rocket-top { position: absolute; right: -120px; top: 100px; width: 250px; z-index: 3; pointer-events: none; transform: rotate(45deg); }
+    .ai-robot { height: 85px; width: auto; flex-shrink: 0; position: absolute; right: calc(50% - 450px); z-index: 1; }
     .main-wrapper { flex: 1; display: flex; justify-content: center; align-items: center; position: relative; width: 100%; min-height: 0; padding: 20px 0; }
     .main-content {
       display: flex; justify-content: stretch; align-items: stretch;
@@ -48,9 +48,9 @@
       border-radius: 24px; box-shadow: none;
       border: none; z-index: 1; box-sizing: border-box;
     }
-    .mascot { position: absolute; top: 50%; transform: translateY(-50%); z-index: 20; height: calc(100vh - 280px); min-height: 400px; max-height: 600px; width: auto; pointer-events: none; transition: all 0.3s ease; }
-    .mascot-left { left: 63.5px; }
-    .mascot-right { right: 63.5px; }
+    .mascot { display: none; }
+    .mascot-left { }
+    .mascot-right { }
     .card-panel {
       display: flex;
       flex-direction: row;
@@ -61,6 +61,7 @@
       border: 2px solid #fff;
       background: #545454;
       overflow: hidden;
+      position: relative;
     }
     .status-panel {
       width: 38%; min-width: 370px; max-width: 400px;
@@ -164,67 +165,25 @@
       display: none; position: absolute; width: 90px; height: 90px;
       right: 16px; top: 102px; z-index: 10; transform: rotate(45deg); opacity: 1;
     }
-    @media (max-width: 768px) {
-      header { min-height: 70px; }
-      .header-row { max-width: 100vw; padding: 0.25rem 0; flex-direction: row; justify-content: center; gap: 20px; align-items: center; }
-      .logo { position: static; height: 90px; margin: 0; order: 1; }
-      .ai-robot { position: static; height: 45px; margin: 0; order: 3; }
-      .header-center { margin: 0; text-align: center; order: 2; flex: none; }
-      .site-title { font-size: 1.1rem; }
-      .subtitle { font-size: 0.7rem; }
-      .mascot { display: none; }
-      .rocket-top { display: none; }
-      .mobile-rocket { display: block; }
-      .main-wrapper { padding: 0.5rem 0; }
-      .main-content {
-        flex-direction: column; width: 95vw; height: auto; min-height: calc(100vh - 200px); position: relative; margin-bottom: 60px; border: none; box-shadow: none;
-      }
-      .card-panel {
-        flex-direction: column;
-        border-radius: 0;
-        box-shadow: none;
-        border: none;
-        background: transparent;
-        min-height: 500px;
-        width: 100%;
-        overflow: hidden;
-      }
-      .status-panel {
-        width: 100%; min-width: 0; border-radius: 24px 24px 0 0; padding: 0.5rem; background: rgba(17,17,17,0.97); border: none; box-shadow: none; position: relative;
-      }
-      .status-title {
-        position: static; margin-top: 14px; margin-bottom: 8px; background: none !important; border: none !important; padding: 0 !important; font-size: 1.1em; text-align: center; width: 100%; white-space: normal; line-height: 1.2;
-      }
-      .status-list { display: none; }
-      .system-ready { margin: 0.5rem 0; font-size: 0.9rem; padding: 10px; }
-      .vault-info { margin: 0.5rem 0; padding: 0.75rem; font-size: 0.8rem; border: 2px solid #fff; }
-      .chat-panel {
-        width: 100%; min-width: 0; border-radius: 0 0 24px 24px; border: none;
-        padding: 0; flex: 1; min-height: 50vh; margin-top: 0; margin-bottom: 60px; background: #545454;
-      }
-      .chat-box { min-height: 40vh; margin: 30px 20px 0 20px; }
-      .input-area { margin: 20px 20px 30px 20px; border-radius: 20px; }
-      .chat-input {
-        font-size: 1em; padding: 0 1em; height: 2.5rem; line-height: 2.5rem; text-align: center; display: flex; align-items: center; justify-content: center;
-      }
-      .chat-input::placeholder { text-align: center; line-height: 2.5rem; font-size: 1em; }
-      .send-button { width: 3.5rem; height: 2.5rem; border-radius: 20px; display: flex; align-items: center; justify-content: center; }
-      .send-button img { width: 2rem; height: 2rem; }
-      .footer { display: none; }
-      .mobile-footer { display: flex; position: fixed; bottom: 0; width: 100%; }
-    }
     @media screen and (max-width: 768px) and (orientation: landscape) {
       /* HEADER AREA */
       header {
         padding: 6px 10px !important;
-        height: auto;
-        flex-wrap: nowrap;
-        align-items: center;
-        min-height: auto !important;
+        height: auto !important;
+        min-height: unset !important;
+        flex-wrap: nowrap !important;
+        align-items: center !important;
+      }
+      .header-row {
+        padding: 0 !important;
+        min-height: unset !important;
+        height: 52px !important;
+        align-items: center !important;
       }
       .logo, .ai-robot {
         width: 40px !important;
         height: 40px !important;
+        position: static !important;
       }
       .header-center .site-title {
         font-size: 1.2em !important;
@@ -233,12 +192,28 @@
         font-size: 0.85em !important;
       }
 
+      /* MASCOTS */
+      .mascot {
+        display: block !important;
+        position: absolute !important;
+        width: 60px !important;
+        height: 60px !important;
+        min-height: 60px !important;
+        max-height: 60px !important;
+        top: 60px !important;
+        z-index: 50 !important;
+      }
+      .mascot-left { left: 5px !important; }
+      .mascot-right { right: 5px !important; }
+
       /* MAIN CONTENT BOX */
       .main-content {
         flex-direction: row !important;
         width: 100vw !important;
         height: calc(100vh - 120px) !important;
         margin-bottom: 40px !important;
+        align-items: flex-start !important;
+        justify-content: center !important;
       }
       .card-panel {
         flex-direction: row !important;
@@ -246,73 +221,132 @@
         box-shadow: 0 8px 32px #0004 !important;
         border: 2px solid #fff !important;
         background: #545454 !important;
+        width: 90vw !important;
+        margin: 0 auto !important;
+        min-height: 220px !important;
+        max-height: 75vh !important;
+        position: relative !important;
       }
       .status-panel {
-        width: 30% !important;
-        min-width: 200px !important;
+        width: 32% !important;
+        min-width: 140px !important;
+        max-width: 220px !important;
         border-radius: 24px 0 0 24px !important;
         background: rgba(17,17,17,0.97) !important;
         padding: 10px !important;
+        align-items: flex-start !important;
+        justify-content: flex-start !important;
+        display: flex !important;
       }
+      .status-title {
+        margin-top: 0 !important;
+        margin-bottom: 6px !important;
+        font-size: 1em !important;
+        text-align: left !important;
+        width: 100% !important;
+        white-space: normal !important;
+      }
+      .status-list {
+        margin-bottom: 8px !important;
+      }
+      .system-ready {
+        margin: 4px 0 !important;
+        font-size: 0.95em !important;
+        padding: 6px 10px !important;
+      }
+      .vault-info {
+        margin-top: 6px !important;
+        padding: 8px 10px !important;
+        font-size: 0.85em !important;
+        border-radius: 10px !important;
+      }
+
       .chat-panel {
         margin-top: 5px !important;
         padding: 10px !important;
-        width: 70% !important;
-        margin-left: auto;
-        margin-right: auto;
+        width: 68% !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
         border-radius: 0 24px 24px 0 !important;
         background: #545454 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: flex-end !important;
+        min-height: 220px !important;
       }
 
-      /* MASCOTS */
-      .mascot {
-        display: block !important;
+      .chat-box {
+        flex: 1 !important;
+        min-height: 80px !important;
+        margin: 8px 0 0 0 !important;
+        padding: 0 0 2px 0 !important;
       }
-      .mascot-left, .mascot-right {
-        position: absolute !important;
-        top: 60px;
-        width: 60px;
-        height: 60px;
-        min-height: 60px !important;
-        max-height: 60px !important;
-        transform: none !important;
+
+      /* INPUT + SEND BUTTON */
+      .input-area {
+        flex-direction: row !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        margin: 10px 10px 10px 10px !important;
+        min-height: 36px !important;
+        height: 36px !important;
+        padding: 0 !important;
       }
-      .mascot-left { left: 5px; }
-      .mascot-right { right: 5px; }
+      .chat-input {
+        width: 80% !important;
+        font-size: 1em !important;
+        height: 36px !important;
+        min-height: 36px !important;
+        max-height: 36px !important;
+        padding: 0 8px !important;
+        border-radius: 14px !important;
+      }
+      .send-button {
+        width: 40px !important;
+        height: 36px !important;
+        min-width: 40px !important;
+        min-height: 36px !important;
+        font-size: 1em !important;
+        border-radius: 14px !important;
+        margin-left: 8px !important;
+        padding: 0 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+      }
+      .send-button img {
+        width: 30px !important;
+        height: 30px !important;
+      }
 
       /* FOOTER */
+      .footer { display: none !important; }
       .mobile-footer {
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        justify-content: center !important;
         padding: 4px 10px !important;
         height: 40px !important;
-        font-size: 0.85em;
-        gap: 10px;
+        font-size: 0.85em !important;
+        gap: 10px !important;
+        background: #1A1A1A !important;
+        position: fixed !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        width: 100vw !important;
+        z-index: 1000 !important;
+        box-shadow: 0 -2px 8px #0008 !important;
       }
       .footer-mascot {
         width: 24px !important;
         height: 24px !important;
       }
-
-      /* INPUT + SEND BUTTON */
-      .input-area {
-        flex-direction: row;
-        align-items: center;
-        justify-content: space-between;
-        margin-top: 10px;
-        margin: 10px 10px 10px 10px !important;
-      }
-      .chat-input {
-        width: 80% !important;
-        font-size: 1em;
-        height: 36px;
-      }
-      .send-button {
-        width: 40px;
-        height: 36px;
-        font-size: 1em;
-      }
-      .send-button img {
-        width: 30px !important;
-        height: 30px !important;
+      .mobile-footer-text {
+        font-size: 1em !important;
+        font-weight: bold !important;
+        color: #FFD811 !important;
+        white-space: nowrap !important;
       }
     }
   </style>
@@ -326,13 +360,11 @@
         <div class="subtitle">BUSINESS VALIDATION ENGINE</div>
       </div>
       <img src="/AI Robot.png" alt="AI Robot" class="ai-robot">
-      <img src="/rocket.png" alt="Rocket" class="rocket-top">
     </div>
   </header>
   <div class="main-wrapper">
     <img src="/boy-mascot.png" alt="Eli Mascot" class="mascot mascot-left">
     <img src="/girl-mascot.png" alt="Roxy Mascot" class="mascot mascot-right">
-    <img src="/rocket.png" alt="Mobile Rocket" class="mobile-rocket">
     <div class="main-content">
       <div class="card-panel">
         <div class="status-panel">
