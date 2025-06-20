@@ -50,15 +50,16 @@
     .mascot-left { left: 63.5px; }
     .mascot-right { right: 63.5px; }
     .status-panel {
-      width: 38%; min-width: 350px;
+      width: 38%; min-width: 370px;
       background: rgba(17,17,17,0.97); border-radius: 24px 0 0 24px;
       box-shadow: 0 0 30px 10px #54545444 inset; padding: 30px 20px;
       display: flex; flex-direction: column; position: relative; z-index: 2; justify-content: flex-start;
     }
     .status-title {
-      color: #FFD811; font-size: 1.15em; margin-bottom: 10px;
+      color: #FFD811; font-size: 1.10em; margin-bottom: 10px;
       font-weight: bold; text-align: center; width: 100%; white-space: nowrap;
       position: static; background: none; border: none; padding: 0;
+      line-height: 1.2;
     }
     .status-list { list-style: none; padding: 0; margin: 0 0 20px 0; width: 100%; }
     .status-list li { font-size: 1.05em; margin-bottom: 8px; opacity: 0; transform: translateX(-20px); transition: all 0.6s ease-in-out; display: flex; align-items: center; color: #fff; justify-content: flex-start; text-align: left; line-height: 1.4; }
@@ -130,7 +131,7 @@
     .mobile-footer-text { font-size: 1rem; font-weight: bold; color: #FFD811; }
     .mobile-rocket {
       display: none; position: absolute; width: 90px; height: 90px;
-      right: 16px; top: 62px; z-index: 10; transform: rotate(45deg); opacity: 1;
+      right: 16px; top: 102px; z-index: 10; transform: rotate(45deg); opacity: 1;
     }
     @media (max-width: 768px) {
       header { min-height: 70px; }
@@ -151,7 +152,7 @@
         width: 100%; min-width: 0; border-radius: 0; padding: 0.5rem; background: transparent; border: none; box-shadow: none; position: relative;
       }
       .status-title {
-        position: static; margin-top: 16px; margin-bottom: 8px; background: none !important; border: none !important; padding: 0 !important; font-size: 1.1em; text-align: center; width: 100%; white-space: normal;
+        position: static; margin-top: 14px; margin-bottom: 8px; background: none !important; border: none !important; padding: 0 !important; font-size: 1.1em; text-align: center; width: 100%; white-space: normal; line-height: 1.2;
       }
       .status-list { display: none; }
       .system-ready { margin: 0.5rem 0; font-size: 0.9rem; padding: 10px; }
@@ -171,8 +172,13 @@
       .footer { display: none; }
       .mobile-footer { display: flex; position: fixed; bottom: 0; width: 100%; }
     }
-    @media (max-width: 768px) and (orientation: landscape) {
-      .mobile-rocket { top: 40px; width: 70px; height: 70px; }
+    @media (max-width: 900px) and (orientation: landscape) {
+      .main-content, .status-panel, .chat-panel { flex-direction: row !important; height: 80vh !important; min-height: 0 !important; }
+      .status-panel { width: 45vw !important; min-width: 200px !important; padding: 1vw 1vw !important; border-radius: 18px 0 0 18px !important; }
+      .chat-panel { width: 55vw !important; min-width: 200px !important; border-radius: 0 18px 18px 0 !important; margin-bottom: 60px !important; }
+      .mobile-rocket { width: 60px !important; height: 60px !important; right: 10vw !important; top: 4vw !important; }
+      .status-title { margin-top: 0.5vw !important; margin-bottom: 1vw !important; font-size: 1.2em !important; }
+      .footer, .mobile-footer { position: fixed !important; bottom: 0 !important; width: 100vw !important; }
     }
   </style>
 </head>
