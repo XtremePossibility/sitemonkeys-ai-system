@@ -130,24 +130,31 @@
     }
     
     .mascot {
-      position: absolute;
-      top: 50%;
-      transform: translateY(-50%);
-      z-index: 20;
-      height: calc(100vh - 280px);
-      min-height: 400px;
-      max-height: 600px;
-      width: auto;
-      pointer-events: none;
-      transition: all 0.3s ease;
+      position: absolute !important;
+      top: 50% !important;
+      transform: translateY(-50%) !important;
+      z-index: 20 !important;
+      height: calc(100vh - 280px) !important;
+      min-height: 400px !important;
+      max-height: 600px !important;
+      width: auto !important;
+      pointer-events: none !important;
+      transition: all 0.3s ease !important;
     }
     
-    /* FORCE MASCOT POSITIONING - MUCH CLOSER TO CENTER */
+    /* DESKTOP MASCOT POSITIONING - FORCED MUCH CLOSER */
+    img[alt="Eli Mascot"] { 
+      left: 20px !important; 
+    }
+    img[alt="Roxy Mascot"] { 
+      right: 20px !important; 
+    }
+    
     .mascot-left { 
-      left: 35px !important; 
+      left: 20px !important; 
     }
     .mascot-right { 
-      right: 35px !important; 
+      right: 20px !important; 
     }
     
     .status-panel {
@@ -488,35 +495,26 @@
     
     /* MOBILE RESPONSIVE */
     @media (max-width: 768px) {
-      /* HEADER ADJUSTMENTS */
       header {
-        min-height: 70px !important; /* Reduced by 50% */
+        min-height: 70px !important;
       }
       
       .header-row {
-        max-width: 100vw;
-        padding: 0.25rem 0;
-        flex-direction: row;
-        justify-content: space-around;
-        gap: 0;
+        padding: 0.25rem 0 !important;
+        flex-direction: row !important;
+        justify-content: space-around !important;
       }
       
       .logo {
         position: static !important;
-        height: 4rem !important; /* Increased by 50% */
-        margin-left: -3rem !important; /* Move away from center */
+        height: 4rem !important;
+        margin-left: -3rem !important;
       }
       
       .ai-robot {
         position: static !important;
         height: 3rem !important;
-        margin-right: -3rem !important; /* Move away from center */
-      }
-      
-      .header-center {
-        margin: 0;
-        text-align: center;
-        flex: 1;
+        margin-right: -3rem !important;
       }
       
       .site-title {
@@ -527,101 +525,76 @@
         font-size: 0.8rem !important;
       }
       
-      /* MASCOTS */
-      .mascot {
+      .mascot,
+      img[alt="Eli Mascot"],
+      img[alt="Roxy Mascot"] {
         display: none !important;
       }
       
-      /* MAIN CONTENT */
-      .main-wrapper {
-        padding: 0.5rem 0;
-      }
-      
       .main-content {
-        flex-direction: column;
-        width: 95vw;
-        height: auto;
-        min-height: calc(100vh - 140px);
+        flex-direction: column !important;
+        width: 95vw !important;
+        height: auto !important;
       }
       
-      /* STATUS PANEL - REMOVE WHITE BORDER */
       .status-panel {
         width: 100% !important;
-        min-width: 0;
-        border-radius: 0;
-        padding: 0.5rem;
-        background: transparent;
-        border: none !important; /* Remove white border */
-        box-shadow: none;
-        position: relative;
+        border: none !important;
+        background: transparent !important;
+        box-shadow: none !important;
+        position: relative !important;
+        padding: 0.5rem !important;
       }
       
       .status-title {
-        position: absolute;
-        top: 0;
-        right: 0;
-        margin: 0;
-        font-size: 0.9rem;
-        color: #FFD811;
+        position: absolute !important;
+        top: 0 !important;
+        right: 0 !important;
+        font-size: 0.9rem !important;
       }
       
-      .system-ready {
-        margin: 2rem 0 0.5rem 0 !important;
-        font-size: 0.9rem;
-      }
-      
-      .vault-info {
-        margin: 0.5rem 0;
-        padding: 0.75rem;
-        font-size: 0.8rem;
-      }
-      
-      /* HIDE CHECKLIST ON MOBILE */
       .status-list {
         display: none !important;
       }
       
-      /* CHAT PANEL */
-      .chat-panel {
-        width: 100% !important;
-        min-width: 0;
-        border-radius: 0;
-        border-left: none;
-        border-top: none;
-        padding: 0.5rem;
-        flex: 1;
-        min-height: 50vh;
+      .system-ready {
+        margin: 2rem 0 0.5rem 0 !important;
+        font-size: 0.9rem !important;
       }
       
-      .chat-box {
-        flex: 1;
-        margin-bottom: 0.5rem;
-        min-height: 40vh;
+      .vault-info {
+        margin: 0.5rem 0 !important;
+        padding: 0.75rem !important;
+        font-size: 0.8rem !important;
+      }
+      
+      .chat-panel {
+        width: 100% !important;
+        border-left: none !important;
+        padding: 0.5rem !important;
+        flex: 1 !important;
       }
       
       .input-area {
-        padding: 0.5rem;
-        min-height: 3rem;
-        margin-bottom: 0.5rem;
+        padding: 0.5rem !important;
+        min-height: 3rem !important;
       }
       
       .chat-input {
-        font-size: 0.9rem;
-        padding: 0.5rem;
-        height: 2.5rem;
+        font-size: 0.9rem !important;
+        height: 2.5rem !important;
       }
       
       .send-button {
-        width: 2.5rem;
-        height: 2.5rem;
+        width: 2.5rem !important;
+        height: 2.5rem !important;
       }
       
       .send-button img {
-        width: 1.5rem;
-        height: 1.5rem;
+        width: 1.5rem !important;
+        height: 1.5rem !important;
       }
       
-      /* FOOTER SWAP */
       .footer {
         display: none !important;
       }
