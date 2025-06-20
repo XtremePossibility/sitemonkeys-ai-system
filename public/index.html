@@ -61,6 +61,7 @@
       border: 2px solid #fff;
       background: #545454;
       overflow: hidden;
+      position: relative;
     }
     .status-panel {
       width: 38%; min-width: 370px; max-width: 400px;
@@ -164,188 +165,73 @@
       display: none; position: absolute; width: 90px; height: 90px;
       right: 16px; top: 102px; z-index: 10; transform: rotate(45deg); opacity: 1;
     }
-    @media (max-width: 768px) {
-      header { min-height: 70px; }
-      .header-row { max-width: 100vw; padding: 0.25rem 0; flex-direction: row; justify-content: center; gap: 20px; align-items: center; }
-      .logo { position: static; height: 90px; margin: 0; order: 1; }
-      .ai-robot { position: static; height: 45px; margin: 0; order: 3; }
-      .header-center { margin: 0; text-align: center; order: 2; flex: none; }
-      .site-title { font-size: 1.1rem; }
-      .subtitle { font-size: 0.7rem; }
-      .mascot { display: none; }
-      .rocket-top { display: none; }
-      .mobile-rocket { display: block; }
-      .main-wrapper { padding: 0.5rem 0; }
-      .main-content {
-        flex-direction: column; width: 95vw; height: auto; min-height: calc(100vh - 200px); position: relative; margin-bottom: 60px; border: none; box-shadow: none;
-      }
-      .card-panel {
-        flex-direction: column;
-        border-radius: 0;
-        box-shadow: none;
-        border: none;
-        background: transparent;
-        min-height: 500px;
-        width: 100%;
-        overflow: hidden;
-      }
-      .status-panel {
-        width: 100%; min-width: 0; border-radius: 24px 24px 0 0; padding: 0.5rem; background: rgba(17,17,17,0.97); border: none; box-shadow: none; position: relative;
-      }
-      .status-title {
-        position: static; margin-top: 14px; margin-bottom: 8px; background: none !important; border: none !important; padding: 0 !important; font-size: 1.1em; text-align: center; width: 100%; white-space: normal; line-height: 1.2;
-      }
-      .status-list { display: none; }
-      .system-ready { margin: 0.5rem 0; font-size: 0.9rem; padding: 10px; }
-      .vault-info { margin: 0.5rem 0; padding: 0.75rem; font-size: 0.8rem; border: 2px solid #fff; }
-      .chat-panel {
-        width: 100%; min-width: 0; border-radius: 0 0 24px 24px; border: none;
-        padding: 0; flex: 1; min-height: 50vh; margin-top: 0; margin-bottom: 60px; background: #545454;
-      }
-      .chat-box { min-height: 40vh; margin: 30px 20px 0 20px; }
-      .input-area { margin: 20px 20px 30px 20px; border-radius: 20px; }
-      .chat-input {
-        font-size: 1em; padding: 0 1em; height: 2.5rem; line-height: 2.5rem; text-align: center; display: flex; align-items: center; justify-content: center;
-      }
-      .chat-input::placeholder { text-align: center; line-height: 2.5rem; font-size: 1em; }
-      .send-button { width: 3.5rem; height: 2.5rem; border-radius: 20px; display: flex; align-items: center; justify-content: center; }
-      .send-button img { width: 2rem; height: 2rem; }
-      .footer { display: none; }
-      .mobile-footer { display: flex; position: fixed; bottom: 0; width: 100%; }
-    }
-    /* --- LANDSCAPE MOBILE ONLY --- */
     @media screen and (max-width: 768px) and (orientation: landscape) {
       header {
-        padding: 4px 10px !important;
-        height: 48px !important;
-        min-height: 48px !important;
-        flex-wrap: nowrap !important;
-        align-items: center !important;
+        min-height: 40px !important;
+        padding: 2px 0 !important;
       }
       .header-row {
-        padding: 0 !important;
-        height: 48px !important;
-        align-items: center !important;
-        gap: 60px !important;
-        justify-content: center !important;
+        gap: 6px !important;
+        padding: 0 6px !important;
+        height: 40px !important;
       }
       .logo, .ai-robot {
-        width: 36px !important;
-        height: 36px !important;
-        position: static !important;
+        height: 30px !important;
+        width: auto !important;
       }
-      .header-center .site-title {
-        font-size: 1.1em !important;
+      .header-center {
+        margin: 0 2px !important;
       }
-      .header-center .subtitle {
-        font-size: 0.75em !important;
+      .site-title {
+        font-size: 0.9rem !important;
+        letter-spacing: 1px !important;
       }
-      .main-wrapper {
-        padding: 0.5rem !important;
+      .subtitle {
+        font-size: 0.6rem !important;
+        margin-top: 2px !important;
       }
       .main-content {
-        flex-direction: row !important;
-        width: 95vw !important;
-        height: calc(100vh - 100px) !important;
-        margin-bottom: 32px !important;
-        border: 2px solid #fff !important;
-        border-radius: 24px !important;
-        box-shadow: 0 8px 32px #0004 !important;
-        background: #545454 !important;
-      }
-      .card-panel {
-        flex-direction: row !important;
-        border: none !important;
-        border-radius: 0 !important;
-        box-shadow: none !important;
-        background: transparent !important;
+        width: 87vw !important;
+        height: calc(100vh - 75px) !important;
       }
       .status-panel {
-        width: 35% !important;
-        min-width: 200px !important;
-        max-width: 35% !important;
-        border-radius: 24px 0 0 24px !important;
-        background: rgba(17,17,17,0.97) !important;
-        padding: 12px 8px !important;
-      }
-      .status-title {
-        font-size: 0.85em !important;
-        margin-bottom: 6px !important;
-        text-align: left !important;
-        white-space: normal !important;
-      }
-      .system-ready {
-        font-size: 0.8em !important;
-        padding: 6px 8px !important;
-        margin: 4px 0 !important;
-      }
-      .vault-info {
-        font-size: 0.75em !important;
-        padding: 6px 8px !important;
-        margin-top: 4px !important;
+        width: 19% !important;
+        min-width: 90px !important;
+        max-width: 130px !important;
+        padding: 6px !important;
       }
       .chat-panel {
-        width: 65% !important;
-        min-width: 300px !important;
-        border-radius: 0 24px 24px 0 !important;
-        background: #545454 !important;
-        padding: 12px 8px !important;
-        margin: 0 !important;
+        width: 81% !important;
+        min-width: 180px !important;
+        padding: 6px !important;
       }
-      .chat-box {
-        margin: 8px 0 0 0 !important;
-        min-height: 120px !important;
+      .status-title,
+      .status-list li,
+      .system-ready,
+      .vault-info {
+        font-size: 0.7em !important;
       }
-      .input-area {
-        margin: 8px 0 0 0 !important;
-        height: 32px !important;
-        min-height: 32px !important;
-        padding: 4px 8px !important;
-        border-radius: 16px !important;
+      .mascot {
+        height: 80px !important;
+        min-height: 80px !important;
+        max-height: 80px !important;
+        top: 60% !important;
       }
-      .chat-input {
-        height: 24px !important;
-        font-size: 0.85em !important;
-        padding: 0 8px !important;
-      }
-      .send-button {
-        width: 32px !important;
-        height: 24px !important;
-        border-radius: 12px !important;
-      }
-      .send-button img {
-        width: 18px !important;
-        height: 18px !important;
-      }
-      .mascot { 
-        display: block !important;
-        position: absolute !important;
-        z-index: 50 !important;
-      }
-      .mascot-left, .mascot-right {
-        width: 45px !important;
-        height: 45px !important;
-        min-height: 45px !important;
-        max-height: 45px !important;
-        top: 60px !important;
-        transform: none !important;
-      }
-      .mascot-left { left: 8px !important; }
-      .mascot-right { right: 8px !important; }
+      .mascot-left { left: 2px !important; }
+      .mascot-right { right: 2px !important; }
       .mobile-rocket {
-        width: 60px !important;
-        height: 60px !important;
-        right: 35% !important;
-        top: 65px !important;
+        width: 36px !important;
+        height: 36px !important;
+        top: 135px !important;
+        right: 2px !important;
         z-index: 30 !important;
       }
       .mobile-footer {
-        display: flex !important;
-        height: 32px !important;
-        max-height: 32px !important;
-        padding: 4px 10px !important;
+        height: 24px !important;
+        max-height: 24px !important;
+        padding: 1px 0 !important;
         font-size: 0.8em !important;
-        gap: 8px !important;
+        gap: 6px !important;
         justify-content: center !important;
         align-items: center !important;
         position: fixed !important;
@@ -355,8 +241,8 @@
         white-space: nowrap !important;
       }
       .footer-mascot {
-        width: 20px !important;
-        height: 20px !important;
+        width: 16px !important;
+        height: 16px !important;
       }
       .mobile-footer-text {
         font-size: 0.8em !important;
