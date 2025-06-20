@@ -130,31 +130,24 @@
     }
     
     .mascot {
-      position: absolute !important;
-      top: 50% !important;
-      transform: translateY(-50%) !important;
-      z-index: 20 !important;
-      height: calc(100vh - 280px) !important;
-      min-height: 400px !important;
-      max-height: 600px !important;
-      width: auto !important;
-      pointer-events: none !important;
-      transition: all 0.3s ease !important;
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 20;
+      height: calc(100vh - 280px);
+      min-height: 400px;
+      max-height: 600px;
+      width: auto;
+      pointer-events: none;
+      transition: all 0.3s ease;
     }
     
-    /* DESKTOP MASCOT POSITIONING - FORCED MUCH CLOSER */
-    img[alt="Eli Mascot"] { 
-      left: 20px !important; 
-    }
-    img[alt="Roxy Mascot"] { 
-      right: 20px !important; 
-    }
-    
+    /* DESKTOP MASCOT POSITIONING - EXACTLY AS REQUESTED */
     .mascot-left { 
-      left: 20px !important; 
+      left: 33.5px !important; 
     }
     .mascot-right { 
-      right: 20px !important; 
+      right: 33.5px !important; 
     }
     
     .status-panel {
@@ -470,7 +463,6 @@
       line-height: 1.2;
     }
     
-    /* MOBILE FOOTER */
     .mobile-footer {
       display: none;
       justify-content: center;
@@ -493,114 +485,241 @@
       color: #FFD811;
     }
     
+    .mobile-rocket {
+      display: none;
+      position: absolute;
+      width: 125px;
+      height: 125px;
+      right: 10px;
+      top: 10px;
+      z-index: 10;
+      transform: rotate(45deg);
+      opacity: 0.9;
+    }
+    
     /* MOBILE RESPONSIVE */
     @media (max-width: 768px) {
+      /* HEADER GROUP - KEEP TOGETHER AT TOP */
       header {
-        min-height: 70px !important;
+        min-height: 140px !important;
+        padding: 10px 0;
       }
       
       .header-row {
-        padding: 0.25rem 0 !important;
-        flex-direction: row !important;
-        justify-content: space-around !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        padding: 10px 0 !important;
+        position: relative !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 10px !important;
       }
       
       .logo {
         position: static !important;
-        height: 4rem !important;
-        margin-left: -3rem !important;
+        height: 120px !important;
+        left: auto !important;
+        margin: 0 !important;
       }
       
       .ai-robot {
         position: static !important;
-        height: 3rem !important;
-        margin-right: -3rem !important;
+        height: 75px !important;
+        right: auto !important;
+        margin: 0 !important;
+      }
+      
+      .header-center {
+        margin: 0 10px !important;
+        flex: 1 !important;
       }
       
       .site-title {
-        font-size: 1.4rem !important;
+        font-size: 2.2em !important;
+        margin: 0 !important;
       }
       
       .subtitle {
-        font-size: 0.8rem !important;
+        font-size: 1.2em !important;
+        margin: 5px 0 0 0 !important;
       }
       
-      .mascot,
-      img[alt="Eli Mascot"],
-      img[alt="Roxy Mascot"] {
+      /* ROCKET - SHRUNK 50% AND POSITIONED UNDER HEADER */
+      .rocket-top {
         display: none !important;
+      }
+      
+      .mobile-rocket {
+        display: block !important;
+        position: fixed !important;
+        right: 10px !important;
+        top: 160px !important;
+        width: 125px !important;
+        height: 125px !important;
+        z-index: 1000 !important;
+      }
+      
+      /* HIDE DESKTOP MASCOTS */
+      .mascot {
+        display: none !important;
+      }
+      
+      /* MAIN CONTENT ADJUSTMENTS */
+      .main-wrapper {
+        padding: 10px 0 !important;
       }
       
       .main-content {
         flex-direction: column !important;
         width: 95vw !important;
         height: auto !important;
+        min-height: calc(100vh - 220px) !important;
+        border: none !important; /* REMOVE WHITE BORDER ON MOBILE */
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        background: transparent !important;
       }
       
+      /* STATUS PANEL - MOVE TITLE UP UNDER HEADER */
       .status-panel {
         width: 100% !important;
-        border: none !important;
+        min-width: 0 !important;
         background: transparent !important;
+        border-radius: 0 !important;
         box-shadow: none !important;
+        padding: 10px !important;
+        border: none !important;
         position: relative !important;
-        padding: 0.5rem !important;
       }
       
       .status-title {
         position: absolute !important;
-        top: 0 !important;
-        right: 0 !important;
-        font-size: 0.9rem !important;
+        top: -50px !important;
+        left: 10px !important;
+        right: 60px !important;
+        font-size: 1.1em !important;
+        margin: 0 !important;
+        z-index: 999 !important;
+        background: #373534 !important;
+        padding: 5px !important;
+        border-radius: 5px !important;
       }
       
+      /* HIDE CHECKLIST ON MOBILE */
       .status-list {
         display: none !important;
       }
       
       .system-ready {
-        margin: 2rem 0 0.5rem 0 !important;
-        font-size: 0.9rem !important;
+        margin: 10px 0 !important;
+        font-size: 1em !important;
+        padding: 10px 15px !important;
       }
       
       .vault-info {
-        margin: 0.5rem 0 !important;
-        padding: 0.75rem !important;
-        font-size: 0.8rem !important;
+        margin: 10px 0 !important;
+        padding: 10px 15px !important;
+        font-size: 0.9em !important;
+        background: #545454 !important;
+        border: 2px solid #fff !important;
       }
       
+      /* CHAT PANEL */
       .chat-panel {
         width: 100% !important;
+        min-width: 0 !important;
+        border-radius: 0 !important;
         border-left: none !important;
-        padding: 0.5rem !important;
+        border-top: none !important;
+        padding: 10px !important;
         flex: 1 !important;
+        background: #545454 !important;
+        margin-top: 10px !important;
+      }
+      
+      .chat-box {
+        min-height: 40vh !important;
+        margin-bottom: 10px !important;
       }
       
       .input-area {
-        padding: 0.5rem !important;
-        min-height: 3rem !important;
+        padding: 10px !important;
+        min-height: 60px !important;
+        margin-top: 10px !important;
+        border: 1.5px solid #fff !important;
       }
       
       .chat-input {
-        font-size: 0.9rem !important;
-        height: 2.5rem !important;
+        font-size: 1em !important;
+        padding: 12px 15px !important;
+        height: 40px !important;
       }
       
       .send-button {
-        width: 2.5rem !important;
-        height: 2.5rem !important;
+        width: 80px !important;
+        height: 50px !important;
       }
       
       .send-button img {
-        width: 1.5rem !important;
-        height: 1.5rem !important;
+        width: 40px !important;
+        height: 40px !important;
       }
       
+      /* FOOTER SWAP */
       .footer {
         display: none !important;
       }
       
       .mobile-footer {
         display: flex !important;
+      }
+    }
+    
+    /* LANDSCAPE ORIENTATION FOR MOBILE */
+    @media (max-width: 768px) and (orientation: landscape) {
+      header {
+        min-height: 100px !important;
+      }
+      
+      .header-row {
+        padding: 5px 0 !important;
+        gap: 5px !important;
+      }
+      
+      .logo {
+        height: 80px !important;
+      }
+      
+      .ai-robot {
+        height: 60px !important;
+      }
+      
+      .site-title {
+        font-size: 1.8em !important;
+      }
+      
+      .subtitle {
+        font-size: 1em !important;
+      }
+      
+      .mobile-rocket {
+        top: 110px !important;
+        width: 100px !important;
+        height: 100px !important;
+      }
+      
+      .status-title {
+        top: -40px !important;
+        font-size: 1em !important;
+      }
+      
+      .main-content {
+        min-height: calc(100vh - 160px) !important;
+      }
+      
+      .chat-box {
+        min-height: 30vh !important;
       }
     }
   </style>
@@ -617,9 +736,12 @@
       <img src="/rocket.png" alt="Rocket" class="rocket-top">
     </div>
   </header>
+  
   <div class="main-wrapper">
     <img src="/boy-mascot.png" alt="Eli Mascot" class="mascot mascot-left">
     <img src="/girl-mascot.png" alt="Roxy Mascot" class="mascot mascot-right">
+    <img src="/rocket.png" alt="Mobile Rocket" class="mobile-rocket">
+    
     <div class="main-content">
       <div class="status-panel">
         <div>
@@ -645,6 +767,7 @@
           <div>📁 <span id="vault-folders">8</span> FOLDERS LOADED</div>
         </div>
       </div>
+      
       <div class="chat-panel">
         <div class="chat-box" id="chat-box"></div>
         <div class="input-area">
@@ -656,6 +779,7 @@
       </div>
     </div>
   </div>
+  
   <div class="footer">
     <div class="footer-inner">
       <div class="footer-text">THE FIRST AND ONLY BUSINESS VALIDATION CHAT SYSTEM THAT PUTS HONESTY, REAL DATA, TRANSPARENCY,<br>PERSISTENCE, &amp; INITIATIVE BEFORE ALL ELSE! AI YOU CAN TRUST!</div>
@@ -680,6 +804,7 @@
     let cost = 0.0018;
     let folders = 8;
     let systemActive = false;
+    
     function loadStatus() {
       if (statusIndex < statusItems.length) {
         statusItems[statusIndex].classList.add('loaded');
@@ -693,6 +818,7 @@
         }, 500);
       }
     }
+    
     function updateVaultInfo() {
       if (!systemActive) return;
       tokens = 876 + Math.floor(Math.random() * 400);
@@ -702,6 +828,7 @@
       costEstimate.textContent = '$' + cost;
       vaultFolders.textContent = folders;
     }
+    
     const businessResponses = [
       "Based on current market analysis, I can help you validate your business concept using proven frameworks. What specific aspect would you like to explore?",
       "I'm analyzing your business model against successful validation patterns. Let me break down the key factors that will determine market viability.",
@@ -712,6 +839,7 @@
       "Business validation is crucial for success. I can help you develop a testing strategy that minimizes risk and maximizes learning.",
       "Let's focus on the fundamentals: target market, value proposition, and business model viability. Which area needs the most attention?"
     ];
+    
     function sendMessage() {
       const input = document.getElementById('user-input');
       const text = input.value.trim();
@@ -744,6 +872,7 @@
         updateVaultInfo();
       }, 1200);
     }
+    
     document.addEventListener('DOMContentLoaded', function() {
       const input = document.getElementById('user-input');
       const sendBtn = document.getElementById('send-btn');
