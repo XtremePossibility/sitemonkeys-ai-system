@@ -15,11 +15,12 @@
       background: #000;
       padding: 10px 20px;
       text-align: center;
+      position: relative;
     }
     .logo { height: 80px; }
     .rocket-top {
       position: absolute;
-      top: 20px;
+      top: 10px;
       right: 20px;
       width: 80px;
     }
@@ -28,6 +29,7 @@
       justify-content: space-between;
       align-items: flex-start;
       padding: 20px;
+      flex-wrap: nowrap;
     }
     .mascot { width: 250px; }
     .chat-wrapper {
@@ -49,7 +51,7 @@
       border-radius: 10px;
       position: fixed;
       left: 20px;
-      top: 150px;
+      top: 130px;
     }
     .status-panel h4 {
       color: red;
@@ -152,8 +154,8 @@
 <body>
   <header>
     <img src="logo.png" alt="Site Monkeys Logo" class="logo" />
+    <img src="rocket-no-smoke.png" alt="Rocket" class="rocket-top" />
   </header>
-  <img src="rocket-no-smoke.png" alt="Rocket" class="rocket-top" />
 
   <div class="status-panel">
     <h4>SYSTEM READY</h4>
@@ -171,7 +173,6 @@
 
   <div class="main">
     <img src="boy-mascot.png" alt="Eli" class="mascot" />
-
     <div class="chat-wrapper">
       <div class="chat-box" id="chat-box">
         <div class="bubble eli">
@@ -186,7 +187,6 @@
         </button>
       </div>
     </div>
-
     <img src="girl-mascot.png" alt="Roxy" class="mascot" />
   </div>
 
@@ -207,13 +207,11 @@
       const who = toggle ? 'Roxy' : 'Eli';
       const avatar = toggle ? 'girl-mascot.png' : 'boy-mascot.png';
       const bubbleClass = toggle ? 'bubble roxy' : 'bubble eli';
-
       bubble.className = bubbleClass;
       bubble.innerHTML = `
         <img src="${avatar}" class="avatar" />
         <div class="bubble-content"><strong>${who}:</strong> ${text}</div>
       `;
-
       box.appendChild(bubble);
       box.scrollTop = box.scrollHeight;
       input.value = '';
