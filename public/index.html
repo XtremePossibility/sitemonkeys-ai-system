@@ -40,43 +40,25 @@
     .rocket-top { position: absolute; right: -120px; top: 100px; width: 250px; z-index: 3; pointer-events: none; transform: rotate(45deg); }
     .main-wrapper { flex: 1; display: flex; justify-content: center; align-items: center; position: relative; width: 100%; min-height: 0; padding: 20px 0; }
     .main-content {
-      display: flex; justify-content: stretch; align-items: stretch;
+      display: flex; justify-content: center; align-items: stretch;
       max-width: 900px; width: 75vw; margin: 0 auto; position: relative;
-      height: calc(100vh - 300px);
-      min-height: 500px;
-      background: transparent;
-      border-radius: 24px; box-shadow: none;
-      border: none; z-index: 1; box-sizing: border-box;
+      height: calc(100vh - 300px); min-height: 500px;
+      background: #373534; border-radius: 24px; box-shadow: 0 8px 32px #0004;
+      border: 2px solid #fff; z-index: 1; box-sizing: border-box;
     }
     .mascot { position: absolute; top: 50%; transform: translateY(-50%); z-index: 20; height: calc(100vh - 280px); min-height: 400px; max-height: 600px; width: auto; pointer-events: none; transition: all 0.3s ease; }
     .mascot-left { left: 63.5px; }
     .mascot-right { right: 63.5px; }
-    .card-panel {
-      display: flex;
-      flex-direction: row;
-      width: 100%;
-      height: 100%;
-      border-radius: 24px;
-      box-shadow: 0 8px 32px #0004;
-      border: 2px solid #fff;
-      background: #545454;
-      overflow: hidden;
-    }
     .status-panel {
-      width: 38%; min-width: 370px; max-width: 400px;
-      background: rgba(17,17,17,0.97);
-      border-radius: 24px 0 0 24px;
-      box-shadow: 0 0 30px 10px #54545444 inset;
-      padding: 30px 20px;
+      width: 38%; min-width: 350px;
+      background: rgba(17,17,17,0.97); border-radius: 24px 0 0 24px;
+      box-shadow: 0 0 30px 10px #54545444 inset; padding: 30px 20px;
       display: flex; flex-direction: column; position: relative; z-index: 2; justify-content: flex-start;
-      border: none;
-      height: 100%;
     }
     .status-title {
-      color: #FFD811; font-size: 1.10em; margin-bottom: 10px;
+      color: #FFD811; font-size: 1.15em; margin-bottom: 10px;
       font-weight: bold; text-align: center; width: 100%; white-space: nowrap;
       position: static; background: none; border: none; padding: 0;
-      line-height: 1.2;
     }
     .status-list { list-style: none; padding: 0; margin: 0 0 20px 0; width: 100%; }
     .status-list li { font-size: 1.05em; margin-bottom: 8px; opacity: 0; transform: translateX(-20px); transition: all 0.6s ease-in-out; display: flex; align-items: center; color: #fff; justify-content: flex-start; text-align: left; line-height: 1.4; }
@@ -94,30 +76,18 @@
     .system-ready.active { display: block; transform: scale(1); animation: systemGlow 2s ease-in-out infinite alternate; }
     @keyframes systemGlow { from { box-shadow: 0 4px 12px rgba(255,34,34,0.4);} to { box-shadow: 0 4px 20px rgba(255,34,34,0.7);} }
     .vault-info {
-      background: #545454; border-radius: 16px; padding: 12px 14px; margin-top: auto;
+      background: #545454; border-radius: 16px; padding: 12px 14px; margin-top: 0;
       width: 100%; font-size: 0.98em; color: #fff; text-align: left; min-height: 60px;
-      display: flex; flex-direction: column; justify-content: center; 
-      border: 2px solid #fff; box-sizing: border-box; line-height: 1.4;
+      display: flex; flex-direction: column; justify-content: center; border: 2px solid #fff; box-sizing: border-box; line-height: 1.4;
     }
     .vault-info span { color: #fff; font-weight: bold; }
     .chat-panel {
-      width: 62%; min-width: 400px; max-width: 530px;
-      background: #545454;
-      border-radius: 0 24px 24px 0;
-      border: none;
-      padding: 0;
-      display: flex; flex-direction: column; position: relative; z-index: 2; justify-content: flex-end;
-      height: 100%;
+      width: 62%; min-width: 400px; background: #545454;
+      border-radius: 0 24px 24px 0; border-left: 2px solid #FFD811;
+      padding: 30px 20px 20px 20px; display: flex; flex-direction: column; position: relative; z-index: 2; justify-content: flex-end;
+      margin-bottom: 60px;
     }
-    .chat-box {
-      flex: 1;
-      overflow-y: auto;
-      margin: 30px 20px 0 20px;
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-end;
-      min-height: 0;
-    }
+    .chat-box { flex: 1; overflow-y: auto; margin-bottom: 15px; padding-right: 8px; display: flex; flex-direction: column; justify-content: flex-end; min-height: 0; }
     .bubble { display: flex; align-items: flex-end; margin: 12px 0; max-width: 85%; }
     .bubble.user { flex-direction: row-reverse; align-self: flex-end; }
     .bubble.ai { flex-direction: row; align-self: flex-start; }
@@ -127,10 +97,8 @@
     .bubble.ai .bubble-content { background: #888; color: #fff; border: 1.5px solid #fff; }
     .input-area {
       display: flex; align-items: center; background: #222; border-radius: 25px;
-      margin: 20px 20px 30px 20px;
-      border: 1.5px solid #fff;
-      box-shadow: 0 2px 8px #0002; gap: 12px; min-height: 56px;
-      height: 56px;
+      padding: 12px 15px; margin-top: 8px; border: 1.5px solid #fff;
+      box-shadow: 0 2px 8px #0002; gap: 12px; min-height: 70px;
     }
     .chat-input {
       flex: 1; padding: 0 1em; border-radius: 18px; border: none; font-size: 1em;
@@ -162,7 +130,7 @@
     .mobile-footer-text { font-size: 1rem; font-weight: bold; color: #FFD811; }
     .mobile-rocket {
       display: none; position: absolute; width: 90px; height: 90px;
-      right: 16px; top: 102px; z-index: 10; transform: rotate(45deg); opacity: 1;
+      right: 16px; top: 62px; z-index: 10; transform: rotate(45deg); opacity: 1;
     }
     @media (max-width: 768px) {
       header { min-height: 70px; }
@@ -179,31 +147,21 @@
       .main-content {
         flex-direction: column; width: 95vw; height: auto; min-height: calc(100vh - 200px); position: relative; margin-bottom: 60px; border: none; box-shadow: none;
       }
-      .card-panel {
-        flex-direction: column;
-        border-radius: 0;
-        box-shadow: none;
-        border: none;
-        background: transparent;
-        min-height: 500px;
-        width: 100%;
-        overflow: hidden;
-      }
       .status-panel {
         width: 100%; min-width: 0; border-radius: 0; padding: 0.5rem; background: transparent; border: none; box-shadow: none; position: relative;
       }
       .status-title {
-        position: static; margin-top: 14px; margin-bottom: 8px; background: none !important; border: none !important; padding: 0 !important; font-size: 1.1em; text-align: center; width: 100%; white-space: normal; line-height: 1.2;
+        position: static; margin-top: 16px; margin-bottom: 8px; background: none !important; border: none !important; padding: 0 !important; font-size: 1.1em; text-align: center; width: 100%; white-space: normal;
       }
       .status-list { display: none; }
       .system-ready { margin: 0.5rem 0; font-size: 0.9rem; padding: 10px; }
-      .vault-info { margin: 0.5rem 0; padding: 0.75rem; font-size: 0.8rem; border: 2px solid #fff; }
+      .vault-info { margin: 0.5rem 0; padding: 0.75rem; font-size: 0.8rem; border: none; }
       .chat-panel {
-        width: 100%; min-width: 0; border-radius: 0; border: none;
-        padding: 0; flex: 1; min-height: 50vh; margin-top: 0; margin-bottom: 60px; background: #545454;
+        width: 100%; min-width: 0; border-radius: 0; border-left: none;
+        padding: 0.5rem; flex: 1; min-height: 50vh; margin-top: 10px; border: none; margin-bottom: 60px;
       }
-      .chat-box { min-height: 40vh; margin: 30px 20px 0 20px; }
-      .input-area { margin: 20px 20px 30px 20px; border-radius: 20px; }
+      .chat-box { min-height: 40vh; margin-bottom: 0.5rem; }
+      .input-area { padding: 0.5rem; min-height: 3rem; margin-bottom: 0.5rem; border-radius: 20px; }
       .chat-input {
         font-size: 1em; padding: 0 1em; height: 2.5rem; line-height: 2.5rem; text-align: center; display: flex; align-items: center; justify-content: center;
       }
@@ -213,40 +171,8 @@
       .footer { display: none; }
       .mobile-footer { display: flex; position: fixed; bottom: 0; width: 100%; }
     }
-    @media (max-width: 900px) and (orientation: landscape) {
-      .main-content {
-        flex-direction: row !important;
-        width: 100vw !important;
-        max-width: 100vw !important;
-        height: 90vh !important;
-        min-height: 0 !important;
-        margin-bottom: 0 !important;
-      }
-      .card-panel {
-        flex-direction: row !important;
-        width: 100vw !important;
-        min-height: 0 !important;
-        height: 90vh !important;
-        border-radius: 24px;
-        box-shadow: 0 8px 32px #0004;
-        border: 2px solid #fff;
-        background: #545454;
-      }
-      .status-panel {
-        width: 45vw !important; min-width: 200px !important; max-width: 50vw !important;
-        padding: 1vw 1vw !important; border-radius: 18px 0 0 18px !important;
-        height: 100% !important; background: rgba(17,17,17,0.97);
-      }
-      .chat-panel {
-        width: 55vw !important; min-width: 200px !important; max-width: 100vw !important;
-        border-radius: 0 18px 18px 0 !important; margin-bottom: 60px !important;
-        height: 100% !important; background: #545454;
-      }
-      .chat-box { margin: 30px 20px 0 20px; }
-      .input-area { margin: 20px 20px 30px 20px; }
-      .mobile-rocket { width: 60px !important; height: 60px !important; right: 10vw !important; top: 4vw !important; }
-      .status-title { margin-top: 0.5vw !important; margin-bottom: 1vw !important; font-size: 1.2em !important; }
-      .footer, .mobile-footer { position: fixed !important; bottom: 0 !important; width: 100vw !important; }
+    @media (max-width: 768px) and (orientation: landscape) {
+      .mobile-rocket { top: 40px; width: 70px; height: 70px; }
     }
   </style>
 </head>
@@ -267,39 +193,37 @@
     <img src="/girl-mascot.png" alt="Roxy Mascot" class="mascot mascot-right">
     <img src="/rocket.png" alt="Mobile Rocket" class="mobile-rocket">
     <div class="main-content">
-      <div class="card-panel">
-        <div class="status-panel">
-          <div>
-            <div class="status-title">Site Monkeys Business Validation System</div>
-            <ul class="status-list" id="status-list">
-              <li><span class="check">✅</span> Zero-Failure AI</li>
-              <li><span class="check">✅</span> Complete Business Intelligence</li>
-              <li><span class="check">✅</span> Real-World Validation Ready</li>
-              <li><span class="check">✅</span> Site Monkeys memory vault loaded</li>
-              <li><span class="check">✅</span> Zero Failure activated</li>
-              <li><span class="check">✅</span> Legitimate data initiative activated</li>
-              <li><span class="check">✅</span> Persistence driven activated</li>
-              <li><span class="check">✅</span> helpful initiative activated</li>
-              <li><span class="check">✅</span> Founder Protection activated</li>
-              <li><span class="check">✅</span> Market leader Initiative</li>
-            </ul>
-            <div class="system-ready" id="system-ready"><span class="check">✅</span> SYSTEM READY</div>
-          </div>
-          <div class="vault-info" id="vault-info">
-            <div><span style="color:#00FF00;">✅</span> VAULT LOADED SUCCESSFULLY</div>
-            <div>🔢 <span id="token-count">876</span> TOKENS</div>
-            <div>💰 EST. COST: <span id="cost-estimate">$0.0018</span></div>
-            <div>📁 <span id="vault-folders">8</span> FOLDERS LOADED</div>
-          </div>
+      <div class="status-panel">
+        <div>
+          <div class="status-title">Site Monkeys Business Validation System</div>
+          <ul class="status-list" id="status-list">
+            <li><span class="check">✅</span> Zero-Failure AI</li>
+            <li><span class="check">✅</span> Complete Business Intelligence</li>
+            <li><span class="check">✅</span> Real-World Validation Ready</li>
+            <li><span class="check">✅</span> Site Monkeys memory vault loaded</li>
+            <li><span class="check">✅</span> Zero Failure activated</li>
+            <li><span class="check">✅</span> Legitimate data initiative activated</li>
+            <li><span class="check">✅</span> Persistence driven activated</li>
+            <li><span class="check">✅</span> helpful initiative activated</li>
+            <li><span class="check">✅</span> Founder Protection activated</li>
+            <li><span class="check">✅</span> Market leader Initiative</li>
+          </ul>
+          <div class="system-ready" id="system-ready"><span class="check">✅</span> SYSTEM READY</div>
         </div>
-        <div class="chat-panel">
-          <div class="chat-box" id="chat-box"></div>
-          <div class="input-area">
-            <input type="text" class="chat-input" id="user-input" placeholder="Ask Eli, Roxy, and AI about business validation…" />
-            <button class="send-button" id="send-btn" aria-label="Send">
-              <img src="/rocket.png" alt="Rocket Send" />
-            </button>
-          </div>
+        <div class="vault-info" id="vault-info">
+          <div><span style="color:#00FF00;">✅</span> VAULT LOADED SUCCESSFULLY</div>
+          <div>🔢 <span id="token-count">876</span> TOKENS</div>
+          <div>💰 EST. COST: <span id="cost-estimate">$0.0018</span></div>
+          <div>📁 <span id="vault-folders">8</span> FOLDERS LOADED</div>
+        </div>
+      </div>
+      <div class="chat-panel">
+        <div class="chat-box" id="chat-box"></div>
+        <div class="input-area">
+          <input type="text" class="chat-input" id="user-input" placeholder="Ask Eli, Roxy, and AI about business validation…" />
+          <button class="send-button" id="send-btn" aria-label="Send">
+            <img src="/rocket.png" alt="Rocket Send" />
+          </button>
         </div>
       </div>
     </div>
