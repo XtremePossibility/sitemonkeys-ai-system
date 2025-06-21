@@ -7,7 +7,6 @@
   <link href="https://fonts.cdnfonts.com/css/luckiest-guy" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css?family=Carlito:400,700&display=swap" rel="stylesheet">
   <style>
-    /* ===== BASE STYLES (UNCHANGED) ===== */
     * { box-sizing: border-box; overflow-wrap: break-word; }
     html, body {
       margin: 0; padding: 0;
@@ -37,13 +36,11 @@
       font-family: 'Carlito', Arial, sans-serif; color: #fff; font-size: 1.2em;
       margin-top: 8px; letter-spacing: 1px; text-align: center; font-weight: bold;
     }
-    .ai-robot { height极简风：只改landscape mobile
     .ai-robot { height: 85px; flex-shrink: 0; position: absolute; right: calc(50% - 450px); z-index: 1; }
     .rocket-top { position: absolute; right: -120px; top: 100px; width: 250px; z-index: 3; pointer-events: none; transform: rotate(45deg); }
     .main-wrapper { flex: 1; display: flex; justify-content: center; align-items: center; position: relative; width: 100%; min-height: 0; padding: 20px 0; }
     .main-content {
       display: flex; justify-content: stretch; align-items: stretch;
-      max-width: 900极简风：只改landscape mobile
       max-width: 900px; width: 75vw; margin: 0 auto; position: relative;
       height: calc(100vh - 300px);
       min-height: 500px;
@@ -82,8 +79,7 @@
       line-height: 1.2;
     }
     .status-list { list-style: none; padding: 0; margin: 0 0 20px 0; width: 100%; }
-    .status-list li { font-size: 1.05em; margin-bottom: 8px; opacity: 0; transform: translateX(-20px); transition: all 0.6s ease-in-out; display: flex; align-items: center; color: #fff; justify-content: flex-start; text-align极简风：只改landscape mobile
-      text-align: left; line-height: 1.4; }
+    .status-list li { font-size: 1.05em; margin-bottom: 8px; opacity: 0; transform: translateX(-20px); transition: all 0.6s ease-in-out; display: flex; align-items: center; color: #fff; justify-content: flex-start; text-align: left; line-height: 1.4; }
     .status-list li.loaded { opacity: 1; transform: translateX(0); color: #fff; }
     .status-list li .check { color: #00FF00; margin-right: 8px; font-size: 1.1em; display: none; flex-shrink: 0; animation: checkmarkPop 0.8s ease-out; }
     .status-list li.loaded .check { display: inline; }
@@ -96,9 +92,7 @@
     }
     .system-ready .check { color: #fff; font-size: 1.2em; margin-right: 8px; display: inline; }
     .system-ready.active { display: block; transform: scale(1); animation: systemGlow 2s ease-in-out infinite alternate; }
-    @keyframes systemGlow { from { box-shadow: 0 4极简风：只改landscape mobile
-      from { box-shadow: 0 4px 12px rgba(255,34,34,0.4);} to { box-shadow: 0 4px 20px rgba(极简风：只改landscape mobile
-      rgba(255,34,34,0.7);} }
+    @keyframes systemGlow { from { box-shadow: 0 4px 12px rgba(255,34,34,0.4);} to { box-shadow: 0 4px 20px rgba(255,34,34,0.7);} }
     .vault-info {
       background: #545454; border-radius: 16px; padding: 12px 14px; margin-top: auto;
       width: 100%; font-size: 0.98em; color: #fff; text-align: left; min-height: 60px;
@@ -133,7 +127,6 @@
     .bubble.ai .bubble-content { background: #888; color: #fff; border: 1.5px solid #fff; }
     .input-area {
       display: flex; align-items: center; background: #222; border-radius: 25px;
-      margin: 20px 20px 30极简风：只改landscape mobile
       margin: 20px 20px 30px 20px;
       border: 1.5px solid #fff;
       box-shadow: 0 2px 8px #0002; gap: 12px; min-height: 56px;
@@ -166,138 +159,107 @@
       padding: 0.5rem 0; background: #1A1A1A; width: 100%; z-index: 1000;
     }
     .footer-mascot { width: 1.5rem; height: 1.5rem; object-fit: contain; }
-    .mobile-footer-text { font-size: 1rem; font-weight: bold; color: #FF极简风：只改landscape mobile
-      color: #FFD811; }
+    .mobile-footer-text { font-size: 1rem; font-weight: bold; color: #FFD811; }
     .mobile-rocket {
       display: none; position: absolute; width: 90px; height: 90px;
       right: 16px; top: 102px; z-index: 10; transform: rotate(45deg); opacity: 1;
     }
-
-    /* ===== PORTRAIT MOBILE (UNCHANGED) ===== */
-    @media (max-width: 768px) {
-      header { min-height: 70px; }
-      .header-row { max-width: 100vw; padding: 0.25rem 0; flex-direction: row; justify-content: center; gap: 20px; align-items: center; }
-      .logo { position: static; height: 90px; margin: 0; order: 1; }
-      .ai-robot { position: static; height: 45px; margin: 0; order: 3; }
-      .header-center { margin: 0; text-align: center; order: 2; flex: none; }
-      .site-title { font-size: 1.1rem; }
-      .subtitle { font-size: 0.7rem; }
-      .mascot { display: none; }
-      .rocket-top { display: none; }
-      .mobile-rocket { display: block; }
-      .main-wrapper { padding: 0.5rem 0; }
-      .main-content {
-        flex-direction: column; width: 95vw; height: auto; min-height: calc(100vh - 200px); position: relative; margin-bottom: 60px; border: none; box-shadow: none;
-      }
-      .card-panel {
-        flex-direction: column;
-        border-radius: 0;
-        box-shadow: none;
-        border: none;
-        background: transparent;
-        min-height: 500px;
-        width: 100%;
-        overflow: hidden;
-      }
-      .status-panel {
-        width: 100%; min-width: 0; border-radius: 24px 24px 0 0; padding: 0.5rem; background: rgba(17,17,17,0.97); border: none; box-shadow: none; position: relative;
-      }
-      .status-title {
-        position: static; margin-top: 14px; margin-bottom: 8px; background: none !important; border: none !important; padding: 0 !important; font-size: 1.1em; text-align: center; width: 100%; white-space: normal; line-height: 1.2;
-      }
-      .status-list { display: none; }
-      .system-ready { margin: 0.5rem 0; font-size: 0.9rem; padding: 10px; }
-      .vault-info { margin: 0.5rem 0; padding: 0.75rem; font-size: 0.8rem; border: 2px solid #fff; }
-      .chat-panel {
-        width: 100%; min-width: 0; border-radius: 0 0 24px 24px; border: none;
-        padding: 0; flex: 1; min-height: 50vh; margin-top: 0; margin-bottom: 60px; background: #545454;
-      }
-      .chat-box { min-height: 40vh; margin: 30px 20px 0 20px; }
-      .input-area { margin: 20px 20px 30px 20px; border-radius: 20px; }
-      .chat-input {
-        font-size: 1em; padding: 0 1em; height: 2.5rem; line-height: 2.5rem; text-align: center; display: flex; align-items: center; justify-content: center;
-      }
-      .chat-input::placeholder { text-align: center; line-height: 2.5rem; font-size: 1em; }
-      .send-button { width: 3.5rem; height: 2.5rem; border-radius: 20px; display: flex; align-items: center; justify-content: center; }
-      .send-button img { width: 2rem; height: 2rem; }
-      .footer { display: none; }
-      .mobile-footer { display: flex; position: fixed; bottom: 0; width: 100%; }
-    }
-
-    /* ===== LANDSCAPE MOBILE ONLY ===== */
-    @media only screen and (max-width: 768px) and (orientation: landscape) and (max-device-height: 600px) {
-      /* HEADER */
+    @media screen and (max-width: 768px) and (orientation: landscape) {
       header {
-        min-height: 50px !important;
-        padding: 4px 0 !important;
+        min-height: 40px !important;
+        padding: 2px 0 !important;
       }
       .header-row {
-        height: 46px !important;
-        padding: 0 10px !important;
+        gap: 6px !important;
+        padding: 0 6px !important;
+        height: 40px !important;
+        align-items: center !important;
+        justify-content: center !important;
       }
       .logo, .ai-robot {
-        height: 36px !important;
+        height: 30px !important;
         width: auto !important;
+        position: static !important;
+      }
+      .header-center {
+        margin: 0 2px !important;
       }
       .site-title {
         font-size: 0.9rem !important;
+        letter-spacing: 1px !important;
       }
       .subtitle {
         font-size: 0.6rem !important;
-        margin-top: 1px !important;
+        margin-top: 2px !important;
       }
-      
-      /* MAIN CONTENT */
       .main-content {
+        width: 87vw !important;
+        height: calc(100vh - 75px) !important;
         flex-direction: row !important;
-        width: 96vw !important;
-        height: calc(100vh - 100px) !important;
-        max-height: 80vh !important;
       }
       .status-panel {
-        width: 30% !important;
-        min-width: 150px !important;
-        padding: 12px !important;
+        width: 19% !important;
+        min-width: 90px !important;
+        max-width: 130px !important;
+        padding: 6px !important;
+        font-size: 0.7em !important;
       }
       .chat-panel {
-        width: 70% !important;
-        min-width: 250px !important;
+        width: 81% !important;
+        min-width: 180px !important;
+        padding: 6px !important;
       }
-      
-      /* MASCOTS */
+      .status-title,
+      .status-list li,
+      .system-ready,
+      .vault-info {
+        font-size: 0.7em !important;
+      }
       .mascot {
+        height: 80px !important;
+        min-height: 80px !important;
+        max-height: 80px !important;
+        top: 60% !important;
+        z-index: 50 !important;
         display: block !important;
-        height: 120px !important;
-        top: 55% !important;
       }
-      .mascot-left { left: 10px !important; }
-      .mascot-right { right: 10px !important; }
-      
-      /* ROCKET */
+      .mascot-left { left: 2px !important; }
+      .mascot-right { right: 2px !important; }
       .mobile-rocket {
-        width: 50px !important;
-        height: 50px !important;
-        top: 70px !important;
-        right: 10px !important;
+        width: 36px !important;
+        height: 36px !important;
+        top: 135px !important;
+        right: 2px !important;
+        z-index: 30 !important;
+        display: block !important;
       }
-      
-      /* FOOTER */
       .mobile-footer {
-        height: 30px !important;
-        padding: 2px 0 !important;
+        height: 24px !important;
+        max-height: 24px !important;
+        padding: 1px 0 !important;
+        font-size: 0.8em !important;
+        gap: 6px !important;
+        justify-content: center !important;
+        align-items: center !important;
+        position: fixed !important;
+        bottom: 0 !important;
+        width: 100vw !important;
+        background: #1A1A1A !important;
+        white-space: nowrap !important;
+        display: flex !important;
       }
       .footer-mascot {
-        width: 20px !important;
-        height: 20px !important;
+        width: 16px !important;
+        height: 16px !important;
       }
       .mobile-footer-text {
-        font-size: 0.8rem !important;
+        font-size: 0.8em !important;
+        font-weight: bold !important;
       }
     }
   </style>
 </head>
 <body>
-  <!-- UNCHANGED HTML STRUCTURE -->
   <header>
     <div class="header-row">
       <img src="/logo.png" alt="Site Monkeys Logo" class="logo">
@@ -320,7 +282,6 @@
             <div class="status-title">Site Monkeys Business Validation System</div>
             <ul class="status-list" id="status-list">
               <li><span class="check">✅</span> Zero-Failure AI</li>
-              <li><span class="check极简风：只改landscape mobile
               <li><span class="check">✅</span> Complete Business Intelligence</li>
               <li><span class="check">✅</span> Real-World Validation Ready</li>
               <li><span class="check">✅</span> Site Monkeys memory vault loaded</li>
@@ -334,7 +295,6 @@
             <div class="system-ready" id="system-ready"><span class="check">✅</span> SYSTEM READY</div>
           </div>
           <div class="vault-info" id="vault-info">
-            <div><span style="color:#00FF00;">✅</span> VAULT LOADED SUCCESSFULL极简风：只改landscape mobile
             <div><span style="color:#00FF00;">✅</span> VAULT LOADED SUCCESSFULLY</div>
             <div>🔢 <span id="token-count">876</span> TOKENS</div>
             <div>💰 EST. COST: <span id="cost-estimate">$0.0018</span></div>
@@ -364,7 +324,6 @@
     <img src="/girl-mascot.png" alt="Roxy" class="footer-mascot">
   </div>
   <script>
-    // UNCHANGED JAVASCRIPT
     const statusItems = document.querySelectorAll('#status-list li');
     const systemReady = document.getElementById('system-ready');
     const tokenCount = document.getElementById('token-count');
