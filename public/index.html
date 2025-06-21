@@ -12,7 +12,7 @@
       margin: 0; padding: 0;
       font-family: 'Carlito', Arial, sans-serif;
       background: #373534; color: white;
-      min-height: 100vh; width: 100vw;
+      min-height: 100极极极
       overflow-x: hidden; display: flex; flex-direction: column;
     }
     header {
@@ -36,7 +36,7 @@
       font-family: 'Carlito', Arial, sans-serif; color: #fff; font-size: 1.2em;
       margin-top: 8px; letter-spacing: 1px; text-align: center; font-weight: bold;
     }
-    .ai-robot { height: 85px; flex-shrink: 0; position: absolute; right: calc(50% - 450px); z-index: 1; }
+    .ai-robot { height: 85px; flex-shrink极极极
     .rocket-top { position: absolute; right: -120px; top: 100px; width: 250px; z-index: 3; pointer-events: none; transform: rotate(45deg); }
     .main-wrapper { flex: 1; display: flex; justify-content: center; align-items: center; position: relative; width: 100%; min-height: 0; padding: 20px 0; }
     .main-content {
@@ -74,7 +74,7 @@
     }
     .system-ready .check { color: #fff; font-size: 1.2em; margin-right: 8px; display: inline; }
     .system-ready.active { display: block; transform: scale(1); animation: systemGlow 2s ease-in-out infinite alternate; }
-    @keyframes systemGlow { from { box-shadow: 0 4px 12px rgba(255,34,34,0.4);} to { box-shadow: 0 4px 20px rgba(255,34,34,0.7);} }
+    @keyframes systemGlow { from { box-shadow: 0 4极极极
     .vault-info {
       background: #545454; border-radius: 16px; padding: 12px 14px; margin-top: 0;
       width: 100%; font-size: 0.98em; color: #fff; text-align: left; min-height: 60px;
@@ -132,6 +132,39 @@
       display: none; position: absolute; width: 90px; height: 90px;
       right: 16px; top: 62px; z-index: 10; transform: rotate(45deg); opacity: 1;
     }
+    
+    /* DESKTOP-ONLY FIXES (min-width: 769px) */
+    @media (min-width: 769px) {
+      .main-content {
+        width: 80vw; /* Larger center box */
+        max-width: 1200px;
+        min-height: 600px;
+      }
+      .mascot {
+        height: 480px; /* Better proportional scaling */
+      }
+      .mascot-left {
+        left: calc(50% - 45vw); /* Outside left position */
+      }
+      .mascot-right {
+        right: calc(50% - 45vw); /* Outside right position */
+      }
+      .rocket-top {
+        width: 120px; /* Smaller rocket */
+        top: 40px; /* Raised position */
+        right: 40px;
+      }
+      .system-ready {
+        margin-bottom: 16px; /* Better spacing */
+      }
+      .vault-info {
+        margin-top: 20px; /* Contained in box */
+      }
+      .chat-panel {
+        margin-bottom: 0; /* Remove gap */
+      }
+    }
+
     @media (max-width: 768px) {
       header { min-height: 70px; }
       .header-row { max-width: 100vw; padding: 0.25rem 0; flex-direction: row; justify-content: center; gap: 20px; align-items: center; }
@@ -154,19 +187,22 @@
         position: static; margin-top: 16px; margin-bottom: 8px; background: none !important; border: none !important; padding: 0 !important; font-size: 1.1em; text-align: center; width: 100%; white-space: normal;
       }
       .status-list { display: none; }
-      .system-ready { margin: 0.5rem 0; font-size: 0.9rem; padding: 10px; }
+      .system-ready { margin: 0.5rem 0; font极极极
       .vault-info { margin: 0.5rem 0; padding: 0.75rem; font-size: 0.8rem; border: none; }
       .chat-panel {
         width: 100%; min-width: 0; border-radius: 0; border-left: none;
         padding: 0.5rem; flex: 1; min-height: 50vh; margin-top: 10px; border: none; margin-bottom: 60px;
       }
       .chat-box { min-height: 40vh; margin-bottom: 0.5rem; }
-      .input-area { padding: 0.5rem; min-height: 3rem; margin-bottom: 0.5rem; border-radius: 20px; }
+      .input-area { padding: 0.5rem; min-height: 3rem; margin-bottom: 0.5极极极
       .chat-input {
         font-size: 1em; padding: 0 1em; height: 2.5rem; line-height: 2.5rem; text-align: center; display: flex; align-items: center; justify-content: center;
       }
       .chat-input::placeholder { text-align: center; line-height: 2.5rem; font-size: 1em; }
-      .send-button { width: 3.5rem; height: 2.5rem; border-radius: 20px; display: flex; align-items: center; justify-content: center; }
+      .send-button { 
+        width: 3.5rem; height: 2.5rem; border-radius: 20px; display: flex; 
+        align-items: center; justify-content: center; 
+      }
       .send-button img { width: 2rem; height: 2rem; }
       .footer { display: none; }
       .mobile-footer { display: flex; position: fixed; bottom: 0; width: 100%; }
@@ -214,7 +250,7 @@
           <div><span style="color:#00FF00;">✅</span> VAULT LOADED SUCCESSFULLY</div>
           <div>🔢 <span id="token-count">876</span> TOKENS</div>
           <div>💰 EST. COST: <span id="cost-estimate">$0.0018</span></div>
-          <div>📁 <span id="vault-folders">8</span> FOLDERS LOADED</div>
+         极极极
         </div>
       </div>
       <div class="chat-panel">
