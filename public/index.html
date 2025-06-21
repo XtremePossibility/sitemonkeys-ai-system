@@ -37,18 +37,18 @@
       margin-top: 8px; letter-spacing: 1px; text-align: center; font-weight: bold;
     }
     .ai-robot { height: 85px; flex-shrink: 0; position: absolute; right: calc(50% - 450px); z-index: 1; }
-    .rocket-top { position: absolute; right: -120px; top: 100px; width: 250px; z-index: 3; pointer-events: none; transform: rotate(45deg); }
+    .rocket-top { position: absolute; right: 40px; top: 40px; width: 120px; z-index: 3; pointer-events: none; transform: rotate(45deg); }
     .main-wrapper { flex: 1; display: flex; justify-content: center; align-items: center; position: relative; width: 100%; min-height: 0; padding: 20px 0; }
     .main-content {
       display: flex; justify-content: center; align-items: stretch;
-      max-width: 900px; width: 60vw; margin: 0 auto; position: relative;
-      height: calc(100vh - 300px); min-height: 500px;
+      max-width: 1200px; width: 80vw; margin: 0 auto; position: relative;
+      height: calc(100vh - 300px); min-height: 600px;
       background: #373534; border-radius: 24px; box-shadow: 0 8px 32px #0004;
       border: 2px solid #fff; z-index: 1; box-sizing: border-box;
     }
-    .mascot { position: absolute; top: 50%; transform: translateY(-50%); z-index: 20; height: calc(100vh - 280px); min-height: 400px; max-height: 600px; width: auto; pointer-events: none; transition: all 0.3s ease; }
-    .mascot-left { left: calc(50% - 35vw); }
-    .mascot-right { right: calc(50% - 35vw); }
+    .mascot { position: absolute; top: 50%; transform: translateY(-50%); z-index: 20; height: 480px; max-height: 550px; width: auto; pointer-events: none; transition: all 0.3s ease; }
+    .mascot-left { left: calc(50% - 46vw); }
+    .mascot-right { right: calc(50% - 46vw); }
     .status-panel {
       width: 38%; min-width: 350px;
       background: rgba(17,17,17,0.97); border-radius: 24px 0 0 24px;
@@ -76,7 +76,7 @@
     .system-ready.active { display: block; transform: scale(1); animation: systemGlow 2s ease-in-out infinite alternate; }
     @keyframes systemGlow { from { box-shadow: 0 4px 12px rgba(255,34,34,0.4);} to { box-shadow: 0 4px 20px rgba(255,34,34,0.7);} }
     .vault-info {
-      background: #545454; border-radius: 16px; padding: 12px 14px; margin-top: 0;
+      background: #545454; border-radius: 16px; padding: 12px 14px; margin-top: 20px;
       width: 100%; font-size: 0.98em; color: #fff; text-align: left; min-height: 60px;
       display: flex; flex-direction: column; justify-content: center; border: 2px solid #fff; box-sizing: border-box; line-height: 1.4;
     }
