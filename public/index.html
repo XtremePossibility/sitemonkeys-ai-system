@@ -41,6 +41,8 @@
     .main-wrapper { 
       flex: 1; display: flex; justify-content: center; align-items: center; 
       position: relative; width: 100%; min-height: 0; padding: 20px 0; 
+      /* DEBUG: Temporary background for visibility */
+      background: rgba(255,0,0,0.1);
     }
     .main-content {
       display: flex; justify-content: center; align-items: stretch;
@@ -48,11 +50,15 @@
       height: calc(100vh - 300px); min-height: 500px;
       background: #373534; border-radius: 24px; box-shadow: 0 8px 32px #0004;
       border: 2px solid #fff; z-index: 1; box-sizing: border-box;
+      /* DEBUG: Temporary border */
+      border: 2px dashed lime;
     }
     .mascot { 
       position: absolute; top: 50%; transform: translateY(-50%); z-index: 20; 
       height: calc(100vh - 280px); min-height: 400px; max-height: 600px; 
-      width: auto; pointer-events: none; transition: all 0.3s ease; 
+      width: auto; pointer-events: none; transition: all 0.3s ease;
+      /* DEBUG: Temporary border */
+      border: 2px solid blue;
     }
     .mascot-left { left: calc(50% - 45vw); }
     .mascot-right { right: calc(50% - 45vw); }
@@ -62,6 +68,8 @@
       box-shadow: 0 0 30px 10px #54545444 inset; padding: 30px 20px;
       display: flex; flex-direction: column; position: relative; z-index: 2; 
       justify-content: flex-start;
+      /* DEBUG: Temporary background */
+      background: rgba(0,100,0,0.2);
     }
     .status-title {
       color: #FFD811; font-size: 1.15em; margin-bottom: 10px;
@@ -106,6 +114,8 @@
       width: 100%; font-size: 0.98em; color: #fff; text-align: left; min-height: 60px;
       display: flex; flex-direction: column; justify-content: center; 
       border: 2px solid #fff; box-sizing: border-box; line-height: 1.4;
+      /* DEBUG: Temporary background */
+      background: rgba(0,0,100,0.2);
     }
     .vault-info span { color: #fff; font-weight: bold; }
     .chat-panel {
@@ -113,10 +123,13 @@
       border-radius: 0 24px 24px 0; border-left: 2px solid #FFD811;
       padding: 30px 20px 20px 20px; display: flex; flex-direction: column; 
       position: relative; z-index: 2; justify-content: flex-end;
+      /* Removed margin-bottom */
     }
     .chat-box { 
       flex: 1; overflow-y: auto; margin-bottom: 15px; padding-right: 8px; 
       display: flex; flex-direction: column; justify-content: flex-end; min-height: 0; 
+      /* DEBUG: Temporary background */
+      background: rgba(100,0,100,0.1);
     }
     .bubble { display: flex; align-items: flex-end; margin: 12px 0; max-width: 85%; }
     .bubble.user { flex-direction: row-reverse; align-self: flex-end; }
@@ -176,6 +189,13 @@
       right: 16px; top: 62px; z-index: 10; transform: rotate(45deg); opacity: 1;
     }
     @media (max-width: 768px) {
+      /* DEBUG: Remove debug colors in mobile view */
+      .main-wrapper { background: none; }
+      .main-content { border: 2px solid #fff; }
+      .status-panel { background: rgba(17,17,17,0.97); }
+      .vault-info { background: #545454; }
+      .chat-box { background: transparent; }
+      
       header { min-height: 70px; }
       .header-row { 
         max-width: 100vw; padding: 0.25rem 0; flex-direction: row; justify-content: center; 
@@ -259,13 +279,14 @@
             <li><span class="check">✅</span> Zero Failure activated</li>
             <li><span class="check">✅</span> Legitimate data initiative activated</li>
             <li><span class="check">✅</span> Persistence driven activated</li>
+            <极极极
             <li><span class="check">✅</span> helpful initiative activated</li>
             <li><span class="check">✅</span> Founder Protection activated</li>
             <li><span class="check">✅</span> Market leader Initiative</li>
           </ul>
           <div class="system-ready" id="system-ready"><span class="check">✅</span> SYSTEM READY</div>
         </div>
-        <div class="vault-info" id="vault-info">
+        <div class="vault-info" id="v极极极
           <div><span style="color:#00FF00;">✅</span> VAULT LOADED SUCCESSFULLY</div>
           <div>🔢 <span id="token-count">876</span> TOKENS</div>
           <div>💰 EST. COST: <span id="cost-estimate">$0.0018</span></div>
