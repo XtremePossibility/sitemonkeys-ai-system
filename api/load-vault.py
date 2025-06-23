@@ -12,11 +12,25 @@ def get_google_drive_service():
     try:
         # Get credentials from environment variable
         creds_json = os.environ.get('GOOGLE_CREDENTIALS_JSON')
+        project_id = os.environ.get('GOOGLE_PROJECT_ID')
+        project_number = os.environ.get('GOOGLE_PROJECT_NUMBER')
+        
         if not creds_json:
             raise Exception("GOOGLE_CREDENTIALS_JSON environment variable not found")
+        if not project_id:
+            raise Exception("GOOGLE_PROJECT_ID environment variable not found")
+        
+        print(f"Using Project ID: {project_id}")
+        print(f"Using Project Number: {project_number}")
         
         # Parse credentials
         creds_info = json.loads(creds_json)
+        
+        # Ensure project info is in credentials
+        creds_info['project_id'] = project_id
+        if project_number:
+            creds_info['project_number'] = project_number
+            
         creds = Credentials.from_service_account_info(
             creds_info,
             scopes=['https://www.googleapis.com/auth/drive.readonly']
