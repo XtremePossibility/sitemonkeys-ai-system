@@ -93,84 +93,102 @@ position: static; background: none; border: none; padding: 0;
 color: #fff; font-weight: bold; font-size: 1.05em; margin: 8px 0 6px 0;
 display: none; text-align: left; letter-spacing: 1px; background: #FF2222;
 border-radius: 20px; padding: 10px 14px; box-shadow: 0 4px 12px rgba(255,34,34,0.4);
-width: 100%; box-sizing: border-box; border: 2px solid rgba(255,255,255,0.2); transform: scale(0.8); transition: all 0.6s ease-in-out;
+width: 100%; box-sizing: border-box; border: 2px solid rgba(255,255,255,0.2); transform: scale(0.8); transition: all 0.4s ease-in-out;
 }
 
-.system-ready.show { display: block; transform: scale(1); }
+.system-ready .check { color: #fff; font-size: 1.2em; margin-right: 8px; display: inline; }
+
+.system-ready.active { display: block; transform: scale(1); animation: systemGlow 2s ease-in-out infinite alternate; }
+
+@keyframes systemGlow { from { box-shadow: 0 4px 12px rgba(255,34,34,0.4);} to { box-shadow: 0 4px 20px rgba(255,34,34,0.7);} }
 
 .vault-info {
-color: #FFD811; background: rgba(17,17,17,0.8); border: 2px solid #FFD811;
-border-radius: 12px; padding: 12px; margin-top: 10px; font-size: 0.9em;
-text-align: center; box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+background: #545454; border-radius: 16px; padding: 12px 14px; margin-top: 0;
+width: 100%; font-size: 0.98em; color: #fff; text-align: left; min-height: 60px;
+display: flex; flex-direction: column; justify-content: center; border: 2px solid #fff; box-sizing: border-box; line-height: 1.4;
 }
+
+.vault-info span { color: #fff; font-weight: bold; }
 
 .chat-panel {
-width: 62%; min-width: 350px; background: rgba(17,17,17,0.97);
-border-radius: 0 24px 24px 0; box-shadow: 0 0 30px 10px #54545444 inset;
-padding: 30px 20px; display: flex; flex-direction: column; position: relative; z-index: 2;
-justify-content: space-between;
+width: 62%; min-width: 400px; background: #545454;
+border-radius: 0 24px 24px 0; border-left: 2px solid #FFD811;
+padding: 30px 20px 20px 20px; display: flex; flex-direction: column; position: relative; z-index: 2; justify-content: flex-end;
+margin-bottom: 60px;
 }
 
-.chat-box {
-flex-grow: 1; max-height: calc(100% - 120px); overflow-y: auto;
-background: rgba(255,255,255,0.05); border: 2px solid rgba(255,255,255,0.1);
-border-radius: 16px; padding: 20px; margin-bottom: 20px;
-box-shadow: 0 0 20px 5px rgba(0,0,0,0.2) inset;
-}
+.chat-box { flex: 1; overflow-y: auto; margin-bottom: 15px; padding-right: 8px; display: flex; flex-direction: column; justify-content: flex-end; min-height: 0; }
+
+.bubble { display: flex; align-items: flex-end; margin: 12px 0; max-width: 85%; }
+
+.bubble.user { flex-direction: row-reverse; align-self: flex-end; }
+
+.bubble.ai { flex-direction: row; align-self: flex-start; }
+
+.bubble img.avatar { width: 48px; height: 48px; border-radius: 50%; margin: 0 12px; background: #545454; border: 2px solid #fff; object-fit: cover; object-position: top; flex-shrink: 0; }
+
+.bubble-content { padding: 18px 24px; font-size: 1.15em; line-height: 1.5; border-radius: 8px; font-family: 'Carlito', Arial, sans-serif; box-shadow: 0 2px 8px #0002; min-width: 80px; max-width: 350px; word-break: break-word; border: 1.5px solid #fff; }
+
+.bubble.user .bubble-content { background: #FFD811; color: #373534; border: 1.5px solid #fff; }
+
+.bubble.ai .bubble-content { background: #888; color: #fff; border: 1.5px solid #fff; }
 
 .input-area {
-display: flex; align-items: center; gap: 12px;
-background: rgba(255,255,255,0.1); border: 2px solid rgba(255,255,255,0.2);
-border-radius: 24px; padding: 8px 12px; transition: all 0.3s ease;
+display: flex; align-items: center; background: #222; border-radius: 25px;
+padding: 12px 15px; margin-top: 8px; border: 1.5px solid #fff;
+box-shadow: 0 2px 8px #0002; gap: 12px; min-height: 70px;
 }
-
-.input-area:focus-within { border-color: #FFD811; box-shadow: 0 0 10px rgba(255,216,17,0.3); }
 
 .chat-input {
-flex: 1; background: transparent; border: none; outline: none;
-color: white; font-size: 1em; padding: 8px 12px;
-font-family: 'Carlito', Arial, sans-serif;
+flex: 1; padding: 0 1em; border-radius: 18px; border: none; font-size: 1em;
+background: transparent; color: white; outline: none; text-align: center; height: 45px; resize: none; overflow: hidden; font-family: 'Carlito', Arial, sans-serif; display: flex; align-items: center; justify-content: center;
 }
 
-.chat-input::placeholder { color: rgba(255,255,255,0.6); }
+.chat-input::placeholder {
+color: rgba(255,255,255,0.45); opacity: 1; font-size: 1em; font-family: 'Carlito', Arial, sans-serif; letter-spacing: 0.5px; text-align: center; line-height: 45px; display: flex; align-items: center; justify-content: center;
+}
 
 .send-button {
-width: 40px; height: 40px; border-radius: 50%;
-background: linear-gradient(135deg, #FFD811 0%, #FFA500 100%);
-border: none; cursor: pointer; display: flex; align-items: center; justify-content: center;
-transition: all 0.3s ease; box-shadow: 0 3px 8px rgba(0,0,0,0.3);
-font-size: 18px; color: #333;
+background: #FFD811; border: 2px solid #fff; border-radius: 30px;
+width: 100px; height: 56px; display: flex; align-items: center; justify-content: center;
+transition: all 0.2s ease; outline: none; box-shadow: 0 2px 8px #0002; cursor: pointer; flex-shrink: 0;
 }
 
-.send-button:hover { transform: scale(1.1); box-shadow: 0 5px 15px rgba(255, 216, 17, 0.4); }
+.send-button:hover { background: #ffe96a; transform: scale(1.05); }
 
-.mobile-rocket { display: none; }
+.send-button:active { transform: scale(0.95); }
+
+.send-button img { width: 70px; height: 70px; display: block; transform: rotate(90deg); }
+
+.footer {
+width: 100vw; background: #1A1A1A; color: #FFD811; text-align: center;
+font-family: 'Carlito', Arial, sans-serif; padding: 8px 0; letter-spacing: 1px;
+box-shadow: 0 -2px 8px #0008; display: flex; justify-content: center; flex-shrink: 0; position: fixed; bottom: 0; left: 0; z-index: 100;
+}
+
+.footer-inner { max-width: 900px; width: 100%; margin: 0 auto; padding: 0 20px; box-sizing: border-box; }
+
+.footer-text { font-size: 0.95em; font-weight: bold; margin: 0; line-height: 1.2; }
+
+.mobile-footer {
+display: none; justify-content: center; align-items: center; gap: 1rem;
+padding: 0.5rem 0; background: #1A1A1A; width: 100%; z-index: 1000;
+}
+
+.footer-mascot { width: 1.5rem; height: 1.5rem; object-fit: contain; }
+
+.mobile-footer-text { font-size: 1rem; font-weight: bold; color: #FFD811; }
+
+.mobile-rocket {
+display: none; position: absolute; width: 90px; height: 90px;
+right: 16px; top: 62px; z-index: 10; transform: rotate(45deg); opacity: 1;
+}
 
 .loading { display: none; text-align: center; color: #FFD811; font-style: italic; padding: 10px; }
 .loading.active { display: block; }
 
-.message {
-margin: 8px 0; padding: 8px 12px; border-radius: 12px; max-width: 85%;
-word-wrap: break-word; animation: messageSlide 0.3s ease-out;
-}
-
-.message.user {
-background: linear-gradient(135deg, #0066cc, #004499); 
-color: white; margin-left: auto; text-align: right;
-}
-
-.message.assistant {
-background: linear-gradient(135deg, #FFD811, #FFCC00); 
-color: #333; margin-right: auto;
-}
-
-@keyframes messageSlide { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-.footer { display: none; }
-.mobile-footer { display: none; }
-
-/* Mobile Responsive Design */
 @media (max-width: 768px) {
+header { min-height: 70px; }
 .header-row { max-width: 100vw; padding: 0.25rem 0; flex-direction: row; justify-content: center; gap: 20px; align-items: center; }
 .logo { position: static; height: 90px; margin: 0; order: 1; }
 .ai-robot { position: static; height: 45px; margin: 0; order: 3; }
@@ -205,8 +223,13 @@ font-size: 1em; padding: 0 1em; height: 2.5rem; line-height: 2.5rem; text-align:
 }
 .chat-input::placeholder { text-align: center; line-height: 2.5rem; font-size: 1em; }
 .send-button { width: 3.5rem; height: 2.5rem; border-radius: 20px; display: flex; align-items: center; justify-content: center; }
+.send-button img { width: 2rem; height: 2rem; }
 .footer { display: none; }
 .mobile-footer { display: flex; position: fixed; bottom: 0; width: 100%; }
+}
+
+@media (max-width: 768px) and (orientation: landscape) {
+.mobile-rocket { top: 40px; width: 70px; height: 70px; }
 }
 </style>
 </head>
@@ -215,36 +238,41 @@ font-size: 1em; padding: 0 1em; height: 2.5rem; line-height: 2.5rem; text-align:
 <div class="header-row">
 <img src="logo.png" alt="Site Monkeys Logo" class="logo">
 <div class="header-center">
-<h1 class="site-title">SITE MONKEYS AI</h1>
-<p class="subtitle">BUSINESS VALIDATION ENGINE</p>
+<div class="site-title">SITE MONKEYS AI</div>
+<div class="subtitle">BUSINESS VALIDATION ENGINE</div>
 </div>
-<img src="ai-robot.png" alt="AI Robot" class="ai-robot">
+<img src="AI Robot.png" alt="AI Robot" class="ai-robot">
 <img src="rocket.png" alt="Rocket" class="rocket-top">
 </div>
 </header>
 
 <div class="main-wrapper">
-<img src="boy-mascot.png" alt="Eli - SiteMonkeys Mascot" class="mascot mascot-left">
+<img src="boy-mascot.png" alt="Eli Mascot" class="mascot mascot-left">
+<img src="girl-mascot.png" alt="Roxy Mascot" class="mascot mascot-right">
+<img src="rocket.png" alt="Mobile Rocket" class="mobile-rocket">
 <div class="main-content">
 <div class="status-panel">
-<h3 class="status-title">SiteMonkeys Business Validation System</h3>
+<div>
+<div class="status-title">Site Monkeys Business Validation System</div>
 <ul class="status-list" id="status-list">
-<li><span class="check">✓</span> Zero-Failure AI</li>
-<li><span class="check">✓</span> Complete Business Intelligence</li>
-<li><span class="check">✓</span> Real-World Validation Ready</li>
-<li id="vault-status-item"><span class="check">✓</span> Site Monkeys memory vault loaded</li>
-<li><span class="check">✓</span> Zero Failure activated</li>
-<li><span class="check">✓</span> Legitimate data initiative activated</li>
-<li><span class="check">✓</span> Persistence driven activated</li>
-<li><span class="check">✓</span> helpful initiative activated</li>
-<li><span class="check">✓</span> Founder Protection activated</li>
-<li><span class="check">✓</span> Market leader Initiative</li>
+<li><span class="check">✅</span> Zero-Failure AI</li>
+<li><span class="check">✅</span> Complete Business Intelligence</li>
+<li><span class="check">✅</span> Real-World Validation Ready</li>
+<li id="vault-status-item"><span class="check">✅</span> Site Monkeys memory vault loaded</li>
+<li><span class="check">✅</span> Zero Failure activated</li>
+<li><span class="check">✅</span> Legitimate data initiative activated</li>
+<li><span class="check">✅</span> Persistence driven activated</li>
+<li><span class="check">✅</span> helpful initiative activated</li>
+<li><span class="check">✅</span> Founder Protection activated</li>
+<li><span class="check">✅</span> Market leader Initiative</li>
 </ul>
-<div class="system-ready" id="system-ready">
-🚀 All Systems Ready for Business Validation
+<div class="system-ready" id="system-ready"><span class="check">✅</span> SYSTEM READY</div>
 </div>
-<div class="vault-info" id="vault-display">
-<div id="vault-info">💾 Initializing vault...</div>
+<div class="vault-info" id="vault-info">
+<div><span style="color:#00FF00;">✅</span> Initializing vault...</div>
+<div>🔢 <span id="token-count">Loading...</span> TOKENS</div>
+<div>💰 EST. COST: <span id="cost-estimate">Calculating...</span></div>
+<div>📁 <span id="vault-folders">Scanning...</span> FOLDERS LOADED</div>
 </div>
 </div>
 
@@ -253,171 +281,218 @@ font-size: 1em; padding: 0 1em; height: 2.5rem; line-height: 2.5rem; text-align:
 <div class="loading" id="loading">🤖 Thinking...</div>
 </div>
 <div class="input-area">
-<input type="text" class="chat-input" id="user-input" placeholder="Ask about business strategy, market validation, or any SiteMonkeys question..." onkeypress="if(event.key==='Enter') sendMessage()">
-<button class="send-button" onclick="sendMessage()">🚀</button>
+<input type="text" class="chat-input" id="user-input" placeholder="Ask Eli, Roxy, and AI about business validation..." />
+<button class="send-button" id="send-btn" aria-label="Send">
+<img src="rocket.png" alt="Rocket Send" />
+</button>
 </div>
 </div>
 </div>
-<img src="girl-mascot.png" alt="Roxy - SiteMonkeys Mascot" class="mascot mascot-right">
+</div>
+
+<div class="footer">
+<div class="footer-inner">
+<div class="footer-text">THE FIRST AND ONLY BUSINESS VALIDATION CHAT SYSTEM THAT PUTS HONESTY, REAL DATA, TRANSPARENCY,<br>PERSISTENCE, & INITIATIVE BEFORE ALL ELSE! AI YOU CAN TRUST!</div>
+</div>
+</div>
+
+<div class="mobile-footer">
+<img src="boy-mascot.png" alt="Eli" class="footer-mascot">
+<div class="mobile-footer-text">AI YOU CAN TRUST!</div>
+<img src="girl-mascot.png" alt="Roxy" class="footer-mascot">
 </div>
 
 <script>
-// Global variables
+// Global variables for my working functionality
 let vaultData = '';
 let conversationHistory = [];
+let systemActive = false;
+let aiToggle = true;
 
-// Initialize the application when page loads
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('SiteMonkeys AI initializing...');
-    animateStatusList();
-    loadVault();
+// Perplexity's original animation code
+const statusItems = document.querySelectorAll('#status-list li');
+const systemReady = document.getElementById('system-ready');
+const tokenCount = document.getElementById('token-count');
+const costEstimate = document.getElementById('cost-estimate');
+const vaultFolders = document.getElementById('vault-folders');
+let statusIndex = 0;
+
+function loadStatus() {
+if (statusIndex < statusItems.length) {
+statusItems[statusIndex].classList.add('loaded');
+statusIndex++;
+setTimeout(loadStatus, 400);
+} else {
+setTimeout(() => {
+systemReady.classList.add('active');
+systemActive = true;
+loadVault(); // Call my vault loading function
+}, 500);
+}
+}
+
+// My working vault loading functionality
+async function loadVault() {
+try {
+console.log('Loading vault from Google Drive...');
+        
+const response = await fetch('/api/load-vault', {
+method: 'GET',
+headers: {
+'Content-Type': 'application/json'
+}
 });
 
-// Animate status list items
-function animateStatusList() {
-    const items = document.querySelectorAll('.status-list li');
-    items.forEach((item, index) => {
-        setTimeout(() => {
-            item.classList.add('loaded');
-        }, index * 200);
-    });
-    
-    setTimeout(() => {
-        document.getElementById('system-ready').classList.add('show');
-    }, items.length * 200 + 500);
+if (!response.ok) {
+throw new Error(`Vault API error: ${response.status}`);
 }
 
-// Load vault function with my working functionality
-async function loadVault() {
-    try {
-        console.log('Loading vault from Google Drive...');
+const data = await response.json();
         
-        const response = await fetch('/api/load-vault', {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
-
-        if (!response.ok) {
-            throw new Error(`Vault API error: ${response.status}`);
-        }
-
-        const data = await response.json();
-        
-        if (data.status === 'success') {
-            vaultData = data.memory || data.data || '';
+if (data.status === 'success') {
+vaultData = data.memory || data.data || '';
             
-            // Update vault display with success
-            const vaultInfo = document.getElementById('vault-info');
-            vaultInfo.innerHTML = `
-                ✅ Vault loaded successfully<br>
-                📊 ${data.tokens || 'Unknown'} tokens<br>
-                💰 Est. cost: ${data.estimated_cost || 'Unknown'}<br>
-                📁 ${data.folders_loaded?.length || 0} folders loaded
-            `;
+// Update vault display with success using Perplexity's format
+document.getElementById('vault-info').innerHTML = `
+<div><span style="color:#00FF00;">✅</span> VAULT LOADED SUCCESSFULLY</div>
+<div>🔢 <span id="token-count">${data.tokens || 'Unknown'}</span> TOKENS</div>
+<div>💰 EST. COST: <span id="cost-estimate">$${data.estimated_cost || 'Unknown'}</span></div>
+<div>📁 <span id="vault-folders">${data.folders_loaded?.length || 0}</span> FOLDERS LOADED</div>
+`;
             
-            // Update status in sidebar
-            const vaultStatusItem = document.getElementById('vault-status-item');
-            vaultStatusItem.innerHTML = `<span class="check">✓</span> Site Monkeys vault loaded (${data.tokens || 'Unknown'} tokens)`;
+// Update status in sidebar
+const vaultStatusItem = document.getElementById('vault-status-item');
+vaultStatusItem.innerHTML = `<span class="check">✅</span> Site Monkeys memory vault loaded (${data.tokens || 'Unknown'} tokens)`;
                 
-        } else {
-            throw new Error(data.error || 'Unknown vault error');
-        }
+} else {
+throw new Error(data.error || 'Unknown vault error');
+}
         
-    } catch (error) {
-        console.error('Vault loading error:', error);
-        const vaultInfo = document.getElementById('vault-info');
-        vaultInfo.innerHTML = `
-            ❌ Vault loading failed<br>
-            Error: ${error.message}<br>
-            <small>Check console for details</small>
-        `;
+} catch (error) {
+console.error('Vault loading error:', error);
+document.getElementById('vault-info').innerHTML = `
+<div><span style="color:#FF0000;">❌</span> VAULT LOADING FAILED</div>
+<div>Error: ${error.message}</div>
+<div>📁 Check console for details</div>
+`;
         
-        const vaultStatusItem = document.getElementById('vault-status-item');
-        vaultStatusItem.innerHTML = '<span class="check">✗</span> Vault loading failed';
-    }
+const vaultStatusItem = document.getElementById('vault-status-item');
+vaultStatusItem.innerHTML = '<span class="check">✗</span> Vault loading failed';
+}
 }
 
-// Send message function with my working functionality
+// My working chat functionality
 async function sendMessage() {
-    const input = document.getElementById('user-input');
-    const message = input.value.trim();
-    if (!message) return;
+const input = document.getElementById('user-input');
+const text = input.value.trim();
+if (!text || !systemActive) return;
 
-    // Add user message to chat
-    addMessage(message, 'user');
-    input.value = '';
+const box = document.getElementById('chat-box');
 
-    // Show loading indicator
-    document.getElementById('loading').classList.add('active');
+// Add user message using Perplexity's bubble format
+const userBubble = document.createElement('div');
+userBubble.className = 'bubble user';
+userBubble.innerHTML = `
+<img src="user-avatar.png" onerror="this.style.display='none'" class="avatar" alt="You">
+<div class="bubble-content"><strong>You:</strong> ${text}</div>
+`;
+box.appendChild(userBubble);
+box.scrollTop = box.scrollHeight;
+input.value = '';
 
-    try {
-        // Use your chat API endpoint instead of calling Claude directly
-        const response = await fetch('/api/chat', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                message: message,
-                vault_data: vaultData,
-                conversation_history: conversationHistory
-            })
-        });
+// Show loading indicator
+document.getElementById('loading').classList.add('active');
 
-        if (!response.ok) {
-            throw new Error(`Chat API error: ${response.status}`);
-        }
+try {
+// Use my chat API endpoint
+const response = await fetch('/api/chat', {
+method: 'POST',
+headers: {
+'Content-Type': 'application/json'
+},
+body: JSON.stringify({
+message: text,
+vault_data: vaultData,
+conversation_history: conversationHistory
+})
+});
 
-        const data = await response.json();
-        const reply = data.response || data.message || 'No response received';
-        
-        // Add assistant response with alternating mascots
-        const mascotName = conversationHistory.length % 2 === 0 ? 'Eli' : 'Roxy';
-        addMessage(reply, 'assistant', mascotName);
-        
-        // Update conversation history
-        conversationHistory.push({
-            user: message,
-            assistant: reply,
-            mascot: mascotName
-        });
-
-    } catch (error) {
-        console.error('Chat error:', error);
-        addMessage(`Error: ${error.message}`, 'assistant', 'System');
-    } finally {
-        // Hide loading indicator
-        document.getElementById('loading').classList.remove('active');
-    }
+if (!response.ok) {
+throw new Error(`Chat API error: ${response.status}`);
 }
 
-// Add message to chat display
-function addMessage(content, sender, mascot = null) {
-    const chatBox = document.getElementById('chat-box');
-    const messageDiv = document.createElement('div');
-    messageDiv.className = `message ${sender}`;
-    
-    if (mascot) {
-        messageDiv.innerHTML = `<strong>${mascot}:</strong> ${content}`;
-    } else {
-        messageDiv.textContent = content;
-    }
-    
-    chatBox.appendChild(messageDiv);
-    chatBox.scrollTop = chatBox.scrollHeight;
+const data = await response.json();
+const reply = data.response || data.message || 'No response received';
+        
+// Add assistant response using Perplexity's format
+const responseBubble = document.createElement('div');
+const isEli = aiToggle;
+const who = isEli ? 'Eli' : 'Roxy';
+const avatar = isEli ? "boy-mascot.png" : "girl-mascot.png";
+
+responseBubble.className = 'bubble ai';
+responseBubble.innerHTML = `
+<img src="${avatar}" class="avatar" alt="${who}">
+<div class="bubble-content"><strong>${who}:</strong> ${reply}</div>
+`;
+box.appendChild(responseBubble);
+box.scrollTop = box.scrollHeight;
+
+// Update conversation history
+conversationHistory.push({
+user: text,
+assistant: reply,
+mascot: who
+});
+
+aiToggle = !aiToggle;
+
+} catch (error) {
+console.error('Chat error:', error);
+const errorBubble = document.createElement('div');
+errorBubble.className = 'bubble ai';
+errorBubble.innerHTML = `
+<img src="boy-mascot.png" class="avatar" alt="System">
+<div class="bubble-content"><strong>System:</strong> Error: ${error.message}</div>
+`;
+box.appendChild(errorBubble);
+box.scrollTop = box.scrollHeight;
+} finally {
+// Hide loading indicator
+document.getElementById('loading').classList.remove('active');
 }
+}
+
+// Initialize everything
+document.addEventListener('DOMContentLoaded', function() {
+const input = document.getElementById('user-input');
+const sendBtn = document.getElementById('send-btn');
+
+input.addEventListener('keydown', function(e) {
+if (e.key === 'Enter') {
+e.preventDefault();
+sendMessage();
+}
+});
+
+sendBtn.addEventListener('click', function(e) {
+e.preventDefault();
+sendMessage();
+});
+
+// Start the status loading animation
+setTimeout(loadStatus, 800);
+});
 
 // Error handling for missing images
 document.addEventListener('DOMContentLoaded', function() {
-    const images = document.querySelectorAll('img');
-    images.forEach(img => {
-        img.onerror = function() {
-            console.warn(`Image failed to load: ${this.src}`);
-            this.style.display = 'none';
-        };
-    });
+const images = document.querySelectorAll('img');
+images.forEach(img => {
+img.onerror = function() {
+console.warn(`Image failed to load: ${this.src}`);
+this.style.display = 'none';
+};
+});
 });
 </script>
 </body>
