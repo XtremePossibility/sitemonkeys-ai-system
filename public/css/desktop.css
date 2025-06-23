@@ -1,1 +1,25 @@
+.main {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 20px;
+}
+
+.mascot {
+  width: 280px;
+  max-width: 30vw;
+}
+
+.chat-wrapper {
+  flex-grow: 1;
+  max-width: 800px;
+  margin: 0 30px;
+  background: #2a2a2a;
+  border: 3px solid white;
+  border-radius: 15px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  height: 600px;
+}
 
