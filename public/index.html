@@ -1,548 +1,407 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SiteMonkeys AI - Business Validation Engine</title>
-    <link href="https://fonts.cdnfonts.com/css/luckiest-guy" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css?family=Carlito:400,700&display=swap" rel="stylesheet">
-    <style>
-        * { 
-            box-sizing: border-box; 
-            overflow-wrap: break-word; 
-        }
-        
-        html, body {
-            margin: 0; 
-            padding: 0;
-            font-family: 'Carlito', Arial, sans-serif;
-            background: #373534; 
-            color: white;
-            min-height: 100vh; 
-            width: 100vw;
-            overflow-x: hidden; 
-            display: flex; 
-            flex-direction: column;
-        }
-        
-        header {
-            background: #1A1A1A; 
-            width: 100vw; 
-            min-height: 140px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.5);
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            justify-content: center; 
-            flex-shrink: 0;
-        }
-        
-        .header-row {
-            width: 100%; 
-            max-width: 1200px;
-            display: flex; 
-            align-items: center; 
-            justify-content: center;
-            position: relative; 
-            margin: 0 auto; 
-            padding: 20px 0;
-        }
-        
-        .logo { 
-            height: 80px; 
-            flex-shrink: 0; 
-            position: absolute; 
-            left: 20px; 
-            z-index: 1;
-            border-radius: 50%;
-            box-shadow: 0 0 20px rgba(255, 216, 17, 0.3);
-        }
-        
-        .header-center { 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            justify-content: center; 
-            position: relative; 
-            z-index: 2; 
-        }
-        
-        .site-title {
-            font-family: 'Luckiest Guy', cursive, sans-serif; 
-            color: #FFD811;
-            font-size: 2.5em; 
-            margin: 0; 
-            letter-spacing: 2px; 
-            line-height: 1;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-            white-space: nowrap;
-        }
-        
-        .subtitle {
-            font-family: 'Carlito', Arial, sans-serif; 
-            color: #fff; 
-            font-size: 1.2em;
-            margin-top: 8px; 
-            letter-spacing: 1px; 
-            font-weight: bold;
-        }
-        
-        .ai-robot { 
-            height: 60px; 
-            flex-shrink: 0; 
-            position: absolute; 
-            right: 20px; 
-            z-index: 1; 
-        }
-        
-        .rocket-top { 
-            position: absolute; 
-            right: -80px; 
-            top: -20px; 
-            font-size: 80px; 
-            z-index: 3; 
-            pointer-events: none; 
-            transform: rotate(45deg);
-            filter: drop-shadow(0 0 10px rgba(255, 216, 17, 0.6));
-        }
-        
-        .main-wrapper { 
-            flex: 1; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            position: relative; 
-            width: 100%; 
-            min-height: 0; 
-            padding: 20px; 
-        }
-        
-        .main-content {
-            display: flex; 
-            justify-content: center; 
-            align-items: stretch;
-            max-width: 1200px; 
-            width: 100%; 
-            gap: 30px; 
-            min-height: 500px;
-        }
-        
-        .mascot-left {
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            justify-content: flex-start;
-            flex-shrink: 0; 
-            width: 280px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 20px;
-            padding: 20px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.2);
-        }
-        
-        .mascot-right {
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            justify-content: flex-start;
-            flex-shrink: 0; 
-            width: 280px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 20px;
-            padding: 20px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.2);
-        }
-        
-        .mascot-img {
-            width: 200px; 
-            height: 200px; 
-            border-radius: 50%; 
-            margin-bottom: 20px;
-            border: 4px solid #FFD811;
-            box-shadow: 0 0 20px rgba(255, 216, 17, 0.3);
-        }
-        
-        .mascot-name {
-            font-family: 'Luckiest Guy', cursive;
-            font-size: 1.8em;
-            color: #FFD811;
-            margin-bottom: 15px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-        }
-        
-        .system-info h3 {
-            color: #FFD811;
-            font-size: 1.4em;
-            margin-bottom: 15px;
-            text-align: center;
-            font-family: 'Luckiest Guy', cursive;
-        }
-        
-        .status-list {
-            list-style: none;
-            padding: 0;
-            width: 100%;
-        }
-        
-        .status-list li {
-            padding: 8px 0;
-            border-bottom: 1px solid rgba(255,255,255,0.2);
-            font-size: 0.9em;
-            display: flex;
-            align-items: center;
-        }
-        
-        .status-list li:before {
-            content: "✓";
-            color: #4CAF50;
-            font-weight: bold;
-            margin-right: 8px;
-        }
-        
-        .chat-container {
-            flex: 1; 
-            display: flex; 
-            flex-direction: column;
-            background: rgba(255,255,255,0.95);
-            border-radius: 20px;
-            overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            border: 2px solid #FFD811;
-        }
-        
-        .chat-header {
-            background: linear-gradient(135deg, #FFD811, #FFA500);
-            padding: 15px 20px;
-            color: #1A1A1A;
-            font-weight: bold;
-            font-size: 1.2em;
-            text-align: center;
-        }
-        
-        .chat-messages {
-            flex: 1;
-            padding: 20px;
-            overflow-y: auto;
-            min-height: 300px;
-            max-height: 400px;
-            background: white;
-            color: #333;
-        }
-        
-        .chat-input-container {
-            padding: 20px;
-            background: #f8f9fa;
-            border-top: 1px solid #ddd;
-            display: flex;
-            gap: 10px;
-        }
-        
-        .chat-input {
-            flex: 1;
-            padding: 12px 15px;
-            border: 2px solid #ddd;
-            border-radius: 25px;
-            font-size: 1em;
-            outline: none;
-            transition: border-color 0.3s;
-        }
-        
-        .chat-input:focus {
-            border-color: #FFD811;
-        }
-        
-        .send-btn {
-            background: linear-gradient(135deg, #FFD811, #FFA500);
-            border: none;
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2em;
-            transition: transform 0.2s;
-        }
-        
-        .send-btn:hover {
-            transform: scale(1.05);
-        }
-        
-        .message {
-            margin: 10px 0;
-            padding: 12px 15px;
-            border-radius: 15px;
-            max-width: 80%;
-            word-wrap: break-word;
-        }
-        
-        .user-message {
-            background: #007bff;
-            color: white;
-            margin-left: auto;
-            text-align: right;
-        }
-        
-        .ai-message {
-            background: #f1f3f4;
-            color: #333;
-            margin-right: auto;
-            display: flex;
-            align-items: flex-start;
-            gap: 10px;
-        }
-        
-        .ai-avatar {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            flex-shrink: 0;
-        }
-        
-        .vault-status {
-            background: rgba(255,255,255,0.1);
-            border-radius: 10px;
-            padding: 15px;
-            margin-top: 20px;
-            border: 1px solid rgba(255,255,255,0.2);
-        }
-        
-        .vault-status h4 {
-            color: #FFD811;
-            margin: 0 0 10px 0;
-            font-size: 1.1em;
-        }
-        
-        .vault-info {
-            font-size: 0.9em;
-            line-height: 1.4;
-        }
-        
-        @media (max-width: 768px) {
-            .main-content {
-                flex-direction: column;
-                gap: 20px;
-            }
-            
-            .mascot-left, .mascot-right {
-                width: 100%;
-            }
-            
-            .header-row {
-                flex-direction: column;
-                gap: 10px;
-            }
-            
-            .logo, .ai-robot {
-                position: static;
-            }
-            
-            .site-title {
-                font-size: 2em;
-            }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Site Monkeys AI</title>
+<link href="https://fonts.cdnfonts.com/css/luckiest-guy" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css?family=Carlito:400,700&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; overflow-wrap: break-word; }
+
+html, body {
+margin: 0; padding: 0;
+font-family: 'Carlito', Arial, sans-serif;
+background: #373534; color: white;
+min-height: 100vh; width: 100vw;
+overflow-x: hidden; display: flex; flex-direction: column;
+}
+
+header {
+background: #1A1A1A; width: 100vw; min-height: 140px;
+box-shadow: 0 2px 8px #0008;
+display: flex; flex-direction: column; align-items: center; justify-content: center; flex-shrink: 0;
+}
+
+.header-row {
+width: 100%; max-width: 1200px;
+display: flex; align-items: center; justify-content: center;
+position: relative; margin: 0 auto; padding: 20px 0;
+}
+
+.logo { height: 160px; flex-shrink: 0; position: absolute; left: calc(50% - 450px); z-index: 1; }
+
+.header-center { display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; z-index: 2; }
+
+.site-title {
+font-family: 'Luckiest Guy', cursive, sans-serif; color: #FFD811;
+font-size: 2.1em; margin: 0; letter-spacing: 2px; line-height: 1; text-align: center;
+white-space: nowrap; width: 100%; text-align: center;
+}
+
+.subtitle {
+font-family: 'Carlito', Arial, sans-serif; color: #fff; font-size: 1.2em;
+margin-top: 8px; letter-spacing: 1px; text-align: center; font-weight: bold;
+}
+
+.ai-robot { height: 85px; flex-shrink: 0; position: absolute; right: calc(50% - 450px); z-index: 1; }
+
+.rocket-top { position: absolute; right: -120px; top: 100px; width: 250px; z-index: 3; pointer-events: none; transform: rotate(45deg); }
+
+.main-wrapper { flex: 1; display: flex; justify-content: center; align-items: center; position: relative; width: 100%; min-height: 0; padding: 20px 0; }
+
+.main-content {
+display: flex; justify-content: center; align-items: stretch;
+max-width: 900px; width: 80vw; height: 600px; position: relative;
+background: #2C2C2C; border-radius: 24px; box-shadow: 0 8px 20px #0005; overflow: hidden;
+}
+
+.status-panel {
+width: 240px; min-width: 240px; border-radius: 24px 0 0 24px;
+padding: 24px 20px; background: #363636; border-right: 1px solid #555; position: relative;
+}
+
+.status-title {
+position: absolute; top: -35px; left: 10%; right: 10%;
+background: #25354A; border: 3px solid #FFD811; border-radius: 30px;
+padding: 8px 16px; font-size: 0.9em; color: #FFD811; text-align: center;
+font-weight: bold; letter-spacing: 1px; white-space: nowrap; overflow: hidden; z-index: 5;
+box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+.status-list {
+list-style: none; padding: 0; margin: 36px 0 0 0; font-size: 0.85em; line-height: 1.7;
+}
+
+.status-list li {
+padding: 2px 0; position: relative; padding-left: 18px;
+}
+
+.status-list li:before {
+content: '●'; color: #FFD811; position: absolute; left: 0; top: 2px;
+}
+
+.system-ready {
+margin: 36px 0 16px 0; padding: 16px 12px;
+background: linear-gradient(135deg, #0F2F27 0%, #1F4F37 100%);
+border: 2px solid #4CAF50; border-radius: 12px; text-align: center;
+font-size: 0.8em; color: #4CAF50; font-weight: bold; position: relative;
+box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+.vault-info {
+margin: 16px 0; padding: 12px;
+background: linear-gradient(135deg, #2F1F0F 0%, #4F3F1F 100%);
+border: 2px solid #FFD811; border-radius: 12px;
+font-size: 0.75em; color: #FFD811; text-align: center; font-weight: bold;
+box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+.mascot {
+display: block; width: 160px; height: 160px; border-radius: 50%;
+border: 6px solid #FFD811; object-fit: cover; margin: 16px auto;
+box-shadow: 0 6px 15px rgba(0,0,0,0.4);
+}
+
+.chat-panel {
+flex: 1; min-width: 0; border-radius: 0 24px 24px 0;
+border-left: 1px solid #555; padding: 24px; display: flex; flex-direction: column;
+background: #2C2C2C; position: relative;
+}
+
+.chat-box {
+flex: 1; min-height: 400px; max-height: 400px; overflow-y: auto;
+background: #1A1A1A; border: 2px solid #444; border-radius: 16px;
+padding: 16px; margin-bottom: 16px; position: relative;
+}
+
+.input-area {
+display: flex; gap: 12px; align-items: center; padding: 12px;
+background: #363636; border: 2px solid #555; border-radius: 24px;
+min-height: 60px; position: relative;
+}
+
+.chat-input {
+flex: 1; background: transparent; border: none; outline: none;
+color: white; font-size: 1em; padding: 0 16px; height: 36px;
+}
+
+.chat-input::placeholder { color: #999; }
+
+.send-button {
+width: 44px; height: 44px; border-radius: 50%;
+background: linear-gradient(135deg, #FFD811 0%, #FFA500 100%);
+border: none; cursor: pointer; display: flex; align-items: center; justify-content: center;
+transition: all 0.3s ease; box-shadow: 0 3px 8px rgba(0,0,0,0.3);
+}
+
+.send-button:hover { transform: scale(1.1); box-shadow: 0 5px 15px rgba(255, 216, 17, 0.4); }
+
+.send-button img { width: 24px; height: 24px; }
+
+.mobile-rocket { display: none; }
+
+.loading { display: none; text-align: center; color: #FFD811; font-style: italic; }
+.loading.active { display: block; }
+
+.message {
+margin: 8px 0; padding: 8px 12px; border-radius: 12px; max-width: 85%;
+word-wrap: break-word;
+}
+
+.message.user {
+background: #0F2F4F; color: white; margin-left: auto; text-align: right;
+}
+
+.message.assistant {
+background: #2F2F0F; color: #FFD811; margin-right: auto;
+}
+
+.footer { display: none; }
+.mobile-footer { display: none; }
+
+/* Mobile Responsive Design */
+@media (max-width: 768px) {
+.header-row { max-width: 100vw; padding: 0.25rem 0; flex-direction: row; justify-content: center; gap: 20px; align-items: center; }
+.logo { position: static; height: 90px; margin: 0; order: 1; }
+.ai-robot { position: static; height: 45px; margin: 0; order: 3; }
+.header-center { margin: 0; text-align: center; order: 2; flex: none; }
+.site-title { font-size: 1.1rem; }
+.subtitle { font-size: 0.7rem; }
+.mascot { display: none; }
+.rocket-top { display: none; }
+.mobile-rocket { display: block; }
+.main-wrapper { padding: 0.5rem 0; }
+.main-content {
+flex-direction: column; width: 95vw; height: auto; min-height: calc(100vh - 200px); position: relative; margin-bottom: 60px; border: none; box-shadow: none;
+}
+.status-panel {
+width: 100%; min-width: 0; border-radius: 0; padding: 0.5rem;
+background: transparent; border: none; box-shadow: none; position: relative;
+}
+.status-title {
+position: static; margin-top: 16px; margin-bottom: 8px; background: none !important; border: none !important; padding: 0 !important; font-size: 1.1em; text-align: center; width: 100%; white-space: normal;
+}
+.status-list { display: none; }
+.system-ready { margin: 0.5rem 0; font-size: 0.9rem; padding: 10px; }
+.vault-info { margin: 0.5rem 0; padding: 0.75rem; font-size: 0.8rem; border: none; }
+.chat-panel {
+width: 100%; min-width: 0; border-radius: 0; border-left: none;
+padding: 0.5rem; flex: 1; min-height: 50vh; margin-top: 10px; border: none; margin-bottom: 60px;
+}
+.chat-box { min-height: 40vh; margin-bottom: 0.5rem; }
+.input-area { padding: 0.5rem; min-height: 3rem; margin-bottom: 0.5rem; border-radius: 20px; }
+.chat-input {
+font-size: 1em; padding: 0 1em; height: 2.5rem; line-height: 2.5rem; text-align: center; display: flex; align-items: center; justify-content: center;
+}
+.chat-input::placeholder { text-align: center; line-height: 2.5rem; font-size: 1em; }
+.send-button { width: 3.5rem; height: 2.5rem; border-radius: 20px; display: flex; align-items: center; justify-content: center; }
+.send-button img { width: 2rem; height: 2rem; }
+.footer { display: none; }
+.mobile-footer { display: flex; position: fixed; bottom: 0; width: 100%; }
+}
+</style>
 </head>
 <body>
-    <header>
-        <div class="header-row">
-            <img src="assets/logo.png" alt="SiteMonkeys Logo" class="logo">
-            <div class="header-center">
-                <h1 class="site-title">SITE MONKEYS AI</h1>
-                <div class="subtitle">BUSINESS VALIDATION ENGINE</div>
-            </div>
-            <div class="ai-robot">🤖</div>
-            <div class="rocket-top">🚀</div>
-        </div>
-    </header>
+<header>
+<div class="header-row">
+<img src="logo.png" alt="Site Monkeys Logo" class="logo">
+<div class="header-center">
+<h1 class="site-title">SITE MONKEYS AI</h1>
+<p class="subtitle">BUSINESS VALIDATION ENGINE</p>
+</div>
+<img src="ai-robot.png" alt="AI Robot" class="ai-robot">
+<img src="rocket.png" alt="Rocket" class="rocket-top">
+</div>
+</header>
 
-    <div class="main-wrapper">
-        <div class="main-content">
-            <div class="mascot-left">
-                <img src="assets/boy-mascot.png" alt="Eli" class="mascot-img">
-                <div class="mascot-name">ELI</div>
-                <div class="system-info">
-                    <h3>SiteMonkeys Business Validation System</h3>
-                    <ul class="status-list">
-                        <li>Zero-Failure AI</li>
-                        <li>Complete Business Intelligence</li>
-                        <li>Real-World Validation Ready</li>
-                        <li id="vault-status">Vault Loading...</li>
-                        <li>Zero Failure activated</li>
-                        <li>Legitimate data initiative activated</li>
-                        <li>Persistence driven activated</li>
-                        <li>Helpful initiative activated</li>
-                        <li>Founder Protection activated</li>
-                        <li>Market leader Initiative</li>
-                    </ul>
-                </div>
-                <div class="vault-status">
-                    <h4>Vault Status</h4>
-                    <div id="vault-info" class="vault-info">Connecting to vault...</div>
-                </div>
-            </div>
+<div class="main-wrapper">
+<div class="main-content">
+<div class="status-panel">
+<h3 class="status-title">SiteMonkeys Business Validation System</h3>
+<ul class="status-list">
+<li>Zero-Failure AI</li>
+<li>Complete Business Intelligence</li>
+<li>Real-World Validation Ready</li>
+<li id="vault-status-item">Site Monkeys memory vault loaded</li>
+<li>Zero Failure activated</li>
+<li>Legitimate data initiative activated</li>
+<li>Persistence driven activated</li>
+<li>helpful initiative activated</li>
+<li>Founder Protection activated</li>
+<li>Market leader Initiative</li>
+</ul>
+<img src="boy-mascot.png" alt="Eli - SiteMonkeys Mascot" class="mascot">
+<div class="system-ready">
+🚀 All Systems Ready for Business Validation
+</div>
+<div class="vault-info" id="vault-display">
+<div id="vault-info">💾 Initializing vault...</div>
+</div>
+</div>
 
-            <div class="chat-container">
-                <div class="chat-header">
-                    SiteMonkeys AI Business Validation Chat
-                </div>
-                <div id="chat-messages" class="chat-messages">
-                    <div class="ai-message">
-                        <img src="assets/girl-mascot.png" alt="Roxy" class="ai-avatar">
-                        <div>Welcome to SiteMonkeys Business Validation! I'm Roxy, and with Eli, we're here to help validate your business decisions using zero-failure protocols. What would you like to validate today?</div>
-                    </div>
-                </div>
-                <div class="chat-input-container">
-                    <input type="text" id="user-input" class="chat-input" placeholder="Ask about your business strategy, pricing, or validation...">
-                    <button id="send-btn" class="send-btn">▶</button>
-                </div>
-            </div>
+<div class="chat-panel">
+<div class="chat-box" id="chat-box">
+<div class="loading" id="loading">🤖 Thinking...</div>
+</div>
+<div class="input-area">
+<input type="text" class="chat-input" id="user-input" placeholder="Ask about business strategy, market validation, or any SiteMonkeys question..." onkeypress="if(event.key==='Enter') sendMessage()">
+<button class="send-button" onclick="sendMessage()">
+<img src="girl-mascot.png" alt="Send">
+</button>
+</div>
+</div>
+</div>
+</div>
 
-            <div class="mascot-right">
-                <img src="assets/girl-mascot.png" alt="Roxy" class="mascot-img">
-                <div class="mascot-name">ROXY</div>
-                <div class="system-info">
-                    <h3>AI Response Matrix</h3>
-                    <ul class="status-list">
-                        <li>Business Intelligence Loaded</li>
-                        <li>Financial Constraints Active</li>
-                        <li>Pricing Models Ready</li>
-                        <li>Zero-Failure Protocols</li>
-                        <li>Legal Framework Active</li>
-                        <li>Service Delivery Matrix</li>
-                        <li>Contractor Handoff Ready</li>
-                        <li>Revenue Validation Live</li>
-                        <li>Survivability Analysis</li>
-                        <li>Market Position Tracking</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-    </div>
+<script>
+// Global variables
+let vaultData = '';
+let conversationHistory = [];
 
-    <script>
-        let vaultData = null;
-        let aiToggle = false; // Alternates between Eli and Roxy
+// Initialize the application when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('SiteMonkeys AI initializing...');
+    loadVault();
+});
 
-        // Load vault data on page load
-        async function loadVaultData() {
-            try {
-                const response = await fetch('/api/load-vault');
-                const data = await response.json();
-                vaultData = data;
-                
-                // Update UI with vault status
-                const vaultStatus = document.getElementById('vault-status');
-                const vaultInfo = document.getElementById('vault-info');
-                
-                if (data.status === 'OPERATIONAL') {
-                    vaultStatus.textContent = 'Site Monkeys memory vault loaded';
-                    vaultInfo.innerHTML = `
-                        <strong>Status:</strong> ${data.status}<br>
-                        <strong>Tokens:</strong> ${data.tokens}<br>
-                        <strong>Cost:</strong> ${data.estimated_cost}<br>
-                        <strong>Files:</strong> ${data.folders_loaded.length} loaded
-                    `;
-                } else {
-                    vaultStatus.textContent = 'Vault connection error';
-                    vaultInfo.textContent = 'Using fallback business intelligence';
-                }
-            } catch (error) {
-                console.error('Failed to load vault data:', error);
-                document.getElementById('vault-status').textContent = 'Vault offline';
-                document.getElementById('vault-info').textContent = 'Operating in offline mode';
+// Load vault function with my working functionality
+async function loadVault() {
+    try {
+        console.log('Loading vault from Google Drive...');
+        
+        const response = await fetch('/api/load-vault', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
             }
-        }
-
-        // Send message function
-        async function sendMessage() {
-            const input = document.getElementById('user-input');
-            const message = input.value.trim();
-            
-            if (!message) return;
-            
-            // Add user message to chat
-            addMessageToChat(message, 'user');
-            input.value = '';
-            
-            // Show typing indicator
-            const typingDiv = addMessageToChat('Thinking...', 'ai');
-            
-            try {
-                // Send to AI API
-                const response = await fetch('/api/chat', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        message: message,
-                        vault_memory: vaultData?.vault_content || ''
-                    })
-                });
-                
-                const data = await response.json();
-                
-                // Remove typing indicator
-                typingDiv.remove();
-                
-                if (data.response) {
-                    addMessageToChat(data.response, 'ai');
-                } else {
-                    addMessageToChat('Sorry, I encountered an error. Please try again.', 'ai');
-                }
-                
-            } catch (error) {
-                typingDiv.remove();
-                addMessageToChat('Connection error. Please check your internet and try again.', 'ai');
-                console.error('Chat error:', error);
-            }
-        }
-
-        // Add message to chat
-        function addMessageToChat(message, type) {
-            const chatMessages = document.getElementById('chat-messages');
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${type}-message`;
-            
-            if (type === 'ai') {
-                // Alternate between Eli and Roxy
-                const mascot = aiToggle ? 'boy-mascot.png' : 'girl-mascot.png';
-                const name = aiToggle ? 'Eli' : 'Roxy';
-                aiToggle = !aiToggle;
-                
-                messageDiv.innerHTML = `
-                    <img src="assets/${mascot}" alt="${name}" class="ai-avatar">
-                    <div><strong>${name}:</strong> ${message}</div>
-                `;
-            } else {
-                messageDiv.textContent = message;
-            }
-            
-            chatMessages.appendChild(messageDiv);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-            
-            return messageDiv;
-        }
-
-        // Event listeners
-        document.addEventListener('DOMContentLoaded', function() {
-            loadVaultData();
-            
-            const input = document.getElementById('user-input');
-            const sendBtn = document.getElementById('send-btn');
-            
-            input.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    sendMessage();
-                }
-            });
-            
-            sendBtn.addEventListener('click', sendMessage);
         });
-    </script>
+
+        if (!response.ok) {
+            throw new Error(`Vault API error: ${response.status}`);
+        }
+
+        const data = await response.json();
+        
+        if (data.status === 'success') {
+            vaultData = data.memory || data.data || '';
+            
+            // Update vault display with success
+            const vaultDisplay = document.getElementById('vault-display');
+            const vaultInfo = document.getElementById('vault-info');
+            
+            vaultDisplay.className = 'vault-info'; // Remove any error classes
+            vaultInfo.innerHTML = `
+                ✅ Vault loaded successfully<br>
+                📊 ${data.tokens || 'Unknown'} tokens<br>
+                💰 Est. cost: ${data.estimated_cost || 'Unknown'}<br>
+                📁 ${data.folders_loaded?.length || 0} folders loaded
+            `;
+            
+            // Update status in sidebar
+            document.getElementById('vault-status-item').textContent = 
+                `Site Monkeys vault loaded (${data.tokens || 'Unknown'} tokens)`;
+                
+        } else {
+            throw new Error(data.error || 'Unknown vault error');
+        }
+        
+    } catch (error) {
+        console.error('Vault loading error:', error);
+        const vaultDisplay = document.getElementById('vault-display');
+        const vaultInfo = document.getElementById('vault-info');
+        
+        vaultDisplay.className = 'vault-status error';
+        vaultInfo.innerHTML = `
+            ❌ Vault loading failed<br>
+            Error: ${error.message}<br>
+            <small>Check console for details</small>
+        `;
+        
+        document.getElementById('vault-status-item').textContent = 'Vault loading failed';
+    }
+}
+
+// Send message function with my working functionality
+async function sendMessage() {
+    const input = document.getElementById('user-input');
+    const message = input.value.trim();
+    if (!message) return;
+
+    // Add user message to chat
+    addMessage(message, 'user');
+    input.value = '';
+
+    // Show loading indicator
+    document.getElementById('loading').classList.add('active');
+
+    try {
+        // Use your chat API endpoint instead of calling Claude directly
+        const response = await fetch('/api/chat', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                message: message,
+                vault_data: vaultData,
+                conversation_history: conversationHistory
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error(`Chat API error: ${response.status}`);
+        }
+
+        const data = await response.json();
+        const reply = data.response || data.message || 'No response received';
+        
+        // Add assistant response with alternating mascots
+        const mascotName = conversationHistory.length % 2 === 0 ? 'Eli' : 'Roxy';
+        addMessage(reply, 'assistant', mascotName);
+        
+        // Update conversation history
+        conversationHistory.push({
+            user: message,
+            assistant: reply,
+            mascot: mascotName
+        });
+
+    } catch (error) {
+        console.error('Chat error:', error);
+        addMessage(`Error: ${error.message}`, 'assistant', 'System');
+    } finally {
+        // Hide loading indicator
+        document.getElementById('loading').classList.remove('active');
+    }
+}
+
+// Add message to chat display
+function addMessage(content, sender, mascot = null) {
+    const chatBox = document.getElementById('chat-box');
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message ${sender}`;
+    
+    if (mascot) {
+        messageDiv.innerHTML = `<strong>${mascot}:</strong> ${content}`;
+    } else {
+        messageDiv.textContent = content;
+    }
+    
+    chatBox.appendChild(messageDiv);
+    chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+// Error handling for missing images
+document.addEventListener('DOMContentLoaded', function() {
+    const images = document.querySelectorAll('img');
+    images.forEach(img => {
+        img.onerror = function() {
+            console.warn(`Image failed to load: ${this.src}`);
+            this.style.display = 'none';
+        };
+    });
+});
+</script>
 </body>
 </html>
