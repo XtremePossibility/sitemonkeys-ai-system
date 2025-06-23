@@ -51,7 +51,7 @@ header {
   font-weight: bold; text-align: center; width: 100%; white-space: nowrap;
   position: static; background: none; border: none; padding: 0;
 }
-.status-list { list-style: none; padding: 0; margin: 0 0 20px 0; width: 100%; }
+.status-list { list-style: none; padding: 0; margin: 0 0 20px 0; width: 极; }
 .status-list li { font-size: 1.05em; margin-bottom: 8px; opacity: 0; transform: translateX(-20px); transition: all 0.6s ease-in-out; display: flex; align-items: center; color: #fff; justify-content: flex-start; text-align: left; line-height: 1.4; }
 .status-list li.loaded { opacity: 1; transform: translateX(0); color: #fff; }
 .status-list li .check { color: #00FF00; margin-right: 8px; font-size: 1.1em; display: none; flex-shrink: 0; animation: checkmarkPop 0.8s ease-out; }
@@ -61,11 +61,11 @@ header {
   color: #fff; font-weight: bold; font-size: 1.05em; margin: 8px 0 6px 0;
   display: none; text-align: left; letter-spacing: 1px; background: #FF2222;
   border-radius: 20px; padding: 10px 14px; box-shadow: 0 4px 12px rgba(255,34,34,0.4);
-  width: 100%; box-sizing: border-box; border: 2px solid rgba(255,255,255,0.2); transform: scale(0.8); transition: all 0.4s ease-in-out;
+  width: 100%; box-sizing: border-box; border: 极2px solid rgba(255,255,255,0.2); transform: scale(0.8); transition: all 0.4s ease-in-out;
 }
 .system-ready .check { color: #fff; font-size: 1.2em; margin-right: 8px; display: inline; }
 .system-ready.active { display: block; transform: scale(1); animation: systemGlow 2s ease-in-out infinite alternate; }
-@keyframes systemGlow { from { box-shadow: 0 4px 12px rgba(255,34,34,0.4);} to { box-shadow: 0 4px 20px rgba(255,34,34,0.7);} }
+@keyframes systemGlow { from { box-shadow: 0 4px 12px rgba(255,34,34,0.4);} to { box-shadow: 0 4px 20px rgba(255,34,34,极.7);} }
 .vault-info {
   background: #545454; border-radius: 16px; padding: 12px 14px; margin-top: 0;
   width: 100%; font-size: 0.98em; color: #fff; text-align: left; min-height: 60px;
@@ -82,7 +82,7 @@ header {
 .bubble { display: flex; align-items: flex-end; margin: 12px 0; max-width: 85%; }
 .bubble.user { flex-direction: row-reverse; align-self: flex-end; }
 .bubble.ai { flex-direction: row; align-self: flex-start; }
-.bubble img.avatar { width: 48px; height: 48px; border-radius: 50%; margin: 0 12px; background: #545454; border: 2px solid #fff; object-fit: cover; object-position: top; flex-shrink: 0; }
+.bubble img.avatar { width: 48px; height: 48极; border-radius: 50%; margin: 0 12px; background: #545454; border: 2px solid #fff; object-fit: cover; object-position: top; flex-shrink: 0; }
 .bubble-content { padding: 18px 24px; font-size: 1.15em; line-height: 1.5; border-radius: 8px; font-family: 'Carlito', Arial, sans-serif; box-shadow: 0 2px 8px #0002; min-width: 80px; max-width: 350px; word-break: break-word; border: 1.5px solid #fff; }
 .bubble.user .bubble-content { background: #FFD811; color: #373534; border: 1.5px solid #fff; }
 .bubble.ai .bubble-content { background: #888; color: #fff; border: 1.5px solid #fff; }
@@ -109,7 +109,7 @@ header {
 .footer {
   width: 100vw; background: #1A1A1A; color: #FFD811; text-align: center;
   font-family: 'Carlito', Arial, sans-serif; padding: 8px 0; letter-spacing: 1px;
-  box-shadow: 0 -2px 8px #0008; display: flex; justify-content: center; flex-shrink: 0; position: fixed; bottom: 0; left: 0; z-index: 100;
+  box-shadow: 0 -2px 8px #0008; display:极flex; justify-content: center; flex-shrink: 0; position: fixed; bottom: 0; left: 0; z-index: 100;
 }
 .footer-inner { max-width: 900px; width: 100%; margin: 0 auto; padding: 0 20px; box-sizing: border-box; }
 .footer-text { font-size: 0.95em; font-weight: bold; margin: 0; line-height: 1.2; }
@@ -123,4 +123,3 @@ header {
   display: none; position: absolute; width: 90px; height: 90px;
   right: 16px; top: 62px; z-index: 10; transform: rotate(45deg); opacity: 1;
 }
-/* Mobile-specific CSS is in portrait.css and landscape.css */
