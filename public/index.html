@@ -303,7 +303,7 @@ font-size: 1em; padding: 0 1em; height: 2.5rem; line-height: 2.5rem; text-align:
 </div>
 
 <script>
-// Global variables for my working functionality
+// Global variables for working functionality
 let vaultData = '';
 let conversationHistory = [];
 let systemActive = false;
@@ -326,12 +326,12 @@ setTimeout(loadStatus, 400);
 setTimeout(() => {
 systemReady.classList.add('active');
 systemActive = true;
-loadVault(); // Call my vault loading function
+loadVault(); // Call vault loading function
 }, 500);
 }
 }
 
-// My working vault loading functionality
+// Working vault loading functionality
 async function loadVault() {
 try {
 console.log('Loading vault from Google Drive...');
@@ -381,7 +381,7 @@ vaultStatusItem.innerHTML = '<span class="check">✗</span> Vault loading failed
 }
 }
 
-// My working chat functionality
+// Working chat functionality
 async function sendMessage() {
 const input = document.getElementById('user-input');
 const text = input.value.trim();
@@ -404,7 +404,7 @@ input.value = '';
 document.getElementById('loading').classList.add('active');
 
 try {
-// Use my chat API endpoint
+// Use chat API endpoint with your sophisticated protocol system
 const response = await fetch('/api/chat', {
 method: 'POST',
 headers: {
@@ -412,7 +412,7 @@ headers: {
 },
 body: JSON.stringify({
 message: text,
-vault_data: vaultData,
+vault_data: { vault_content: vaultData },
 conversation_history: conversationHistory
 })
 });
@@ -422,7 +422,7 @@ throw new Error(`Chat API error: ${response.status}`);
 }
 
 const data = await response.json();
-const reply = data.response || data.message || 'No response received';
+const reply = data.response || 'No response received';
         
 // Add assistant response using Perplexity's format
 const responseBubble = document.createElement('div');
@@ -438,11 +438,14 @@ responseBubble.innerHTML = `
 box.appendChild(responseBubble);
 box.scrollTop = box.scrollHeight;
 
-// Update conversation history
+// Update conversation history for your advanced system
 conversationHistory.push({
-user: text,
-assistant: reply,
-mascot: who
+role: 'user',
+content: text
+});
+conversationHistory.push({
+role: 'assistant', 
+content: reply
 });
 
 aiToggle = !aiToggle;
