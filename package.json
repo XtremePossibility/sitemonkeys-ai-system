@@ -1,10 +1,19 @@
 {
   "name": "sitemonkeys-ai-system",
   "version": "1.0.0",
-  "type": "module",
+  "description": "SiteMonkeys Business Validation AI System",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vercel dev",
+    "build": "echo 'No build step required'",
+    "start": "echo 'Deployed on Vercel'"
+  },
   "dependencies": {
-    "googleapis": "^118.0.0",
     "openai": "^4.0.0",
-    "mammoth": "^1.6.0"
-  }
+    "googleapis": "^118.0.0",
+    "google-auth-library": "^8.0.0"
+  },
+  "keywords": ["ai", "business", "validation", "sitemonkeys"],
+  "author": "SiteMonkeys",
+  "license": "MIT"
 }
