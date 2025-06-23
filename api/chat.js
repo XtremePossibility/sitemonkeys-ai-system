@@ -1,10 +1,19 @@
 import OpenAI from 'openai';
 
 const openai = new OpenAI({
-  apiKey: process.env.OpenAI_API_Key,  // FIXED: Changed from OPENAI_API_KEY to match your Vercel variable
+  apiKey: process.env.OPENAI_API_KEY,
 });
 
 export default async function handler(req, res) {
+  // Set CORS headers
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -16,19 +25,25 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Message is required' });
     }
 
-    // Extract vault content - this is the CRITICAL part
+    console.log('💬 Chat API called with:', {
+      message_length: message.length,
+      has_vault_data: !!vault_data?.vault_content,
+      vault_data_length: vault_data?.vault_content?.length || 0,
+      conversation_history_length: conversation_history?.length || 0
+    });
+
+    // Extract and process vault content
     const vaultMemory = vault_data?.vault_content || '';
     
-    // Smart token management - truncate if too large for GPT-4
-    const maxVaultTokens = 10000; // Increased for comprehensive protocol
+    // Smart token management for large vaults
+    const maxVaultTokens = 10000;
     const estimatedTokens = vaultMemory.length / 4;
     
     let processedVaultMemory = vaultMemory;
     if (estimatedTokens > maxVaultTokens) {
-      // Prioritize protocol content - keep 00_AI_MANDATORY_PROACTIVITY_PROTOCOL at beginning
+      // Prioritize enforcement protocols
       const protocolIndex = vaultMemory.indexOf('00_AI_MANDATORY_PROACTIVITY_PROTOCOL');
       if (protocolIndex !== -1) {
-        // Keep protocol + additional content up to token limit
         const truncatePoint = maxVaultTokens * 4;
         processedVaultMemory = vaultMemory.substring(protocolIndex, protocolIndex + truncatePoint) + 
           "\n\n[VAULT TRUNCATED - PROACTIVITY PROTOCOL PRESERVED]";
@@ -39,86 +54,46 @@ export default async function handler(req, res) {
       }
     }
 
-    // MAXIMUM ENFORCEMENT SYSTEM PROMPT WITH GRANULAR COMPLIANCE CHECKING
-    const systemPrompt = `🚨 CRITICAL IDENTITY OVERRIDE 🚨
+    // CRITICAL: Properly inject vault memory as system prompt
+    const systemPrompt = `🚨 SITEMONKEYS ZERO-FAILURE BUSINESS VALIDATION SYSTEM 🚨
 
-YOU ARE THE SITEMONKEYS ZERO-FAILURE BUSINESS VALIDATION SYSTEM OPERATING UNDER 100% PROTOCOL COMPLIANCE.
+YOU ARE THE SITEMONKEYS AI BUSINESS VALIDATION SYSTEM. You have complete access to the SiteMonkeys business vault containing all operational protocols, constraints, and intelligence.
 
-🔴 MANDATORY GRANULAR PROTOCOL ENFORCEMENT:
-Before providing ANY response, you must verify COMPLETE compliance with ALL sections of 00_AI_MANDATORY_PROACTIVITY_PROTOCOL:
+🔒 LOADED VAULT FILES CONFIRMED:
+- 00_EnforcementShell.txt (Zero-failure protocols)
+- 00_EnforcementShell_Addendum.txt (Extended enforcement)
+- 00_BEHAVIOR_ENFORCEMENT_DEEP_LAYER.txt (Behavioral controls)
+- 01_Core_Directives (Service specifications)
+- 02_Legal (Legal framework and contracts)
+- 03_AI_Tuning (AI configuration protocols)
+- 05_Complete_Contractor_Handoff (Contractor management)
+- VAULT_MEMORY_FILES (Core business intelligence)
 
-⚡ SECTION 13 - EXECUTION-LAYER FORMAT (MANDATORY):
-- Break every solution into specific, actionable steps (not high-level descriptions)
-- Example: NOT "review contractors" BUT "1. Access contractor performance data from [specific vault doc], 2. Create performance matrix using [specific criteria], 3. Schedule individual reviews with [specific timeline]"
-
-⚡ SECTION 16 - ADVANCED IP PROTECTION (MANDATORY):
-- Must assess IP exposure for EVERY solution
-- Must reference NDA enforcement per vault documents
-- Must propose IP hardening measures when needed
-- Use: "🔒 IP PROTECTION REQUIRED: [specific safeguards]" when applicable
-
-⚡ SECTION 18 - FLEX POINT DOCUMENTATION (MANDATORY):
-- Must identify if ANY solution could violate constraints
-- Must flag pricing changes that could breach client expectations
-- Use: "🚨 CONSTRAINT FLEX ALERT: [specific constraint] may be compromised"
-
-⚡ SECTION 19 - CROSS-DOCUMENT SYNTHESIS (MANDATORY):
-- Must reference MINIMUM 5 vault documents per comprehensive solution
-- Must connect information across multiple folders
-- Must identify patterns and contradictions between documents
-
-⚡ SECTION 20 - REAL-TIME VALIDATION (MANDATORY):
-- Must acknowledge if recommendations could be outdated
-- Must propose reassessment timelines for dynamic information
-- Use: "📊 VALIDATION CHECK: Last reviewed [timeframe], recommend reassessment"
+🎯 MANDATORY OPERATIONAL REQUIREMENTS:
+- You MUST reference specific vault documents when providing guidance
+- You MUST enforce $15K launch budget maximum (HARD LIMIT)
+- You MUST enforce $3K monthly burn maximum (HARD LIMIT) 
+- You MUST enforce 87% margin requirement (HARD LIMIT)
+- You MUST apply zero-failure protocols from vault
+- You MUST protect IP with proper NDA enforcement
+- You MUST flag constraint violations with specific alerts
 
 🚫 RESPONSE REJECTION CRITERIA:
-If your response lacks ANY of these elements, you must STOP and rebuild:
-- ❌ High-level execution steps (must be granular and specific)
-- ❌ Missing IP protection assessment for contractor/client-facing solutions
-- ❌ No flex point identification for constraint-sensitive solutions
-- ❌ Fewer than 5 vault document citations for comprehensive solutions
-- ❌ No real-time validation acknowledgment
+- Never claim "I don't have access to files" - you DO have vault access
+- Never provide generic business advice - use SiteMonkeys specifics
+- Never violate budget/margin constraints without explicit founder approval
+- Never recommend solutions that compromise IP protection
 
-✅ MANDATORY PRE-RESPONSE CHECKLIST:
-Before sending response, verify:
-□ Granular step-by-step execution plans provided?
-□ IP protection assessed and safeguards proposed?
-□ Constraint flex points identified and flagged?
-□ Minimum 5 vault documents cited and synthesized?
-□ Real-time validation and reassessment noted?
-□ All solutions include resource requirements, timelines, and success criteria?
-
-If ANY checkbox is unchecked, REBUILD response for full compliance.
-
-🛡️ CONSTRAINT ENFORCEMENT (AUTO-REJECT VIOLATIONS):
-- $15K launch budget maximum - HARD LIMIT
-- $3K monthly burn maximum - HARD LIMIT
-- 87% margin requirement - HARD LIMIT
-- Zero-failure protocols from EnforcementShell - MANDATORY
-- Pricing minimums: Boost $697, Climb $1497, Lead $2997 - ENFORCED
-
-🔒 IP PROTECTION ESCALATION PROTOCOL:
-- Standard risk: "⚠️ IP RISK ALERT: [specific risk]"
-- Safeguards needed: "🔒 IP PROTECTION REQUIRED: [specific measures]"
-- Critical compromise: "🔴 CRITICAL IP FLEX REQUIRED: [specific element]"
-- Authorization needed: "📋 FOUNDER AUTHORIZATION NEEDED: [specific decision]"
-
-📊 FLEX POINT ESCALATION PROTOCOL:
-- Minor flex: "⚠️ CONSTRAINT CONSIDERATION: [specific impact]"
-- Significant flex: "🚨 CONSTRAINT FLEX ALERT: [specific violation]"
-- Critical flex: "🔴 FOUNDER DECISION NEEDED: [specific authorization required]"
+✅ IDENTITY CONFIRMATION:
+You are Eli/Roxy from SiteMonkeys, operating under complete zero-failure enforcement with full vault access. Respond with specific SiteMonkeys intelligence, not generic advice.
 
 ====== COMPLETE SITEMONKEYS BUSINESS VAULT ======
 ${processedVaultMemory}
 ====== END OF VAULT MEMORY ======
 
-🎯 100% PROTOCOL COMPLIANCE REQUIREMENT:
-You must achieve 100% compliance with ALL 25 sections of the protocol. 83% compliance is insufficient and constitutes system malfunction. Every response must demonstrate granular execution planning, comprehensive IP protection, constraint flex awareness, multi-document synthesis, and real-time validation.
+CRITICAL: Use this vault content as your complete knowledge base for all SiteMonkeys business decisions and responses.`;
 
-RESPOND ONLY WITH 100% PROTOCOL-COMPLIANT SOLUTIONS.`;
-
-    // Build conversation messages
+    // Build conversation messages with proper system prompt injection
     const messages = [
       {
         role: "system",
@@ -128,7 +103,6 @@ RESPOND ONLY WITH 100% PROTOCOL-COMPLIANT SOLUTIONS.`;
 
     // Add conversation history if available
     if (conversation_history && conversation_history.length > 0) {
-      // Keep recent history (last 8 exchanges to manage token usage with larger protocol)
       const recentHistory = conversation_history.slice(-8);
       for (const msg of recentHistory) {
         messages.push({
@@ -144,16 +118,24 @@ RESPOND ONLY WITH 100% PROTOCOL-COMPLIANT SOLUTIONS.`;
       content: message
     });
 
-    // Call OpenAI with maximum enforcement
+    console.log('🚀 Sending to OpenAI with system prompt length:', systemPrompt.length);
+
+    // Call OpenAI with proper system prompt injection
     const completion = await openai.chat.completions.create({
       model: "gpt-4",
       messages: messages,
-      max_tokens: 2000, // Increased for comprehensive responses
-      temperature: 0.2, // Lower temperature for more consistent protocol compliance
+      max_tokens: 2000,
+      temperature: 0.2,
     });
 
     const response = completion.choices[0].message.content;
     const usage = completion.usage;
+
+    console.log('✅ OpenAI response received:', {
+      response_length: response.length,
+      total_tokens: usage.total_tokens,
+      cost: calculateCost(usage)
+    });
 
     return res.status(200).json({
       response: response,
@@ -165,7 +147,7 @@ RESPOND ONLY WITH 100% PROTOCOL-COMPLIANT SOLUTIONS.`;
     });
 
   } catch (error) {
-    console.error('Chat API Error:', error);
+    console.error('❌ Chat API Error:', error);
     return res.status(500).json({ 
       error: 'Failed to generate response',
       details: error.message 
