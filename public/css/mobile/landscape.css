@@ -1,1 +1,4 @@
+@media (max-width: 768px) and (orientation: landscape) {
+  .mobile-rocket { top: 40px; width: 70px; height: 70px; }
+}
 
