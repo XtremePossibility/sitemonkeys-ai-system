@@ -304,7 +304,7 @@ font-size: 1em; padding: 0 1em; height: 2.5rem; line-height: 2.5rem; text-align:
 <div class="chat-panel">
 <div class="chat-box" id="chat-box"></div>
 <div class="input-area">
-<input type="text" class="chat-input" id="user-input" placeholder="Ask Eli, Roxy, and AI about business validation..." />
+<textarea class="chat-input" id="user-input" placeholder="Ask Eli, Roxy, and AI about business validation..." rows="3"></textarea>
 <button class="send-button" id="send-btn" aria-label="Send">
 <img src="rocket.png" alt="Rocket Send" />
 </button>
@@ -326,18 +326,22 @@ font-size: 1em; padding: 0 1em; height: 2.5rem; line-height: 2.5rem; text-align:
 </div>
 
 <script>
-// Global variables
-let aiToggle = true;
-let systemActive = false;
+// Global variables for working functionality
 let vaultData = '';
 let conversationHistory = [];
+let systemActive = false;
+let aiToggle = true;
 
-// Status animation variables
+// Perplexity's original animation code
 const statusItems = document.querySelectorAll('#status-list li');
 const systemReady = document.getElementById('system-ready');
+const tokenCount = document.getElementById('token-count');
+const costEstimate = document.getElementById('cost-estimate');
+const vaultFolders = document.getElementById('vault-folders');
 let statusIndex = 0;
 
 function loadStatus() {
+console.log('🎯 loadStatus function called');
 if (statusIndex < statusItems.length) {
 statusItems[statusIndex].classList.add('loaded');
 statusIndex++;
@@ -346,27 +350,72 @@ setTimeout(loadStatus, 400);
 setTimeout(() => {
 systemReady.classList.add('active');
 systemActive = true;
-loadVault();
+console.log('✅ System marked as active, calling loadVault...');
+loadVault(); // Call vault loading function
 }, 500);
 }
 }
 
+// Working vault loading functionality
 async function loadVault() {
 try {
-const response = await fetch('/api/load-vault');
-if (response.ok) {
-const data = await response.json();
-vaultData = data.memory || data.data || '';
-document.getElementById('token-count').textContent = data.tokens || 'Unknown';
-document.getElementById('cost-estimate').textContent = '$' + (data.estimated_cost || 'Unknown');
-document.getElementById('vault-folders').textContent = data.folders_loaded?.length || 0;
+console.log('🚀 Starting vault loading...');
+        
+const response = await fetch('/api/load-vault', {
+method: 'GET',
+headers: {
+'Content-Type': 'application/json'
 }
+});
+
+console.log('📡 Vault API response status:', response.status);
+
+if (!response.ok) {
+throw new Error(`Vault API error: ${response.status}`);
+}
+
+const data = await response.json();
+console.log('📦 Vault data received:', data);
+        
+if (data.status === 'success') {
+vaultData = data.memory || data.data || data.vault_content || '';
+console.log('💾 Vault data stored. Length:', vaultData.length);
+console.log('🔍 First 200 chars:', vaultData.substring(0, 200));
+            
+// Update vault display with success using Perplexity's format
+document.getElementById('vault-info').innerHTML = `
+<div><span style="color:#00FF00;">✅</span> VAULT LOADED SUCCESSFULLY</div>
+<div>🔢 <span id="token-count">${data.tokens || 'Unknown'}</span> TOKENS</div>
+<div>💰 EST. COST: <span id="cost-estimate">$${data.estimated_cost || 'Unknown'}</span></div>
+<div>📁 <span id="vault-folders">${data.folders_loaded?.length || 0}</span> FOLDERS LOADED</div>
+`;
+            
+// Update status in sidebar
+const vaultStatusItem = document.getElementById('vault-status-item');
+if (vaultStatusItem) {
+vaultStatusItem.innerHTML = `<span class="check">✅</span> Site Monkeys memory vault loaded (${data.tokens || 'Unknown'} tokens)`;
+}
+                
+} else {
+throw new Error(data.error || 'Unknown vault error');
+}
+        
 } catch (error) {
-console.error('Vault loading error:', error);
-document.getElementById('vault-info').innerHTML = '<div><span style="color:#FF0000;">❌</span> VAULT LOADING FAILED</div>';
+console.error('❌ Vault loading error:', error);
+document.getElementById('vault-info').innerHTML = `
+<div><span style="color:#FF0000;">❌</span> VAULT LOADING FAILED</div>
+<div>Error: ${error.message}</div>
+<div>📁 Check console for details</div>
+`;
+        
+const vaultStatusItem = document.getElementById('vault-status-item');
+if (vaultStatusItem) {
+vaultStatusItem.innerHTML = '<span class="check">✗</span> Vault loading failed';
+}
 }
 }
 
+// Working chat functionality
 async function sendMessage() {
 const input = document.getElementById('user-input');
 const text = input.value.trim();
@@ -374,7 +423,7 @@ if (!text || !systemActive) return;
 
 const box = document.getElementById('chat-box');
 
-// Add user message
+// Add user message using Perplexity's bubble format
 const userBubble = document.createElement('div');
 userBubble.className = 'bubble user';
 userBubble.innerHTML = `
@@ -385,10 +434,22 @@ box.appendChild(userBubble);
 box.scrollTop = box.scrollHeight;
 input.value = '';
 
+// Show loading indicator
+document.getElementById('loading')?.classList.add('active');
+
 try {
+console.log('💬 Sending to chat API:', { 
+message: text, 
+vault_data_length: vaultData ? vaultData.length : 0,
+has_vault_data: !!vaultData,
+vault_data_preview: vaultData ? vaultData.substring(0, 100) : 'NO VAULT DATA'
+});
+
 const response = await fetch('/api/chat', {
 method: 'POST',
-headers: { 'Content-Type': 'application/json' },
+headers: {
+'Content-Type': 'application/json'
+},
 body: JSON.stringify({
 message: text,
 vault_data: { vault_content: vaultData },
@@ -396,10 +457,17 @@ conversation_history: conversationHistory
 })
 });
 
-if (response.ok) {
-const data = await response.json();
-const reply = data.response || 'No response received';
+console.log('📞 Chat API response status:', response.status);
 
+if (!response.ok) {
+throw new Error(`Chat API error: ${response.status}`);
+}
+
+const data = await response.json();
+console.log('💭 Chat response received:', data);
+const reply = data.response || 'No response received';
+        
+// Add assistant response using Perplexity's format
 const responseBubble = document.createElement('div');
 const isEli = aiToggle;
 const who = isEli ? 'Eli' : 'Roxy';
@@ -413,21 +481,42 @@ responseBubble.innerHTML = `
 box.appendChild(responseBubble);
 box.scrollTop = box.scrollHeight;
 
-conversationHistory.push({ role: 'user', content: text });
-conversationHistory.push({ role: 'assistant', content: reply });
+// Update conversation history for your advanced system
+conversationHistory.push({
+role: 'user',
+content: text
+});
+conversationHistory.push({
+role: 'assistant', 
+content: reply
+});
+
 aiToggle = !aiToggle;
-}
+
 } catch (error) {
-console.error('Chat error:', error);
+console.error('❌ Chat error:', error);
+const errorBubble = document.createElement('div');
+errorBubble.className = 'bubble ai';
+errorBubble.innerHTML = `
+<img src="boy-mascot.png" class="avatar" alt="System">
+<div class="bubble-content"><strong>System:</strong> Error: ${error.message}</div>
+`;
+box.appendChild(errorBubble);
+box.scrollTop = box.scrollHeight;
+} finally {
+// Hide loading indicator
+document.getElementById('loading')?.classList.remove('active');
 }
 }
 
+// Initialize everything
 document.addEventListener('DOMContentLoaded', function() {
+console.log('🚀 DOM LOADED - JavaScript is working!');
 const input = document.getElementById('user-input');
 const sendBtn = document.getElementById('send-btn');
 
 input.addEventListener('keydown', function(e) {
-if (e.key === 'Enter') {
+if (e.key === 'Enter' && !e.shiftKey) {
 e.preventDefault();
 sendMessage();
 }
@@ -438,7 +527,22 @@ e.preventDefault();
 sendMessage();
 });
 
-setTimeout(loadStatus, 800);
+console.log('🎯 Event listeners added');
+setTimeout(() => {
+console.log('⏰ Starting status animation...');
+loadStatus();
+}, 800);
+});
+
+// Error handling for missing images
+document.addEventListener('DOMContentLoaded', function() {
+const images = document.querySelectorAll('img');
+images.forEach(img => {
+img.onerror = function() {
+console.warn(`Image failed to load: ${this.src}`);
+this.style.display = 'none';
+};
+});
 });
 </script>
 </body>
