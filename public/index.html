@@ -348,10 +348,8 @@ statusIndex++;
 setTimeout(loadStatus, 400);
 } else {
 setTimeout(() => {
-systemReady.classList.add('active');
-systemActive = true;
-console.log('✅ System marked as active, calling loadVault...');
-loadVault(); // Call vault loading function
+console.log('✅ Status animation complete, starting vault loading...');
+loadVault(); // Load vault FIRST, then activate system
 }, 500);
 }
 }
@@ -395,6 +393,12 @@ const vaultStatusItem = document.getElementById('vault-status-item');
 if (vaultStatusItem) {
 vaultStatusItem.innerHTML = `<span class="check">✅</span> Site Monkeys memory vault loaded (${data.tokens || 'Unknown'} tokens)`;
 }
+
+// CRITICAL: Only activate system AFTER vault loads successfully
+console.log('🎯 Vault loaded successfully, now activating system...');
+systemReady.classList.add('active');
+systemActive = true;
+console.log('✅ System now active with vault data loaded');
                 
 } else {
 throw new Error(data.error || 'Unknown vault error');
@@ -412,6 +416,11 @@ const vaultStatusItem = document.getElementById('vault-status-item');
 if (vaultStatusItem) {
 vaultStatusItem.innerHTML = '<span class="check">✗</span> Vault loading failed';
 }
+
+// Even on error, activate system (but with no vault data)
+console.log('⚠️ Activating system despite vault error...');
+systemReady.classList.add('active');
+systemActive = true;
 }
 }
 
