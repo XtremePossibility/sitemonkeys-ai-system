@@ -32,72 +32,65 @@ export default async function handler(req, res) {
       conversation_history_length: conversation_history?.length || 0
     });
 
-    // Extract and process vault content
+    // CRITICAL: Extract vault content properly
     const vaultMemory = vault_data?.vault_content || '';
     
+    console.log('🔍 Vault memory extracted:', {
+      vault_length: vaultMemory.length,
+      vault_preview: vaultMemory.substring(0, 200)
+    });
+
     // Smart token management for large vaults
     const maxVaultTokens = 10000;
     const estimatedTokens = vaultMemory.length / 4;
     
     let processedVaultMemory = vaultMemory;
     if (estimatedTokens > maxVaultTokens) {
-      // Prioritize enforcement protocols
-      const protocolIndex = vaultMemory.indexOf('00_AI_MANDATORY_PROACTIVITY_PROTOCOL');
-      if (protocolIndex !== -1) {
-        const truncatePoint = maxVaultTokens * 4;
-        processedVaultMemory = vaultMemory.substring(protocolIndex, protocolIndex + truncatePoint) + 
-          "\n\n[VAULT TRUNCATED - PROACTIVITY PROTOCOL PRESERVED]";
-      } else {
-        const truncatePoint = maxVaultTokens * 4;
-        processedVaultMemory = vaultMemory.substring(0, truncatePoint) + 
-          "\n\n[VAULT TRUNCATED - CORE INTELLIGENCE PRESERVED]";
-      }
+      const truncatePoint = maxVaultTokens * 4;
+      processedVaultMemory = vaultMemory.substring(0, truncatePoint) + 
+        "\n\n[VAULT TRUNCATED - CORE INTELLIGENCE PRESERVED]";
     }
 
-    // CRITICAL: Properly inject vault memory as system prompt
-    const systemPrompt = `🚨 SITEMONKEYS ZERO-FAILURE BUSINESS VALIDATION SYSTEM 🚨
+    // CRITICAL: Inject vault memory into system prompt
+    const SYSTEM_PROMPT = `🚨 SITEMONKEYS BUSINESS VALIDATION SYSTEM 🚨
 
-YOU ARE THE SITEMONKEYS AI BUSINESS VALIDATION SYSTEM. You have complete access to the SiteMonkeys business vault containing all operational protocols, constraints, and intelligence.
+YOU ARE THE SITEMONKEYS AI BUSINESS VALIDATION SYSTEM. You have complete access to the SiteMonkeys business vault and must use it to answer all questions.
 
-🔒 LOADED VAULT FILES CONFIRMED:
-- 00_EnforcementShell.txt (Zero-failure protocols)
-- 00_EnforcementShell_Addendum.txt (Extended enforcement)
-- 00_BEHAVIOR_ENFORCEMENT_DEEP_LAYER.txt (Behavioral controls)
-- 01_Core_Directives (Service specifications)
-- 02_Legal (Legal framework and contracts)
-- 03_AI_Tuning (AI configuration protocols)
-- 05_Complete_Contractor_Handoff (Contractor management)
-- VAULT_MEMORY_FILES (Core business intelligence)
+🔒 VAULT ACCESS CONFIRMED:
+You have access to the complete SiteMonkeys vault containing all business intelligence, protocols, and operational data. Use this information to answer questions specifically and accurately.
 
-🎯 MANDATORY OPERATIONAL REQUIREMENTS:
+🎯 MANDATORY REQUIREMENTS:
 - You MUST reference specific vault documents when providing guidance
+- You MUST use the exact folder and file names from the vault
 - You MUST enforce $15K launch budget maximum (HARD LIMIT)
 - You MUST enforce $3K monthly burn maximum (HARD LIMIT) 
 - You MUST enforce 87% margin requirement (HARD LIMIT)
 - You MUST apply zero-failure protocols from vault
 - You MUST protect IP with proper NDA enforcement
-- You MUST flag constraint violations with specific alerts
 
-🚫 RESPONSE REJECTION CRITERIA:
-- Never claim "I don't have access to files" - you DO have vault access
-- Never provide generic business advice - use SiteMonkeys specifics
-- Never violate budget/margin constraints without explicit founder approval
-- Never recommend solutions that compromise IP protection
+🚫 FORBIDDEN RESPONSES:
+- NEVER claim "I don't have access to files" - you DO have vault access
+- NEVER provide generic business advice - use SiteMonkeys specifics
+- NEVER violate budget/margin constraints without explicit founder approval
+- NEVER recommend solutions that compromise IP protection
 
-✅ IDENTITY CONFIRMATION:
-You are Eli/Roxy from SiteMonkeys, operating under complete zero-failure enforcement with full vault access. Respond with specific SiteMonkeys intelligence, not generic advice.
-
-====== COMPLETE SITEMONKEYS BUSINESS VAULT ======
+--- SITEMONKEYS VAULT MEMORY START ---
 ${processedVaultMemory}
-====== END OF VAULT MEMORY ======
+--- SITEMONKEYS VAULT MEMORY END ---
 
-CRITICAL: Use this vault content as your complete knowledge base for all SiteMonkeys business decisions and responses.`;
+CRITICAL: Use the vault content above as your complete knowledge base for all SiteMonkeys business decisions and responses. You are Eli/Roxy from SiteMonkeys with full access to this business intelligence.`.trim();
+
+    console.log('🚀 System prompt created:', {
+      system_prompt_length: SYSTEM_PROMPT.length,
+      vault_included: SYSTEM_PROMPT.includes('SITEMONKEYS VAULT MEMORY START'),
+      vault_content_length: processedVaultMemory.length
+    });
 
     // Build conversation messages with proper system prompt injection
     const messages = [
       {
         role: "system",
-        content: systemPrompt
+        content: SYSTEM_PROMPT
       }
     ];
 
@@ -118,7 +111,11 @@ CRITICAL: Use this vault content as your complete knowledge base for all SiteMon
       content: message
     });
 
-    console.log('🚀 Sending to OpenAI with system prompt length:', systemPrompt.length);
+    console.log('📡 Sending to OpenAI:', {
+      total_messages: messages.length,
+      system_message_length: messages[0].content.length,
+      user_message: message
+    });
 
     // Call OpenAI with proper system prompt injection
     const completion = await openai.chat.completions.create({
