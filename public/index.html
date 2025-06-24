@@ -1,4 +1,71 @@
-<!DOCTYPE html>
+function loadStatus() {
+console.log('🎯 loadStatus function called');
+if (statusIndex < statusItems.length) {
+statusItems[statusIndex].classList.add('loaded');
+statusIndex++;
+setTimeout(loadStatus, 400);
+} else {
+setTimeout(() => {
+console.log('✅ Status animation complete, system ready immediately');
+systemReady.classList.add('active');
+systemActive = true;
+console.log('✅ System active - no vault loading needed (using KV cache)');
+checkVaultStatus(); // Check if vault data exists in KV
+}, 500);
+}
+}
+
+// Check vault status and update display
+async function checkVaultStatus() {
+try {
+console.log('📖 Checking vault status...');
+const response = await fetch('/api/load-vault', {
+method: 'GET',
+headers: {
+'Content-Type': 'application/json'
+}
+});
+
+const data = await response.json();
+console.log('📊 Vault status:', data);
+
+if (data.status === 'success') {
+// Update vault display with cached data
+document.getElementById('vault-info').innerHTML = `
+<div><span style="color:#00FF00;">✅</span> VAULT READY (CACHED)</div>
+<div>🔢 <span id="token-count">${data.tokens || 'Ready'}</span> TOKENS</div>
+<div>💰 EST. COST: <span id="cost-estimate">${data.estimated_cost || '$0.00'}</span></div>
+<div>📁 <span id="vault-folders">${data.folders_loaded?.length || 'Cached'}</span> FOLDERS LOADED</div>
+<button id="refresh-vault-btn" onclick="refreshVault()" style="
+  background: #FFD811; 
+  color: #373534; 
+  border: 1px solid #fff; 
+  border-radius: 8px; 
+  padding: 8px 12px; 
+  font-size: 0.8em; 
+  font-weight: bold; 
+  cursor: pointer; 
+  margin-top: 8px;
+  width: 100%;
+  transition: all 0.2s ease;
+" onmouseover="this.style.background='#ffe96a'" onmouseout="this.style.background='#FFD811'">
+🔄 Refresh Vault
+</button>
+`;
+} else if (data.needs_refresh) {
+// Show refresh needed
+document.getElementById('vault-info').innerHTML = `
+<div><span style="color:#FFA500;">⚠️</span> VAULT NEEDS REFRESH</div>
+<div>🔢 <span id="token-count">No Data</span> TOKENS</div>
+<div>💰 EST. COST: <span id="cost-estimate">$0.00</span></div>
+<div>📁 <span id="vault-folders">0</span> FOLDERS LOADED</div>
+<button id="refresh-vault-btn" onclick="refreshVault()" style="
+  background: #FF6B6B; 
+  color: white; 
+  border: 1px solid #fff; 
+  border-radius: 8px; 
+  padding: 8px 12px; 
+  font-size: 0.8<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -294,10 +361,25 @@ font-size: 1em; padding: 0 1em; height: 2.5rem; line-height: 2.5rem; text-align:
 <div class="system-ready" id="system-ready"><span class="check">✅</span> SYSTEM READY</div>
 </div>
 <div class="vault-info" id="vault-info">
-<div><span style="color:#00FF00;">✅</span> VAULT LOADED SUCCESSFULLY</div>
-<div>🔢 <span id="token-count">876</span> TOKENS</div>
-<div>💰 EST. COST: <span id="cost-estimate">$0.0018</span></div>
-<div>📁 <span id="vault-folders">8</span> FOLDERS LOADED</div>
+<div><span style="color:#00FF00;">✅</span> VAULT READY</div>
+<div>🔢 <span id="token-count">Ready</span> TOKENS</div>
+<div>💰 EST. COST: <span id="cost-estimate">$0.00</span></div>
+<div>📁 <span id="vault-folders">Cached</span> FOLDERS LOADED</div>
+<button id="refresh-vault-btn" style="
+  background: #FFD811; 
+  color: #373534; 
+  border: 1px solid #fff; 
+  border-radius: 8px; 
+  padding: 8px 12px; 
+  font-size: 0.8em; 
+  font-weight: bold; 
+  cursor: pointer; 
+  margin-top: 8px;
+  width: 100%;
+  transition: all 0.2s ease;
+" onmouseover="this.style.background='#ffe96a'" onmouseout="this.style.background='#FFD811'">
+🔄 Refresh Vault
+</button>
 </div>
 </div>
 
@@ -348,17 +430,19 @@ statusIndex++;
 setTimeout(loadStatus, 400);
 } else {
 setTimeout(() => {
-console.log('✅ Status animation complete, starting vault loading...');
-loadVault(); // Load vault FIRST, then activate system
+console.log('✅ Status animation complete, system ready immediately');
+systemReady.classList.add('active');
+systemActive = true;
+console.log('✅ System active - no vault loading needed (using KV cache)');
+checkVaultStatus(); // Check if vault data exists in KV
 }, 500);
 }
 }
 
-// Working vault loading functionality
-async function loadVault() {
+// Check vault status and update display
+async function checkVaultStatus() {
 try {
-console.log('🚀 Starting vault loading...');
-        
+console.log('📖 Checking vault status...');
 const response = await fetch('/api/load-vault', {
 method: 'GET',
 headers: {
@@ -366,61 +450,118 @@ headers: {
 }
 });
 
-console.log('📡 Vault API response status:', response.status);
+const data = await response.json();
+console.log('📊 Vault status:', data);
 
-if (!response.ok) {
-throw new Error(`Vault API error: ${response.status}`);
+if (data.status === 'success') {
+// Update vault display with cached data
+document.getElementById('vault-info').innerHTML = `
+<div><span style="color:#00FF00;">✅</span> VAULT READY (CACHED)</div>
+<div>🔢 <span id="token-count">${data.tokens || 'Ready'}</span> TOKENS</div>
+<div>💰 EST. COST: <span id="cost-estimate">${data.estimated_cost || '$0.00'}</span></div>
+<div>📁 <span id="vault-folders">${data.folders_loaded?.length || 'Cached'}</span> FOLDERS LOADED</div>
+<button id="refresh-vault-btn" onclick="refreshVault()" style="
+  background: #FFD811; 
+  color: #373534; 
+  border: 1px solid #fff; 
+  border-radius: 8px; 
+  padding: 8px 12px; 
+  font-size: 0.8em; 
+  font-weight: bold; 
+  cursor: pointer; 
+  margin-top: 8px;
+  width: 100%;
+  transition: all 0.2s ease;
+" onmouseover="this.style.background='#ffe96a'" onmouseout="this.style.background='#FFD811'">
+🔄 Refresh Vault
+</button>
+`;
+} else if (data.needs_refresh) {
+// Show refresh needed
+document.getElementById('vault-info').innerHTML = `
+<div><span style="color:#FFA500;">⚠️</span> VAULT NEEDS REFRESH</div>
+<div>🔢 <span id="token-count">No Data</span> TOKENS</div>
+<div>💰 EST. COST: <span id="cost-estimate">$0.00</span></div>
+<div>📁 <span id="vault-folders">0</span> FOLDERS LOADED</div>
+<button id="refresh-vault-btn" onclick="refreshVault()" style="
+  background: #FF6B6B; 
+  color: white; 
+  border: 1px solid #fff; 
+  border-radius: 8px; 
+  padding: 8px 12px; 
+  font-size: 0.8em; 
+  font-weight: bold; 
+  cursor: pointer; 
+  margin-top: 8px;
+  width: 100%;
+  transition: all 0.2s ease;
+" onmouseover="this.style.background='#ff8a8a'" onmouseout="this.style.background='#FF6B6B'">
+🔄 REFRESH VAULT NOW
+</button>
+`;
 }
+} catch (error) {
+console.error('❌ Vault status check failed:', error);
+}
+}
+
+// Refresh vault function
+async function refreshVault() {
+try {
+console.log('🔄 Refreshing vault...');
+const button = document.getElementById('refresh-vault-btn');
+const originalText = button.innerHTML;
+button.innerHTML = '⏳ Refreshing...';
+button.disabled = true;
+
+const response = await fetch('/api/load-vault?refresh=true', {
+method: 'GET',
+headers: {
+'Content-Type': 'application/json'
+}
+});
 
 const data = await response.json();
-console.log('📦 Vault data received:', data);
-        
-if (data.status === 'success') {
-vaultData = data.memory || data.data || data.vault_content || '';
-console.log('💾 Vault data stored. Length:', vaultData.length);
-console.log('🔍 First 200 chars:', vaultData.substring(0, 200));
-            
-// Update vault display with success using Perplexity's format
+console.log('📊 Vault refresh result:', data);
+
+if (data.status === 'refreshed') {
+// Update vault display with fresh data
 document.getElementById('vault-info').innerHTML = `
-<div><span style="color:#00FF00;">✅</span> VAULT LOADED SUCCESSFULLY</div>
-<div>🔢 <span id="token-count">${data.tokens || 'Unknown'}</span> TOKENS</div>
-<div>💰 EST. COST: <span id="cost-estimate">$${data.estimated_cost || 'Unknown'}</span></div>
+<div><span style="color:#00FF00;">✅</span> VAULT REFRESHED</div>
+<div>🔢 <span id="token-count">${data.tokens || 'Ready'}</span> TOKENS</div>
+<div>💰 EST. COST: <span id="cost-estimate">${data.estimated_cost || '$0.00'}</span></div>
 <div>📁 <span id="vault-folders">${data.folders_loaded?.length || 0}</span> FOLDERS LOADED</div>
+<button id="refresh-vault-btn" onclick="refreshVault()" style="
+  background: #FFD811; 
+  color: #373534; 
+  border: 1px solid #fff; 
+  border-radius: 8px; 
+  padding: 8px 12px; 
+  font-size: 0.8em; 
+  font-weight: bold; 
+  cursor: pointer; 
+  margin-top: 8px;
+  width: 100%;
+  transition: all 0.2s ease;
+" onmouseover="this.style.background='#ffe96a'" onmouseout="this.style.background='#FFD811'">
+🔄 Refresh Vault
+</button>
 `;
-            
-// Update status in sidebar
-const vaultStatusItem = document.getElementById('vault-status-item');
-if (vaultStatusItem) {
-vaultStatusItem.innerHTML = `<span class="check">✅</span> Site Monkeys memory vault loaded (${data.tokens || 'Unknown'} tokens)`;
-}
-
-// CRITICAL: Only activate system AFTER vault loads successfully
-console.log('🎯 Vault loaded successfully, now activating system...');
-systemReady.classList.add('active');
-systemActive = true;
-console.log('✅ System now active with vault data loaded');
-                
 } else {
-throw new Error(data.error || 'Unknown vault error');
+button.innerHTML = '❌ Refresh Failed';
+button.disabled = false;
+setTimeout(() => {
+button.innerHTML = originalText;
+}, 3000);
 }
-        
 } catch (error) {
-console.error('❌ Vault loading error:', error);
-document.getElementById('vault-info').innerHTML = `
-<div><span style="color:#FF0000;">❌</span> VAULT LOADING FAILED</div>
-<div>Error: ${error.message}</div>
-<div>📁 Check console for details</div>
-`;
-        
-const vaultStatusItem = document.getElementById('vault-status-item');
-if (vaultStatusItem) {
-vaultStatusItem.innerHTML = '<span class="check">✗</span> Vault loading failed';
-}
-
-// Even on error, activate system (but with no vault data)
-console.log('⚠️ Activating system despite vault error...');
-systemReady.classList.add('active');
-systemActive = true;
+console.error('❌ Vault refresh failed:', error);
+const button = document.getElementById('refresh-vault-btn');
+button.innerHTML = '❌ Refresh Failed';
+button.disabled = false;
+setTimeout(() => {
+button.innerHTML = '🔄 Refresh Vault';
+}, 3000);
 }
 }
 
@@ -449,9 +590,7 @@ document.getElementById('loading')?.classList.add('active');
 try {
 console.log('💬 Sending to chat API:', { 
 message: text, 
-vault_data_length: vaultData ? vaultData.length : 0,
-has_vault_data: !!vaultData,
-vault_data_preview: vaultData ? vaultData.substring(0, 100) : 'NO VAULT DATA'
+conversation_history_length: conversationHistory.length
 });
 
 const response = await fetch('/api/chat', {
@@ -461,7 +600,6 @@ headers: {
 },
 body: JSON.stringify({
 message: text,
-vault_data: { vault_content: vaultData },
 conversation_history: conversationHistory
 })
 });
@@ -469,7 +607,12 @@ conversation_history: conversationHistory
 console.log('📞 Chat API response status:', response.status);
 
 if (!response.ok) {
+const errorData = await response.json();
+if (errorData.needs_refresh) {
+throw new Error('Vault data not available. Please refresh vault first.');
+} else {
 throw new Error(`Chat API error: ${response.status}`);
+}
 }
 
 const data = await response.json();
