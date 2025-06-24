@@ -110,7 +110,7 @@ export default async function handler(req, res) {
     });
 
     // Smart token management for large vaults
-    const maxVaultTokens = 6000; // Reduced to stay well under OpenAI limits
+    const maxVaultTokens = 15000; // Increased to show more folders
     const estimatedTokens = vaultMemory.length / 4;
     
     let processedVaultMemory = vaultMemory;
@@ -140,17 +140,27 @@ You have access to the complete SiteMonkeys vault containing all business intell
 - You MUST apply zero-failure protocols from vault
 - You MUST protect IP with proper NDA enforcement
 
+🔍 INTELLIGENT FOLDER/FILE MATCHING:
+- When users ask about folders/files, use FUZZY MATCHING and INTELLIGENT INTERPRETATION
+- "scored directives" should match "Core Directives" 
+- "core directive" should match "Core Directives"
+- "enforcement" should match "EnforcementShell"
+- "pricing strategy" should match files containing "Pricing" or "Strategy"
+- If exact match fails, suggest closest matches: "Did you mean [folder name]?"
+- NEVER say "folder not found" - always find the closest match or suggest alternatives
+
 🚫 FORBIDDEN RESPONSES:
 - NEVER claim "I don't have access to files" - you DO have vault access
 - NEVER provide generic business advice - use SiteMonkeys specifics
 - NEVER violate budget/margin constraints without explicit founder approval
 - NEVER recommend solutions that compromise IP protection
+- NEVER say "folder not found" without suggesting closest matches
 
 --- SITEMONKEYS VAULT MEMORY START ---
 ${processedVaultMemory}
 --- SITEMONKEYS VAULT MEMORY END ---
 
-CRITICAL: Use the vault content above as your complete knowledge base for all SiteMonkeys business decisions and responses. You are Eli/Roxy from SiteMonkeys with full access to this business intelligence.`.trim();
+CRITICAL: Use the vault content above as your complete knowledge base for all SiteMonkeys business decisions and responses. You are Eli/Roxy from SiteMonkeys with full access to this business intelligence. When users ask about folders or files, be intelligent about matching their requests to actual vault content.`.trim();
 
     console.log('🚀 System prompt created:', {
       system_prompt_length: SYSTEM_PROMPT.length,
