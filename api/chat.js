@@ -4,6 +4,36 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
+async function getVaultFromKV() {
+  try {
+    const kvUrl = process.env.KV_REST_API_URL;
+    const kvToken = process.env.KV_REST_API_TOKEN;
+    
+    if (!kvUrl || !kvToken) {
+      console.log('❌ KV credentials not found');
+      return null;
+    }
+    
+    const response = await fetch(`${kvUrl}/get/sitemonkeys_vault`, {
+      headers: {
+        'Authorization': `Bearer ${kvToken}`
+      }
+    });
+    
+    if (response.ok) {
+      const data = await response.json();
+      console.log('✅ Vault data retrieved from KV:', data.result ? data.result.length : 0, 'characters');
+      return data.result;
+    } else {
+      console.log('❌ Failed to get vault from KV:', response.status);
+      return null;
+    }
+  } catch (error) {
+    console.log('❌ KV retrieval error:', error.message);
+    return null;
+  }
+}
+
 export default async function handler(req, res) {
   // Set CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -19,7 +49,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { message, vault_data, conversation_history } = req.body;
+    const { message, conversation_history } = req.body;
     
     if (!message) {
       return res.status(400).json({ error: 'Message is required' });
@@ -27,28 +57,37 @@ export default async function handler(req, res) {
 
     console.log('💬 Chat API called with:', {
       message_length: message.length,
-      has_vault_data: !!vault_data?.vault_content,
-      vault_data_length: vault_data?.vault_content?.length || 0,
       conversation_history_length: conversation_history?.length || 0
     });
 
-    // CRITICAL: Extract vault content properly
-    const vaultMemory = vault_data?.vault_content || '';
+    // Get vault data from KV
+    console.log('📖 Retrieving vault data from KV...');
+    const vaultMemory = await getVaultFromKV();
     
-    console.log('🔍 Vault memory extracted:', {
+    if (!vaultMemory) {
+      return res.status(400).json({ 
+        error: 'No vault data available. Please refresh vault first.',
+        needs_refresh: true
+      });
+    }
+
+    console.log('🔍 Vault memory retrieved:', {
       vault_length: vaultMemory.length,
       vault_preview: vaultMemory.substring(0, 200)
     });
 
     // Smart token management for large vaults
-    const maxVaultTokens = 10000;
+    const maxVaultTokens = 6000; // Stay well under OpenAI limits
     const estimatedTokens = vaultMemory.length / 4;
     
     let processedVaultMemory = vaultMemory;
     if (estimatedTokens > maxVaultTokens) {
-      const truncatePoint = maxVaultTokens * 4;
+      // Prioritize core business intelligence files
+      const truncatePoint = maxVaultTokens * 4; // 24,000 characters max
       processedVaultMemory = vaultMemory.substring(0, truncatePoint) + 
-        "\n\n[VAULT TRUNCATED - CORE INTELLIGENCE PRESERVED]";
+        "\n\n[VAULT TRUNCATED - CORE INTELLIGENCE PRESERVED - Using first 24,000 characters]";
+      
+      console.log(`🔄 Vault truncated from ${vaultMemory.length} to ${processedVaultMemory.length} characters`);
     }
 
     // CRITICAL: Inject vault memory into system prompt
@@ -140,7 +179,8 @@ CRITICAL: Use the vault content above as your complete knowledge base for all Si
       cost: calculateCost(usage),
       vault_tokens_used: Math.floor(processedVaultMemory.length / 4),
       total_context_tokens: usage.prompt_tokens,
-      protocol_enforcement: "MAXIMUM"
+      protocol_enforcement: "MAXIMUM",
+      vault_source: "kv_cache"
     });
 
   } catch (error) {
