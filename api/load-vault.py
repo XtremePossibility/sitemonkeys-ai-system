@@ -89,20 +89,29 @@ def store_vault_in_kv(vault_data):
         kv_token = os.environ.get('KV_REST_API_TOKEN')
         
         if not kv_url or not kv_token:
-            print("⚠️ KV environment variables not found - storing in memory only")
+            print("⚠️ KV environment variables not found")
+            print(f"KV_URL exists: {bool(os.environ.get('KV_REST_API_URL'))}")
+            print(f"KV_TOKEN exists: {bool(os.environ.get('KV_REST_API_TOKEN'))}")
             return False
             
-        # Store vault data in KV using Upstash format
+        # Convert vault data to JSON string for storage
+        vault_json = json.dumps(vault_data)
+        
+        # Store vault data in KV using proper Upstash REST API
         headers = {
             'Authorization': f'Bearer {kv_token}',
             'Content-Type': 'application/json'
         }
         
+        # Use the correct Upstash REST API format
         response = requests.post(
-            f'{kv_url}/set',
-            headers=headers,
-            json=["sitemonkeys_vault", vault_data]
+            f'{kv_url}/set/sitemonkeys_vault/{vault_json}',
+            headers=headers
         )
+        
+        print(f"KV Storage attempt - URL: {kv_url}/set/sitemonkeys_vault/[data]")
+        print(f"KV Storage response status: {response.status_code}")
+        print(f"KV Storage response: {response.text[:200]}")
         
         if response.status_code == 200:
             print("✅ Vault data stored in KV successfully")
@@ -114,6 +123,8 @@ def store_vault_in_kv(vault_data):
             
     except Exception as e:
         print(f"❌ KV storage error: {str(e)}")
+        import traceback
+        print(f"Full error: {traceback.format_exc()}")
         return False
 
 def get_vault_from_kv():
