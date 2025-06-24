@@ -6,6 +6,7 @@ import xml.etree.ElementTree as ET
 from http.server import BaseHTTPRequestHandler
 from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
+import requests
 
 # Your exact Google Drive folder ID
 VAULT_FOLDER_ID = "1LAkbqjN7g-HJV9BRWV-AsmMpY1JzJiIM"
@@ -46,6 +47,66 @@ def extract_text_from_docx(docx_data):
     except Exception as e:
         return f"[DOCX text extraction failed: {str(e)}]"
 
+def store_in_kv(key, value):
+    """Store data in Vercel KV"""
+    try:
+        kv_rest_api_url = os.environ.get('KV_REST_API_URL')
+        kv_rest_api_token = os.environ.get('KV_REST_API_TOKEN')
+        
+        if not kv_rest_api_url or not kv_rest_api_token:
+            print("❌ KV credentials not found, storing locally for this session")
+            return False
+            
+        headers = {
+            'Authorization': f'Bearer {kv_rest_api_token}',
+            'Content-Type': 'application/json'
+        }
+        
+        response = requests.post(
+            f"{kv_rest_api_url}/set/{key}",
+            headers=headers,
+            data=value.encode('utf-8')
+        )
+        
+        if response.status_code == 200:
+            print(f"✅ Data stored in KV: {len(value)} characters")
+            return True
+        else:
+            print(f"❌ KV storage failed: {response.status_code}")
+            return False
+            
+    except Exception as e:
+        print(f"❌ KV storage error: {str(e)}")
+        return False
+
+def get_from_kv(key):
+    """Get data from Vercel KV"""
+    try:
+        kv_rest_api_url = os.environ.get('KV_REST_API_URL')
+        kv_rest_api_token = os.environ.get('KV_REST_API_TOKEN')
+        
+        if not kv_rest_api_url or not kv_rest_api_token:
+            return None
+            
+        headers = {
+            'Authorization': f'Bearer {kv_rest_api_token}'
+        }
+        
+        response = requests.get(
+            f"{kv_rest_api_url}/get/{key}",
+            headers=headers
+        )
+        
+        if response.status_code == 200:
+            data = response.json()
+            return data.get('result')
+        else:
+            return None
+            
+    except Exception as e:
+        print(f"❌ KV retrieval error: {str(e)}")
+        return None
+
 def get_google_drive_service():
     """Initialize Google Drive service with credentials"""
     try:
@@ -80,7 +141,7 @@ def get_google_drive_service():
     except Exception as e:
         raise Exception(f"Google Drive authentication failed: {str(e)}")
 
-def load_vault_content():
+def load_vault_from_google_drive():
     """Load all content from SiteMonkeys vault folders"""
     vault_content = "=== SITEMONKEYS BUSINESS VALIDATION VAULT ===\n\n"
     loaded_folders = []
@@ -204,21 +265,32 @@ class handler(BaseHTTPRequestHandler):
         self.send_header('Access-Control-Allow-Headers', 'Content-Type')
         self.end_headers()
         
+        # Check if this is a refresh request
+        if '?refresh=true' in self.path:
+            self.handle_refresh()
+        else:
+            self.handle_get()
+    
+    def handle_refresh(self):
+        """Handle vault refresh request"""
         try:
-            print("🚀 Starting vault loading process...")
+            print("🔄 Vault refresh requested - loading from Google Drive...")
             
-            # Load actual vault content from Google Drive
-            vault_memory, loaded_folders, total_files = load_vault_content()
+            # Load fresh vault content from Google Drive
+            vault_memory, loaded_folders, total_files = load_vault_from_google_drive()
             
-            # Calculate tokens (rough estimate)
+            # Store in KV
+            kv_stored = store_in_kv('sitemonkeys_vault', vault_memory)
+            
+            # Calculate tokens
             token_count = len(vault_memory) // 4
             estimated_cost = (token_count * 0.002) / 1000
             
-            print(f"📊 Vault loading complete: {token_count} tokens, {len(loaded_folders)} folders")
+            print(f"📊 Vault refresh complete: {token_count} tokens, {len(loaded_folders)} folders")
             
             # Return JSON response
             response = {
-                "status": "success",
+                "status": "refreshed",
                 "memory": vault_memory,
                 "data": vault_memory,
                 "vault_content": vault_memory,
@@ -226,17 +298,69 @@ class handler(BaseHTTPRequestHandler):
                 "estimated_cost": f"${estimated_cost:.4f}",
                 "folders_loaded": loaded_folders,
                 "total_files": total_files,
-                "message": f"SiteMonkeys Vault: {len(loaded_folders)} folders, {total_files} files, {token_count} tokens loaded"
+                "kv_stored": kv_stored,
+                "message": f"Vault refreshed: {len(loaded_folders)} folders, {total_files} files, {token_count} tokens loaded"
             }
             
             self.wfile.write(json.dumps(response).encode())
+            
+        except Exception as e:
+            print(f"❌ Vault refresh failed: {str(e)}")
+            error_response = {
+                "status": "error",
+                "error": str(e),
+                "message": "Vault refresh failed - check Google Drive permissions"
+            }
+            self.wfile.write(json.dumps(error_response).encode())
+    
+    def handle_get(self):
+        """Handle normal vault get request - try KV first"""
+        try:
+            print("📖 Checking KV for existing vault data...")
+            
+            # Try to get from KV first
+            vault_memory = get_from_kv('sitemonkeys_vault')
+            
+            if vault_memory:
+                print("✅ Found vault data in KV")
+                # Calculate tokens
+                token_count = len(vault_memory) // 4
+                estimated_cost = (token_count * 0.002) / 1000
+                
+                # Extract folder info from vault content
+                folder_count = vault_memory.count('--- FOLDER:')
+                file_count = vault_memory.count('=== ') - folder_count
+                
+                response = {
+                    "status": "success",
+                    "memory": vault_memory,
+                    "data": vault_memory,
+                    "vault_content": vault_memory,
+                    "tokens": token_count,
+                    "estimated_cost": f"${estimated_cost:.4f}",
+                    "folders_loaded": [f"Folder {i+1}" for i in range(folder_count)],
+                    "total_files": file_count,
+                    "source": "kv_cache",
+                    "message": f"Vault loaded from cache: {folder_count} folders, {file_count} files, {token_count} tokens"
+                }
+                
+                self.wfile.write(json.dumps(response).encode())
+                
+            else:
+                print("❌ No vault data in KV - need to refresh first")
+                response = {
+                    "status": "empty",
+                    "message": "No vault data found. Please refresh vault first.",
+                    "needs_refresh": True
+                }
+                self.wfile.write(json.dumps(response).encode())
             
         except Exception as e:
             print(f"❌ Vault loading failed: {str(e)}")
             error_response = {
                 "status": "error",
                 "error": str(e),
-                "message": "Vault loading failed - check Google Drive permissions"
+                "message": "Vault loading failed"
             }
             self.wfile.write(json.dumps(error_response).encode())
     
