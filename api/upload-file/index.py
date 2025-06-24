@@ -32,9 +32,6 @@ class handler(BaseHTTPRequestHandler):
         try:
             print("📤 Upload request received")
             
-            # For now, just simulate successful upload
-            # TODO: Add real file processing once basic endpoint works
-            
             response = {
                 "status": "success",
                 "message": "Upload endpoint working! File processing will be added next.",
