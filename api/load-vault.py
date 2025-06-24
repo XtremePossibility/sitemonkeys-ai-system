@@ -92,16 +92,16 @@ def store_vault_in_kv(vault_data):
             print("⚠️ KV environment variables not found - storing in memory only")
             return False
             
-        # Store vault data in KV
+        # Store vault data in KV using Upstash format
         headers = {
             'Authorization': f'Bearer {kv_token}',
             'Content-Type': 'application/json'
         }
         
         response = requests.post(
-            f'{kv_url}/set/sitemonkeys_vault',
+            f'{kv_url}/set',
             headers=headers,
-            json={'value': vault_data}
+            json=["sitemonkeys_vault", vault_data]
         )
         
         if response.status_code == 200:
@@ -109,6 +109,7 @@ def store_vault_in_kv(vault_data):
             return True
         else:
             print(f"❌ KV storage failed: {response.status_code}")
+            print(f"Response: {response.text}")
             return False
             
     except Exception as e:
@@ -135,8 +136,10 @@ def get_vault_from_kv():
         
         if response.status_code == 200:
             data = response.json()
+            print(f"✅ Retrieved vault data from KV: {len(str(data.get('result', {})))} characters")
             return data.get('result')
         else:
+            print(f"❌ KV retrieval failed: {response.status_code}")
             return None
             
     except Exception as e:
