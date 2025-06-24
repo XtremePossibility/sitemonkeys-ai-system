@@ -83,52 +83,51 @@ def get_google_drive_service():
         raise Exception(f"Google Drive authentication failed: {str(e)}")
 
 def store_vault_in_kv(vault_data):
-    """Store vault data in Vercel KV"""
+    """Store vault data in Vercel KV using proper Upstash REST API"""
     try:
         kv_url = os.environ.get('KV_REST_API_URL')
         kv_token = os.environ.get('KV_REST_API_TOKEN')
         
         if not kv_url or not kv_token:
             print("⚠️ KV environment variables not found")
-            print(f"KV_URL exists: {bool(os.environ.get('KV_REST_API_URL'))}")
-            print(f"KV_TOKEN exists: {bool(os.environ.get('KV_REST_API_TOKEN'))}")
             return False
             
-        # Convert vault data to JSON string for storage
-        vault_json = json.dumps(vault_data)
-        
-        # Store vault data in KV using proper Upstash REST API
+        # Use Upstash REST API format for Python
         headers = {
             'Authorization': f'Bearer {kv_token}',
-            'Content-Type': 'application/json'
         }
         
-        # Use the correct Upstash REST API format
+        # Store using Upstash Redis REST API
+        # Format: POST /set/key/value (for simple values)
+        # For complex data, we'll use the multi command
+        vault_json = json.dumps(vault_data)
+        
         response = requests.post(
-            f'{kv_url}/set/sitemonkeys_vault/{vault_json}',
-            headers=headers
+            f'{kv_url}/set/sitemonkeys_vault',
+            headers=headers,
+            data=vault_json,
+            timeout=30
         )
         
-        print(f"KV Storage attempt - URL: {kv_url}/set/sitemonkeys_vault/[data]")
+        print(f"KV Storage URL: {kv_url}/set/sitemonkeys_vault")
         print(f"KV Storage response status: {response.status_code}")
-        print(f"KV Storage response: {response.text[:200]}")
+        print(f"KV Storage response: {response.text}")
         
         if response.status_code == 200:
             print("✅ Vault data stored in KV successfully")
             return True
         else:
             print(f"❌ KV storage failed: {response.status_code}")
-            print(f"Response: {response.text}")
             return False
             
     except Exception as e:
         print(f"❌ KV storage error: {str(e)}")
         import traceback
-        print(f"Full error: {traceback.format_exc()}")
+        print(f"Full traceback: {traceback.format_exc()}")
         return False
 
 def get_vault_from_kv():
-    """Retrieve vault data from Vercel KV"""
+    """Retrieve vault data from Vercel KV using proper Upstash REST API"""
     try:
         kv_url = os.environ.get('KV_REST_API_URL')
         kv_token = os.environ.get('KV_REST_API_TOKEN')
@@ -138,44 +137,44 @@ def get_vault_from_kv():
             return None
             
         headers = {
-            'Authorization': f'Bearer {kv_token}'
+            'Authorization': f'Bearer {kv_token}',
         }
         
         response = requests.get(
             f'{kv_url}/get/sitemonkeys_vault',
-            headers=headers
+            headers=headers,
+            timeout=30
         )
         
+        print(f"KV Retrieval URL: {kv_url}/get/sitemonkeys_vault")
         print(f"KV Retrieval response status: {response.status_code}")
-        print(f"KV Retrieval response: {response.text[:200]}")
+        print(f"KV Retrieval response: {response.text[:200]}...")
         
         if response.status_code == 200:
             try:
-                data = response.json()
-                result = data.get('result')
-                
-                # If result is a string (JSON), parse it
-                if isinstance(result, str):
-                    result = json.loads(result)
-                
-                if result:
+                # Upstash returns the raw value, may need to parse JSON
+                response_text = response.text.strip()
+                if response_text and response_text != 'null':
+                    result = json.loads(response_text)
                     print(f"✅ Retrieved vault data from KV: {len(str(result))} characters")
                     return result
                 else:
-                    print("⚠️ No vault data found in KV response")
+                    print("⚠️ No vault data found in KV (null response)")
                     return None
                     
             except json.JSONDecodeError as e:
-                print(f"❌ Failed to parse KV response: {e}")
+                print(f"❌ Failed to parse KV response as JSON: {e}")
+                print(f"Raw response: {response.text}")
                 return None
         else:
             print(f"❌ KV retrieval failed: {response.status_code}")
+            print(f"Error response: {response.text}")
             return None
             
     except Exception as e:
         print(f"❌ KV retrieval error: {str(e)}")
         import traceback
-        print(f"Full error: {traceback.format_exc()}")
+        print(f"Full traceback: {traceback.format_exc()}")
         return None
 
 def load_vault_content():
