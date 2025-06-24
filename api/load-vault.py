@@ -1,11 +1,50 @@
 import json
 import os
+import io
+import zipfile
+import xml.etree.ElementTree as ET
 from http.server import BaseHTTPRequestHandler
 from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
 
 # Your exact Google Drive folder ID
 VAULT_FOLDER_ID = "1LAkbqjN7g-HJV9BRWV-AsmMpY1JzJiIM"
+
+def extract_text_from_docx(docx_data):
+    """Extract text content from DOCX file data"""
+    try:
+        # DOCX files are zip archives containing XML
+        with zipfile.ZipFile(io.BytesIO(docx_data), 'r') as zip_file:
+            # Read the main document XML
+            document_xml = zip_file.read('word/document.xml')
+            
+            # Parse XML and extract text
+            root = ET.fromstring(document_xml)
+            
+            # Define namespace for Word documents
+            namespaces = {
+                'w': 'http://schemas.openxmlformats.org/wordprocessingml/2006/main'
+            }
+            
+            # Extract all text elements
+            text_elements = root.findall('.//w:t', namespaces)
+            text_content = []
+            
+            for elem in text_elements:
+                if elem.text:
+                    text_content.append(elem.text)
+            
+            # Join text with spaces and clean up
+            extracted_text = ' '.join(text_content)
+            
+            # Clean up excessive whitespace
+            lines = extracted_text.split('\n')
+            cleaned_lines = [line.strip() for line in lines if line.strip()]
+            
+            return '\n'.join(cleaned_lines)
+            
+    except Exception as e:
+        return f"[DOCX text extraction failed: {str(e)}]"
 
 def get_google_drive_service():
     """Initialize Google Drive service with credentials"""
@@ -78,14 +117,18 @@ def load_vault_content():
                     file_mime = file.get('mimeType', '')
                     file_name = file['name']
                     
+                    print(f"Processing file: {file_name} (type: {file_mime})")
+                    
                     # Handle different file types
                     if 'text/plain' in file_mime or file_name.endswith('.txt'):
                         # Plain text files
                         try:
                             file_data = service.files().get_media(fileId=file['id']).execute()
                             file_content = file_data.decode('utf-8')
+                            print(f"✅ Text file loaded: {len(file_content)} characters")
                         except Exception as e:
                             file_content = f"[ERROR reading text file: {str(e)}]"
+                            print(f"❌ Text file error: {str(e)}")
                     
                     elif file_mime == 'application/vnd.google-apps.document':
                         # Google Docs - export as plain text
@@ -95,26 +138,29 @@ def load_vault_content():
                                 mimeType='text/plain'
                             ).execute()
                             file_content = export_data.decode('utf-8')
+                            print(f"✅ Google Doc exported: {len(file_content)} characters")
                         except Exception as e:
-                            # If export fails, try to get file info
                             file_content = f"[Google Doc - Export failed: {str(e)}]"
+                            print(f"❌ Google Doc error: {str(e)}")
                     
                     elif 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' in file_mime or file_name.endswith('.docx'):
-                        # DOCX files - try export first, then direct download
+                        # DOCX files - download and extract text
                         try:
-                            # Try exporting as plain text
-                            export_data = service.files().export(
-                                fileId=file['id'], 
-                                mimeType='text/plain'
-                            ).execute()
-                            file_content = export_data.decode('utf-8')
-                        except:
-                            try:
-                                # If export fails, download directly
-                                file_data = service.files().get_media(fileId=file['id']).execute()
-                                file_content = f"[DOCX file downloaded - {len(file_data)} bytes - content extraction may require additional processing]"
-                            except Exception as e:
-                                file_content = f"[DOCX file - Access failed: {str(e)}]"
+                            print(f"🔄 Downloading DOCX file: {file_name}")
+                            file_data = service.files().get_media(fileId=file['id']).execute()
+                            print(f"📥 Downloaded {len(file_data)} bytes")
+                            
+                            # Extract text from DOCX
+                            file_content = extract_text_from_docx(file_data)
+                            
+                            if file_content.startswith('[DOCX text extraction failed'):
+                                print(f"❌ DOCX extraction failed: {file_name}")
+                            else:
+                                print(f"✅ DOCX text extracted: {len(file_content)} characters")
+                                
+                        except Exception as e:
+                            file_content = f"[DOCX file - Access failed: {str(e)}]"
+                            print(f"❌ DOCX access error: {str(e)}")
                     
                     elif file_mime == 'application/vnd.google-apps.folder':
                         # Skip folders (already handled above)
@@ -124,20 +170,23 @@ def load_vault_content():
                         # Other file types
                         file_size = file.get('size', 'Unknown')
                         file_content = f"[File type: {file_mime} - Size: {file_size} bytes - Skipped unsupported format]"
+                        print(f"⏭️ Skipped unsupported file: {file_name}")
                     
                     # Add content to vault
                     vault_content += f"\n=== {file_name} ===\n{file_content}\n"
                     
                 except Exception as file_error:
                     vault_content += f"\n=== {file['name']} ===\n[ERROR loading file: {str(file_error)}]\n"
+                    print(f"❌ File processing error: {file['name']} - {str(file_error)}")
         
         vault_content += f"\n=== VAULT SUMMARY ===\nFolders: {len(folders)}\nFiles processed: {total_files}\n"
         
         # Log successful loading
-        print(f"Vault loaded successfully: {len(folders)} folders, {total_files} files")
+        print(f"✅ Vault loaded successfully: {len(folders)} folders, {total_files} files")
+        print(f"📊 Total vault content: {len(vault_content)} characters")
                     
     except Exception as drive_error:
-        print(f"Google Drive error: {str(drive_error)}")
+        print(f"❌ Google Drive error: {str(drive_error)}")
         vault_content += f"\n[Google Drive connection error: {str(drive_error)}]\n"
         
         # Don't fall back to fake data - return the error
@@ -156,12 +205,16 @@ class handler(BaseHTTPRequestHandler):
         self.end_headers()
         
         try:
+            print("🚀 Starting vault loading process...")
+            
             # Load actual vault content from Google Drive
             vault_memory, loaded_folders, total_files = load_vault_content()
             
             # Calculate tokens (rough estimate)
             token_count = len(vault_memory) // 4
             estimated_cost = (token_count * 0.002) / 1000
+            
+            print(f"📊 Vault loading complete: {token_count} tokens, {len(loaded_folders)} folders")
             
             # Return JSON response
             response = {
@@ -179,6 +232,7 @@ class handler(BaseHTTPRequestHandler):
             self.wfile.write(json.dumps(response).encode())
             
         except Exception as e:
+            print(f"❌ Vault loading failed: {str(e)}")
             error_response = {
                 "status": "error",
                 "error": str(e),
