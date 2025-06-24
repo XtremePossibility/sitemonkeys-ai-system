@@ -134,6 +134,7 @@ def get_vault_from_kv():
         kv_token = os.environ.get('KV_REST_API_TOKEN')
         
         if not kv_url or not kv_token:
+            print("⚠️ KV environment variables not found for retrieval")
             return None
             
         headers = {
@@ -145,16 +146,36 @@ def get_vault_from_kv():
             headers=headers
         )
         
+        print(f"KV Retrieval response status: {response.status_code}")
+        print(f"KV Retrieval response: {response.text[:200]}")
+        
         if response.status_code == 200:
-            data = response.json()
-            print(f"✅ Retrieved vault data from KV: {len(str(data.get('result', {})))} characters")
-            return data.get('result')
+            try:
+                data = response.json()
+                result = data.get('result')
+                
+                # If result is a string (JSON), parse it
+                if isinstance(result, str):
+                    result = json.loads(result)
+                
+                if result:
+                    print(f"✅ Retrieved vault data from KV: {len(str(result))} characters")
+                    return result
+                else:
+                    print("⚠️ No vault data found in KV response")
+                    return None
+                    
+            except json.JSONDecodeError as e:
+                print(f"❌ Failed to parse KV response: {e}")
+                return None
         else:
             print(f"❌ KV retrieval failed: {response.status_code}")
             return None
             
     except Exception as e:
         print(f"❌ KV retrieval error: {str(e)}")
+        import traceback
+        print(f"Full error: {traceback.format_exc()}")
         return None
 
 def load_vault_content():
@@ -332,15 +353,29 @@ class handler(BaseHTTPRequestHandler):
                 
                 if cached_vault:
                     print("✅ Found cached vault data in KV")
-                    response = {
-                        "status": "success",
-                        "vault_content": cached_vault.get("vault_content", ""),
-                        "tokens": cached_vault.get("tokens", 0),
-                        "estimated_cost": cached_vault.get("estimated_cost", "$0.00"),
-                        "folders_loaded": cached_vault.get("folders_loaded", []),
-                        "total_files": cached_vault.get("total_files", 0),
-                        "message": "Using cached vault data from KV"
-                    }
+                    # Handle both dict and potential string responses
+                    if isinstance(cached_vault, dict):
+                        response = {
+                            "status": "success",
+                            "vault_content": cached_vault.get("vault_content", ""),
+                            "tokens": cached_vault.get("tokens", 0),
+                            "estimated_cost": cached_vault.get("estimated_cost", "$0.00"),
+                            "folders_loaded": cached_vault.get("folders_loaded", []),
+                            "total_files": cached_vault.get("total_files", 0),
+                            "message": "Using cached vault data from KV"
+                        }
+                    else:
+                        print("⚠️ Cached vault data in unexpected format")
+                        response = {
+                            "status": "success",
+                            "needs_refresh": True,
+                            "vault_content": "",
+                            "tokens": 0,
+                            "estimated_cost": "$0.00",
+                            "folders_loaded": [],
+                            "total_files": 0,
+                            "message": "Cached data format error - please refresh"
+                        }
                 else:
                     print("⚠️ No cached vault data found")
                     response = {
