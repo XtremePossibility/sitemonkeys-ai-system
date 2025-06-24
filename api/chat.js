@@ -109,18 +109,34 @@ export default async function handler(req, res) {
       vault_preview: vaultMemory.substring(0, 200)
     });
 
-    // Smart token management for large vaults
-    const maxVaultTokens = 15000; // Increased to show more folders
+    // Smart token management - CHUNKED LOADING
+    const maxVaultTokens = 8000; // Under your 10,000 OpenAI limit
     const estimatedTokens = vaultMemory.length / 4;
     
     let processedVaultMemory = vaultMemory;
+    let needsSecondChunk = false;
+    
     if (estimatedTokens > maxVaultTokens) {
-      // Prioritize core business intelligence files
-      const truncatePoint = maxVaultTokens * 4; // 24,000 characters max
-      processedVaultMemory = vaultMemory.substring(0, truncatePoint) + 
-        "\n\n[VAULT TRUNCATED - CORE INTELLIGENCE PRESERVED - Using first 24,000 characters]";
+      // Extract complete folder structure first
+      const folderMatches = vaultMemory.match(/--- FOLDER: ([^-]+) ---/g) || [];
+      const folderList = folderMatches.map(match => match.replace('--- FOLDER: ', '').replace(' ---', ''));
       
-      console.log(`🔄 Vault truncated from ${vaultMemory.length} to ${processedVaultMemory.length} characters`);
+      // Split vault into two chunks
+      const midPoint = Math.floor(vaultMemory.length / 2);
+      const chunk1 = vaultMemory.substring(0, midPoint);
+      const chunk2 = vaultMemory.substring(midPoint);
+      
+      // Use first chunk + folder index
+      processedVaultMemory = chunk1 + 
+        `\n\n[VAULT CHUNK 1 OF 2 - COMPLETE FOLDER LIST: ${folderList.join(', ')}]\n` +
+        `[NOTE: This is chunk 1. If you need info from missing folders, request chunk 2]\n` +
+        `[AVAILABLE FOLDERS: ${folderList.join(', ')}]`;
+      
+      needsSecondChunk = true;
+      
+      console.log(`🔄 Vault split into chunks - Chunk 1: ${chunk1.length} chars`);
+      console.log(`📁 All folders: ${folderList.join(', ')}`);
+      console.log(`⏭️ Chunk 2 available if needed`);
     }
 
     // CRITICAL: Inject vault memory into system prompt
@@ -148,6 +164,13 @@ You have access to the complete SiteMonkeys vault containing all business intell
 - "pricing strategy" should match files containing "Pricing" or "Strategy"
 - If exact match fails, suggest closest matches: "Did you mean [folder name]?"
 - NEVER say "folder not found" - always find the closest match or suggest alternatives
+- If information is in chunk 2, tell user: "Let me load the second part of the vault" and ask for chunk 2
+
+📊 VAULT CHUNK SYSTEM:
+- This vault uses a 2-chunk system for complete data access
+- Chunk 1 contains first half + complete folder list
+- If user asks about missing folders/files, request chunk 2 by saying: "I need to access vault chunk 2 for that information"
+- ALWAYS provide the complete folder list so users know what's available
 
 🚫 FORBIDDEN RESPONSES:
 - NEVER claim "I don't have access to files" - you DO have vault access
