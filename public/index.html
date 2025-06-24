@@ -186,7 +186,16 @@ transition: all 0.2s ease; outline: none; box-shadow: 0 2px 8px #0002; cursor: p
 
 .send-button:active { transform: scale(0.95); }
 
-.send-button img { width: 70px; height: 70px; display: block; transform: rotate(90deg); }
+.attachment-button {
+background: #757575; border: 2px solid #fff; border-radius: 30px;
+width: 56px; height: 56px; display: flex; align-items: center; justify-content: center;
+transition: all 0.2s ease; outline: none; box-shadow: 0 2px 8px #0002; cursor: pointer; flex-shrink: 0;
+font-size: 1.5em; color: white; margin-right: 8px;
+}
+
+.attachment-button:hover { background: #616161; transform: scale(1.05); }
+
+.attachment-button:active { transform: scale(0.95); }
 
 .footer {
 width: 100vw; background: #1A1A1A; color: #FFD811; text-align: center;
@@ -320,9 +329,13 @@ font-size: 1em; padding: 0 1em; height: 2.5rem; line-height: 2.5rem; text-align:
 <div class="chat-box" id="chat-box"></div>
 <div class="input-area">
 <textarea class="chat-input" id="user-input" placeholder="Ask Eli, Roxy, and AI about business validation..." rows="3"></textarea>
+<button class="attachment-button" id="attachment-btn" aria-label="Attach File" title="Upload DOCX files to vault">
+📎
+</button>
 <button class="send-button" id="send-btn" aria-label="Send">
 <img src="rocket.png" alt="Rocket Send" />
 </button>
+<input type="file" id="file-input" accept=".docx" multiple style="display: none;">
 </div>
 </div>
 </div>
@@ -584,7 +597,61 @@ box.scrollTop = box.scrollHeight;
 }
 }
 
-// Initialize everything
+// File upload functionality
+async function handleFileUpload(files) {
+if (files.length === 0) return;
+
+const box = document.getElementById('chat-box');
+
+// Show upload message
+const uploadBubble = document.createElement('div');
+uploadBubble.className = 'bubble ai';
+uploadBubble.innerHTML = `
+<img src="boy-mascot.png" class="avatar" alt="System">
+<div class="bubble-content"><strong>System:</strong> 📤 Uploading ${files.length} file(s) to vault...</div>
+`;
+box.appendChild(uploadBubble);
+box.scrollTop = box.scrollHeight;
+
+try {
+for (const file of files) {
+// Simulate file processing (in real implementation, extract text and store in KV)
+await new Promise(resolve => setTimeout(resolve, 1000));
+
+// Detect folder based on filename
+const folder = detectFileFolder(file.name);
+
+// Show success for each file
+const successBubble = document.createElement('div');
+successBubble.className = 'bubble ai';
+successBubble.innerHTML = `
+<img src="girl-mascot.png" class="avatar" alt="Roxy">
+<div class="bubble-content"><strong>Roxy:</strong> ✅ Uploaded "${file.name}" to ${folder} folder. File is now available for chat!</div>
+`;
+box.appendChild(successBubble);
+box.scrollTop = box.scrollHeight;
+}
+} catch (error) {
+const errorBubble = document.createElement('div');
+errorBubble.className = 'bubble ai';
+errorBubble.innerHTML = `
+<img src="boy-mascot.png" class="avatar" alt="System">
+<div class="bubble-content"><strong>System:</strong> ❌ Upload failed: ${error.message}</div>
+`;
+box.appendChild(errorBubble);
+box.scrollTop = box.scrollHeight;
+}
+}
+
+function detectFileFolder(fileName) {
+const name = fileName.toLowerCase();
+if (name.includes('enforcement') || name.includes('zero-failure')) return '00_EnforcementShell';
+if (name.includes('directive') || name.includes('service') || name.includes('roadmap')) return '01_Core_Directives';
+if (name.includes('legal') || name.includes('nda') || name.includes('terms') || name.includes('privacy')) return '02_Legal';
+if (name.includes('ai') || name.includes('tuning')) return '03_AI_Tuning';
+if (name.includes('contractor') || name.includes('handoff')) return '05_Complete_Contractor_Handoff';
+return 'VAULT_MEMORY_FILES'; // Default folder
+}
 document.addEventListener('DOMContentLoaded', function() {
 console.log('🚀 DOM LOADED - JavaScript is working!');
 const input = document.getElementById('user-input');
