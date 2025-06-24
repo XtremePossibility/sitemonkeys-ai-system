@@ -161,14 +161,24 @@ scrollbar-color: #FFD811 rgba(255, 255, 255, 0.1);
 .bubble.ai .bubble-content { background: #888; color: #fff; border: 1.5px solid #fff; }
 
 .input-area {
-display: flex; align-items: center; background: #222; border-radius: 25px;
+display: flex; align-items: flex-end; background: #222; border-radius: 25px;
 padding: 12px 15px; margin-top: 0; border: 1.5px solid #fff;
 box-shadow: 0 2px 8px #0002; gap: 12px; min-height: 70px;
-flex-shrink: 0;
+flex-shrink: 0; position: relative;
 }
 
+.attachment-button {
+position: absolute; bottom: 8px; left: 8px;
+background: transparent; border: none; 
+width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;
+cursor: pointer; color: #888; font-size: 16px;
+transition: color 0.2s ease; z-index: 10;
+}
+
+.attachment-button:hover { color: #FFD811; }
+
 .chat-input {
-flex: 1; padding: 12px 16px; border-radius: 18px; border: none; font-size: 1em;
+flex: 1; padding: 12px 16px 12px 40px; border-radius: 18px; border: none; font-size: 1em;
 background: transparent; color: white; outline: none; text-align: left; min-height: 80px; resize: vertical; font-family: 'Carlito', Arial, sans-serif;
 }
 
@@ -329,10 +339,10 @@ font-size: 1em; padding: 0 1em; height: 2.5rem; line-height: 2.5rem; text-align:
 <div class="chat-panel">
 <div class="chat-box" id="chat-box"></div>
 <div class="input-area">
-<textarea class="chat-input" id="user-input" placeholder="Ask Eli, Roxy, and AI about business validation..." rows="3"></textarea>
 <button class="attachment-button" id="attachment-btn" aria-label="Attach File" title="Upload DOCX files to vault">
 📎
 </button>
+<textarea class="chat-input" id="user-input" placeholder="Ask Eli, Roxy, and AI about business validation..." rows="3"></textarea>
 <button class="send-button" id="send-btn" aria-label="Send">
 <img src="rocket.png" alt="Rocket Send" />
 </button>
