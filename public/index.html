@@ -625,21 +625,51 @@ box.appendChild(uploadBubble);
 box.scrollTop = box.scrollHeight;
 
 try {
+// Create FormData for file upload
+const formData = new FormData();
 for (const file of files) {
-// Simulate file processing (in real implementation, extract text and store in KV)
-await new Promise(resolve => setTimeout(resolve, 1000));
+formData.append('files', file);
+}
 
-// Detect folder based on filename
-const folder = detectFileFolder(file.name);
+// Upload to API
+const response = await fetch('/api/upload-file', {
+method: 'POST',
+body: formData
+});
 
-// Show success for each file
+const result = await response.json();
+
+if (result.status === 'success' && result.successful_uploads > 0) {
+// Show success for each uploaded file
+for (const fileInfo of result.files) {
+if (fileInfo.success) {
 const successBubble = document.createElement('div');
 successBubble.className = 'bubble ai';
 successBubble.innerHTML = `
 <img src="girl-mascot.png" class="avatar" alt="Roxy">
-<div class="bubble-content"><strong>Roxy:</strong> ✅ Uploaded "${file.name}" to ${folder} folder. File is now available for chat!</div>
+<div class="bubble-content"><strong>Roxy:</strong> ✅ Uploaded "${fileInfo.filename}" to ${fileInfo.folder} folder. File is now available for chat!</div>
 `;
 box.appendChild(successBubble);
+box.scrollTop = box.scrollHeight;
+} else {
+const errorBubble = document.createElement('div');
+errorBubble.className = 'bubble ai';
+errorBubble.innerHTML = `
+<img src="boy-mascot.png" class="avatar" alt="System">
+<div class="bubble-content"><strong>System:</strong> ❌ Failed to upload "${fileInfo.filename}": ${fileInfo.message}</div>
+`;
+box.appendChild(errorBubble);
+box.scrollTop = box.scrollHeight;
+}
+}
+} else {
+const errorBubble = document.createElement('div');
+errorBubble.className = 'bubble ai';
+errorBubble.innerHTML = `
+<img src="boy-mascot.png" class="avatar" alt="System">
+<div class="bubble-content"><strong>System:</strong> ❌ Upload failed: ${result.message}</div>
+`;
+box.appendChild(errorBubble);
 box.scrollTop = box.scrollHeight;
 }
 } catch (error) {
