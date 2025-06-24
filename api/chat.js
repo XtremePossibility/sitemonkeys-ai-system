@@ -10,7 +10,7 @@ async function getVaultFromKV() {
     const kvToken = process.env.KV_REST_API_TOKEN;
     
     if (!kvUrl || !kvToken) {
-      console.log('❌ KV credentials not found');
+      console.log('⚠️ KV credentials not found');
       return null;
     }
     
@@ -22,189 +22,157 @@ async function getVaultFromKV() {
     
     if (response.ok) {
       const data = await response.json();
-      console.log('✅ Vault data retrieved from KV:', data.result ? data.result.length : 0, 'characters');
       return data.result;
     } else {
       console.log('❌ Failed to get vault from KV:', response.status);
       return null;
     }
   } catch (error) {
-    console.log('❌ KV retrieval error:', error.message);
+    console.error('❌ Error getting vault from KV:', error);
     return null;
   }
 }
 
 export default async function handler(req, res) {
-  // Set CORS headers
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
-
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
-    const { message, conversation_history } = req.body;
+    const { message, conversation_history = [] } = req.body;
     
-    if (!message) {
+    console.log('🎯 Chat API - Processing request:', {
+      message_length: message?.length || 0,
+      conversation_length: conversation_history.length
+    });
+
+    if (!message?.trim()) {
       return res.status(400).json({ error: 'Message is required' });
     }
 
-    console.log('💬 Chat API called with:', {
-      message_length: message.length,
-      conversation_history_length: conversation_history?.length || 0
-    });
-
     // Get vault data from KV
-    console.log('📖 Retrieving vault data from KV...');
-    const vaultMemory = await getVaultFromKV();
+    console.log('📖 Getting vault data from KV...');
+    const vaultData = await getVaultFromKV();
     
-    if (!vaultMemory) {
+    if (!vaultData || !vaultData.content) {
+      console.log('❌ No vault data available in KV');
       return res.status(400).json({ 
-        error: 'No vault data available. Please refresh vault first.',
-        needs_refresh: true
+        error: 'Vault data not available. Please refresh vault first.',
+        needs_refresh: true 
       });
     }
 
-    console.log('🔍 Vault memory retrieved:', {
-      vault_length: vaultMemory.length,
-      vault_preview: vaultMemory.substring(0, 200)
+    console.log('✅ Vault data loaded from KV:', {
+      content_length: vaultData.content.length,
+      estimated_tokens: vaultData.tokens
     });
 
     // Smart token management for large vaults
     const maxVaultTokens = 6000; // Stay well under OpenAI limits
-    const estimatedTokens = vaultMemory.length / 4;
+    const estimatedTokens = vaultData.content.length / 4;
+    let processedVaultMemory = vaultData.content;
     
-    let processedVaultMemory = vaultMemory;
     if (estimatedTokens > maxVaultTokens) {
-      // Prioritize core business intelligence files
-      const truncatePoint = maxVaultTokens * 4; // 24,000 characters max
-      processedVaultMemory = vaultMemory.substring(0, truncatePoint) + 
-        "\n\n[VAULT TRUNCATED - CORE INTELLIGENCE PRESERVED - Using first 24,000 characters]";
-      
-      console.log(`🔄 Vault truncated from ${vaultMemory.length} to ${processedVaultMemory.length} characters`);
+      // Truncate to first portion (most important files are usually first)
+      const maxChars = maxVaultTokens * 4;
+      processedVaultMemory = vaultData.content.substring(0, maxChars);
+      console.log(`⚠️ Vault truncated from ${vaultData.content.length} to ${maxChars} characters`);
     }
 
-    // CRITICAL: Inject vault memory into system prompt
-    const SYSTEM_PROMPT = `🚨 SITEMONKEYS BUSINESS VALIDATION SYSTEM 🚨
+    // 🚨 CRITICAL: Inject vault data into system prompt
+    const SYSTEM_PROMPT = `You are the SiteMonkeys Business Validation AI. You are Eli (the analytical expert) or Roxy (the creative strategist) depending on the toggle.
 
-YOU ARE THE SITEMONKEYS AI BUSINESS VALIDATION SYSTEM. You have complete access to the SiteMonkeys business vault and must use it to answer all questions.
-
-🔒 VAULT ACCESS CONFIRMED:
-You have access to the complete SiteMonkeys vault containing all business intelligence, protocols, and operational data. Use this information to answer questions specifically and accurately.
-
-🎯 MANDATORY REQUIREMENTS:
-- You MUST reference specific vault documents when providing guidance
-- You MUST use the exact folder and file names from the vault
-- You MUST enforce $15K launch budget maximum (HARD LIMIT)
-- You MUST enforce $3K monthly burn maximum (HARD LIMIT) 
-- You MUST enforce 87% margin requirement (HARD LIMIT)
-- You MUST apply zero-failure protocols from vault
-- You MUST protect IP with proper NDA enforcement
-
-🚫 FORBIDDEN RESPONSES:
-- NEVER claim "I don't have access to files" - you DO have vault access
-- NEVER provide generic business advice - use SiteMonkeys specifics
-- NEVER violate budget/margin constraints without explicit founder approval
-- NEVER recommend solutions that compromise IP protection
+CRITICAL INSTRUCTIONS:
+- You have COMPLETE ACCESS to all SiteMonkeys business data below
+- NEVER say you don't have access to files, folders, or information
+- ALWAYS answer questions using the vault memory provided
+- Be specific and detailed when referencing business data
+- Provide exact file names, folder contents, and specific information
 
 --- SITEMONKEYS VAULT MEMORY START ---
 ${processedVaultMemory}
 --- SITEMONKEYS VAULT MEMORY END ---
 
-CRITICAL: Use the vault content above as your complete knowledge base for all SiteMonkeys business decisions and responses. You are Eli/Roxy from SiteMonkeys with full access to this business intelligence.`.trim();
+Always reference this vault data to answer questions about SiteMonkeys business intelligence, files, folders, services, financials, legal documents, and any business-related queries.`.trim();
 
-    console.log('🚀 System prompt created:', {
-      system_prompt_length: SYSTEM_PROMPT.length,
-      vault_included: SYSTEM_PROMPT.includes('SITEMONKEYS VAULT MEMORY START'),
-      vault_content_length: processedVaultMemory.length
-    });
-
-    // Build conversation messages with proper system prompt injection
+    // Build messages array with system prompt first
     const messages = [
-      {
-        role: "system",
-        content: SYSTEM_PROMPT
-      }
+      { role: "system", content: SYSTEM_PROMPT },
+      ...conversation_history,
+      { role: "user", content: message }
     ];
 
-    // Add conversation history if available
-    if (conversation_history && conversation_history.length > 0) {
-      const recentHistory = conversation_history.slice(-8);
-      for (const msg of recentHistory) {
-        messages.push({
-          role: msg.role === 'user' ? 'user' : 'assistant',
-          content: msg.content
-        });
-      }
+    console.log('📨 Sending to OpenAI:', {
+      total_messages: messages.length,
+      system_prompt_length: SYSTEM_PROMPT.length,
+      vault_data_included: SYSTEM_PROMPT.includes('SITEMONKEYS VAULT MEMORY')
+    });
+
+    // Call OpenAI API
+    const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'gpt-4',
+        messages: messages,
+        max_tokens: 2000,
+        temperature: 0.7,
+      }),
+    });
+
+    if (!openaiResponse.ok) {
+      const errorData = await openaiResponse.json();
+      console.error('OpenAI API error:', errorData);
+      throw new Error(`OpenAI API error: ${openaiResponse.status} - ${errorData.error?.message || 'Unknown error'}`);
     }
 
-    // Add current user message
-    messages.push({
-      role: "user",
-      content: message
-    });
+    const data = await openaiResponse.json();
+    const response = data.choices[0]?.message?.content || 'No response generated';
+    
+    // Calculate proper token usage
+    const vault_tokens_used = Math.floor(processedVaultMemory.length / 4);
+    const total_tokens = data.usage?.total_tokens || 0;
+    const estimated_cost = ((data.usage?.prompt_tokens || 0) * 0.03 + (data.usage?.completion_tokens || 0) * 0.06) / 1000;
 
-    console.log('📡 Sending to OpenAI:', {
-      total_messages: messages.length,
-      system_message_length: messages[0].content.length,
-      user_message: message
-    });
-
-    // Call OpenAI with proper system prompt injection
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4",
-      messages: messages,
-      max_tokens: 2000,
-      temperature: 0.2,
-    });
-
-    const response = completion.choices[0].message.content;
-    const usage = completion.usage;
-
-    console.log('✅ OpenAI response received:', {
+    console.log('✅ Chat response generated:', {
       response_length: response.length,
-      total_tokens: usage.total_tokens,
-      cost: calculateCost(usage)
+      vault_tokens_used,
+      total_tokens,
+      estimated_cost: `$${estimated_cost.toFixed(4)}`
     });
 
-    return res.status(200).json({
-      response: response,
-      usage: usage,
-      cost: calculateCost(usage),
-      vault_tokens_used: Math.floor(processedVaultMemory.length / 4),
-      total_context_tokens: usage.prompt_tokens,
-      protocol_enforcement: "MAXIMUM",
-      vault_source: "kv_cache"
+    res.status(200).json({
+      response,
+      usage: data.usage,
+      cost: `$${estimated_cost.toFixed(4)}`,
+      vault_tokens_used,
+      total_context_tokens: total_tokens,
+      vault_data_included: true,
+      vault_source: 'kv_cache'
     });
 
   } catch (error) {
-    console.error('❌ Chat API Error:', error);
-    return res.status(500).json({ 
-      error: 'Failed to generate response',
-      details: error.message 
-    });
+    console.error('❌ Chat API error:', error);
+    
+    // Handle specific OpenAI errors
+    if (error.message.includes('maximum context length')) {
+      res.status(400).json({ 
+        error: 'Request too large. Vault data has been truncated but still exceeds limits.',
+        suggestion: 'Try a shorter question or contact support.'
+      });
+    } else if (error.message.includes('Rate limit')) {
+      res.status(429).json({ 
+        error: 'Rate limit exceeded. Please wait a moment and try again.',
+        retry_after: 60
+      });
+    } else {
+      res.status(500).json({ 
+        error: 'Internal server error',
+        message: error.message 
+      });
+    }
   }
-}
-
-function calculateCost(usage) {
-  if (!usage) return "0.00";
-  
-  // GPT-4 pricing (current rates)
-  const inputCostPer1k = 0.03;  // $0.03 per 1K input tokens
-  const outputCostPer1k = 0.06; // $0.06 per 1K output tokens
-  
-  const inputTokens = usage.prompt_tokens || 0;
-  const outputTokens = usage.completion_tokens || 0;
-  
-  const inputCost = (inputTokens / 1000) * inputCostPer1k;
-  const outputCost = (outputTokens / 1000) * outputCostPer1k;
-  const totalCost = inputCost + outputCost;
-  
-  return totalCost.toFixed(4);
 }
