@@ -342,17 +342,13 @@ font-size: 1em; padding: 0 1em; height: 2.5rem; line-height: 2.5rem; text-align:
 
 <script>
 // Global variables for working functionality
-let vaultData = '';
 let conversationHistory = [];
 let systemActive = false;
 let aiToggle = true;
 
-// Perplexity's original animation code
+// Animation code
 const statusItems = document.querySelectorAll('#status-list li');
 const systemReady = document.getElementById('system-ready');
-const tokenCount = document.getElementById('token-count');
-const costEstimate = document.getElementById('cost-estimate');
-const vaultFolders = document.getElementById('vault-folders');
 let statusIndex = 0;
 
 function loadStatus() {
@@ -366,7 +362,7 @@ setTimeout(() => {
 console.log('✅ Status animation complete, system ready immediately');
 systemReady.classList.add('active');
 systemActive = true;
-console.log('✅ System active - no vault loading needed (using KV cache)');
+console.log('✅ System active - using KV cache');
 checkVaultStatus(); // Check if vault data exists in KV
 }, 500);
 }
@@ -386,7 +382,7 @@ headers: {
 const data = await response.json();
 console.log('📊 Vault status:', data);
 
-if (data.status === 'success') {
+if (data.status === 'success' && !data.needs_refresh) {
 // Update vault display with cached data
 document.getElementById('vault-info').innerHTML = `
 <div><span style="color:#00FF00;">✅</span> VAULT READY (CACHED)</div>
@@ -409,7 +405,7 @@ document.getElementById('vault-info').innerHTML = `
 🔄 Refresh Vault
 </button>
 `;
-} else if (data.needs_refresh) {
+} else {
 // Show refresh needed
 document.getElementById('vault-info').innerHTML = `
 <div><span style="color:#FFA500;">⚠️</span> VAULT NEEDS REFRESH</div>
@@ -498,7 +494,7 @@ button.innerHTML = '🔄 Refresh Vault';
 }
 }
 
-// Working chat functionality
+// Chat functionality
 async function sendMessage() {
 const input = document.getElementById('user-input');
 const text = input.value.trim();
@@ -506,7 +502,7 @@ if (!text || !systemActive) return;
 
 const box = document.getElementById('chat-box');
 
-// Add user message using Perplexity's bubble format
+// Add user message
 const userBubble = document.createElement('div');
 userBubble.className = 'bubble user';
 userBubble.innerHTML = `
@@ -516,9 +512,6 @@ userBubble.innerHTML = `
 box.appendChild(userBubble);
 box.scrollTop = box.scrollHeight;
 input.value = '';
-
-// Show loading indicator
-document.getElementById('loading')?.classList.add('active');
 
 try {
 console.log('💬 Sending to chat API:', { 
@@ -552,7 +545,7 @@ const data = await response.json();
 console.log('💭 Chat response received:', data);
 const reply = data.response || 'No response received';
         
-// Add assistant response using Perplexity's format
+// Add assistant response
 const responseBubble = document.createElement('div');
 const isEli = aiToggle;
 const who = isEli ? 'Eli' : 'Roxy';
@@ -566,7 +559,7 @@ responseBubble.innerHTML = `
 box.appendChild(responseBubble);
 box.scrollTop = box.scrollHeight;
 
-// Update conversation history for your advanced system
+// Update conversation history
 conversationHistory.push({
 role: 'user',
 content: text
@@ -588,9 +581,6 @@ errorBubble.innerHTML = `
 `;
 box.appendChild(errorBubble);
 box.scrollTop = box.scrollHeight;
-} finally {
-// Hide loading indicator
-document.getElementById('loading')?.classList.remove('active');
 }
 }
 
