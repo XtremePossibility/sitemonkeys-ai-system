@@ -76,14 +76,16 @@ def store_file_in_kv(folder_name, file_name, content):
             print("⚠️ KV environment variables not found")
             return False
             
-        # Create hierarchical key: folder/filename
-        kv_key = f"sitemonkeys_vault/{folder_name}/{file_name}"
+        # Clean the key - remove special characters that might cause issues
+        clean_folder = folder_name.replace('/', '_').replace(' ', '_')
+        clean_file = file_name.replace('/', '_').replace(' ', '_')
+        kv_key = f"sitemonkeys_vault_{clean_folder}_{clean_file}"
         
         headers = {
             'Authorization': f'Bearer {kv_token}',
         }
         
-        # Store file content
+        # Use simpler Upstash format
         response = requests.post(
             f'{kv_url}/set/{kv_key}',
             headers=headers,
@@ -91,11 +93,15 @@ def store_file_in_kv(folder_name, file_name, content):
             timeout=30
         )
         
+        print(f"KV Storage - URL: {kv_url}/set/{kv_key}")
+        print(f"KV Storage - Status: {response.status_code}")
+        print(f"KV Storage - Response: {response.text[:100]}")
+        
         if response.status_code == 200:
-            print(f"✅ Stored: {folder_name}/{file_name}")
+            print(f"✅ Stored: {clean_folder}/{clean_file}")
             return True
         else:
-            print(f"❌ Failed to store {folder_name}/{file_name}: {response.status_code}")
+            print(f"❌ Failed to store {folder_name}/{file_name}: {response.status_code} - {response.text}")
             return False
             
     except Exception as e:
