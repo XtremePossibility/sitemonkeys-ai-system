@@ -22,11 +22,39 @@ async function getVaultFromKV() {
     
     if (response.ok) {
       const data = await response.json();
-      console.log('✅ Vault data retrieved from KV:', {
-        vault_length: data.result?.vault_content?.length || 0,
-        tokens: data.result?.tokens || 0
+      console.log('KV Response data:', {
+        has_result: !!data.result,
+        result_type: typeof data.result,
+        result_preview: data.result ? data.result.substring(0, 100) : 'null'
       });
-      return data.result;
+      
+      let vaultData = data.result;
+      
+      // Handle the case where result is a JSON string
+      if (typeof vaultData === 'string') {
+        try {
+          vaultData = JSON.parse(vaultData);
+        } catch (e) {
+          console.log('Failed to parse result as JSON:', e);
+          return null;
+        }
+      }
+      
+      // Handle the extra "value" wrapper from Python storage
+      if (vaultData && vaultData.value) {
+        vaultData = vaultData.value;
+      }
+      
+      if (vaultData && vaultData.vault_content) {
+        console.log('✅ Vault data retrieved from KV:', {
+          vault_length: vaultData.vault_content.length,
+          tokens: vaultData.tokens || 0
+        });
+        return vaultData;
+      } else {
+        console.log('❌ No vault_content found in KV data structure');
+        return null;
+      }
     } else {
       console.log('❌ KV retrieval failed:', response.status);
       return null;
