@@ -573,4 +573,170 @@ const reply = data.response || 'No response received';
 const responseBubble = document.createElement('div');
 const isEli = aiToggle;
 const who = isEli ? 'Eli' : 'Roxy';
-const avatar = isEli ? "boy-mascot.png" : "girl-mascot.png
+const avatar = isEli ? "boy-mascot.png" : "girl-mascot.png";
+
+responseBubble.className = 'bubble ai';
+responseBubble.innerHTML = `
+<img src="${avatar}" class="avatar" alt="${who}">
+<div class="bubble-content"><strong>${who}:</strong> ${reply}</div>
+`;
+box.appendChild(responseBubble);
+box.scrollTop = box.scrollHeight;
+
+// Update conversation history
+conversationHistory.push({
+role: 'user',
+content: text
+});
+conversationHistory.push({
+role: 'assistant', 
+content: reply
+});
+
+aiToggle = !aiToggle;
+
+} catch (error) {
+console.error('❌ Chat error:', error);
+const errorBubble = document.createElement('div');
+errorBubble.className = 'bubble ai';
+errorBubble.innerHTML = `
+<img src="boy-mascot.png" class="avatar" alt="System">
+<div class="bubble-content"><strong>System:</strong> Error: ${error.message}</div>
+`;
+box.appendChild(errorBubble);
+box.scrollTop = box.scrollHeight;
+}
+}
+
+// File upload functionality
+async function handleFileUpload(files) {
+if (files.length === 0) return;
+
+const box = document.getElementById('chat-box');
+
+// Show upload message
+const uploadBubble = document.createElement('div');
+uploadBubble.className = 'bubble ai';
+uploadBubble.innerHTML = `
+<img src="boy-mascot.png" class="avatar" alt="System">
+<div class="bubble-content"><strong>System:</strong> 📤 Uploading ${files.length} file(s) to vault...</div>
+`;
+box.appendChild(uploadBubble);
+box.scrollTop = box.scrollHeight;
+
+try {
+// Create FormData for file upload
+const formData = new FormData();
+for (const file of files) {
+formData.append('files', file);
+}
+
+// Upload to API
+const response = await fetch('/api/upload-file', {
+method: 'POST',
+body: formData
+});
+
+const result = await response.json();
+
+if (result.status === 'success' && result.successful_uploads > 0) {
+// Show success for each uploaded file
+for (const fileInfo of result.files) {
+if (fileInfo.success) {
+const successBubble = document.createElement('div');
+successBubble.className = 'bubble ai';
+successBubble.innerHTML = `
+<img src="girl-mascot.png" class="avatar" alt="Roxy">
+<div class="bubble-content"><strong>Roxy:</strong> ✅ Uploaded "${fileInfo.filename}" to ${fileInfo.folder} folder. File is now available for chat!</div>
+`;
+box.appendChild(successBubble);
+box.scrollTop = box.scrollHeight;
+} else {
+const errorBubble = document.createElement('div');
+errorBubble.className = 'bubble ai';
+errorBubble.innerHTML = `
+<img src="boy-mascot.png" class="avatar" alt="System">
+<div class="bubble-content"><strong>System:</strong> ❌ Failed to upload "${fileInfo.filename}": ${fileInfo.message}</div>
+`;
+box.appendChild(errorBubble);
+box.scrollTop = box.scrollHeight;
+}
+}
+} else {
+const errorBubble = document.createElement('div');
+errorBubble.className = 'bubble ai';
+errorBubble.innerHTML = `
+<img src="boy-mascot.png" class="avatar" alt="System">
+<div class="bubble-content"><strong>System:</strong> ❌ Upload failed: ${result.message}</div>
+`;
+box.appendChild(errorBubble);
+box.scrollTop = box.scrollHeight;
+}
+} catch (error) {
+const errorBubble = document.createElement('div');
+errorBubble.className = 'bubble ai';
+errorBubble.innerHTML = `
+<img src="boy-mascot.png" class="avatar" alt="System">
+<div class="bubble-content"><strong>System:</strong> ❌ Upload failed: ${error.message}</div>
+`;
+box.appendChild(errorBubble);
+box.scrollTop = box.scrollHeight;
+}
+}
+
+function detectFileFolder(fileName) {
+const name = fileName.toLowerCase();
+if (name.includes('enforcement') || name.includes('zero-failure')) return '00_EnforcementShell';
+if (name.includes('directive') || name.includes('service') || name.includes('roadmap')) return '01_Core_Directives';
+if (name.includes('legal') || name.includes('nda') || name.includes('terms') || name.includes('privacy')) return '02_Legal';
+if (name.includes('ai') || name.includes('tuning')) return '03_AI_Tuning';
+if (name.includes('contractor') || name.includes('handoff')) return '05_Complete_Contractor_Handoff';
+return 'VAULT_MEMORY_FILES'; // Default folder
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+console.log('🚀 DOM LOADED - JavaScript is working!');
+const input = document.getElementById('user-input');
+const sendBtn = document.getElementById('send-btn');
+
+input.addEventListener('keydown', function(e) {
+if (e.key === 'Enter' && !e.shiftKey) {
+e.preventDefault();
+sendMessage();
+}
+});
+
+sendBtn.addEventListener('click', function(e) {
+e.preventDefault();
+sendMessage();
+});
+
+// Upload button functionality
+const attachmentBtn = document.getElementById('attachment-btn');
+const fileInput = document.getElementById('file-input');
+
+attachmentBtn.addEventListener('click', () => fileInput.click());
+fileInput.addEventListener('change', (e) => {
+if (e.target.files.length > 0) handleFileUpload(Array.from(e.target.files));
+});
+
+console.log('🎯 Event listeners added');
+setTimeout(() => {
+console.log('⏰ Starting status animation...');
+loadStatus();
+}, 800);
+});
+
+// Error handling for missing images
+document.addEventListener('DOMContentLoaded', function() {
+const images = document.querySelectorAll('img');
+images.forEach(img => {
+img.onerror = function() {
+console.warn(`Image failed to load: ${this.src}`);
+this.style.display = 'none';
+};
+});
+});
+</script>
+</body>
+</html>
