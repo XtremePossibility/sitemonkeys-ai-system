@@ -196,16 +196,6 @@ transition: all 0.2s ease; outline: none; box-shadow: 0 2px 8px #0002; cursor: p
 
 .send-button:active { transform: scale(0.95); }
 
-.send-button {
-background: #FFD811; border: 2px solid #fff; border-radius: 30px;
-width: 100px; height: 56px; display: flex; align-items: center; justify-content: center;
-transition: all 0.2s ease; outline: none; box-shadow: 0 2px 8px #0002; cursor: pointer; flex-shrink: 0;
-}
-
-.send-button:hover { background: #ffe96a; transform: scale(1.05); }
-
-.send-button:active { transform: scale(0.95); }
-
 .send-button img { width: 70px; height: 70px; display: block; transform: rotate(90deg); }
 
 .footer {
@@ -228,7 +218,7 @@ padding: 0.5rem 0; background: #1A1A1A; width: 100%; z-index: 1000;
 .mobile-footer-text { font-size: 1rem; font-weight: bold; color: #FFD811; }
 
 .mobile-rocket {
-display: none; position: absolute; width: 90px; height: 90px;
+display: none; position: absolute; width: 180px; height: 180px;
 right: 16px; top: 31px; z-index: 10; transform: rotate(45deg); opacity: 1;
 }
 
@@ -339,7 +329,7 @@ font-size: 1em; padding: 0 1em; height: 2.5rem; line-height: 2.5rem; text-align:
 <div class="chat-panel">
 <div class="chat-box" id="chat-box"></div>
 <div class="input-area">
-<button class="attachment-button" id="attachment-btn" aria-label="Attach File" title="Upload DOCX files to vault">
+<button class="attachment-button" id="attachment-btn" aria-label="Attach File" title="Upload files to vault">
 📎
 </button>
 <textarea class="chat-input" id="user-input" placeholder="Ask Eli, Roxy, and AI about business validation..." rows="3"></textarea>
@@ -556,4 +546,187 @@ conversation_history: conversationHistory
 
 console.log('📞 Chat API response status:', response.status);
 
-if (!
+if (!response.ok) {
+const errorData = await response.json();
+if (errorData.needs_refresh) {
+throw new Error('Vault data not available. Please refresh vault first.');
+} else {
+throw new Error(`Chat API error: ${response.status}`);
+}
+}
+
+const data = await response.json();
+console.log('💭 Chat response received:', data);
+const reply = data.response || 'No response received';
+        
+// Add assistant response
+const responseBubble = document.createElement('div');
+const isEli = aiToggle;
+const who = isEli ? 'Eli' : 'Roxy';
+const avatar = isEli ? "boy-mascot.png" : "girl-mascot.png";
+
+responseBubble.className = 'bubble ai';
+responseBubble.innerHTML = `
+<img src="${avatar}" class="avatar" alt="${who}">
+<div class="bubble-content"><strong>${who}:</strong> ${reply}</div>
+`;
+box.appendChild(responseBubble);
+box.scrollTop = box.scrollHeight;
+
+// Update conversation history
+conversationHistory.push({
+role: 'assistant', 
+content: reply
+});
+
+aiToggle = !aiToggle;
+
+} catch (error) {
+console.error('❌ Chat error:', error);
+const errorBubble = document.createElement('div');
+errorBubble.className = 'bubble ai';
+errorBubble.innerHTML = `
+<img src="boy-mascot.png" class="avatar" alt="System">
+<div class="bubble-content"><strong>System:</strong> Error: ${error.message}</div>
+`;
+box.appendChild(errorBubble);
+box.scrollTop = box.scrollHeight;
+}
+}
+
+// File upload functionality
+async function handleFileUpload(files) {
+if (files.length === 0) return;
+
+const box = document.getElementById('chat-box');
+
+// Show upload message
+const uploadBubble = document.createElement('div');
+uploadBubble.className = 'bubble ai';
+uploadBubble.innerHTML = `
+<img src="boy-mascot.png" class="avatar" alt="System">
+<div class="bubble-content"><strong>System:</strong> 📤 Uploading ${files.length} file(s) to vault...</div>
+`;
+box.appendChild(uploadBubble);
+box.scrollTop = box.scrollHeight;
+
+try {
+// Create FormData for file upload
+const formData = new FormData();
+for (const file of files) {
+formData.append('files', file);
+}
+
+// Upload to API
+const response = await fetch('/api/upload-file', {
+method: 'POST',
+body: formData
+});
+
+const result = await response.json();
+
+if (result.status === 'success' && result.successful_uploads > 0) {
+// Show success for each uploaded file
+for (const fileInfo of result.files) {
+if (fileInfo.success) {
+const successBubble = document.createElement('div');
+successBubble.className = 'bubble ai';
+successBubble.innerHTML = `
+<img src="girl-mascot.png" class="avatar" alt="Roxy">
+<div class="bubble-content"><strong>Roxy:</strong> ✅ Uploaded "${fileInfo.filename}" to ${fileInfo.folder} folder. File is now available for chat!</div>
+`;
+box.appendChild(successBubble);
+box.scrollTop = box.scrollHeight;
+} else {
+const errorBubble = document.createElement('div');
+errorBubble.className = 'bubble ai';
+errorBubble.innerHTML = `
+<img src="boy-mascot.png" class="avatar" alt="System">
+<div class="bubble-content"><strong>System:</strong> ❌ Failed to upload "${fileInfo.filename}": ${fileInfo.message}</div>
+`;
+box.appendChild(errorBubble);
+box.scrollTop = box.scrollHeight;
+}
+}
+} else {
+const errorBubble = document.createElement('div');
+errorBubble.className = 'bubble ai';
+errorBubble.innerHTML = `
+<img src="boy-mascot.png" class="avatar" alt="System">
+<div class="bubble-content"><strong>System:</strong> ❌ Upload failed: ${result.message}</div>
+`;
+box.appendChild(errorBubble);
+box.scrollTop = box.scrollHeight;
+}
+} catch (error) {
+const errorBubble = document.createElement('div');
+errorBubble.className = 'bubble ai';
+errorBubble.innerHTML = `
+<img src="boy-mascot.png" class="avatar" alt="System">
+<div class="bubble-content"><strong>System:</strong> ❌ Upload failed: ${error.message}</div>
+`;
+box.appendChild(errorBubble);
+box.scrollTop = box.scrollHeight;
+}
+}
+
+function detectFileFolder(fileName) {
+const name = fileName.toLowerCase();
+if (name.includes('enforcement') || name.includes('zero-failure')) return '00_EnforcementShell';
+if (name.includes('directive') || name.includes('service') || name.includes('roadmap')) return '01_Core_Directives';
+if (name.includes('legal') || name.includes('nda') || name.includes('terms') || name.includes('privacy')) return '02_Legal';
+if (name.includes('ai') || name.includes('tuning')) return '03_AI_Tuning';
+if (name.includes('contractor') || name.includes('handoff')) return '05_Complete_Contractor_Handoff';
+return 'VAULT_MEMORY_FILES'; // Default folder
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+console.log('🚀 DOM LOADED - JavaScript is working!');
+const input = document.getElementById('user-input');
+const sendBtn = document.getElementById('send-btn');
+
+input.addEventListener('keydown', function(e) {
+if (e.key === 'Enter' && !e.shiftKey) {
+e.preventDefault();
+sendMessage();
+}
+});
+
+sendBtn.addEventListener('click', function(e) {
+e.preventDefault();
+sendMessage();
+});
+
+// Upload button functionality
+const attachmentBtn = document.getElementById('attachment-btn');
+const fileInput = document.getElementById('file-input');
+
+attachmentBtn.addEventListener('click', () => fileInput.click());
+fileInput.addEventListener('change', (e) => {
+if (e.target.files.length > 0) handleFileUpload(Array.from(e.target.files));
+});
+
+console.log('🎯 Event listeners added');
+setTimeout(() => {
+console.log('⏰ Starting status animation...');
+loadStatus();
+}, 800);
+});
+
+// Error handling for missing images
+document.addEventListener('DOMContentLoaded', function() {
+const images = document.querySelectorAll('img');
+images.forEach(img => {
+img.onerror = function() {
+console.warn(`Image failed to load: ${this.src}`);
+this.style.display = 'none';
+};
+});
+});
+</script>
+</body>
+</html>'user',
+content: text
+});
+conversationHistory.push({
+role:
