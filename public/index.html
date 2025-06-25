@@ -196,6 +196,16 @@ transition: all 0.2s ease; outline: none; box-shadow: 0 2px 8px #0002; cursor: p
 
 .send-button:active { transform: scale(0.95); }
 
+.send-button {
+background: #FFD811; border: 2px solid #fff; border-radius: 30px;
+width: 100px; height: 56px; display: flex; align-items: center; justify-content: center;
+transition: all 0.2s ease; outline: none; box-shadow: 0 2px 8px #0002; cursor: pointer; flex-shrink: 0;
+}
+
+.send-button:hover { background: #ffe96a; transform: scale(1.05); }
+
+.send-button:active { transform: scale(0.95); }
+
 .send-button img { width: 70px; height: 70px; display: block; transform: rotate(90deg); }
 
 .footer {
@@ -219,7 +229,7 @@ padding: 0.5rem 0; background: #1A1A1A; width: 100%; z-index: 1000;
 
 .mobile-rocket {
 display: none; position: absolute; width: 180px; height: 180px;
-right: 16px; top: 31px; z-index: 10; transform: rotate(45deg); opacity: 1;
+right: 16px; top: 62px; z-index: 10; transform: rotate(45deg); opacity: 1;
 }
 
 @media (max-width: 768px) {
@@ -329,7 +339,7 @@ font-size: 1em; padding: 0 1em; height: 2.5rem; line-height: 2.5rem; text-align:
 <div class="chat-panel">
 <div class="chat-box" id="chat-box"></div>
 <div class="input-area">
-<button class="attachment-button" id="attachment-btn" aria-label="Attach File" title="Upload files to vault">
+<button class="attachment-button" id="attachment-btn" aria-label="Attach File" title="Upload DOCX files to vault">
 📎
 </button>
 <textarea class="chat-input" id="user-input" placeholder="Ask Eli, Roxy, and AI about business validation..." rows="3"></textarea>
@@ -575,6 +585,10 @@ box.scrollTop = box.scrollHeight;
 
 // Update conversation history
 conversationHistory.push({
+role: 'user',
+content: text
+});
+conversationHistory.push({
 role: 'assistant', 
 content: reply
 });
@@ -725,8 +739,4 @@ this.style.display = 'none';
 });
 </script>
 </body>
-</html>'user',
-content: text
-});
-conversationHistory.push({
-role:
+</html>
