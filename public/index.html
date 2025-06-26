@@ -48,12 +48,12 @@ margin-top: 8px; letter-spacing: 1px; text-align: center; font-weight: bold;
 
 .rocket-top { position: absolute; right: -80px; top: 50px; width: 150px; z-index: 3; pointer-events: none; transform: rotate(45deg); }
 
-.main-wrapper { flex: 1; display: flex; justify-content: center; align-items: flex-start; position: relative; width: 100%; min-height: 0; padding: 10px 0 30px 0; }
+.main-wrapper { flex: 1; display: flex; justify-content: center; align-items: flex-start; position: relative; width: 100%; min-height: 0; padding: 30px 0 30px 0; }
 
 .main-content {
 display: flex; justify-content: center; align-items: stretch;
 max-width: 900px; width: 75vw; margin: 0 auto; position: relative;
-height: calc(100vh - 200px); min-height: 600px; max-height: 700px;
+height: calc(100vh - 240px); min-height: 600px; max-height: 700px;
 background: #373534; border-radius: 24px; box-shadow: 0 8px 32px #0004;
 border: 2px solid #fff; z-index: 1; box-sizing: border-box;
 }
@@ -103,8 +103,8 @@ width: 100%; box-sizing: border-box; border: 2px solid rgba(255,255,255,0.2); tr
 @keyframes systemGlow { from { box-shadow: 0 4px 12px rgba(255,34,34,0.4);} to { box-shadow: 0 4px 20px rgba(255,34,34,0.7);} }
 
 .vault-info {
-background: #545454; border-radius: 16px; padding: 10px 12px; margin-top: 0;
-width: 100%; font-size: 0.85em; color: #fff; text-align: left; min-height: 120px;
+background: #545454; border-radius: 16px; padding: 10px 12px; margin-top: -8px;
+width: 100%; font-size: 0.85em; color: #fff; text-align: left; min-height: 88px;
 display: flex; flex-direction: column; justify-content: center; border: 2px solid #fff; box-sizing: border-box; line-height: 1.3;
 overflow: hidden; word-wrap: break-word;
 }
@@ -570,4 +570,173 @@ console.log('💭 Chat response received:', data);
 const reply = data.response || 'No response received';
         
 // Add assistant response
-const responseBubble = document.createElement('
+const responseBubble = document.createElement('div');
+const isEli = aiToggle;
+const who = isEli ? 'Eli' : 'Roxy';
+const avatar = isEli ? "boy-mascot.png" : "girl-mascot.png";
+
+responseBubble.className = 'bubble ai';
+responseBubble.innerHTML = `
+<img src="${avatar}" class="avatar" alt="${who}">
+<div class="bubble-content"><strong>${who}:</strong> ${reply}</div>
+`;
+box.appendChild(responseBubble);
+box.scrollTop = box.scrollHeight;
+
+// Update conversation history
+conversationHistory.push({
+role: 'user',
+content: text
+});
+conversationHistory.push({
+role: 'assistant', 
+content: reply
+});
+
+aiToggle = !aiToggle;
+
+} catch (error) {
+console.error('❌ Chat error:', error);
+const errorBubble = document.createElement('div');
+errorBubble.className = 'bubble ai';
+errorBubble.innerHTML = `
+<img src="boy-mascot.png" class="avatar" alt="System">
+<div class="bubble-content"><strong>System:</strong> Error: ${error.message}</div>
+`;
+box.appendChild(errorBubble);
+box.scrollTop = box.scrollHeight;
+}
+}
+
+// File upload functionality
+async function handleFileUpload(files) {
+if (files.length === 0) return;
+
+const box = document.getElementById('chat-box');
+
+// Show upload message
+const uploadBubble = document.createElement('div');
+uploadBubble.className = 'bubble ai';
+uploadBubble.innerHTML = `
+<img src="boy-mascot.png" class="avatar" alt="System">
+<div class="bubble-content"><strong>System:</strong> 📤 Uploading ${files.length} file(s) to vault...</div>
+`;
+box.appendChild(uploadBubble);
+box.scrollTop = box.scrollHeight;
+
+try {
+// Create FormData for file upload
+const formData = new FormData();
+for (const file of files) {
+formData.append('files', file);
+}
+
+// Upload to API
+const response = await fetch('/api/upload-file', {
+method: 'POST',
+body: formData
+});
+
+const result = await response.json();
+
+if (result.status === 'success' && result.successful_uploads > 0) {
+// Show success for each uploaded file
+for (const fileInfo of result.files) {
+if (fileInfo.success) {
+const successBubble = document.createElement('div');
+successBubble.className = 'bubble ai';
+successBubble.innerHTML = `
+<img src="girl-mascot.png" class="avatar" alt="Roxy">
+<div class="bubble-content"><strong>Roxy:</strong> ✅ Uploaded "${fileInfo.filename}" to ${fileInfo.folder} folder. File is now available for chat!</div>
+`;
+box.appendChild(successBubble);
+box.scrollTop = box.scrollHeight;
+} else {
+const errorBubble = document.createElement('div');
+errorBubble.className = 'bubble ai';
+errorBubble.innerHTML = `
+<img src="boy-mascot.png" class="avatar" alt="System">
+<div class="bubble-content"><strong>System:</strong> ❌ Failed to upload "${fileInfo.filename}": ${fileInfo.message}</div>
+`;
+box.appendChild(errorBubble);
+box.scrollTop = box.scrollHeight;
+}
+}
+} else {
+const errorBubble = document.createElement('div');
+errorBubble.className = 'bubble ai';
+errorBubble.innerHTML = `
+<img src="boy-mascot.png" class="avatar" alt="System">
+<div class="bubble-content"><strong>System:</strong> ❌ Upload failed: ${result.message}</div>
+`;
+box.appendChild(errorBubble);
+box.scrollTop = box.scrollHeight;
+}
+} catch (error) {
+const errorBubble = document.createElement('div');
+errorBubble.className = 'bubble ai';
+errorBubble.innerHTML = `
+<img src="boy-mascot.png" class="avatar" alt="System">
+<div class="bubble-content"><strong>System:</strong> ❌ Upload failed: ${error.message}</div>
+`;
+box.appendChild(errorBubble);
+box.scrollTop = box.scrollHeight;
+}
+}
+
+function detectFileFolder(fileName) {
+const name = fileName.toLowerCase();
+if (name.includes('enforcement') || name.includes('zero-failure')) return '00_EnforcementShell';
+if (name.includes('directive') || name.includes('service') || name.includes('roadmap')) return '01_Core_Directives';
+if (name.includes('legal') || name.includes('nda') || name.includes('terms') || name.includes('privacy')) return '02_Legal';
+if (name.includes('ai') || name.includes('tuning')) return '03_AI_Tuning';
+if (name.includes('contractor') || name.includes('handoff')) return '05_Complete_Contractor_Handoff';
+return 'VAULT_MEMORY_FILES'; // Default folder
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+console.log('🚀 DOM LOADED - JavaScript is working!');
+const input = document.getElementById('user-input');
+const sendBtn = document.getElementById('send-btn');
+
+input.addEventListener('keydown', function(e) {
+if (e.key === 'Enter' && !e.shiftKey) {
+e.preventDefault();
+sendMessage();
+}
+});
+
+sendBtn.addEventListener('click', function(e) {
+e.preventDefault();
+sendMessage();
+});
+
+// Upload button functionality
+const attachmentBtn = document.getElementById('attachment-btn');
+const fileInput = document.getElementById('file-input');
+
+attachmentBtn.addEventListener('click', () => fileInput.click());
+fileInput.addEventListener('change', (e) => {
+if (e.target.files.length > 0) handleFileUpload(Array.from(e.target.files));
+});
+
+console.log('🎯 Event listeners added');
+setTimeout(() => {
+console.log('⏰ Starting status animation...');
+loadStatus();
+}, 800);
+});
+
+// Error handling for missing images
+document.addEventListener('DOMContentLoaded', function() {
+const images = document.querySelectorAll('img');
+images.forEach(img => {
+img.onerror = function() {
+console.warn(`Image failed to load: ${this.src}`);
+this.style.display = 'none';
+};
+});
+});
+</script>
+</body>
+</html>
