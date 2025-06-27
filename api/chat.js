@@ -21,24 +21,65 @@ async function getVaultFromKV() {
     });
     
     if (response.ok) {
-      const data = await response.json();
-      console.log('KV Response data:', {
-        has_result: !!data.result,
-        result_type: typeof data.result,
-        result_preview: data.result ? data.result.substring(0, 100) : 'null'
-      });
+      const responseText = await response.text();
+      console.log('Raw KV Response:', responseText.substring(0, 200));
       
-      let vaultData = data.result;
-      
-      // Handle the case where result is a JSON string
-      if (typeof vaultData === 'string') {
-        try {
-          vaultData = JSON.parse(vaultData);
-        } catch (e) {
-          console.log('Failed to parse result as JSON:', e);
-          return null;
+      // Handle different response formats
+      let vaultData;
+      try {
+        // Try parsing as JSON first
+        const jsonData = JSON.parse(responseText);
+        
+        // If it's already the vault object
+        if (jsonData.vault_content) {
+          vaultData = jsonData;
         }
+        // If it's wrapped in a "result" property
+        else if (jsonData.result) {
+          if (typeof jsonData.result === 'string') {
+            vaultData = JSON.parse(jsonData.result);
+          } else {
+            vaultData = jsonData.result;
+          }
+        }
+        // If it's the raw vault string
+        else if (typeof jsonData === 'string') {
+          vaultData = JSON.parse(jsonData);
+        }
+        else {
+          vaultData = jsonData;
+        }
+      } catch (e) {
+        console.log('JSON parse failed, treating as raw string:', e);
+        // If JSON parsing fails, treat as raw vault content
+        return {
+          vault_content: responseText,
+          tokens: Math.floor(responseText.length / 4),
+          estimated_cost: "$0.00",
+          folders_loaded: ["Raw Data"],
+          total_files: 1
+        };
       }
+      
+      if (vaultData && vaultData.vault_content) {
+        console.log('✅ Vault data retrieved from KV:', {
+          vault_length: vaultData.vault_content.length,
+          tokens: vaultData.tokens || 0
+        });
+        return vaultData;
+      } else {
+        console.log('❌ No vault_content found, data structure:', Object.keys(vaultData || {}));
+        return null;
+      }
+    } else {
+      console.log('❌ KV retrieval failed:', response.status);
+      return null;
+    }
+  } catch (error) {
+    console.error('❌ KV error:', error);
+    return null;
+  }
+}
       
       // Handle the extra "value" wrapper from Python storage
       if (vaultData && vaultData.value) {
