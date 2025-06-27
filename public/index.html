@@ -48,12 +48,15 @@ margin-top: 8px; letter-spacing: 1px; text-align: center; font-weight: bold;
 
 .rocket-top { position: absolute; right: -80px; top: 50px; width: 150px; z-index: 3; pointer-events: none; transform: rotate(45deg); }
 
-.main-wrapper { flex: 1; display: flex; justify-content: center; align-items: flex-start; position: relative; width: 100%; min-height: 0; padding: 30px 0 40px 0; }
+.main-wrapper { 
+flex: 1; display: flex; justify-content: center; align-items: flex-start; 
+position: relative; width: 100%; min-height: 0; padding: 20px 0 20px 0; 
+}
 
 .main-content {
 display: flex; justify-content: center; align-items: stretch;
 max-width: 900px; width: 75vw; margin: 0 auto; position: relative;
-height: calc(100vh - 240px); min-height: 600px; max-height: 720px;
+height: calc(100vh - 180px); min-height: 650px; max-height: 750px;
 background: #373534; border-radius: 24px; box-shadow: 0 8px 32px #0004;
 border: 2px solid #fff; z-index: 1; box-sizing: border-box;
 }
@@ -72,10 +75,10 @@ display: flex; flex-direction: column; position: relative; z-index: 2; justify-c
 }
 
 .status-title {
-color: #FFD811; font-size: 1.15em; margin-top: 0; margin-bottom: 2px;
-font-weight: bold; text-align: center; width: 100%; white-space: nowrap;
+color: #FFD811; font-size: 1.1em; margin-top: 0; margin-bottom: 6px;
+font-weight: bold; text-align: center; width: 90%; white-space: nowrap;
 position: static; background: none; border: none; padding: 0;
-max-width: 100%;
+max-width: 90%;
 overflow: hidden;
 text-overflow: ellipsis;
 }
@@ -93,10 +96,11 @@ text-overflow: ellipsis;
 @keyframes checkmarkPop { 0%{opacity:0;transform:scale(0) rotate(-180deg);} 50%{opacity:1;transform:scale(1.3) rotate(0deg);} 100%{opacity:1;transform:scale(1) rotate(0deg);} }
 
 .system-ready {
-color: #fff; font-weight: bold; font-size: 1.05em; margin-top: 4px; margin-bottom: 6px;
+color: #fff; font-weight: bold; font-size: 1.05em; margin-top: 8px; margin-bottom: 12px;
 display: none; text-align: left; letter-spacing: 1px; background: #FF2222;
 border-radius: 20px; padding: 10px 14px; box-shadow: 0 4px 12px rgba(255,34,34,0.4);
-width: 100%; box-sizing: border-box; border: 2px solid rgba(255,255,255,0.2); transform: scale(0.8); transition: all 0.4s ease-in-out;
+width: 100%; box-sizing: border-box; border: 2px solid rgba(255,255,255,0.2); 
+transform: scale(0.8); transition: all 0.4s ease-in-out;
 }
 
 .system-ready .check { color: #fff; font-size: 1.2em; margin-right: 8px; display: inline; }
@@ -106,9 +110,10 @@ width: 100%; box-sizing: border-box; border: 2px solid rgba(255,255,255,0.2); tr
 @keyframes systemGlow { from { box-shadow: 0 4px 12px rgba(255,34,34,0.4);} to { box-shadow: 0 4px 20px rgba(255,34,34,0.7);} }
 
 .vault-info {
-background: #545454; border-radius: 16px; padding: 10px 12px; margin-top: 0; margin-bottom: 18px;
-width: 100%; font-size: 0.85em; color: #fff; text-align: left; min-height: 80px;
-display: flex; flex-direction: column; justify-content: center; border: 2px solid #fff; box-sizing: border-box; line-height: 1.3;
+background: #545454; border-radius: 16px; padding: 14px 12px; margin-top: 0; margin-bottom: 8px;
+width: 100%; font-size: 0.85em; color: #fff; text-align: left; min-height: 110px;
+display: flex; flex-direction: column; justify-content: center; border: 2px solid #fff; 
+box-sizing: border-box; line-height: 1.4;
 overflow: hidden; word-wrap: break-word;
 }
 
@@ -457,7 +462,7 @@ setTimeout(() => { button.innerHTML = '🔄 Refresh Vault'; }, 3000);
 }
 }
 
-// Chat functionality
+// FIXED Chat functionality with proper Eli/Roxy alternation
 async function sendMessage() {
 const input = document.getElementById('user-input');
 const text = input.value.trim();
@@ -474,7 +479,7 @@ box.scrollTop = box.scrollHeight;
 input.value = '';
 
 try {
-console.log('💬 Sending to chat API:', { message: text, conversation_history_length: conversationHistory.length });
+console.log('💬 Sending to chat API:', { message: text, conversation_history_length: conversationHistory.length, currentToggle: aiToggle });
 
 const response = await fetch('/api/chat', {
 method: 'POST',
@@ -497,12 +502,15 @@ const data = await response.json();
 console.log('💭 Chat response received:', data);
 const reply = data.response || 'No response received';
         
-// Add assistant response with GUARANTEED Eli/Roxy alternation (FIX #6)
-const responseBubble = document.createElement('div');
+// CRITICAL FIX: Determine who speaks BEFORE creating bubble
 const isEli = aiToggle;
 const who = isEli ? 'Eli' : 'Roxy';
 const avatar = isEli ? "boy-mascot.png" : "girl-mascot.png";
 
+console.log(`🎭 Message from: ${who} (aiToggle was: ${aiToggle})`);
+
+// Add assistant response 
+const responseBubble = document.createElement('div');
 responseBubble.className = 'bubble ai';
 responseBubble.innerHTML = `<img src="${avatar}" class="avatar" alt="${who}"><div class="bubble-content"><strong>${who}:</strong> ${reply}</div>`;
 box.appendChild(responseBubble);
@@ -512,8 +520,9 @@ box.scrollTop = box.scrollHeight;
 conversationHistory.push({ role: 'user', content: text });
 conversationHistory.push({ role: 'assistant', content: reply });
 
-// CRITICAL FIX #6: Toggle between Eli and Roxy every response
+// FLIP the toggle for next message
 aiToggle = !aiToggle;
+console.log(`🔄 aiToggle flipped to: ${aiToggle} (next message will be from: ${aiToggle ? 'Eli' : 'Roxy'})`);
 
 } catch (error) {
 console.error('❌ Chat error:', error);
