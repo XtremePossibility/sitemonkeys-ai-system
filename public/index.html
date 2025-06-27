@@ -153,16 +153,17 @@ scrollbar-width: thin;
 scrollbar-color: #FFD811 rgba(255, 255, 255, 0.1);
 }
 
-.bubble { display: flex; align-items: flex-end; margin: 12px 0; max-width: 85%; }
+.bubble { display: flex; align-items: flex-end; margin: 12px 0; max-width: 80%; }
 
-.bubble.user { flex-direction: row-reverse; align-self: flex-end; margin-left: 15%; }
+.bubble.user { flex-direction: row-reverse; align-self: flex-end; margin-left: 20%; margin-right: 0; }
 
-.bubble.ai { flex-direction: row; align-self: flex-start; margin-right: 15%; }
+.bubble.ai { flex-direction: row; align-self: flex-start; margin-left: 0; margin-right: 20%; }
 
 .bubble img.avatar { 
 width: 48px; height: 48px; border-radius: 50%; margin: 0 12px; 
 background: #545454; border: 2px solid #fff; object-fit: cover; 
-object-position: 50% 20%; flex-shrink: 0; 
+object-position: center 15%; flex-shrink: 0; transform: scale(1.8);
+overflow: hidden;
 }
 
 .bubble-content { padding: 18px 24px; font-size: 1.15em; line-height: 1.5; border-radius: 8px; font-family: 'Carlito', Arial, sans-serif; box-shadow: 0 2px 8px #0002; min-width: 120px; max-width: 100%; word-break: break-word; border: 1.5px solid #fff; white-space: pre-wrap; }
@@ -264,7 +265,7 @@ padding: 0.5rem; flex: 1; min-height: 50vh; margin-top: 10px; border: none; marg
 .chat-box { min-height: 40vh; margin-bottom: 0.5rem; }
 .input-area { padding: 0.5rem; min-height: 3rem; margin-bottom: 0.5rem; border-radius: 20px; }
 .chat-input {
-font-size: 1em; padding: 0 1em; height: 2.5rem; line-height: 2.5rem; text-align: center; display: flex; align-items: center; justify-content: center;
+font-size: 1em; padding: 0 1em; height: 2.5rem; line-height: 2.5rem; text-align: left; display: flex; align-items: center; justify-content: flex-start;
 }
 .chat-input::placeholder { text-align: center; line-height: 2.5rem; font-size: 1em; }
 .send-button { width: 3.5rem; height: 2.5rem; border-radius: 20px; display: flex; align-items: center; justify-content: center; }
