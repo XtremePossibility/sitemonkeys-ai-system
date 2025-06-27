@@ -382,7 +382,7 @@ console.log('✅ Status animation complete, system ready immediately');
 systemReady.classList.add('active');
 systemActive = true;
 console.log('✅ System active - using KV cache');
-checkVaultStatus(); // Check if vault data exists in KV
+checkVaultStatus();
 }, 500);
 }
 }
@@ -393,60 +393,26 @@ try {
 console.log('📖 Checking vault status...');
 const response = await fetch('/api/load-vault', {
 method: 'GET',
-headers: {
-'Content-Type': 'application/json'
-}
+headers: { 'Content-Type': 'application/json' }
 });
 
 const data = await response.json();
 console.log('📊 Vault status:', data);
 
 if (data.status === 'success' && !data.needs_refresh) {
-// Update vault display with cached data
 document.getElementById('vault-info').innerHTML = `
 <div><span style="color:#00FF00;">✅</span> VAULT READY (CACHED)</div>
 <div>🔢 <span id="token-count">${data.tokens || 'Ready'}</span> TOKENS</div>
 <div>💰 EST. COST: <span id="cost-estimate">${data.estimated_cost || '$0.00'}</span></div>
 <div>📁 <span id="vault-folders">${data.folders_loaded?.length || 'Cached'}</span> FOLDERS LOADED</div>
-<button id="refresh-vault-btn" onclick="refreshVault()" style="
-  background: #FFD811; 
-  color: #373534; 
-  border: 1px solid #fff; 
-  border-radius: 8px; 
-  padding: 8px 12px; 
-  font-size: 0.8em; 
-  font-weight: bold; 
-  cursor: pointer; 
-  margin-top: 8px;
-  width: 100%;
-  transition: all 0.2s ease;
-" onmouseover="this.style.background='#ffe96a'" onmouseout="this.style.background='#FFD811'">
-🔄 Refresh Vault
-</button>
-`;
+<button id="refresh-vault-btn" onclick="refreshVault()" style="background: #FFD811; color: #373534; border: 1px solid #fff; border-radius: 8px; padding: 8px 12px; font-size: 0.8em; font-weight: bold; cursor: pointer; margin-top: 8px; width: 100%; transition: all 0.2s ease;" onmouseover="this.style.background='#ffe96a'" onmouseout="this.style.background='#FFD811'">🔄 Refresh Vault</button>`;
 } else {
-// Show refresh needed
 document.getElementById('vault-info').innerHTML = `
 <div><span style="color:#FFA500;">⚠️</span> VAULT NEEDS REFRESH</div>
 <div>🔢 <span id="token-count">No Data</span> TOKENS</div>
 <div>💰 EST. COST: <span id="cost-estimate">$0.00</span></div>
 <div>📁 <span id="vault-folders">0</span> FOLDERS LOADED</div>
-<button id="refresh-vault-btn" onclick="refreshVault()" style="
-  background: #FF6B6B; 
-  color: white; 
-  border: 1px solid #fff; 
-  border-radius: 8px; 
-  padding: 8px 12px; 
-  font-size: 0.8em; 
-  font-weight: bold; 
-  cursor: pointer; 
-  margin-top: 8px;
-  width: 100%;
-  transition: all 0.2s ease;
-" onmouseover="this.style.background='#ff8a8a'" onmouseout="this.style.background='#FF6B6B'">
-🔄 REFRESH VAULT NOW
-</button>
-`;
+<button id="refresh-vault-btn" onclick="refreshVault()" style="background: #FF6B6B; color: white; border: 1px solid #fff; border-radius: 8px; padding: 8px 12px; font-size: 0.8em; font-weight: bold; cursor: pointer; margin-top: 8px; width: 100%; transition: all 0.2s ease;" onmouseover="this.style.background='#ff8a8a'" onmouseout="this.style.background='#FF6B6B'">🔄 REFRESH VAULT NOW</button>`;
 }
 } catch (error) {
 console.error('❌ Vault status check failed:', error);
@@ -464,52 +430,30 @@ button.disabled = true;
 
 const response = await fetch('/api/load-vault?refresh=true', {
 method: 'GET',
-headers: {
-'Content-Type': 'application/json'
-}
+headers: { 'Content-Type': 'application/json' }
 });
 
 const data = await response.json();
 console.log('📊 Vault refresh result:', data);
 
 if (data.status === 'refreshed') {
-// Update vault display with fresh data
 document.getElementById('vault-info').innerHTML = `
 <div><span style="color:#00FF00;">✅</span> VAULT REFRESHED</div>
 <div>🔢 <span id="token-count">${data.tokens || 'Ready'}</span> TOKENS</div>
 <div>💰 EST. COST: <span id="cost-estimate">${data.estimated_cost || '$0.00'}</span></div>
 <div>📁 <span id="vault-folders">${data.folders_loaded?.length || 0}</span> FOLDERS LOADED</div>
-<button id="refresh-vault-btn" onclick="refreshVault()" style="
-  background: #FFD811; 
-  color: #373534; 
-  border: 1px solid #fff; 
-  border-radius: 8px; 
-  padding: 8px 12px; 
-  font-size: 0.8em; 
-  font-weight: bold; 
-  cursor: pointer; 
-  margin-top: 8px;
-  width: 100%;
-  transition: all 0.2s ease;
-" onmouseover="this.style.background='#ffe96a'" onmouseout="this.style.background='#FFD811'">
-🔄 Refresh Vault
-</button>
-`;
+<button id="refresh-vault-btn" onclick="refreshVault()" style="background: #FFD811; color: #373534; border: 1px solid #fff; border-radius: 8px; padding: 8px 12px; font-size: 0.8em; font-weight: bold; cursor: pointer; margin-top: 8px; width: 100%; transition: all 0.2s ease;" onmouseover="this.style.background='#ffe96a'" onmouseout="this.style.background='#FFD811'">🔄 Refresh Vault</button>`;
 } else {
 button.innerHTML = '❌ Refresh Failed';
 button.disabled = false;
-setTimeout(() => {
-button.innerHTML = originalText;
-}, 3000);
+setTimeout(() => { button.innerHTML = originalText; }, 3000);
 }
 } catch (error) {
 console.error('❌ Vault refresh failed:', error);
 const button = document.getElementById('refresh-vault-btn');
 button.innerHTML = '❌ Refresh Failed';
 button.disabled = false;
-setTimeout(() => {
-button.innerHTML = '🔄 Refresh Vault';
-}, 3000);
+setTimeout(() => { button.innerHTML = '🔄 Refresh Vault'; }, 3000);
 }
 }
 
@@ -524,32 +468,167 @@ const box = document.getElementById('chat-box');
 // Add user message
 const userBubble = document.createElement('div');
 userBubble.className = 'bubble user';
-userBubble.innerHTML = `
-<img src="user-avatar.png" onerror="this.style.display='none'" class="avatar" alt="You">
-<div class="bubble-content"><strong>You:</strong> ${text}</div>
-`;
+userBubble.innerHTML = `<img src="user-avatar.png" onerror="this.style.display='none'" class="avatar" alt="You"><div class="bubble-content"><strong>You:</strong> ${text}</div>`;
 box.appendChild(userBubble);
 box.scrollTop = box.scrollHeight;
 input.value = '';
 
 try {
-console.log('💬 Sending to chat API:', { 
-message: text, 
-conversation_history_length: conversationHistory.length
-});
+console.log('💬 Sending to chat API:', { message: text, conversation_history_length: conversationHistory.length });
 
 const response = await fetch('/api/chat', {
 method: 'POST',
-headers: {
-'Content-Type': 'application/json'
-},
-body: JSON.stringify({
-message: text,
-conversation_history: conversationHistory
-})
+headers: { 'Content-Type': 'application/json' },
+body: JSON.stringify({ message: text, conversation_history: conversationHistory })
 });
 
 console.log('📞 Chat API response status:', response.status);
 
 if (!response.ok) {
-const errorData = await response.json
+const errorData = await response.json();
+if (errorData.needs_refresh) {
+throw new Error('Vault data not available. Please refresh vault first.');
+} else {
+throw new Error(`Chat API error: ${response.status}`);
+}
+}
+
+const data = await response.json();
+console.log('💭 Chat response received:', data);
+const reply = data.response || 'No response received';
+        
+// Add assistant response with GUARANTEED Eli/Roxy alternation (FIX #6)
+const responseBubble = document.createElement('div');
+const isEli = aiToggle;
+const who = isEli ? 'Eli' : 'Roxy';
+const avatar = isEli ? "boy-mascot.png" : "girl-mascot.png";
+
+responseBubble.className = 'bubble ai';
+responseBubble.innerHTML = `<img src="${avatar}" class="avatar" alt="${who}"><div class="bubble-content"><strong>${who}:</strong> ${reply}</div>`;
+box.appendChild(responseBubble);
+box.scrollTop = box.scrollHeight;
+
+// Update conversation history
+conversationHistory.push({ role: 'user', content: text });
+conversationHistory.push({ role: 'assistant', content: reply });
+
+// CRITICAL FIX #6: Toggle between Eli and Roxy every response
+aiToggle = !aiToggle;
+
+} catch (error) {
+console.error('❌ Chat error:', error);
+const errorBubble = document.createElement('div');
+errorBubble.className = 'bubble ai';
+errorBubble.innerHTML = `<img src="boy-mascot.png" class="avatar" alt="System"><div class="bubble-content"><strong>System:</strong> Error: ${error.message}</div>`;
+box.appendChild(errorBubble);
+box.scrollTop = box.scrollHeight;
+}
+}
+
+// File upload functionality
+async function handleFileUpload(files) {
+if (files.length === 0) return;
+const box = document.getElementById('chat-box');
+
+// Show upload message
+const uploadBubble = document.createElement('div');
+uploadBubble.className = 'bubble ai';
+uploadBubble.innerHTML = `<img src="boy-mascot.png" class="avatar" alt="System"><div class="bubble-content"><strong>System:</strong> 📤 Uploading ${files.length} file(s) to vault...</div>`;
+box.appendChild(uploadBubble);
+box.scrollTop = box.scrollHeight;
+
+try {
+const formData = new FormData();
+for (const file of files) { formData.append('files', file); }
+
+const response = await fetch('/api/upload-file', { method: 'POST', body: formData });
+const result = await response.json();
+
+if (result.status === 'success' && result.successful_uploads > 0) {
+for (const fileInfo of result.files) {
+if (fileInfo.success) {
+const successBubble = document.createElement('div');
+successBubble.className = 'bubble ai';
+successBubble.innerHTML = `<img src="girl-mascot.png" class="avatar" alt="Roxy"><div class="bubble-content"><strong>Roxy:</strong> ✅ Uploaded "${fileInfo.filename}" to ${fileInfo.folder} folder. File is now available for chat!</div>`;
+box.appendChild(successBubble);
+box.scrollTop = box.scrollHeight;
+} else {
+const errorBubble = document.createElement('div');
+errorBubble.className = 'bubble ai';
+errorBubble.innerHTML = `<img src="boy-mascot.png" class="avatar" alt="System"><div class="bubble-content"><strong>System:</strong> ❌ Failed to upload "${fileInfo.filename}": ${fileInfo.message}</div>`;
+box.appendChild(errorBubble);
+box.scrollTop = box.scrollHeight;
+}
+}
+} else {
+const errorBubble = document.createElement('div');
+errorBubble.className = 'bubble ai';
+errorBubble.innerHTML = `<img src="boy-mascot.png" class="avatar" alt="System"><div class="bubble-content"><strong>System:</strong> ❌ Upload failed: ${result.message}</div>`;
+box.appendChild(errorBubble);
+box.scrollTop = box.scrollHeight;
+}
+} catch (error) {
+const errorBubble = document.createElement('div');
+errorBubble.className = 'bubble ai';
+errorBubble.innerHTML = `<img src="boy-mascot.png" class="avatar" alt="System"><div class="bubble-content"><strong>System:</strong> ❌ Upload failed: ${error.message}</div>`;
+box.appendChild(errorBubble);
+box.scrollTop = box.scrollHeight;
+}
+}
+
+function detectFileFolder(fileName) {
+const name = fileName.toLowerCase();
+if (name.includes('enforcement') || name.includes('zero-failure')) return '00_EnforcementShell';
+if (name.includes('directive') || name.includes('service') || name.includes('roadmap')) return '01_Core_Directives';
+if (name.includes('legal') || name.includes('nda') || name.includes('terms') || name.includes('privacy')) return '02_Legal';
+if (name.includes('ai') || name.includes('tuning')) return '03_AI_Tuning';
+if (name.includes('contractor') || name.includes('handoff')) return '05_Complete_Contractor_Handoff';
+return 'VAULT_MEMORY_FILES';
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+console.log('🚀 DOM LOADED - JavaScript is working!');
+const input = document.getElementById('user-input');
+const sendBtn = document.getElementById('send-btn');
+
+input.addEventListener('keydown', function(e) {
+if (e.key === 'Enter' && !e.shiftKey) {
+e.preventDefault();
+sendMessage();
+}
+});
+
+sendBtn.addEventListener('click', function(e) {
+e.preventDefault();
+sendMessage();
+});
+
+// Upload button functionality
+const attachmentBtn = document.getElementById('attachment-btn');
+const fileInput = document.getElementById('file-input');
+
+attachmentBtn.addEventListener('click', () => fileInput.click());
+fileInput.addEventListener('change', (e) => {
+if (e.target.files.length > 0) handleFileUpload(Array.from(e.target.files));
+});
+
+console.log('🎯 Event listeners added');
+setTimeout(() => {
+console.log('⏰ Starting status animation...');
+loadStatus();
+}, 800);
+});
+
+// Error handling for missing images
+document.addEventListener('DOMContentLoaded', function() {
+const images = document.querySelectorAll('img');
+images.forEach(img => {
+img.onerror = function() {
+console.warn(`Image failed to load: ${this.src}`);
+this.style.display = 'none';
+};
+});
+});
+</script>
+</body>
+</html>
