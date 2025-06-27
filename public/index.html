@@ -479,15 +479,13 @@ box.scrollTop = box.scrollHeight;
 input.value = '';
 
 try {
-console.log('💬 Sending to chat API:', { message: text, conversation_history_length: conversationHistory.length, currentToggle: aiToggle });
+console.log('💬 Current aiToggle before response:', aiToggle);
 
 const response = await fetch('/api/chat', {
 method: 'POST',
 headers: { 'Content-Type': 'application/json' },
 body: JSON.stringify({ message: text, conversation_history: conversationHistory })
 });
-
-console.log('📞 Chat API response status:', response.status);
 
 if (!response.ok) {
 const errorData = await response.json();
@@ -499,15 +497,14 @@ throw new Error(`Chat API error: ${response.status}`);
 }
 
 const data = await response.json();
-console.log('💭 Chat response received:', data);
 const reply = data.response || 'No response received';
         
-// CRITICAL FIX: Determine who speaks BEFORE creating bubble
+// Determine who speaks BEFORE flipping toggle
 const isEli = aiToggle;
 const who = isEli ? 'Eli' : 'Roxy';
 const avatar = isEli ? "boy-mascot.png" : "girl-mascot.png";
 
-console.log(`🎭 Message from: ${who} (aiToggle was: ${aiToggle})`);
+console.log(`🎭 Response from: ${who}`);
 
 // Add assistant response 
 const responseBubble = document.createElement('div');
@@ -522,7 +519,7 @@ conversationHistory.push({ role: 'assistant', content: reply });
 
 // FLIP the toggle for next message
 aiToggle = !aiToggle;
-console.log(`🔄 aiToggle flipped to: ${aiToggle} (next message will be from: ${aiToggle ? 'Eli' : 'Roxy'})`);
+console.log(`🔄 aiToggle flipped to: ${aiToggle} (next will be: ${aiToggle ? 'Eli' : 'Roxy'})`);
 
 } catch (error) {
 console.error('❌ Chat error:', error);
