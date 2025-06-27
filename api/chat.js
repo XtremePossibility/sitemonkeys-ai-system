@@ -151,7 +151,7 @@ export default async function handler(req, res) {
     });
 
     // Smart token management - CHUNKED LOADING
-    const maxVaultTokens = 8000; // Under your 10,000 OpenAI limit
+    const maxVaultTokens = 4000; // Reduced to prevent memory issues
     const estimatedTokens = vaultMemory.length / 4;
     
     let processedVaultMemory = vaultMemory;
@@ -267,7 +267,7 @@ CRITICAL: Use the vault content above as your complete knowledge base for all Si
     const completion = await openai.chat.completions.create({
       model: "gpt-4",
       messages: messages,
-      max_tokens: 2000,
+      max_tokens: 1000,
       temperature: 0.2,
     });
 
