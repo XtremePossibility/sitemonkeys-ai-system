@@ -155,16 +155,14 @@ scrollbar-color: #FFD811 rgba(255, 255, 255, 0.1);
 
 .bubble { display: flex; align-items: flex-end; margin: 12px 0; max-width: 95%; }
 
-.bubble.user { flex-direction: row-reverse; align-self: flex-end; }
+.bubble.user { flex-direction: row-reverse; align-self: flex-end; margin-left: auto; }
 
-.bubble.ai { flex-direction: row; align-self: flex-start; }
+.bubble.ai { flex-direction: row; align-self: flex-start; margin-right: auto; }
 
 .bubble img.avatar { 
 width: 48px; height: 48px; border-radius: 50%; margin: 0 12px; 
 background: #545454; border: 2px solid #fff; object-fit: cover; 
-object-position: center top; flex-shrink: 0; 
-transform: scale(1.5); 
-transform-origin: center;
+object-position: 50% 20%; flex-shrink: 0; 
 }
 
 .bubble-content { padding: 18px 24px; font-size: 1.15em; line-height: 1.5; border-radius: 8px; font-family: 'Carlito', Arial, sans-serif; box-shadow: 0 2px 8px #0002; min-width: 120px; max-width: 100%; word-break: break-word; border: 1.5px solid #fff; white-space: pre-wrap; }
