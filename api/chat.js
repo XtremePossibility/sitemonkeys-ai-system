@@ -107,20 +107,25 @@ async function getVaultFromKV() {
 }
 
 export default async function handler(req, res) {
+  console.log('🚀 Chat handler started');
+  
   // Set CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
   if (req.method === 'OPTIONS') {
+    console.log('📝 OPTIONS request handled');
     return res.status(200).end();
   }
 
   if (req.method !== 'POST') {
+    console.log('❌ Wrong method:', req.method);
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
+    console.log('💬 Processing POST request');
     const { message, conversation_history } = req.body;
     
     if (!message) {
