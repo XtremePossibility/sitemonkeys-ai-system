@@ -357,8 +357,10 @@ font-size: 1em; padding: 0 1em; height: 2.5rem; line-height: 2.5rem; text-align:
 <img src="girl-mascot.png" alt="Roxy" class="footer-mascot">
 </div>
 
+<!-- PART 1 ENDS HERE - PASTE PART 2 DIRECTLY AFTER THIS LINE -->
+
 <script>
-// Global variables for working functionality - PERSISTENT ACROSS ALL FUNCTION CALLS
+// Global variables for working functionality
 let conversationHistory = [];
 let systemActive = false;
 let aiToggle = true;
@@ -533,8 +535,7 @@ input.value = '';
 try {
 console.log('💬 Sending to chat API:', { 
 message: text, 
-conversation_history_length: conversationHistory.length,
-current_toggle_state: aiToggle
+conversation_history_length: conversationHistory.length
 });
 
 const response = await fetch('/api/chat', {
@@ -551,34 +552,4 @@ conversation_history: conversationHistory
 console.log('📞 Chat API response status:', response.status);
 
 if (!response.ok) {
-const errorData = await response.json();
-if (errorData.needs_refresh) {
-throw new Error('Vault data not available. Please refresh vault first.');
-} else {
-throw new Error(`Chat API error: ${response.status}`);
-}
-}
-
-const data = await response.json();
-console.log('💭 Chat response received:', data);
-const reply = data.response || 'No response received';
-        
-// Add assistant response with GUARANTEED alternation
-const responseBubble = document.createElement('div');
-const isEli = aiToggle;
-const who = isEli ? 'Eli' : 'Roxy';
-const avatar = isEli ? "boy-mascot.png" : "girl-mascot.png";
-
-console.log(`🎭 Current message from: ${who} (aiToggle=${aiToggle})`);
-
-responseBubble.className = 'bubble ai';
-responseBubble.innerHTML = `
-<img src="${avatar}" class="avatar" alt="${who}">
-<div class="bubble-content"><strong>${who}:</strong> ${reply}</div>
-`;
-box.appendChild(responseBubble);
-box.scrollTop = box.scrollHeight;
-
-// Update conversation history
-conversationHistory.push({
-role: 'user',
+const errorData = await response.json
