@@ -482,18 +482,20 @@ box.scrollTop = box.scrollHeight;
 input.value = '';
 
 try {
-console.log('💬 Current aiToggle before response:', aiToggle);
-
+// Send message directly to chat API
 const response = await fetch('/api/chat', {
 method: 'POST',
 headers: { 'Content-Type': 'application/json' },
-body: JSON.stringify({ message: text, conversation_history: conversationHistory })
+body: JSON.stringify({
+message: text,
+conversation_history: conversationHistory
+})
 });
 
 if (!response.ok) {
 const errorData = await response.json();
 if (errorData.needs_refresh) {
-throw new Error('Vault data not available. Please refresh vault first.');
+throw new Error('Vault needs refreshing. Click the Refresh Vault button first.');
 } else {
 throw new Error(`Chat API error: ${response.status}`);
 }
@@ -502,12 +504,10 @@ throw new Error(`Chat API error: ${response.status}`);
 const data = await response.json();
 const reply = data.response || 'No response received';
         
-// Determine who speaks BEFORE flipping toggle
-const isEli = !aiToggle;
+// Determine who speaks
+const isEli = aiToggle;
 const who = isEli ? 'Eli' : 'Roxy';
 const avatar = isEli ? "boy-mascot.png" : "girl-mascot.png";
-
-console.log(`🎭 Response from: ${who}`);
 
 // Add assistant response 
 const responseBubble = document.createElement('div');
@@ -520,15 +520,14 @@ box.scrollTop = box.scrollHeight;
 conversationHistory.push({ role: 'user', content: text });
 conversationHistory.push({ role: 'assistant', content: reply });
 
-// FLIP the toggle for next message
+// Toggle for next message
 aiToggle = !aiToggle;
-console.log(`🔄 aiToggle flipped to: ${aiToggle} (next will be: ${aiToggle ? 'Eli' : 'Roxy'})`);
 
 } catch (error) {
 console.error('❌ Chat error:', error);
 const errorBubble = document.createElement('div');
 errorBubble.className = 'bubble ai';
-errorBubble.innerHTML = `<img src="boy-mascot.png" class="avatar" alt="System"><div class="bubble-content"><strong>System:</strong> Error: ${error.message}</div>`;
+errorBubble.innerHTML = `<img src="boy-mascot.png" class="avatar" alt="System"><div class="bubble-content"><strong>System:</strong> ${error.message}</div>`;
 box.appendChild(errorBubble);
 box.scrollTop = box.scrollHeight;
 }
