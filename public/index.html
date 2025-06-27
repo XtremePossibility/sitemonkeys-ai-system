@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -11,7 +12,7 @@
 
 html, body {
 margin: 0; padding: 0;
-font-family: 'Carlito', Arial, sans-serif;
+font-family: ‘Carlito’, Arial, sans-serif;
 background: #373534; color: white;
 min-height: 100vh; width: 100vw;
 overflow-x: hidden; display: flex; flex-direction: column;
@@ -34,13 +35,13 @@ position: relative; margin: 0 auto; padding: 20px 0;
 .header-center { display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; z-index: 2; }
 
 .site-title {
-font-family: "Luckiest Guy", "Carlito", sans-serif; color: #FFD811;
+font-family: “Luckiest Guy”, “Carlito”, sans-serif; color: #FFD811;
 font-size: 2.1em; margin: 0; letter-spacing: 2px; line-height: 1; text-align: center;
 white-space: nowrap; width: 100%; text-align: center;
 }
 
 .subtitle {
-font-family: 'Carlito', Arial, sans-serif; color: #fff; font-size: 1.2em;
+font-family: ‘Carlito’, Arial, sans-serif; color: #fff; font-size: 1.2em;
 margin-top: 8px; letter-spacing: 1px; text-align: center; font-weight: bold;
 }
 
@@ -48,15 +49,15 @@ margin-top: 8px; letter-spacing: 1px; text-align: center; font-weight: bold;
 
 .rocket-top { position: absolute; right: -80px; top: 50px; width: 150px; z-index: 3; pointer-events: none; transform: rotate(45deg); }
 
-.main-wrapper { 
-flex: 1; display: flex; justify-content: center; align-items: flex-start; 
-position: relative; width: 100%; min-height: 0; padding: 20px 0 20px 0; 
+.main-wrapper {
+flex: 1; display: flex; justify-content: center; align-items: flex-start;
+position: relative; width: 100%; min-height: 0; padding: 15px 0 25px 0;
 }
 
 .main-content {
 display: flex; justify-content: center; align-items: stretch;
 max-width: 900px; width: 75vw; margin: 0 auto; position: relative;
-height: calc(100vh - 180px); min-height: 650px; max-height: 750px;
+height: calc(100vh - 170px); min-height: 640px; max-height: 730px;
 background: #373534; border-radius: 24px; box-shadow: 0 8px 32px #0004;
 border: 2px solid #fff; z-index: 1; box-sizing: border-box;
 }
@@ -75,12 +76,14 @@ display: flex; flex-direction: column; position: relative; z-index: 2; justify-c
 }
 
 .status-title {
-color: #FFD811; font-size: 1.1em; margin-top: 0; margin-bottom: 6px;
-font-weight: bold; text-align: center; width: 90%; white-space: nowrap;
+color: #FFD811; font-size: 1.05em; margin-top: 0; margin-bottom: 6px;
+font-weight: bold; text-align: center; width: 85%; white-space: nowrap;
 position: static; background: none; border: none; padding: 0;
-max-width: 90%;
+max-width: 85%;
 overflow: hidden;
 text-overflow: ellipsis;
+margin-left: auto;
+margin-right: auto;
 }
 
 .status-list { list-style: none; padding: 0; margin: 0 0 20px 0; width: 100%; }
@@ -99,7 +102,7 @@ text-overflow: ellipsis;
 color: #fff; font-weight: bold; font-size: 1.05em; margin-top: 8px; margin-bottom: 12px;
 display: none; text-align: left; letter-spacing: 1px; background: #FF2222;
 border-radius: 20px; padding: 10px 14px; box-shadow: 0 4px 12px rgba(255,34,34,0.4);
-width: 100%; box-sizing: border-box; border: 2px solid rgba(255,255,255,0.2); 
+width: 100%; box-sizing: border-box; border: 2px solid rgba(255,255,255,0.2);
 transform: scale(0.8); transition: all 0.4s ease-in-out;
 }
 
@@ -112,7 +115,7 @@ transform: scale(0.8); transition: all 0.4s ease-in-out;
 .vault-info {
 background: #545454; border-radius: 16px; padding: 14px 12px; margin-top: 0; margin-bottom: 8px;
 width: 100%; font-size: 0.85em; color: #fff; text-align: left; min-height: 110px;
-display: flex; flex-direction: column; justify-content: center; border: 2px solid #fff; 
+display: flex; flex-direction: column; justify-content: center; border: 2px solid #fff;
 box-sizing: border-box; line-height: 1.4;
 overflow: hidden; word-wrap: break-word;
 }
@@ -122,7 +125,7 @@ overflow: hidden; word-wrap: break-word;
 .chat-panel {
 width: 62%; min-width: 400px; background: #545454;
 border-radius: 0 24px 24px 0; border-left: 2px solid #FFD811;
-padding: 20px; display: flex; flex-direction: column; position: relative; z-index: 2; 
+padding: 20px; display: flex; flex-direction: column; position: relative; z-index: 2;
 height: 100%; justify-content: space-between;
 }
 
@@ -162,7 +165,7 @@ scrollbar-color: #FFD811 rgba(255, 255, 255, 0.1);
 
 .bubble img.avatar { width: 48px; height: 48px; border-radius: 50%; margin: 0 12px; background: #545454; border: 2px solid #fff; object-fit: cover; object-position: top; flex-shrink: 0; }
 
-.bubble-content { padding: 18px 24px; font-size: 1.15em; line-height: 1.5; border-radius: 8px; font-family: 'Carlito', Arial, sans-serif; box-shadow: 0 2px 8px #0002; min-width: 80px; max-width: 100%; word-break: break-word; border: 1.5px solid #fff; white-space: pre-wrap; }
+.bubble-content { padding: 18px 24px; font-size: 1.15em; line-height: 1.5; border-radius: 8px; font-family: ‘Carlito’, Arial, sans-serif; box-shadow: 0 2px 8px #0002; min-width: 80px; max-width: 100%; word-break: break-word; border: 1.5px solid #fff; white-space: pre-wrap; }
 
 .bubble.user .bubble-content { background: #FFD811; color: #373534; border: 1.5px solid #fff; }
 
@@ -177,7 +180,7 @@ flex-shrink: 0; position: relative;
 
 .attachment-button {
 position: absolute; bottom: 8px; left: 8px;
-background: transparent; border: none; 
+background: transparent; border: none;
 width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;
 cursor: pointer; color: #888; font-size: 16px;
 transition: color 0.2s ease; z-index: 10;
@@ -187,11 +190,11 @@ transition: color 0.2s ease; z-index: 10;
 
 .chat-input {
 flex: 1; padding: 12px 16px 12px 40px; border-radius: 18px; border: none; font-size: 1em;
-background: transparent; color: white; outline: none; text-align: left; min-height: 80px; resize: vertical; font-family: 'Carlito', Arial, sans-serif;
+background: transparent; color: white; outline: none; text-align: left; min-height: 80px; resize: vertical; font-family: ‘Carlito’, Arial, sans-serif;
 }
 
 .chat-input::placeholder {
-color: rgba(255,255,255,0.45); opacity: 1; font-size: 1em; font-family: 'Carlito', Arial, sans-serif; letter-spacing: 0.5px; text-align: left;
+color: rgba(255,255,255,0.45); opacity: 1; font-size: 1em; font-family: ‘Carlito’, Arial, sans-serif; letter-spacing: 0.5px; text-align: left;
 }
 
 .send-button {
@@ -208,7 +211,7 @@ transition: all 0.2s ease; outline: none; box-shadow: 0 2px 8px #0002; cursor: p
 
 .footer {
 width: 100vw; background: #1A1A1A; color: #FFD811; text-align: center;
-font-family: 'Carlito', Arial, sans-serif; padding: 8px 0; letter-spacing: 1px;
+font-family: ‘Carlito’, Arial, sans-serif; padding: 8px 0; letter-spacing: 1px;
 box-shadow: 0 -2px 8px #0008; display: flex; justify-content: center; align-items: center; gap: 1rem; flex-shrink: 0; position: fixed; bottom: 0; left: 0; z-index: 100;
 }
 
@@ -275,6 +278,7 @@ font-size: 1em; padding: 0 1em; height: 2.5rem; line-height: 2.5rem; text-align:
 .mobile-rocket { top: 40px; width: 70px; height: 70px; }
 }
 </style>
+
 </head>
 <body>
 <header>
@@ -344,7 +348,7 @@ font-size: 1em; padding: 0 1em; height: 2.5rem; line-height: 2.5rem; text-align:
 <button class="send-button" id="send-btn" aria-label="Send">
 <img src="rocket.png" alt="Rocket Send" />
 </button>
-<input type="file" id="file-input" accept=".docx,.doc,.pdf,.txt,.csv,.xlsx,.xls,.pptx,.ppt,.md,.rtf,.json,.xml,.html,.htm,.odt,.ods,.odp,.pages,.numbers,.key,.zip,.rar,.7z,.tar,.gz,.jpeg,.jpg,.png,.gif,.bmp,.svg,.tiff,.mp3,.mp4,.avi,.mov,.wmv,.flv,.webm,.wav,.m4a,.ogg,.aac" multiple style="display: none;">
+<input type="file" id="file-input" accept=".docx,.doc,.pdf,.txt,.csv,.xlsx,.xls,.pptx,.ppt,.md,.rtf,.json,.xml,.html,.htm,.odt,.ods,.odp,.pages,.numbers,.key,.zip,.rar,.7z,.tar,.gz,.jpeg,.jpg,.png,.gif,.bmp,.svg,.tiff,.mp3,.mp4,.avi,.mov,.wmv-.flv,.webm,.wav,.m4a,.ogg,.aac" multiple style="display: none;">
 </div>
 </div>
 </div>
@@ -365,10 +369,10 @@ font-size: 1em; padding: 0 1em; height: 2.5rem; line-height: 2.5rem; text-align:
 <!-- PART 1 ENDS HERE - PASTE PART 2 DIRECTLY AFTER THIS LINE -->
 
 <script>
-// Global variables for working functionality
+// Global variables for working functionality - MUST PERSIST
 let conversationHistory = [];
 let systemActive = false;
-let aiToggle = true;
+let aiToggle = true;  // This controls alternation - starts with Eli
 
 // Animation code
 const statusItems = document.querySelectorAll('#status-list li');
@@ -462,7 +466,7 @@ setTimeout(() => { button.innerHTML = '🔄 Refresh Vault'; }, 3000);
 }
 }
 
-// FIXED Chat functionality with proper Eli/Roxy alternation
+// COMPLETELY REWRITTEN Chat functionality with GUARANTEED alternation
 async function sendMessage() {
 const input = document.getElementById('user-input');
 const text = input.value.trim();
@@ -479,7 +483,11 @@ box.scrollTop = box.scrollHeight;
 input.value = '';
 
 try {
-console.log('💬 Sending to chat API:', { message: text, conversation_history_length: conversationHistory.length, currentToggle: aiToggle });
+console.log('💬 Sending to chat API:', { 
+message: text, 
+conversation_length: conversationHistory.length,
+aiToggle_before: aiToggle
+});
 
 const response = await fetch('/api/chat', {
 method: 'POST',
@@ -499,145 +507,4 @@ throw new Error(`Chat API error: ${response.status}`);
 }
 
 const data = await response.json();
-console.log('💭 Chat response received:', data);
-const reply = data.response || 'No response received';
-        
-// CRITICAL FIX: Determine who speaks BEFORE creating bubble
-const isEli = aiToggle;
-const who = isEli ? 'Eli' : 'Roxy';
-const avatar = isEli ? "boy-mascot.png" : "girl-mascot.png";
-
-console.log(`🎭 Message from: ${who} (aiToggle was: ${aiToggle})`);
-
-// Add assistant response 
-const responseBubble = document.createElement('div');
-responseBubble.className = 'bubble ai';
-responseBubble.innerHTML = `<img src="${avatar}" class="avatar" alt="${who}"><div class="bubble-content"><strong>${who}:</strong> ${reply}</div>`;
-box.appendChild(responseBubble);
-box.scrollTop = box.scrollHeight;
-
-// Update conversation history
-conversationHistory.push({ role: 'user', content: text });
-conversationHistory.push({ role: 'assistant', content: reply });
-
-// FLIP the toggle for next message
-aiToggle = !aiToggle;
-console.log(`🔄 aiToggle flipped to: ${aiToggle} (next message will be from: ${aiToggle ? 'Eli' : 'Roxy'})`);
-
-} catch (error) {
-console.error('❌ Chat error:', error);
-const errorBubble = document.createElement('div');
-errorBubble.className = 'bubble ai';
-errorBubble.innerHTML = `<img src="boy-mascot.png" class="avatar" alt="System"><div class="bubble-content"><strong>System:</strong> Error: ${error.message}</div>`;
-box.appendChild(errorBubble);
-box.scrollTop = box.scrollHeight;
-}
-}
-
-// File upload functionality
-async function handleFileUpload(files) {
-if (files.length === 0) return;
-const box = document.getElementById('chat-box');
-
-// Show upload message
-const uploadBubble = document.createElement('div');
-uploadBubble.className = 'bubble ai';
-uploadBubble.innerHTML = `<img src="boy-mascot.png" class="avatar" alt="System"><div class="bubble-content"><strong>System:</strong> 📤 Uploading ${files.length} file(s) to vault...</div>`;
-box.appendChild(uploadBubble);
-box.scrollTop = box.scrollHeight;
-
-try {
-const formData = new FormData();
-for (const file of files) { formData.append('files', file); }
-
-const response = await fetch('/api/upload-file', { method: 'POST', body: formData });
-const result = await response.json();
-
-if (result.status === 'success' && result.successful_uploads > 0) {
-for (const fileInfo of result.files) {
-if (fileInfo.success) {
-const successBubble = document.createElement('div');
-successBubble.className = 'bubble ai';
-successBubble.innerHTML = `<img src="girl-mascot.png" class="avatar" alt="Roxy"><div class="bubble-content"><strong>Roxy:</strong> ✅ Uploaded "${fileInfo.filename}" to ${fileInfo.folder} folder. File is now available for chat!</div>`;
-box.appendChild(successBubble);
-box.scrollTop = box.scrollHeight;
-} else {
-const errorBubble = document.createElement('div');
-errorBubble.className = 'bubble ai';
-errorBubble.innerHTML = `<img src="boy-mascot.png" class="avatar" alt="System"><div class="bubble-content"><strong>System:</strong> ❌ Failed to upload "${fileInfo.filename}": ${fileInfo.message}</div>`;
-box.appendChild(errorBubble);
-box.scrollTop = box.scrollHeight;
-}
-}
-} else {
-const errorBubble = document.createElement('div');
-errorBubble.className = 'bubble ai';
-errorBubble.innerHTML = `<img src="boy-mascot.png" class="avatar" alt="System"><div class="bubble-content"><strong>System:</strong> ❌ Upload failed: ${result.message}</div>`;
-box.appendChild(errorBubble);
-box.scrollTop = box.scrollHeight;
-}
-} catch (error) {
-const errorBubble = document.createElement('div');
-errorBubble.className = 'bubble ai';
-errorBubble.innerHTML = `<img src="boy-mascot.png" class="avatar" alt="System"><div class="bubble-content"><strong>System:</strong> ❌ Upload failed: ${error.message}</div>`;
-box.appendChild(errorBubble);
-box.scrollTop = box.scrollHeight;
-}
-}
-
-function detectFileFolder(fileName) {
-const name = fileName.toLowerCase();
-if (name.includes('enforcement') || name.includes('zero-failure')) return '00_EnforcementShell';
-if (name.includes('directive') || name.includes('service') || name.includes('roadmap')) return '01_Core_Directives';
-if (name.includes('legal') || name.includes('nda') || name.includes('terms') || name.includes('privacy')) return '02_Legal';
-if (name.includes('ai') || name.includes('tuning')) return '03_AI_Tuning';
-if (name.includes('contractor') || name.includes('handoff')) return '05_Complete_Contractor_Handoff';
-return 'VAULT_MEMORY_FILES';
-}
-
-document.addEventListener('DOMContentLoaded', function() {
-console.log('🚀 DOM LOADED - JavaScript is working!');
-const input = document.getElementById('user-input');
-const sendBtn = document.getElementById('send-btn');
-
-input.addEventListener('keydown', function(e) {
-if (e.key === 'Enter' && !e.shiftKey) {
-e.preventDefault();
-sendMessage();
-}
-});
-
-sendBtn.addEventListener('click', function(e) {
-e.preventDefault();
-sendMessage();
-});
-
-// Upload button functionality
-const attachmentBtn = document.getElementById('attachment-btn');
-const fileInput = document.getElementById('file-input');
-
-attachmentBtn.addEventListener('click', () => fileInput.click());
-fileInput.addEventListener('change', (e) => {
-if (e.target.files.length > 0) handleFileUpload(Array.from(e.target.files));
-});
-
-console.log('🎯 Event listeners added');
-setTimeout(() => {
-console.log('⏰ Starting status animation...');
-loadStatus();
-}, 800);
-});
-
-// Error handling for missing images
-document.addEventListener('DOMContentLoaded', function() {
-const images = document.querySelectorAll('img');
-images.forEach(img => {
-img.onerror = function() {
-console.warn(`Image failed to load: ${this.src}`);
-this.style.display = 'none';
-};
-});
-});
-</script>
-</body>
-</html>
+console.log('💭 Chat response receive
