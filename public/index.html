@@ -50,13 +50,13 @@ margin-top: 8px; letter-spacing: 1px; text-align: center; font-weight: bold;
 
 .main-wrapper { 
 flex: 1; display: flex; justify-content: center; align-items: flex-start; 
-position: relative; width: 100%; min-height: 0; padding: 15px 0 25px 0; 
+position: relative; width: 100%; min-height: 0; padding: 20px 0 20px 0; 
 }
 
 .main-content {
 display: flex; justify-content: center; align-items: stretch;
 max-width: 900px; width: 75vw; margin: 0 auto; position: relative;
-height: calc(100vh - 170px); min-height: 640px; max-height: 730px;
+height: calc(100vh - 180px); min-height: 650px; max-height: 750px;
 background: #373534; border-radius: 24px; box-shadow: 0 8px 32px #0004;
 border: 2px solid #fff; z-index: 1; box-sizing: border-box;
 }
@@ -75,14 +75,12 @@ display: flex; flex-direction: column; position: relative; z-index: 2; justify-c
 }
 
 .status-title {
-color: #FFD811; font-size: 1.05em; margin-top: 0; margin-bottom: 6px;
-font-weight: bold; text-align: center; width: 85%; white-space: nowrap;
+color: #FFD811; font-size: 1.1em; margin-top: 0; margin-bottom: 6px;
+font-weight: bold; text-align: center; width: 90%; white-space: nowrap;
 position: static; background: none; border: none; padding: 0;
-max-width: 85%;
+max-width: 90%;
 overflow: hidden;
 text-overflow: ellipsis;
-margin-left: auto;
-margin-right: auto;
 }
 
 .status-list { list-style: none; padding: 0; margin: 0 0 20px 0; width: 100%; }
@@ -346,7 +344,7 @@ font-size: 1em; padding: 0 1em; height: 2.5rem; line-height: 2.5rem; text-align:
 <button class="send-button" id="send-btn" aria-label="Send">
 <img src="rocket.png" alt="Rocket Send" />
 </button>
-<input type="file" id="file-input" accept=".docx,.doc,.pdf,.txt,.csv,.xlsx,.xls,.pptx,.ppt,.md,.rtf,.json,.xml,.html,.htm,.odt,.ods,.odp,.pages,.numbers,.key,.zip,.rar,.7z,.tar,.gz,.jpeg,.jpg,.png,.gif,.bmp,.svg,.tiff,.mp3,.mp4,.avi,.mov,.wmv-.flv,.webm,.wav,.m4a,.ogg,.aac" multiple style="display: none;">
+<input type="file" id="file-input" accept=".docx,.doc,.pdf,.txt,.csv,.xlsx,.xls,.pptx,.ppt,.md,.rtf,.json,.xml,.html,.htm,.odt,.ods,.odp,.pages,.numbers,.key,.zip,.rar,.7z,.tar,.gz,.jpeg,.jpg,.png,.gif,.bmp,.svg,.tiff,.mp3,.mp4,.avi,.mov,.wmv,.flv,.webm,.wav,.m4a,.ogg,.aac" multiple style="display: none;">
 </div>
 </div>
 </div>
@@ -367,10 +365,10 @@ font-size: 1em; padding: 0 1em; height: 2.5rem; line-height: 2.5rem; text-align:
 <!-- PART 1 ENDS HERE - PASTE PART 2 DIRECTLY AFTER THIS LINE -->
 
 <script>
-// Global variables for working functionality - MUST PERSIST
+// Global variables for working functionality
 let conversationHistory = [];
 let systemActive = false;
-let aiToggle = true;  // This controls alternation - starts with Eli
+let aiToggle = true;
 
 // Animation code
 const statusItems = document.querySelectorAll('#status-list li');
@@ -464,7 +462,7 @@ setTimeout(() => { button.innerHTML = '🔄 Refresh Vault'; }, 3000);
 }
 }
 
-// COMPLETELY REWRITTEN Chat functionality with GUARANTEED alternation
+// FIXED Chat functionality with proper Eli/Roxy alternation
 async function sendMessage() {
 const input = document.getElementById('user-input');
 const text = input.value.trim();
@@ -481,11 +479,7 @@ box.scrollTop = box.scrollHeight;
 input.value = '';
 
 try {
-console.log('💬 Sending to chat API:', { 
-message: text, 
-conversation_length: conversationHistory.length,
-aiToggle_before: aiToggle
-});
+console.log('💬 Sending to chat API:', { message: text, conversation_history_length: conversationHistory.length, currentToggle: aiToggle });
 
 const response = await fetch('/api/chat', {
 method: 'POST',
@@ -505,4 +499,17 @@ throw new Error(`Chat API error: ${response.status}`);
 }
 
 const data = await response.json();
-console.log('💭 Chat response receive
+console.log('💭 Chat response received:', data);
+const reply = data.response || 'No response received';
+        
+// CRITICAL FIX: Determine who speaks BEFORE creating bubble
+const isEli = aiToggle;
+const who = isEli ? 'Eli' : 'Roxy';
+const avatar = isEli ? "boy-mascot.png" : "girl-mascot.png";
+
+console.log(`🎭 Message from: ${who} (aiToggle was: ${aiToggle})`);
+
+// Add assistant response 
+const responseBubble = document.createElement('div');
+responseBubble.className = 'bubble ai';
+respons
