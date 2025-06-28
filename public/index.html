@@ -309,15 +309,15 @@ font-size: 0.9em; padding: 0.3rem 1em 0.3rem 2.5em; height: 2rem; line-height: 1
   
 .logo { 
     position: absolute; 
-    left: calc(50% - 100px); 
-    height: 40px; 
+    left: calc(50% - 70px); 
+    height: 35px; 
     z-index: 1; 
   }
   
  .ai-robot { 
     position: absolute; 
-    right: calc(50% - 100px); 
-    height: 20px; 
+    right: calc(50% - 70px); 
+    height: 18px; 
     z-index: 1; 
   }
   
@@ -337,23 +337,23 @@ font-size: 0.9em; padding: 0.3rem 1em 0.3rem 2.5em; height: 2rem; line-height: 1
     top: 50%; 
     transform: translateY(-50%); 
     z-index: 30; 
-    height: calc(100vh - 120px); 
-    min-height: 280px; 
-    max-height: 350px; 
+    height: calc(100vh - 140px); 
+    min-height: 220px; 
+    max-height: 280px; 
     width: auto; 
     pointer-events: none; 
     transition: all 0.3s ease; 
   }
   
-  .mascot-left { left: -200px; }
-  .mascot-right { right: -200px; }
+  .mascot-left { left: -240px; }
+  .mascot-right { right: -240px; }
 
   .rocket-top { 
     display: block; 
     position: absolute; 
-    right: -5px; 
-    top: 10px; 
-    width: 30px; 
+    right: 20px; 
+    top: 8px; 
+    width: 25px; 
     z-index: 3; 
     pointer-events: none; 
     transform: rotate(45deg); 
@@ -376,15 +376,15 @@ font-size: 0.9em; padding: 0.3rem 1em 0.3rem 2.5em; height: 2rem; line-height: 1
     flex-direction: row; 
     justify-content: center; 
     align-items: stretch;
-    max-width: 60vw; 
-    width: 60vw; 
+    max-width: 45vw; 
+    width: 45vw; 
     margin: 0 auto; 
     position: relative;
     height: calc(100vh - 160px); 
-    min-height: 350px; 
-    max-height: 450px;
+    min-height: 320px; 
+    max-height: 400px;
     background: #373534; 
-    border-radius: 20px; 
+    border-radius: 18px; 
     box-shadow: 0 6px 24px #0004;
     border: 2px solid #fff; 
     z-index: 1; 
@@ -393,12 +393,12 @@ font-size: 0.9em; padding: 0.3rem 1em 0.3rem 2.5em; height: 2rem; line-height: 1
   }
   
   .status-panel {
-    width: 28%; 
-    min-width: 200px;
+    width: 25%; 
+    min-width: 180px;
     background: rgba(17,17,17,0.97); 
-    border-radius: 20px 0 0 20px;
-    box-shadow: 0 0 25px 8px #54545444 inset; 
-    padding: 12px 8px;
+    border-radius: 18px 0 0 18px;
+    box-shadow: 0 0 20px 6px #54545444 inset; 
+    padding: 10px 6px;
     display: flex; 
     flex-direction: column; 
     position: relative; 
@@ -409,17 +409,17 @@ font-size: 0.9em; padding: 0.3rem 1em 0.3rem 2.5em; height: 2rem; line-height: 1
   
   .status-title {
     position: static; 
-    margin-bottom: 6px; 
+    margin-bottom: 4px; 
     background: none !important; 
     border: none !important; 
     padding: 0 !important; 
-    font-size: 0.95em; 
+    font-size: 0.8em; 
     text-align: center; 
     width: 100%; 
     white-space: normal;
     color: #FFD811; 
     font-weight: bold;
-    line-height: 1.2;
+    line-height: 1.1;
   }
   
   .status-list { 
@@ -431,16 +431,9 @@ font-size: 0.9em; padding: 0.3rem 1em 0.3rem 2.5em; height: 2rem; line-height: 1
   }
   
   .status-list li { 
-    font-size: 0.8em; 
-    margin-bottom: 4px; 
-    opacity: 1; 
-    transform: translateX(0); 
-    display: flex; 
-    align-items: center; 
-    color: #fff; 
-    justify-content: flex-start; 
-    text-align: left; 
-    line-height: 1.2; 
+    font-size: 0.7em; 
+    margin-bottom: 2px; 
+    line-height: 1.1; 
   }
   
   .status-list li .check { 
@@ -452,46 +445,24 @@ font-size: 0.9em; padding: 0.3rem 1em 0.3rem 2.5em; height: 2rem; line-height: 1
   }
   
   .system-ready { 
-    margin: 6px 0; 
-    font-size: 0.8rem; 
-    padding: 6px 10px;
-    display: block; 
-    transform: scale(1);
-    color: #fff; 
-    font-weight: bold; 
-    letter-spacing: 1px; 
-    background: #FF2222;
-    border-radius: 16px; 
-    box-shadow: 0 3px 10px rgba(255,34,34,0.4);
-    width: 100%; 
-    box-sizing: border-box; 
-    border: 2px solid rgba(255,255,255,0.2);
+    margin: 4px 0; 
+    font-size: 0.7rem; 
+    padding: 4px 6px;
   }
   
   .vault-info { 
-    margin: 6px 0 0 0; 
-    padding: 8px; 
-    font-size: 0.75rem; 
-    border: 2px solid #fff;
-    background: #545454; 
-    border-radius: 12px; 
-    color: #fff; 
-    text-align: left; 
-    min-height: 50px;
-    display: flex; 
-    flex-direction: column; 
-    justify-content: center; 
-    box-sizing: border-box; 
-    line-height: 1.2;
-    overflow: hidden; 
-    word-wrap: break-word;
+    margin: 4px 0 0 0; 
+    padding: 6px; 
+    font-size: 0.65rem; 
+    min-height: 40px;
+    line-height: 1.1;
   }
   
   .chat-panel {
-    width: 72%; 
-    min-width: 280px; 
+    width: 75%; 
+    min-width: 260px; 
     background: #545454;
-    border-radius: 0 20px 20px 0; 
+    border-radius: 0 18px 18px 0; 
     border-left: 2px solid #FFD811;
     padding: 10px; 
     display: flex; 
@@ -505,12 +476,12 @@ font-size: 0.9em; padding: 0.3rem 1em 0.3rem 2.5em; height: 2rem; line-height: 1
   }
   
   .chat-box { 
-    min-height: 250px; 
-    max-height: 300px;
-    margin-bottom: 8px; 
+    min-height: 200px; 
+    max-height: 250px;
+    margin-bottom: 6px; 
     flex: 1; 
     overflow-y: scroll; 
-    padding: 8px;
+    padding: 6px;
   }
   
   .input-area { 
