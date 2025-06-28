@@ -152,22 +152,23 @@ background: #FFED4E;
 scrollbar-width: thin;
 scrollbar-color: #FFD811 rgba(255, 255, 255, 0.1);
 }
-.bubble { display: flex; align-items: flex-end; margin: 12px 0; max-width: calc(100% - 60px); }
+
+.bubble { 
+display: flex; 
+align-items: flex-end; 
+margin: 12px 0; 
+width: 100%;
+max-width: none;
+}
 
 .bubble.user { 
 flex-direction: row-reverse; 
-align-self: flex-end; 
-margin-left: 0; 
-margin-right: 0; 
-width: 100%;
+justify-content: flex-start;
 }
 
 .bubble.ai { 
 flex-direction: row; 
-align-self: flex-start; 
-margin-left: 0; 
-margin-right: 0; 
-width: 100%;
+justify-content: flex-start;
 }
 
 .bubble img.avatar { 
