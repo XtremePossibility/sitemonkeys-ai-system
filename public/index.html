@@ -296,10 +296,10 @@ font-size: 0.9em; padding: 0.3rem 1em 0.3rem 2.5em; height: 2rem; line-height: 1
 .mobile-footer { display: flex; position: fixed; bottom: 0; width: 100%; }
 }
 
-/* Mobile Landscape - Refined Desktop-like Layout */
+/* Mobile Landscape - Fixed Logo/Robot Scaling */
 @media (max-width: 950px) and (orientation: landscape) {
 header {
-  min-height: clamp(80px, 12vh, 120px);
+  min-height: clamp(90px, 14vh, 130px);
   width: 100vw;
   margin: 0;
   padding: 0;
@@ -320,15 +320,15 @@ header {
   
 .logo { 
     position: absolute; 
-    left: calc(50% - clamp(300px, 38vw, 400px)); 
-    height: clamp(100px, 15vh, 140px); 
+    left: calc(50% - clamp(350px, 45vw, 450px)); 
+    height: clamp(120px, 18vh, 150px); 
     z-index: 1; 
   }
   
  .ai-robot { 
     position: absolute; 
-    right: calc(50% - clamp(300px, 38vw, 400px)); 
-    height: clamp(80px, 12vh, 110px); 
+    right: calc(50% - clamp(350px, 45vw, 450px)); 
+    height: clamp(100px, 15vh, 120px); 
     z-index: 1; 
   }
   
@@ -342,8 +342,8 @@ header {
   margin: 0 auto;
 }
   
-  .site-title { font-size: clamp(1.2rem, 4vw, 1.8rem); }
-  .subtitle { font-size: clamp(0.8rem, 2.5vw, 1.1rem); }
+  .site-title { font-size: clamp(1.4rem, 4.5vw, 2rem); }
+  .subtitle { font-size: clamp(0.9rem, 2.8vw, 1.3rem); }
   
   .mascot { 
     display: block; 
@@ -365,9 +365,9 @@ header {
   .rocket-top { 
     display: block; 
     position: absolute; 
-    right: 15px; 
-    top: 60px; 
-    width: 100px; 
+    right: 25px; 
+    top: 85px; 
+    width: 120px; 
     z-index: 3; 
     pointer-events: none; 
     transform: rotate(45deg); 
@@ -621,7 +621,7 @@ header {
 .subtitle { margin-top: 0; margin-bottom: 6px; }
 
 .mode-toggle-container {
-display: flex; justify-content: center; align-items: center; gap: 6px; margin-top: 4px;
+display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 8px;
 }
 
 .mode-btn {
