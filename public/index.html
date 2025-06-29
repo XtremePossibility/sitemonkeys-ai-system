@@ -616,6 +616,25 @@ header {
   }
 }
 
+/* Mode Toggle Styles */
+.site-title { margin-bottom: 4px; }
+.subtitle { margin-top: 0; margin-bottom: 12px; }
+
+.mode-toggle-container {
+display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 8px;
+}
+
+.mode-btn {
+background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(255, 255, 255, 0.3);
+border-radius: 20px; padding: 6px 16px; font-family: 'Carlito', Arial, sans-serif;
+font-size: clamp(0.8rem, 2vw, 0.9rem); font-weight: bold; color: rgba(255, 255, 255, 0.8);
+cursor: pointer; transition: all 0.3s ease; white-space: nowrap; min-height: 32px;
+display: flex; align-items: center; justify-content: center;
+}
+
+.mode-btn[data-mode="truth_general"].active { background: #4A90E2; color: white; }
+.mode-btn[data-mode="business_validation"].active { background: #FFD811; color: #373534; }
+.mode-btn[data-mode="site_monkeys"].active { background: #fff; color: #373534; }
 </style>
 
 </head>
@@ -626,6 +645,11 @@ header {
 <div class="header-center">
 <div class="site-title">SITE MONKEYS AI</div>
 <div class="subtitle">BUSINESS VALIDATION ENGINE</div>
+<div class="mode-toggle-container">
+<button class="mode-btn" id="truth-mode" data-mode="truth_general">Truth</button>
+<button class="mode-btn active" id="business-mode" data-mode="business_validation">Business</button>
+<button class="mode-btn" id="sitemonkeys-mode" data-mode="site_monkeys">Site Monkeys</button>
+</div>
 </div>
 <img src="AI Robot.png" alt="AI Robot" class="ai-robot">
 <img src="rocket.png" alt="Rocket" class="rocket-top">
@@ -828,7 +852,9 @@ method: 'POST',
 headers: { 'Content-Type': 'application/json' },
 body: JSON.stringify({
 message: text,
-conversation_history: conversationHistory
+conversation_history: conversationHistory,
+mode: getCurrentMode(),
+vault_loaded: isVaultMode()
 })
 });
 
@@ -977,6 +1003,22 @@ this.style.display = 'none';
 };
 });
 });
+
+// Mode Toggle Functionality
+let currentMode = 'business_validation';
+
+document.querySelector('.mode-toggle-container').addEventListener('click', function(e) {
+if (e.target.classList.contains('mode-btn')) {
+const selectedMode = e.target.getAttribute('data-mode');
+currentMode = selectedMode;
+document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
+e.target.classList.add('active');
+console.log(`Switched to mode: ${selectedMode}`);
+}
+});
+
+function getCurrentMode() { return currentMode; }
+function isVaultMode() { return currentMode === 'site_monkeys'; }
 </script>
 
 </body>
