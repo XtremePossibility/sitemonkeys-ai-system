@@ -182,6 +182,23 @@ object-position: center 20%; flex-shrink: 0;
 }
 
 .bubble-content { padding: 18px 24px; font-size: 1.15em; line-height: 1.5; border-radius: 8px; font-family: 'Carlito', Arial, sans-serif; box-shadow: 0 2px 8px #0002; min-width: 120px; max-width: 100%; word-break: break-word; border: 1.5px solid #fff; white-space: pre-wrap; }
+.thinking-content {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-style: italic;
+  opacity: 0.8;
+}
+
+.thinking-brain {
+  font-size: 1.2em;
+  animation: brainPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes brainPulse {
+  0%, 100% { transform: scale(1) rotateY(0deg); opacity: 1; }
+  50% { transform: scale(1.1) rotateY(180deg); opacity: 0.7; }
+}  
 .bubble.user .bubble-content { background: #FFD811; color: #373534; border: 1.5px solid #fff; }
 
 .bubble.ai .bubble-content { background: #888; color: #fff; border: 1.5px solid #fff; }
@@ -879,6 +896,13 @@ box.appendChild(userBubble);
 box.scrollTop = box.scrollHeight;
 input.value = '';
 
+// Add thinking indicator
+const thinkingBubble = document.createElement('div');
+thinkingBubble.className = 'bubble ai thinking-bubble';
+thinkingBubble.innerHTML = `<img src="boy-mascot.png" class="avatar" alt="Thinking"><div class="bubble-content thinking-content"><span class="thinking-brain">🧠</span> Thinking...</div>`;
+box.appendChild(thinkingBubble);
+box.scrollTop = box.scrollHeight;
+
 try {
 // Send message directly to chat API - NOW INCLUDES MODE AND VAULT STATUS
 const response = await fetch('/api/chat', {
@@ -909,10 +933,19 @@ const isEli = aiToggle;
 const who = isEli ? 'Eli' : 'Roxy';
 const avatar = isEli ? "boy-mascot.png" : "girl-mascot.png";
 
-// Add assistant response 
+// Clean the AI response - remove asterisks and system fingerprints
+let cleanReply = reply
+  .replace(/^\*?\*?(Eli|Roxy):\*?\*?\s*/i, '') // Remove "**Eli:**" or "**Roxy:**" from start
+  .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // Convert **text** to <strong>text</strong>
+  .replace(/\*\[MODE:.*?\]/g, '') // Remove *[MODE: fingerprints]*
+  .replace(/\[MODE:.*?\]/g, '') // Remove [MODE: fingerprints]
+  .replace(/\*\[.*?\]\s*\|\s*\[.*?\]\s*\|\s*\[.*?\]\s*\|\s*\[.*?\]\s*\|\s*\[.*?\]\*/g, '') // Remove entire fingerprint lines
+  .trim();
+
+// Add assistant response with clean formatting
 const responseBubble = document.createElement('div');
 responseBubble.className = 'bubble ai';
-responseBubble.innerHTML = `<img src="${avatar}" class="avatar" alt="${who}"><div class="bubble-content"><strong>${who}:</strong> ${reply}</div>`;
+responseBubble.innerHTML = `<img src="${avatar}" class="avatar" alt="${who}"><div class="bubble-content"><strong>${who}:</strong> ${cleanReply}</div>`;
 box.appendChild(responseBubble);
 box.scrollTop = box.scrollHeight;
 
