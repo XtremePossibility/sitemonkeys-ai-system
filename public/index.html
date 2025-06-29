@@ -296,12 +296,14 @@ font-size: 0.9em; padding: 0.3rem 1em 0.3rem 2.5em; height: 2rem; line-height: 1
 
 /* Mobile Landscape - Refined Desktop-like Layout */
 @media (max-width: 950px) and (orientation: landscape) {
-  header { 
-  min-height: 75px; 
+header {
+  min-height: 75px;
   width: 100vw;
+  left: 0;
+  right: 0;
   margin: 0;
   padding: 0;
-  box-sizing: border-box;
+  position: relative;
 }
   
   .header-row { 
@@ -574,17 +576,19 @@ font-size: 0.9em; padding: 0.3rem 1em 0.3rem 2.5em; height: 2rem; line-height: 1
   
   .footer { display: none; }
   .mobile-footer { 
-    display: flex; 
-    position: fixed; 
-    bottom: 0; 
-    width: 100vw; 
-    justify-content: center; 
-    align-items: center; 
-    gap: 0.8rem;
-    padding: 0.3rem 0; 
-    background: #1A1A1A; 
-    z-index: 1000;
-  }
+  display: flex; 
+  position: fixed; 
+  bottom: 0; 
+  width: 100vw;
+  left: 0;
+  margin: 0; 
+  justify-content: center; 
+  align-items: center; 
+  gap: 0.8rem;
+  padding: 0.3rem 0; 
+  background: #1A1A1A; 
+  z-index: 1000;
+}
   
   .footer-mascot { width: 1.2rem; height: 1.2rem; object-fit: contain; }
   .mobile-footer-text { font-size: 0.9rem; font-weight: bold; color: #FFD811; }
