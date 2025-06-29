@@ -625,16 +625,25 @@ display: flex; justify-content: center; align-items: center; gap: 8px; margin-to
 }
 
 .mode-btn {
-background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(255, 255, 255, 0.3);
-border-radius: 20px; padding: 6px 16px; font-family: 'Carlito', Arial, sans-serif;
-font-size: clamp(0.8rem, 2vw, 0.9rem); font-weight: bold; color: rgba(255, 255, 255, 0.8);
-cursor: pointer; transition: all 0.3s ease; white-space: nowrap; min-height: 32px;
+background: rgba(255, 255, 255, 0.1); border: 2px solid #fff;
+border-radius: 8px; padding: 8px 16px; font-family: 'Carlito', Arial, sans-serif;
+font-size: clamp(0.8rem, 2vw, 0.9rem); font-weight: bold; color: white;
+cursor: pointer; transition: all 0.3s ease; white-space: nowrap; min-height: 36px;
 display: flex; align-items: center; justify-content: center;
 }
 
-.mode-btn[data-mode="truth_general"].active { background: #4A90E2; color: white; }
-.mode-btn[data-mode="business_validation"].active { background: #FFD811; color: #373534; }
-.mode-btn[data-mode="site_monkeys"].active { background: #fff; color: #373534; }
+/* Inactive button colors (Site Monkeys brand colors) */
+.mode-btn[data-mode="truth_general"] { background: #4A90E2; color: white; }
+.mode-btn[data-mode="business_validation"] { background: #FFD811; color: #373534; }
+.mode-btn[data-mode="site_monkeys"] { background: #fff; color: #373534; box-shadow: 0 0 12px rgba(255, 255, 255, 0.6); }
+
+/* Active button states (darker gray with white text) */
+.mode-btn[data-mode="truth_general"].active { background: #545454; color: white; box-shadow: 0 4px 12px rgba(84, 84, 84, 0.4); }
+.mode-btn[data-mode="business_validation"].active { background: #545454; color: white; box-shadow: 0 4px 12px rgba(84, 84, 84, 0.4); }
+.mode-btn[data-mode="site_monkeys"].active { background: #545454; color: white; box-shadow: 0 4px 12px rgba(84, 84, 84, 0.4); }
+
+/* Hover effects */
+.mode-btn:hover:not(.active) { transform: translateY(-1px); opacity: 0.9; }
 </style>
 
 </head>
