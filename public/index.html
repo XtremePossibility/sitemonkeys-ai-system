@@ -942,6 +942,21 @@ let cleanReply = reply
   .replace(/\*\[.*?\]\s*\|\s*\[.*?\]\s*\|\s*\[.*?\]\s*\|\s*\[.*?\]\s*\|\s*\[.*?\]\*/g, '') // Remove entire fingerprint lines
   .trim();
 
+// Clean the AI response - remove asterisks and system fingerprints
+let cleanReply = reply
+  .replace(/^\*?\*?(Eli|Roxy):\*?\*?\s*/i, '') // Remove "**Eli:**" or "**Roxy:**" from start
+  .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // Convert **text** to <strong>text</strong>
+  .replace(/\*\[MODE:.*?\]/g, '') // Remove *[MODE: fingerprints]*
+  .replace(/\[MODE:.*?\]/g, '') // Remove [MODE: fingerprints]
+  .replace(/\*\[.*?\]\s*\|\s*\[.*?\]\s*\|\s*\[.*?\]\s*\|\s*\[.*?\]\s*\|\s*\[.*?\]\*/g, '') // Remove entire fingerprint lines
+  .trim();
+
+// Remove thinking indicator
+const thinkingBubble = document.querySelector('.thinking-bubble');
+if (thinkingBubble) {
+  thinkingBubble.remove();
+}
+
 // Add assistant response with clean formatting
 const responseBubble = document.createElement('div');
 responseBubble.className = 'bubble ai';
