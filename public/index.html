@@ -930,13 +930,17 @@ throw new Error(`Chat API error: ${response.status}`);
 const data = await response.json();
 const reply = data.response || 'No response received';
 
-// Clean the AI response - remove asterisks and system fingerprints
+// Clean the AI response - remove ALL system fingerprints
 let cleanReply = reply
   .replace(/^\*?\*?(Eli|Roxy):\*?\*?\s*/i, '') // Remove "**Eli:**" or "**Roxy:**" from start
   .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // Convert **text** to <strong>text</strong>
   .replace(/\*\[MODE:.*?\]/g, '') // Remove *[MODE: fingerprints]*
   .replace(/\[MODE:.*?\]/g, '') // Remove [MODE: fingerprints]
-  .replace(/\*\[.*?\]\s*\|\s*\[.*?\]\s*\|\s*\[.*?\]\s*\|\s*\[.*?\]\s*\|\s*\[.*?\]\*/g, '') // Remove entire fingerprint lines
+  .replace(/\|\s*\[VAULT:.*?\]\s*\|\s*\[TRIGGERED:.*?\]\s*\|\s*\[FLOW:.*?\]\s*\|\s*\[ASSUMPTIONS:.*?\]\*/g, '') // Remove vault status fingerprints
+  .replace(/\[VAULT:.*?\]/g, '') // Remove any remaining vault references
+  .replace(/\[TRIGGERED:.*?\]/g, '') // Remove triggered references
+  .replace(/\[FLOW:.*?\]/g, '') // Remove flow references
+  .replace(/\[ASSUMPTIONS:.*?\]/g, '') // Remove assumption references
   .trim();
         
 // Determine who speaks
