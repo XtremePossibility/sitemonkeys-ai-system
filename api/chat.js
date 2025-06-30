@@ -325,7 +325,61 @@ CRITICAL: Base all solutions on real information. Never invent options that don'
 }
 
 // Main chat handler
+// VAULT SECURITY AND VERIFICATION SYSTEM
+async function verifyVaultAccess(mode, requestedVaultLoad) {
+  console.log(`🔐 Vault verification: mode=${mode}, requested=${requestedVaultLoad}`);
+  
+  // Vault only available in Site Monkeys mode
+  if (mode !== 'site_monkeys') {
+    if (requestedVaultLoad) {
+      console.warn('⚠️ Vault requested but not in Site Monkeys mode - BLOCKED');
+    }
+    return { 
+      allowed: false, 
+      context: '',
+      reason: 'Vault restricted to Site Monkeys mode',
+      security_pass: true // Pass because restriction is working correctly
+    };
+  }
+  
+  // If in Site Monkeys mode, verify vault is actually loaded
+  try {
+    // Use relative path for internal API call
+    const vaultResponse = await fetch(`${process.env.VERCEL_URL || 'https://sitemonkeys-ai-system.vercel.app'}/api/load-vault`);
+    const vaultData = await vaultResponse.json();
+    
+    if (vaultData.status === 'success' && !vaultData.needs_refresh) {
+      console.log('✅ Vault verification passed - Site Monkeys logic authorized');
+      return { 
+        allowed: true, 
+        context: vaultData.vault_content || '',
+        reason: 'Vault verified and loaded',
+        security_pass: true,
+        token_count: vaultData.tokens,
+        folders_loaded: vaultData.folders_loaded
+      };
+    } else {
+      console.warn('⚠️ Site Monkeys mode active but vault not properly loaded');
+      return { 
+        allowed: false, 
+        context: '',
+        reason: 'Vault not properly loaded - refresh required',
+        security_pass: false // Fail because vault should be loaded but isn't
+      };
+    }
+  } catch (error) {
+    console.error('❌ Vault verification failed:', error);
+    return { 
+      allowed: false, 
+      context: '',
+      reason: `Vault system error: ${error.message}`,
+      security_pass: false
+    };
+  }
+}
+
 export default async function handler(req, res) {
+
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -346,6 +400,27 @@ export default async function handler(req, res) {
       vault_loaded = false,
       user_preference = null
     } = req.body;
+
+    // VERIFY VAULT ACCESS AND SECURITY
+const vaultVerification = await verifyVaultAccess(mode, vault_loaded);
+
+if (vault_loaded && !vaultVerification.allowed) {
+  console.error('🚨 Vault access denied:', vaultVerification.reason);
+  return res.status(403).json({
+    response: `**System:** Vault access denied: ${vaultVerification.reason}. Switch to Site Monkeys mode to access vault logic.`,
+    error: 'VAULT_ACCESS_DENIED',
+    mode_active: mode,
+    vault_loaded: false,
+    security_pass: false,
+    reason: vaultVerification.reason
+  });
+}
+
+// Use verified vault context instead of assumed
+const vaultContext = vaultVerification.allowed ? 
+  generateVaultContext(triggeredFrameworks, true) : '';
+
+console.log(`🛡️ Vault security check: ${vaultVerification.security_pass ? 'PASS' : 'FAIL'}`);
 
     const selectedMode = MODES[mode] || MODES.business_validation;
     const promptType = user_preference || analyzePromptType(message);
@@ -376,15 +451,17 @@ export default async function handler(req, res) {
     const fingerprint = `\n\n*[MODE: ${selectedMode.mode_id}] | [VAULT: ${vault_status}] | [TRIGGERED: ${triggered_logic}] | [FLOW: ${promptType}] | [ASSUMPTIONS: ${assumption_health}]*`;
     
     return res.status(200).json({
-      response: combinedResponse + fingerprint,
-      mode_active: selectedMode.mode_id,
-      vault_loaded: vault_loaded,
-      triggered_frameworks: triggeredFrameworks,
-      conversation_flow: promptType,
-      assumption_warnings: assumptionWarnings,
-      eli_response: eliResponse,
-      roxy_response: roxyResponse
-    });
+  response: combinedResponse + fingerprint,
+  mode_active: selectedMode.mode_id,
+  vault_loaded: vaultVerification.allowed,
+  security_pass: vaultVerification.security_pass,
+  vault_reason: vaultVerification.reason,
+  triggered_frameworks: triggeredFrameworks,
+  conversation_flow: promptType,
+  assumption_warnings: assumptionWarnings,
+  eli_response: eliResponse,
+  roxy_response: roxyResponse
+});
 
   } catch (error) {
     console.error('Chat API Error:', error);
