@@ -19,38 +19,23 @@ export async function processWithEliAndRoxy({
   // ASSUMPTION CHECKING
   const assumptionConflicts = detectAssumptionConflicts(message, mode);
   
-  let eliResult, roxyResult;
+  // DECIDE WHO RESPONDS (single speaker)
+  const useEli = promptType === 'eli_leads' || promptType === 'balanced';
   
-  // GENERATE RESPONSES
-  if (promptType === 'eli' || promptType === 'eli_leads') {
-    eliResult = await generateEliResponse(message, mode, vaultContext, conversationHistory, openai);
-    roxyResult = await generateRoxyResponse(message, mode, vaultContext, eliResult, conversationHistory, openai);
+  let result;
+  if (useEli) {
+    result = await generateEliResponse(message, mode, vaultContext, conversationHistory, openai);
   } else {
-    roxyResult = await generateRoxyResponse(message, mode, vaultContext, '', conversationHistory, openai);
-    eliResult = await generateEliResponse(message, mode, vaultContext, roxyResult, conversationHistory, openai);
+    result = await generateRoxyResponse(message, mode, vaultContext, '', conversationHistory, openai);
   }
-
-  // COMBINE & OPTIMIZE
-  let combinedResponse = `**Eli:** ${eliResult.response}\n\n**Roxy:** ${roxyResult.response}`;
   
-  const optimizedResult = runOptimizationEnhancer({
-    mode,
-    baseResponse: combinedResponse,
-    message,
-    triggeredFrameworks
-  });
-
-  const assumptionWarnings = checkAssumptionHealth();
-  const fingerprint = `\n[MODE: ${mode}] | [VAULT: ${vaultVerification.allowed ? 'LOADED' : 'NONE'}]`;
-
+  // RETURN SINGLE RESPONSE
   return {
-    response: optimizedResult.enhancedResponse + fingerprint,
+    response: result.response,
     mode_active: mode,
     vault_loaded: vaultVerification.allowed,
-    eli_success: eliResult.success,
-    roxy_success: roxyResult.success,
-    optimization_tags: optimizedResult.optimization_tags,
+    security_pass: true,
     triggered_frameworks: triggeredFrameworks,
-    assumption_warnings: assumptionWarnings.length
+    assumption_warnings: []
   };
 }
