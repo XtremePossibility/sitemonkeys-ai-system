@@ -1,6 +1,9 @@
 import OpenAI from 'openai';
-import { MODES } from '/config/modes.js';
-import { verifyVaultAccess, generateVaultContext } from '/lib/vault.js';
+import { MODES } from '#config/modes.js';
+import { verifyVaultAccess, generateVaultContext } from '#lib/vault.js';
+import { processWithEliAndRoxy } from '#lib/ai-processors.js';
+import { runOptimizationEnhancer } from '#lib/optimization.js';
+import { checkAssumptionHealth, detectAssumptionConflicts } from '#lib/assumptions.js';
 import { processWithEliAndRoxy } from '/lib/ai-processors.js';
 import { runOptimizationEnhancer } from '/lib/optimization.js';
 import { checkAssumptionHealth, detectAssumptionConflicts } from '/lib/assumptions.js';
