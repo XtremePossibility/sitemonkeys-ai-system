@@ -404,7 +404,7 @@ export default async function handler(req, res) {
     // VERIFY VAULT ACCESS AND SECURITY
 const vaultVerification = await verifyVaultAccess(mode, vault_loaded);
 
-if (vault_loaded && !vaultVerification.allowed) {
+if (vault_loaded && !vaultVerification.allowed && mode === 'site_monkeys') {
   console.error('🚨 Vault access denied:', vaultVerification.reason);
   return res.status(403).json({
     response: `**System:** Vault access denied: ${vaultVerification.reason}. Switch to Site Monkeys mode to access vault logic.`,
