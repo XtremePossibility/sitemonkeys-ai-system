@@ -237,7 +237,7 @@ async function sendMessage() {
     // Add subtle mode indicator to response
     const modeIndicator = getCurrentMode() === 'truth_general' ? '🔍' : 
                          getCurrentMode() === 'business_validation' ? '📊' : 
-                         getCurrentMode() === 'site_monkeys' ? '🐒' : '🤖';
+                         getCurrentMode() === 'site_monkeys' ? '🍌' : '🤖';
     
     responseBubble.innerHTML = `<img src="${avatar}" class="avatar" alt="${who}"><div class="bubble-content"><strong>${who} ${modeIndicator}:</strong> ${cleanReply}</div>`;
     box.appendChild(responseBubble);
