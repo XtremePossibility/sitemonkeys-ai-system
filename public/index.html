@@ -769,32 +769,6 @@ function getCurrentMode() {
 function isVaultMode() {
   return currentMode === 'site_monkeys';
 }
-// Mode system - ADDED ALL MISSING FUNCTIONS
-let currentMode = 'business_validation';
-
-function switchMode(mode) {
-  currentMode = mode;
-  console.log(`🔄 Switched to mode: ${mode}`);
-  
-  // Update button states
-  document.querySelectorAll('.mode-btn').forEach(btn => {
-    btn.classList.remove('active');
-  });
-  
-  // Set active button
-  const activeBtn = document.querySelector(`[data-mode="${mode}"]`);
-  if (activeBtn) {
-    activeBtn.classList.add('active');
-  }
-}
-
-function getCurrentMode() {
-  return currentMode;
-}
-
-function isVaultMode() {
-  return currentMode === 'site_monkeys';
-}
 
 // Animation code
 const statusItems = document.querySelectorAll('#status-list li');
