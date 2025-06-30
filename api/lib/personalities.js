@@ -17,7 +17,7 @@ export async function generateEliResponse(message, mode, vaultContext, conversat
   CRITICAL: Never fabricate information. Always look for optimization opportunities.`;
 
   const messages = [
-  { role: "system", content: `${eliPersonality}\n${vaultContext}` },
+  { role: "system", content: `${roxyPersonality}\n${vaultContext}` },
   ...(conversationHistory || []).slice(-6),  // ← Fixed
   { role: "user", content: message }
 ];
