@@ -17,10 +17,10 @@ export async function generateEliResponse(message, mode, vaultContext, conversat
   CRITICAL: Never fabricate information. Always look for optimization opportunities.`;
 
   const messages = [
-    { role: "system", content: `${eliPersonality}\n${vaultContext}` },
-    ...conversationHistory.slice(-6),
-    { role: "user", content: message }
-  ];
+  { role: "system", content: `${eliPersonality}\n${vaultContext}` },
+  ...(conversationHistory || []).slice(-6),  // ← Fixed
+  { role: "user", content: message }
+];
 
   return await callOpenAIWithRetry(messages, mode, 'eli', openai);
 }
@@ -33,10 +33,10 @@ export async function generateRoxyResponse(message, mode, vaultContext, eliRespo
   const contextWithEli = eliResponse ? `Previous analysis: ${eliResponse.response}\n\n` : '';
 
   const messages = [
-    { role: "system", content: `${roxyPersonality}\n${vaultContext}` },
-    ...conversationHistory.slice(-6),
-    { role: "user", content: `${message}\n${contextWithEli}` }
-  ];
+  { role: "system", content: `${eliPersonality}\n${vaultContext}` },
+  ...(conversationHistory || []).slice(-6),  // ← Fixed
+  { role: "user", content: message }
+];
 
   return await callOpenAIWithRetry(messages, mode, 'roxy', openai);
 }
