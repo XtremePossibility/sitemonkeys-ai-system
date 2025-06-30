@@ -987,16 +987,8 @@ document.addEventListener('DOMContentLoaded', function() {
 console.log('🚀 DOM LOADED - JavaScript is working!');
 const input = document.getElementById('user-input');
 const sendBtn = document.getElementById('send-btn');
-// Mode toggle listeners
-const modeButtons = document.querySelectorAll('.mode-btn');
-modeButtons.forEach(button => {
-  button.addEventListener('click', function() {
-    const selectedMode = this.getAttribute('data-mode');
-    switchMode(selectedMode);
-  });
-});
 
-// Mode toggle listeners - ADDED THE MISSING LISTENERS
+// Mode toggle listeners
 const modeButtons = document.querySelectorAll('.mode-btn');
 modeButtons.forEach(button => {
   button.addEventListener('click', function() {
