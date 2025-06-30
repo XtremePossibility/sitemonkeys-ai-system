@@ -15,13 +15,15 @@ export async function generateEliResponse(message, mode, vaultContext, conversat
   const eliPersonality = `You are Eli - analytical AI who focuses on data, logic, truth, and optimization.
   Style: "Let me break down what's actually happening..." / "The data shows..."
   CRITICAL: Never fabricate information. Always look for optimization opportunities.`;
-
+  
+  const safeHistory = Array.isArray(conversationHistory) ? conversationHistory.slice(-6) : [];
+  
   const messages = [
-  { role: "system", content: `${roxyPersonality}\n${vaultContext}` },
-  ...(conversationHistory || []).slice(-6),  // ← Fixed
-  { role: "user", content: message }
-];
-
+    { role: "system", content: `${eliPersonality}\n${vaultContext}` },
+    ...safeHistory,
+    { role: "user", content: message }
+  ];
+  
   return await callOpenAIWithRetry(messages, mode, 'eli', openai);
 }
 
@@ -29,15 +31,16 @@ export async function generateRoxyResponse(message, mode, vaultContext, eliRespo
   const roxyPersonality = `You are Roxy - creative AI who focuses on solutions and possibilities.
   Style: "Let's figure out how to make this work..." / "What if we tried..."
   CRITICAL: Base all solutions on real information. Never invent options.`;
-
+  
   const contextWithEli = eliResponse ? `Previous analysis: ${eliResponse.response}\n\n` : '';
-
+  const safeHistory = Array.isArray(conversationHistory) ? conversationHistory.slice(-6) : [];
+  
   const messages = [
-  { role: "system", content: `${eliPersonality}\n${vaultContext}` },
-  ...(conversationHistory || []).slice(-6),  // ← Fixed
-  { role: "user", content: message }
-];
-
+    { role: "system", content: `${roxyPersonality}\n${vaultContext}` },
+    ...safeHistory,
+    { role: "user", content: `${message}\n\n${contextWithEli}` }
+  ];
+  
   return await callOpenAIWithRetry(messages, mode, 'roxy', openai);
 }
 
