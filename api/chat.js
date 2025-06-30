@@ -311,12 +311,25 @@ async function callOpenAIWithRetry(messages, mode, personality = 'balanced', max
     try {
       console.log(`🤖 OpenAI attempt ${attempt}/${maxRetries} for ${mode} mode (${personality})`);
       
-      const completion = await openai.chat.completions.create({
-        model: "gpt-4",
-        messages: messages,
-        max_tokens: 600,
-        temperature: mode === 'truth_general' ? 0.3 : 0.7,
-      });
+      // Calculate dynamic token limit based on context
+function calculateTokenLimit(mode, vaultLoaded, historyLength) {
+  let baseTokens = 800; // Increased from 600
+  
+  if (mode === 'site_monkeys' && vaultLoaded) baseTokens += 200;
+  if (mode === 'business_validation') baseTokens += 100;
+  if (historyLength > 6) baseTokens += 100;
+  
+  return Math.min(baseTokens, 1200); // Cap at 1200
+}
+
+const tokenLimit = calculateTokenLimit(mode, vaultLoaded, messages.length);
+
+const completion = await openai.chat.completions.create({
+  model: "gpt-4",
+  messages: messages,
+  max_tokens: tokenLimit,
+  temperature: mode === 'truth_general' ? 0.3 : 0.7,
+});
       
       const response = completion.choices[0].message.content;
       console.log(`✅ OpenAI success on attempt ${attempt}`);
@@ -429,6 +442,55 @@ function checkAssumptionHealth() {
   }
   
   return warnings;
+}
+
+// TRACK WHEN AN ASSUMPTION IS OVERRIDDEN
+function trackAssumptionOverride(assumption_name, original_value, overridden_value, reason) {
+  if (ASSUMPTION_TRACKER.tracked_assumptions[assumption_name]) {
+    ASSUMPTION_TRACKER.tracked_assumptions[assumption_name].override_count++;
+    ASSUMPTION_TRACKER.tracked_assumptions[assumption_name].override_history.push({
+      timestamp: new Date().toISOString(),
+      original_value: original_value,
+      overridden_value: overridden_value,
+      reason: reason
+    });
+    
+    ASSUMPTION_TRACKER.tracked_assumptions[assumption_name].confidence_score *= 0.95;
+    
+    console.log(`📝 Assumption override tracked: ${assumption_name} (${original_value} → ${overridden_value})`);
+  }
+}
+
+// CHECK IF USER REQUEST CONFLICTS WITH ASSUMPTIONS
+function detectAssumptionConflicts(message, mode) {
+  const messageLC = message.toLowerCase();
+  const conflicts = [];
+  
+  // Check for market stage conflicts
+  if (ASSUMPTION_TRACKER.tracked_assumptions.market_stage.current_value === 'early_stage') {
+    if (messageLC.includes('enterprise') || messageLC.includes('scale') || messageLC.includes('mature')) {
+      conflicts.push({
+        assumption: 'market_stage',
+        current: 'early_stage',
+        implied: 'mature_stage',
+        confidence: 'medium'
+      });
+    }
+  }
+  
+  // Check for financial status conflicts
+  if (ASSUMPTION_TRACKER.tracked_assumptions.financial_status.current_value === 'bootstrap_funding') {
+    if (messageLC.includes('hire team') || messageLC.includes('large budget') || messageLC.includes('enterprise tools')) {
+      conflicts.push({
+        assumption: 'financial_status', 
+        current: 'bootstrap_funding',
+        implied: 'well_funded',
+        confidence: 'high'
+      });
+    }
+  }
+  
+  return conflicts;
 }
 
 // CHECK FOR VAULT TRIGGERS
@@ -650,6 +712,27 @@ export default async function handler(req, res) {
     const triggeredFrameworks = checkVaultTriggers(message);
     const vaultContext = vaultVerification.allowed ? 
       generateVaultContext(triggeredFrameworks, true) : '';
+
+    // CHECK FOR ASSUMPTION CONFLICTS
+const assumptionConflicts = detectAssumptionConflicts(message, mode);
+
+// Handle assumption conflicts
+if (assumptionConflicts.length > 0) {
+  assumptionConflicts.forEach(conflict => {
+    trackAssumptionOverride(
+      conflict.assumption,
+      conflict.current, 
+      conflict.implied,
+      `User message implied: ${conflict.implied}`
+    );
+  });
+  
+  // If high-confidence conflict, surface it
+  const highConfidenceConflicts = assumptionConflicts.filter(c => c.confidence === 'high');
+  if (highConfidenceConflicts.length > 0) {
+    console.log(`⚠️ High-confidence assumption conflicts detected: ${highConfidenceConflicts.length}`);
+  }
+}
     
     let eliResult, roxyResult;
     
@@ -708,6 +791,30 @@ export default async function handler(req, res) {
     const assumption_health = assumptionWarnings.length > 0 ? `${assumptionWarnings.length} WARNINGS` : 'HEALTHY';
     const fingerprint = `\n\n*[MODE: ${selectedMode.mode_id}] | [VAULT: ${vault_status}] | [TRIGGERED: ${triggered_logic}] | [FLOW: ${promptType}] | [ASSUMPTIONS: ${assumption_health}]*`;
     
+    // LOG SESSION DATA FOR ANALYTICS
+const sessionLog = {
+  timestamp: new Date().toISOString(),
+  mode: selectedMode.mode_id,
+  vault_loaded: vaultVerification.allowed,
+  message_length: message.length,
+  response_length: (combinedResponse + fingerprint).length,
+  optimization_applied: optimizedResult.optimization_tags.length > 0,
+  assumption_warnings: assumptionWarnings.length,
+  conversation_flow: promptType,
+  triggered_frameworks: triggeredFrameworks,
+  security_pass: vaultVerification.security_pass,
+  fallback_used: (!eliResult.success || !roxyResult.success)
+};
+
+console.log('📊 Session logged:', sessionLog);
+
+return res.status(200).json({
+  response: combinedResponse + fingerprint,
+  mode_active: selectedMode.mode_id,
+  // ... existing fields
+  session_id: sessionLog.timestamp // Add session tracking
+});
+
     return res.status(200).json({
       response: combinedResponse + fingerprint,
       mode_active: selectedMode.mode_id,
