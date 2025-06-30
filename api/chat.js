@@ -4,9 +4,6 @@ import { verifyVaultAccess, generateVaultContext } from '#lib/vault.js';
 import { processWithEliAndRoxy } from '#lib/ai-processors.js';
 import { runOptimizationEnhancer } from '#lib/optimization.js';
 import { checkAssumptionHealth, detectAssumptionConflicts } from '#lib/assumptions.js';
-import { processWithEliAndRoxy } from '/lib/ai-processors.js';
-import { runOptimizationEnhancer } from '/lib/optimization.js';
-import { checkAssumptionHealth, detectAssumptionConflicts } from '/lib/assumptions.js';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
