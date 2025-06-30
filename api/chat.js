@@ -425,7 +425,6 @@ console.log(`🛡️ Vault security check: ${vaultVerification.security_pass ? '
     const selectedMode = MODES[mode] || MODES.business_validation;
     const promptType = user_preference || analyzePromptType(message);
     const triggeredFrameworks = checkVaultTriggers(message);
-    const vaultContext = generateVaultContext(triggeredFrameworks, vault_loaded);
     
     let eliResponse, roxyResponse;
     
