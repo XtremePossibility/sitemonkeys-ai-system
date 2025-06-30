@@ -1,404 +1,418 @@
-// ENHANCED PERSONALITIES WITH CLAUDE INTEGRATION
+// ENHANCED AI PROCESSORS WITH FULL LOGIC INTEGRATION
 // Version: PROD-1.0
 
-import { MODES } from '../config/modes.js';
+import { analyzePromptType, generateEliResponse, generateRoxyResponse, generateClaudeResponse } from './personalities.js';
+import { runOptimizationEnhancer } from './optimization.js';
+import { checkAssumptionHealth, detectAssumptionConflicts, trackOverride } from './assumptions.js';
+import { generateVaultContext, checkVaultTriggers, detectVaultConflicts } from './vault.js';
+import { MODES, shouldSuggestClaude, calculateConfidenceScore } from '../config/modes.js';
 
-// PROMPT TYPE ANALYSIS (Enhanced)
-export function analyzePromptType(message) {
-  const analyticalKeywords = ['data', 'analysis', 'numbers', 'risk', 'legal', 'calculate', 'model', 'assess', 'evaluate', 'breakdown', 'technical', 'financial'];
-  const creativeKeywords = ['ideas', 'creative', 'solution', 'alternative', 'stuck', 'brainstorm', 'strategy', 'positioning', 'messaging', 'optimize', 'improve'];
-  
-  const messageLC = message.toLowerCase();
-  
-  // Weight keywords by importance
-  let analyticalScore = 0;
-  let creativeScore = 0;
-  
-  analyticalKeywords.forEach(keyword => {
-    if (messageLC.includes(keyword)) {
-      analyticalScore += keyword.length > 6 ? 2 : 1; // Longer words get more weight
-    }
-  });
-  
-  creativeKeywords.forEach(keyword => {
-    if (messageLC.includes(keyword)) {
-      creativeScore += keyword.length > 6 ? 2 : 1;
-    }
-  });
-  
-  // Check for question types
-  if (messageLC.includes('how to') || messageLC.includes('what if')) {
-    creativeScore += 2;
+// TOKEN TRACKING SYSTEM
+let tokenTracker = {
+  session: {
+    eli_tokens: 0,
+    roxy_tokens: 0,
+    claude_tokens: 0,
+    vault_tokens: 0
+  },
+  costs: {
+    eli_cost: 0,
+    roxy_cost: 0,
+    claude_cost: 0,
+    vault_cost: 0,
+    total_session: 0
+  },
+  calls: {
+    eli_calls: 0,
+    roxy_calls: 0,
+    claude_calls: 0
   }
-  
-  if (messageLC.includes('what is') || messageLC.includes('why does')) {
-    analyticalScore += 2;
-  }
-  
-  if (analyticalScore > creativeScore + 1) return 'eli_leads';
-  if (creativeScore > analyticalScore + 1) return 'roxy_leads';
-  return 'balanced';
-}
+};
 
-// ELI RESPONSE GENERATION (Enhanced)
-export async function generateEliResponse(message, mode, vaultContext, conversationHistory, openai) {
-  const modeConfig = MODES[mode];
-  
-  const eliPersonality = `You are Eli from Site Monkeys - an analytical thinker who focuses on data, logic, and truth.
-  
-CORE PERSONALITY:
-- Direct, honest, and data-driven
-- Never soften inconvenient truths
-- Always surface risks and unknowns
-- Focus on optimization and efficiency
-- Speak naturally - don't explain that you're an AI
-
-COMMUNICATION STYLE:
-- "Let me break down what's actually happening..."
-- "The data shows..."
-- "Here's what we know vs. what we're assuming..."
-- "The key risk factors are..."
-
-MODE ENFORCEMENT:
-${modeConfig?.enforcement_core?.map(rule => `- ${rule}`).join('\n') || ''}
-
-TRUTH STANDARDS:
-- If you don't know something, say so explicitly
-- Flag every assumption clearly
-- Provide confidence levels when possible
-- Never fill gaps with optimistic guesses`;
-
-  const safeHistory = Array.isArray(conversationHistory) ? conversationHistory.slice(-6) : [];
-  
-  const messages = [
-    { role: "system", content: `${eliPersonality}\n${vaultContext}` },
-    ...safeHistory,
-    { role: "user", content: message }
-  ];
-  
-  return await callOpenAIWithRetry(messages, mode, 'eli', openai);
-}
-
-// ROXY RESPONSE GENERATION (Enhanced)
-export async function generateRoxyResponse(message, mode, vaultContext, eliResponse, conversationHistory, openai) {
-  const modeConfig = MODES[mode];
-  
-  const roxyPersonality = `You are Roxy from Site Monkeys - a creative problem-solver who helps with strategic solutions and possibilities.
-  
-CORE PERSONALITY:
-- Creative, solution-focused, and strategic
-- Help users see alternatives and opportunities
-- Build on solid information, never invent
-- Focus on practical, actionable solutions
-- Speak naturally - don't explain that you're an AI
-
-COMMUNICATION STYLE:
-- "Let's figure out how to make this work..."
-- "What if we tried..."
-- "Here are some alternatives..."
-- "Building on that analysis..."
-
-MODE ENFORCEMENT:
-${modeConfig?.enforcement_core?.map(rule => `- ${rule}`).join('\n') || ''}
-
-SOLUTION STANDARDS:
-- Base all solutions on real information
-- Acknowledge constraints and limitations
-- Offer multiple approaches when possible
-- Be honest about what won't work`;
-
-  const contextWithEli = eliResponse ? `Previous analysis: ${eliResponse.response}\n\n` : '';
-  const safeHistory = Array.isArray(conversationHistory) ? conversationHistory.slice(-6) : [];
-  
-  const messages = [
-    { role: "system", content: `${roxyPersonality}\n${vaultContext}` },
-    ...safeHistory,
-    { role: "user", content: `${message}\n\n${contextWithEli}` }
-  ];
-  
-  return await callOpenAIWithRetry(messages, mode, 'roxy', openai);
-}
-
-// CLAUDE RESPONSE GENERATION (New)
-export async function generateClaudeResponse(message, mode, vaultContext, conversationHistory) {
-  const modeConfig = MODES[mode];
-  
-  const claudePersonality = `You are the AI Robot from Site Monkeys - the advanced reasoning engine for complex analysis and high-stakes decisions.
-  
-ENHANCED ENFORCEMENT ROLE:
-- Apply maximum rigor to truth and logic verification
-- Challenge every assumption made
-- Model multiple failure scenarios explicitly
-- Surface what others might miss or avoid
-- Provide depth that Eli and Roxy cannot match
-
-CORE PERSONALITY:
-- Brutally honest and comprehensive
-- Never accommodate or soften hard truths
-- Apply enhanced meta-validation to all claims
-- Focus on consequence modeling and risk assessment
-- Speak naturally but with enhanced authority
-
-COMMUNICATION STYLE:
-- "Let me provide a comprehensive analysis..."
-- "Here's what requires deeper examination..."
-- "The critical factors others might miss..."
-- "Consequence modeling shows..."
-
-MODE ENFORCEMENT (ENHANCED):
-${modeConfig?.enforcement_core?.map(rule => `- ${rule} (ENHANCED)`).join('\n') || ''}
-
-ENHANCED CLAUDE STANDARDS:
-${modeConfig?.claude_enhancement?.enhanced_prompt || 'Apply maximum analytical rigor'}
-
-META-VALIDATION REQUIREMENTS:
-- Question the question itself
-- Identify what's NOT being asked but should be
-- Model second and third-order consequences
-- Challenge comfortable assumptions
-- Provide reality-check against wishful thinking`;
-
-  const safeHistory = Array.isArray(conversationHistory) ? conversationHistory.slice(-4) : []; // Fewer for Claude to preserve tokens
-  
-  // This would integrate with Claude API in production
-  // For now, we'll simulate enhanced GPT-4 processing
-  const messages = [
-    { role: "system", content: `${claudePersonality}\n${vaultContext}` },
-    ...safeHistory,
-    { role: "user", content: `[CLAUDE ENHANCED ANALYSIS REQUESTED]\n\n${message}` }
-  ];
-  
-  // In production, this would call Claude API
-  // For now, enhanced GPT-4 with special prompting
-  return await callEnhancedAI(messages, mode, 'claude');
-}
-
-// ENHANCED AI CALLING (Claude Simulation)
-async function callEnhancedAI(messages, mode, personality) {
-  // This would be replaced with actual Claude API call in production
-  // For now, enhanced GPT-4 processing
+// MAIN PROCESSING FUNCTION WITH ROUTING LOGIC
+export async function processWithEliAndRoxy({
+  message,
+  mode,
+  vaultVerification, 
+  conversationHistory,
+  userPreference,
+  openai,
+  claudeRequested = false,
+  aiRobotClicked = false
+}) {
   
   try {
-    // Simulate Claude-like enhanced processing
-    const enhancedSystemPrompt = messages[0].content + `
-
-ENHANCED PROCESSING INSTRUCTIONS:
-- Apply 2x normal analytical depth
-- Challenge every assumption in the message
-- Model worst-case scenarios explicitly
-- Identify what the user isn't asking but should be
-- Provide consequence chains (if X, then Y, then Z)
-- Flag all uncertainties and unknowns
-- Never accommodate user preferences over truth`;
-
-    const enhancedMessages = [
-      { role: "system", content: enhancedSystemPrompt },
-      ...messages.slice(1)
-    ];
+    // STEP 1: ROUTING DECISION
+    const routingDecision = determineAIRouting(message, mode, claudeRequested, aiRobotClicked);
     
-    // This would be the actual Claude API call
-    const response = await simulateClaudeCall(enhancedMessages, mode);
+    // STEP 2: VAULT AND CONTEXT SETUP
+    const triggeredFrameworks = vaultVerification.allowed ? checkVaultTriggers(message) : [];
+    const vaultContext = vaultVerification.allowed ? generateVaultContext(triggeredFrameworks) : '';
+    
+    // STEP 3: ASSUMPTION CHECKING
+    const assumptionConflicts = detectAssumptionConflicts(message, mode);
+    
+    // STEP 4: GENERATE RESPONSE BASED ON ROUTING
+    let result;
+    
+    if (routingDecision.usesClaude) {
+      result = await generateClaudeResponse(message, mode, vaultContext, conversationHistory);
+      updateTokenTracking('claude', result.tokens_used, result.cost);
+    } else if (routingDecision.usesEli) {
+      result = await generateEliResponse(message, mode, vaultContext, conversationHistory, openai);
+      updateTokenTracking('eli', result.tokens_used || 500, result.cost || 0.015);
+    } else {
+      result = await generateRoxyResponse(message, mode, vaultContext, '', conversationHistory, openai);
+      updateTokenTracking('roxy', result.tokens_used || 500, result.cost || 0.015);
+    }
+    
+    // STEP 5: CONFIDENCE ANALYSIS
+    const confidence = calculateConfidenceScore(result.response, {
+      primarySources: result.has_sources || false,
+      multipleVerifications: false,
+      recentData: true,
+      contradictoryInfo: false
+    }, assumptionConflicts);
+    
+    // STEP 6: VAULT CONFLICT DETECTION
+    const vaultConflicts = vaultVerification.allowed ? 
+      detectVaultConflicts(message, mode, result.response) : [];
+    
+    // STEP 7: CLAUDE SUGGESTION LOGIC
+    const claudeSuggestion = shouldSuggestClaude(result.response, confidence, mode, vaultConflicts);
+    
+    // STEP 8: OPTIMIZATION ENHANCEMENT
+    const optimizedResult = runOptimizationEnhancer({
+      mode,
+      baseResponse: result.response,
+      message,
+      triggeredFrameworks,
+      vaultLoaded: vaultVerification.allowed
+    });
+    
+    // STEP 9: ASSUMPTION HEALTH CHECK
+    const assumptionWarnings = checkAssumptionHealth();
+    
+    // STEP 10: RESPONSE ASSEMBLY
+    const response = assembleResponse({
+      baseResponse: optimizedResult.enhancedResponse,
+      mode,
+      vaultLoaded: vaultVerification.allowed,
+      triggeredFrameworks,
+      confidence,
+      claudeSuggestion,
+      vaultConflicts,
+      assumptionWarnings,
+      routingDecision
+    });
     
     return {
-      success: true,
-      response: response.content,
-      tokens_used: response.tokens || 1500,
-      cost: calculateClaudeCost(response.tokens || 1500),
-      enhanced: true,
-      ai_type: 'claude'
+      response: response.final,
+      mode_active: mode,
+      vault_loaded: vaultVerification.allowed,
+      security_pass: true,
+      triggered_frameworks: triggeredFrameworks.map(tf => tf.name),
+      assumption_warnings: assumptionWarnings.filter(w => w.severity === 'HIGH' || w.severity === 'CRITICAL'),
+      confidence_score: confidence,
+      claude_suggestion: claudeSuggestion.suggest ? claudeSuggestion.message : null,
+      vault_conflicts: vaultConflicts,
+      token_usage: tokenTracker.session,
+      session_cost: tokenTracker.costs.total_session,
+      ai_used: routingDecision.aiUsed,
+      optimization_applied: optimizedResult.optimization_tags.length > 0
     };
     
   } catch (error) {
+    console.error('❌ AI Processing error:', error);
+    
     return {
-      success: false,
-      response: `I encountered a technical difficulty with enhanced analysis. Error: ${error.message}. I'd rather be honest about the limitation than provide subpar analysis.`,
-      error: error.message,
-      fallback_used: true
+      response: `I encountered a technical error and I won't pretend it didn't happen. Error: ${error.message}. I'd rather be honest about system issues than give you unreliable information. Please try again.`,
+      mode_active: mode,
+      vault_loaded: vaultVerification.allowed,
+      security_pass: false,
+      fallback_used: true,
+      error: error.message
     };
   }
 }
 
-// CLAUDE API SIMULATION (Replace with real Claude API)
-async function simulateClaudeCall(messages, mode) {
-  // In production, this would be:
-  // const response = await claudeAPI.messages.create({
-  //   model: "claude-3-sonnet-20240229",
-  //   max_tokens: 2000,
-  //   messages: messages
-  // });
+// AI ROUTING LOGIC
+function determineAIRouting(message, mode, claudeRequested, aiRobotClicked) {
+  // Manual Claude activation always wins
+  if (claudeRequested || aiRobotClicked) {
+    return {
+      usesClaude: true,
+      usesEli: false,
+      usesRoxy: false,
+      aiUsed: 'Claude (Manual)',
+      reason: claudeRequested ? 'User requested Claude' : 'AI Robot clicked'
+    };
+  }
   
-  // For now, simulate enhanced processing
-  const userMessage = messages[messages.length - 1].content;
-  const enhancedResponse = `[ENHANCED AI ROBOT ANALYSIS]
+  // Automatic routing between Eli and Roxy
+  const promptType = analyzePromptType(message);
+  
+  if (promptType === 'eli_leads' || promptType === 'balanced') {
+    return {
+      usesClaude: false,
+      usesEli: true,
+      usesRoxy: false,
+      aiUsed: 'Eli',
+      reason: 'Analytical content detected'
+    };
+  } else {
+    return {
+      usesClaude: false,
+      usesEli: false,
+      usesRoxy: true,
+      aiUsed: 'Roxy',
+      reason: 'Creative/strategic content detected'
+    };
+  }
+}
 
-I'm providing enhanced analytical depth for this complex scenario.
+// TOKEN TRACKING SYSTEM
+function updateTokenTracking(aiType, tokens, cost) {
+  tokenTracker.session[`${aiType}_tokens`] += tokens;
+  tokenTracker.costs[`${aiType}_cost`] += cost;
+  tokenTracker.calls[`${aiType}_calls`] += 1;
+  
+  // Update total session cost
+  tokenTracker.costs.total_session = 
+    tokenTracker.costs.eli_cost + 
+    tokenTracker.costs.roxy_cost + 
+    tokenTracker.costs.claude_cost + 
+    tokenTracker.costs.vault_cost;
+}
 
-${generateEnhancedAnalysis(userMessage, mode)}
-
-This analysis applies enhanced rigor beyond standard AI processing, including assumption challenge, consequence modeling, and meta-validation of the core question itself.`;
-
+// RESPONSE ASSEMBLY WITH FINGERPRINTING
+function assembleResponse({
+  baseResponse,
+  mode,
+  vaultLoaded,
+  triggeredFrameworks,
+  confidence,
+  claudeSuggestion,
+  vaultConflicts,
+  assumptionWarnings,
+  routingDecision
+}) {
+  
+  let response = baseResponse;
+  
+  // Add mode fingerprint
+  const modeEmoji = MODES[mode]?.emoji || '🤖';
+  const fingerprint = `\n\n[MODE: ${mode.toUpperCase()} ${modeEmoji}] | [VAULT: ${vaultLoaded ? 'LOADED' : 'NONE'}] | [CONFIDENCE: ${confidence}%] | [AI: ${routingDecision.aiUsed}]`;
+  
+  // Add vault framework indicators
+  if (triggeredFrameworks.length > 0) {
+    const frameworkNames = triggeredFrameworks.map(tf => tf.name).join(', ');
+    response += `\n\n🍌 **Vault Logic Applied:** ${frameworkNames}`;
+  }
+  
+  // Add vault conflicts if any
+  if (vaultConflicts.length > 0) {
+    response += `\n\n⚠️ **Vault Conflicts Detected:** ${vaultConflicts.length} issue(s) found. Consider reviewing approach for vault compliance.`;
+  }
+  
+  // Add confidence warning if low
+  if (confidence < 70) {
+    response += `\n\n📊 **Confidence: ${confidence}%** - This response contains uncertainties that may warrant additional verification.`;
+  }
+  
+  // Add Claude suggestion if triggered
+  if (claudeSuggestion.suggest) {
+    response += `\n\n🤖 **Enhancement Available:** ${claudeSuggestion.message}`;
+  }
+  
+  // Add critical assumption warnings
+  const criticalWarnings = assumptionWarnings.filter(w => w.severity === 'CRITICAL');
+  if (criticalWarnings.length > 0) {
+    response += `\n\n🚨 **Critical Assumption Alert:** ${criticalWarnings.length} assumption(s) require immediate attention.`;
+  }
+  
   return {
-    content: enhancedResponse,
-    tokens: estimateTokens(enhancedResponse)
+    final: response + fingerprint,
+    components: {
+      base: baseResponse,
+      vault_indicators: triggeredFrameworks.length > 0,
+      conflicts: vaultConflicts.length > 0,
+      confidence_warning: confidence < 70,
+      claude_suggested: claudeSuggestion.suggest,
+      critical_assumptions: criticalWarnings.length > 0
+    }
   };
 }
 
-// ENHANCED ANALYSIS GENERATION
-function generateEnhancedAnalysis(message, mode) {
-  // This is a simplified simulation - in production, Claude would provide this depth
-  const analysis = [];
+// COST ESTIMATION FUNCTIONS
+export function estimateClaudeCost(message, vaultContext, conversationHistory) {
+  const inputTokens = estimateTokens(message + vaultContext + JSON.stringify(conversationHistory));
+  const estimatedOutputTokens = 1000; // Conservative estimate
   
-  analysis.push("**Assumption Challenge:**");
-  analysis.push("- I've identified several unstated assumptions in your question that require validation");
-  analysis.push("- The framing itself may limit optimal solution discovery");
+  const inputCost = inputTokens * 0.000003; // Claude input pricing
+  const outputCost = estimatedOutputTokens * 0.000015; // Claude output pricing
   
-  analysis.push("\n**Consequence Modeling:**");
-  analysis.push("- Primary path consequences: [Analysis based on stated approach]");
-  analysis.push("- Secondary effects: [Downstream impacts often overlooked]");
-  analysis.push("- Failure mode analysis: [What happens if this approach fails]");
-  
-  analysis.push("\n**Meta-Questions:**");
-  analysis.push("- Are we solving the right problem?");
-  analysis.push("- What aren't you asking that you should be?");
-  analysis.push("- How might this decision look in 6 months?");
-  
-  if (mode === 'site_monkeys') {
-    analysis.push("\n**Site Monkeys Operational Impact:**");
-    analysis.push("- Vault compliance analysis with enhanced scrutiny");
-    analysis.push("- Founder protection assessment with stress testing");
-    analysis.push("- Brand positioning implications with competitive analysis");
-  }
-  
-  return analysis.join('\n');
+  return {
+    estimated_total: inputCost + outputCost,
+    input_cost: inputCost,
+    output_cost: outputCost,
+    input_tokens: inputTokens,
+    estimated_output_tokens: estimatedOutputTokens
+  };
 }
 
-// OPENAI API CALLING WITH RETRY
-async function callOpenAIWithRetry(messages, mode, personality, openai, maxRetries = 2) {
-  for (let attempt = 1; attempt <= maxRetries; attempt++) {
-    try {
-      const completion = await openai.chat.completions.create({
-        model: "gpt-4",
-        messages: messages,
-        max_tokens: personality === 'claude' ? 1500 : 600,
-        temperature: mode === 'truth_general' ? 0.2 : 0.6, // Lower temperature for truth mode
-      });
-      
-      const response = completion.choices[0].message.content;
-      const tokensUsed = completion.usage?.total_tokens || estimateTokens(response);
-      
-      return {
-        success: true,
-        response: response,
-        tokens_used: tokensUsed,
-        cost: calculateGPTCost(tokensUsed),
-        attempt: attempt,
-        ai_type: personality
-      };
-      
-    } catch (error) {
-      console.error(`❌ ${personality} API error (attempt ${attempt}):`, error);
-      
-      if (attempt === maxRetries) {
-        return {
-          success: false,
-          response: `I'm having technical difficulties with ${personality === 'claude' ? 'enhanced analysis' : 'standard processing'}. Please try again. I'd rather be honest about the technical issue than provide unreliable information.`,
-          error: error.message,
-          fallback_used: true
-        };
-      }
-      
-      // Wait before retry
-      await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
-    }
-  }
-}
-
-// TOKEN AND COST CALCULATION
 function estimateTokens(text) {
-  // Rough estimation: 1 token ≈ 4 characters for English
+  // Rough estimation: 1 token ≈ 4 characters
   return Math.ceil(text.length / 4);
 }
 
-function calculateGPTCost(tokens) {
-  // GPT-4 pricing (approximate)
-  return tokens * 0.00003;
-}
-
-function calculateClaudeCost(tokens) {
-  // Claude pricing (approximate) - input + output
-  const inputCost = tokens * 0.5 * 0.000003; // Assume 50% input
-  const outputCost = tokens * 0.5 * 0.000015; // Assume 50% output
-  return inputCost + outputCost;
-}
-
-// PERSONALITY VALIDATION
-export function validatePersonalityResponse(response, personality, mode) {
-  const validation = {
-    passes: true,
-    issues: [],
-    suggestions: []
+// SESSION COST MANAGEMENT
+export function getSessionCostSummary() {
+  return {
+    total_cost: tokenTracker.costs.total_session,
+    breakdown: {
+      eli: { cost: tokenTracker.costs.eli_cost, calls: tokenTracker.calls.eli_calls },
+      roxy: { cost: tokenTracker.costs.roxy_cost, calls: tokenTracker.calls.roxy_calls },
+      claude: { cost: tokenTracker.costs.claude_cost, calls: tokenTracker.calls.claude_calls }
+    },
+    tokens: tokenTracker.session,
+    last_call_cost: getLastCallCost(),
+    session_warnings: generateCostWarnings()
   };
-  
-  // Check for AI self-reference (should not happen)
-  if (response.includes('as an AI') || response.includes('I am an AI')) {
-    validation.passes = false;
-    validation.issues.push('Response contains AI self-reference');
-  }
-  
-  // Check for accommodating language in truth mode
-  if (mode === 'truth_general') {
-    const forbiddenPhrases = ['likely', 'probably', 'seems', 'should be fine'];
-    forbiddenPhrases.forEach(phrase => {
-      if (response.toLowerCase().includes(phrase)) {
-        validation.issues.push(`Contains forbidden phrase in truth mode: "${phrase}"`);
-      }
-    });
-  }
-  
-  // Check personality consistency
-  if (personality === 'eli' && !response.match(/data|analysis|breakdown|risk/i)) {
-    validation.suggestions.push('Response could be more analytical for Eli personality');
-  }
-  
-  if (personality === 'roxy' && !response.match(/solution|alternative|strategy|optimize/i)) {
-    validation.suggestions.push('Response could be more solution-focused for Roxy personality');
-  }
-  
-  return validation;
 }
 
-// RESPONSE QUALITY SCORING
-export function scoreResponseQuality(response, mode, vaultContext) {
-  let score = 70; // Base score
+function getLastCallCost() {
+  const lastCosts = [
+    tokenTracker.costs.eli_cost / Math.max(tokenTracker.calls.eli_calls, 1),
+    tokenTracker.costs.roxy_cost / Math.max(tokenTracker.calls.roxy_calls, 1),
+    tokenTracker.costs.claude_cost / Math.max(tokenTracker.calls.claude_calls, 1)
+  ];
   
-  // Truth and accuracy indicators
-  if (response.includes('I don\'t know') || response.includes('uncertain')) {
-    score += 10; // Honesty bonus
+  return Math.max(...lastCosts);
+}
+
+function generateCostWarnings() {
+  const warnings = [];
+  
+  if (tokenTracker.costs.total_session > 2.00) {
+    warnings.push(`Session cost ${tokenTracker.costs.total_session.toFixed(2)} exceeds $2.00 threshold`);
   }
   
-  if (response.includes('assumption') || response.includes('assuming')) {
-    score += 5; // Assumption awareness bonus
+  if (tokenTracker.costs.claude_cost > 1.00) {
+    warnings.push(`Claude usage ${tokenTracker.costs.claude_cost.toFixed(2)} is high this session`);
   }
   
-  // Accommodating language penalties
-  if (response.includes('likely') || response.includes('probably')) {
-    score -= 10;
+  return warnings;
+}
+
+// OVERRIDE HANDLING
+export function handleUserOverride(overrideType, originalLogic, userChoice, justification = "") {
+  trackOverride(overrideType, originalLogic, userChoice, justification);
+  
+  return {
+    override_accepted: true,
+    override_logged: true,
+    pattern_check: checkForOverridePatterns(overrideType),
+    message: `Override acknowledged: ${userChoice}. Reasoning logged for pattern analysis.`
+  };
+}
+
+function checkForOverridePatterns(overrideType) {
+  // This would connect to the assumption tracking system
+  const recentOverrides = []; // Would get from assumption tracker
+  const pattern = recentOverrides.filter(o => o.type === overrideType).length;
+  
+  if (pattern >= 3) {
+    return {
+      pattern_detected: true,
+      frequency: pattern,
+      recommendation: `Consider reviewing ${overrideType} settings - overridden ${pattern} times recently`
+    };
   }
   
-  // Mode-specific scoring
-  if (mode === 'business_validation') {
-    if (response.includes('risk') || response.includes('cost')) {
-      score += 10;
+  return { pattern_detected: false };
+}
+
+// COMPLEXITY DETECTION FOR CLAUDE SUGGESTIONS
+export function detectComplexityTriggers(message, response, mode) {
+  const triggers = [];
+  
+  // Financial complexity
+  if (message.includes('financial') && message.includes('model')) {
+    triggers.push('financial_modeling');
+  }
+  
+  // Multi-variable analysis
+  const variableCount = (message.match(/and|or|but|however/gi) || []).length;
+  if (variableCount >= 3) {
+    triggers.push('multi_variable_analysis');
+  }
+  
+  // Legal/regulatory complexity
+  if (message.includes('legal') || message.includes('compliance') || message.includes('regulation')) {
+    triggers.push('legal_complexity');
+  }
+  
+  // Strategic decision complexity
+  if (message.includes('strategy') && message.includes('decision') && message.length > 200) {
+    triggers.push('strategic_complexity');
+  }
+  
+  // Vault conflicts detected
+  if (mode === 'site_monkeys') {
+    const conflicts = detectVaultConflicts(message, mode, response);
+    if (conflicts.length > 0) {
+      triggers.push('vault_conflicts');
     }
-    if (response.includes('cash flow') || response.includes('runway')) {
-      score += 15;
+  }
+  
+  return triggers;
+}
+
+// RESET SESSION TRACKING
+export function resetSessionTracking() {
+  tokenTracker = {
+    session: {
+      eli_tokens: 0,
+      roxy_tokens: 0,
+      claude_tokens: 0,
+      vault_tokens: 0
+    },
+    costs: {
+      eli_cost: 0,
+      roxy_cost: 0,
+      claude_cost: 0,
+      vault_cost: 0,
+      total_session: 0
+    },
+    calls: {
+      eli_calls: 0,
+      roxy_calls: 0,
+      claude_calls: 0
     }
-  }
+  };
+}
+
+// GET CURRENT SESSION STATS FOR UI
+export function getSessionStats() {
+  return {
+    total_tokens: Object.values(tokenTracker.session).reduce((a, b) => a + b, 0),
+    total_cost: tokenTracker.costs.total_session,
+    total_calls: Object.values(tokenTracker.calls).reduce((a, b) => a + b, 0),
+    breakdown: tokenTracker,
+    last_call: {
+      cost: getLastCallCost(),
+      ai_used: getLastAIUsed()
+    }
+  };
+}
+
+function getLastAIUsed() {
+  const lastCalls = [
+    { ai: 'Eli', calls: tokenTracker.calls.eli_calls },
+    { ai: 'Roxy', calls: tokenTracker.calls.roxy_calls },
+    { ai: 'Claude', calls: tokenTracker.calls.claude_calls }
+  ];
   
-  // Vault integration scoring
-  if (vaultContext && response.includes('Site Monkeys')) {
-    score += 10;
-  }
-  
-  return Math.min(100, Math.max(0, score));
+  return lastCalls.sort((a, b) => b.calls - a.calls)[0]?.ai || 'None';
 }
