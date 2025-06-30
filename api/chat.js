@@ -40,7 +40,7 @@ export default async function handler(req, res) {
       message,
       mode,
       vaultVerification,
-      conversationHistory: conversation_history,
+      conversationHistory: conversation_history || [],
       userPreference: user_preference,
       openai
     });
