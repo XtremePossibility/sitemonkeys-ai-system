@@ -893,7 +893,7 @@ async function sendMessage() {
   // Add user message
   const userBubble = document.createElement('div');
   userBubble.className = 'bubble user';
-  userBubble.innerHTML = `<img src="user-avatar.png" onerror="this.style.display='none'" class="avatar" alt="You"><div class="bubble-content"><strong>You:</strong> ${text}</div>`;
+  userBubble.innerHTML = `<div class="bubble-content"><strong>You:</strong> ${text}</div>`;
   box.appendChild(userBubble);
   box.scrollTop = box.scrollHeight;
   input.value = '';
