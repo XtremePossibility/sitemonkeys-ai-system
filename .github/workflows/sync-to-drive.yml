@@ -60,10 +60,16 @@ jobs:
             folder_id = folder.get('id')
             print(f"Created new folder: {folder_id}")
         
-        # Upload files from api directory
+        # Upload all JavaScript and other important files
         import glob
         
-        for file_path in glob.glob('api/**/*.js', recursive=True):
+        # Get all important file types
+        file_patterns = ['**/*.js', '**/*.json', '**/*.md', '**/*.css', '**/*.html']
+        all_files = []
+        for pattern in file_patterns:
+            all_files.extend(glob.glob(pattern, recursive=True))
+        
+        for file_path in all_files:
             filename = os.path.basename(file_path)
             print(f"Uploading {file_path} as {filename}")
             
@@ -90,4 +96,4 @@ jobs:
         print("Sync completed successfully!")
         EOF
         
-        python sync_to_drive.py Edit the brush Not playing with me though Now I
+        python sync_to_drive.py
