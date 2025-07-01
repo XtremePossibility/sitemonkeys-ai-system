@@ -1,16 +1,93 @@
-name: Sync to Google Drive
+name: Sync Code to Google Drive
+
 on:
   push:
+    branches: [ main, master ]
     paths:
       - 'api/**'
+  workflow_dispatch:
+
 jobs:
-  sync:
+  sync-to-drive:
     runs-on: ubuntu-latest
+    
     steps:
-      - uses: actions/checkout@v3
-      - name: Sync to Google Drive
-        uses: satackey/action-google-drive@v1
-        with:
-          skicka-tokencache-json: ${{ secrets.GOOGLE_DRIVE_TOKEN }}
-          upload-from: './api'
-          upload-to: '/Site Monkeys Code'
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.x'
+        
+    - name: Install dependencies
+      run: |
+        pip install google-api-python-client google-auth-httplib2 google-auth-oauthlib
+        
+    - name: Sync to Google Drive
+      env:
+        GOOGLE_DRIVE_CREDENTIALS: ${{ secrets.GOOGLE_DRIVE_TOKEN }}
+      run: |
+        cat > sync_to_drive.py << 'EOF'
+        import os
+        import json
+        from googleapiclient.discovery import build
+        from googleapiclient.http import MediaFileUpload
+        from google.oauth2.service_account import Credentials
+        
+        # Parse credentials
+        creds_json = os.environ['GOOGLE_DRIVE_CREDENTIALS']
+        creds_info = json.loads(creds_json)
+        creds = Credentials.from_service_account_info(creds_info)
+        
+        # Build Drive service
+        service = build('drive', 'v3', credentials=creds)
+        
+        # Create or find Site Monkeys Code folder
+        folder_name = 'Site Monkeys Code'
+        folder_query = f"name='{folder_name}' and mimeType='application/vnd.google-apps.folder'"
+        folders = service.files().list(q=folder_query).execute().get('files', [])
+        
+        if folders:
+            folder_id = folders[0]['id']
+            print(f"Found existing folder: {folder_id}")
+        else:
+            folder_metadata = {
+                'name': folder_name,
+                'mimeType': 'application/vnd.google-apps.folder'
+            }
+            folder = service.files().create(body=folder_metadata).execute()
+            folder_id = folder.get('id')
+            print(f"Created new folder: {folder_id}")
+        
+        # Upload files from api directory
+        import glob
+        
+        for file_path in glob.glob('api/**/*.js', recursive=True):
+            filename = os.path.basename(file_path)
+            print(f"Uploading {file_path} as {filename}")
+            
+            # Check if file exists in folder
+            file_query = f"name='{filename}' and parents in '{folder_id}'"
+            existing_files = service.files().list(q=file_query).execute().get('files', [])
+            
+            media = MediaFileUpload(file_path, mimetype='text/javascript')
+            
+            if existing_files:
+                # Update existing file
+                file_id = existing_files[0]['id']
+                service.files().update(fileId=file_id, media_body=media).execute()
+                print(f"Updated existing file: {filename}")
+            else:
+                # Create new file
+                file_metadata = {
+                    'name': filename,
+                    'parents': [folder_id]
+                }
+                service.files().create(body=file_metadata, media_body=media).execute()
+                print(f"Created new file: {filename}")
+        
+        print("Sync completed successfully!")
+        EOF
+        
+        python sync_to_drive.py Edit the brush Not playing with me though Now I
