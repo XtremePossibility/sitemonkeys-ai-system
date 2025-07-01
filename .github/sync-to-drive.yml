@@ -24,15 +24,22 @@ jobs:
       run: |
         pip install google-api-python-client google-auth-httplib2 google-auth-oauthlib
 
-    - name: 🔍 Debug: Show repo file structure
+    - name: 🔍 Debug: Confirm file location
       run: |
         echo "Current directory:"
         pwd
-        echo "Contents:"
-        ls -R
+        echo "Listing contents:"
+        ls -al
 
     - name: Sync to Google Drive
+      working-directory: ./  # stays at top level
       env:
         GOOGLE_DRIVE_CREDENTIALS: ${{ secrets.GOOGLE_DRIVE_TOKEN }}
       run: |
-        python sync_to_drive.py
+        if [ -f sync_to_drive.py ]; then
+          echo "✅ Found sync_to_drive.py"
+          python sync_to_drive.py
+        else
+          echo "❌ sync_to_drive.py not found in this directory"
+          exit 1
+        fi
