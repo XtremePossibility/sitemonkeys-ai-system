@@ -25,7 +25,7 @@ jobs:
         pip install google-api-python-client google-auth-httplib2 google-auth-oauthlib
 
     - name: Sync to Google Drive
-      working-directory: sitemonkeys-ai-system
+      working-directory: ./  # ✅ Points to where the repo root is in the job environment
       env:
         GOOGLE_DRIVE_CREDENTIALS: ${{ secrets.GOOGLE_DRIVE_TOKEN }}
       run: |
