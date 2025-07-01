@@ -43,36 +43,36 @@ jobs:
         # Build Drive service
         service = build('drive', 'v3', credentials=creds)
         
-        # Use shared drive directly - no need to create folder
+        # Shared drive ID
         shared_drive_id = '1HmKCowIi62M2ajoEjcepRNbN1M4lRKee'
         print(f"Using shared drive: {shared_drive_id}")
         
-        # Upload all JavaScript and other important files
+        # Test shared drive access first
+        try:
+            drive_info = service.files().get(
+                fileId=shared_drive_id,
+                supportsAllDrives=True
+            ).execute()
+            print(f"Shared drive access confirmed: {drive_info.get('name', 'Unknown')}")
+        except Exception as e:
+            print(f"Cannot access shared drive: {e}")
+            print("Make sure the service account email has been added to the shared drive as Manager")
+            exit(1)
+        
+        # Upload only the most important files to test
         import glob
         
-        # Get all important file types
-        file_patterns = ['**/*.js', '**/*.json', '**/*.md', '**/*.css', '**/*.html']
+        # Focus on just the API files first
+        file_patterns = ['api/**/*.js']
         all_files = []
         for pattern in file_patterns:
             all_files.extend(glob.glob(pattern, recursive=True))
         
-        # Skip certain files/folders
-        skip_patterns = ['node_modules/', '.git/', 'dist/', 'build/']
-        filtered_files = []
+        print(f"Found {len(all_files)} API files to upload")
+        
         for file_path in all_files:
-            skip = False
-            for skip_pattern in skip_patterns:
-                if skip_pattern in file_path:
-                    skip = True
-                    break
-            if not skip:
-                filtered_files.append(file_path)
-        
-        print(f"Found {len(filtered_files)} files to upload")
-        
-        for file_path in filtered_files:
-            # Create a meaningful filename with path info
-            filename = file_path.replace('/', '_').replace('\\', '_')
+            # Create a simple filename
+            filename = os.path.basename(file_path)
             print(f"Uploading {file_path} as {filename}")
             
             # Check if file exists in shared drive
@@ -80,24 +80,12 @@ jobs:
             existing_files = service.files().list(
                 q=file_query,
                 supportsAllDrives=True,
-                includeItemsFromAllDrives=True
+                includeItemsFromAllDrives=True,
+                driveId=shared_drive_id,
+                corpora='drive'
             ).execute().get('files', [])
             
-            # Determine MIME type based on file extension
-            if file_path.endswith('.js'):
-                mime_type = 'text/javascript'
-            elif file_path.endswith('.json'):
-                mime_type = 'application/json'
-            elif file_path.endswith('.css'):
-                mime_type = 'text/css'
-            elif file_path.endswith('.html'):
-                mime_type = 'text/html'
-            elif file_path.endswith('.md'):
-                mime_type = 'text/markdown'
-            else:
-                mime_type = 'text/plain'
-            
-            media = MediaFileUpload(file_path, mimetype=mime_type)
+            media = MediaFileUpload(file_path, mimetype='text/javascript')
             
             if existing_files:
                 # Update existing file
