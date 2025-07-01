@@ -1,143 +1,46 @@
-name: Sync Code to Google Drive
+from googleapiclient.http import MediaFileUpload
 
-on:
-  push:
-    branches: [ main, master ]
-    paths:
-      - '**'
-  workflow_dispatch:
+# ... earlier setup code unchanged ...
 
-jobs:
-  sync-to-drive:
-    runs-on: ubuntu-latest
+for file_path in all_files:
+    filename = f"CODE_{os.path.basename(file_path)}"
+    print(f"Uploading {file_path} as raw file {filename}")
     
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Setup Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.x'
+    try:
+        # Prepare metadata
+        file_metadata = {
+            'name': filename,
+            'parents': [shared_drive_id],  # or remove if uploading to My Drive
+        }
+
+        media = MediaFileUpload(file_path, mimetype='text/plain')
+
+        # Check for existing file with same name
+        query = f"name='{filename}' and '{shared_drive_id}' in parents"
+        existing = drive_service.files().list(
+            q=query,
+            spaces='drive',
+            fields='files(id, name)',
+            supportsAllDrives=True
+        ).execute().get('files', [])
+
+        if existing:
+            file_id = existing[0]['id']
+            print(f"Updating existing raw file: {filename}")
+            drive_service.files().update(
+                fileId=file_id,
+                media_body=media,
+                supportsAllDrives=True
+            ).execute()
+        else:
+            drive_service.files().create(
+                body=file_metadata,
+                media_body=media,
+                supportsAllDrives=True
+            ).execute()
+            print(f"Created new raw file: {filename}")
         
-    - name: Install dependencies
-      run: |
-        pip install google-api-python-client google-auth-httplib2 google-auth-oauthlib
-        
-    - name: Sync to Google Drive
-      env:
-        GOOGLE_DRIVE_CREDENTIALS: ${{ secrets.GOOGLE_DRIVE_TOKEN }}
-      run: |
-        cat > sync_to_drive.py << 'EOF'
-        import os
-        import json
-        from googleapiclient.discovery import build
-        from google.oauth2.service_account import Credentials
-        
-        # Parse credentials
-        creds_json = os.environ['GOOGLE_DRIVE_CREDENTIALS']
-        creds_info = json.loads(creds_json)
-        creds = Credentials.from_service_account_info(creds_info)
-        
-        # Build services
-        drive_service = build('drive', 'v3', credentials=creds)
-        docs_service = build('docs', 'v1', credentials=creds)
-        
-        # Shared drive ID
-        shared_drive_id = '1HmKCowIi62M2ajoEjcepRNbN1M4lRKee'
-        print(f"Using shared drive: {shared_drive_id}")
-        
-        # Upload API files as Google Docs (no quota limit)
-        import glob
-        
-        file_patterns = ['api/**/*.js']
-        all_files = []
-        for pattern in file_patterns:
-            all_files.extend(glob.glob(pattern, recursive=True))
-        
-        print(f"Found {len(all_files)} API files to upload")
-        
-        uploaded_count = 0
-        for file_path in all_files:
-            # Simple filename
-            filename = f"CODE_{os.path.basename(file_path)}"
-            print(f"Uploading {file_path} as {filename}")
-            
-            try:
-                # Read file content
-                with open(file_path, 'r', encoding='utf-8') as f:
-                    file_content = f.read()
-                
-                # Check if document already exists
-                query = f"name='{filename}' and parents in '{shared_drive_id}' and mimeType='application/vnd.google-apps.document'"
-                existing = drive_service.files().list(
-                    q=query,
-                    supportsAllDrives=True,
-                    includeItemsFromAllDrives=True
-                ).execute().get('files', [])
-                
-                if existing:
-                    # Update existing document
-                    doc_id = existing[0]['id']
-                    print(f"Updating existing document: {filename}")
-                    
-                    # Clear existing content and add new
-                    requests = [
-                        {
-                            'deleteContentRange': {
-                                'range': {
-                                    'startIndex': 1,
-                                    'endIndex': -1
-                                }
-                            }
-                        },
-                        {
-                            'insertText': {
-                                'location': {'index': 1},
-                                'text': file_content
-                            }
-                        }
-                    ]
-                else:
-                    # Create new document
-                    doc_metadata = {
-                        'name': filename,
-                        'parents': [shared_drive_id],
-                        'mimeType': 'application/vnd.google-apps.document'
-                    }
-                    
-                    doc = drive_service.files().create(
-                        body=doc_metadata,
-                        supportsAllDrives=True
-                    ).execute()
-                    
-                    doc_id = doc['id']
-                    print(f"Created new document: {filename}")
-                    
-                    # Add content
-                    requests = [
-                        {
-                            'insertText': {
-                                'location': {'index': 1},
-                                'text': file_content
-                            }
-                        }
-                    ]
-                
-                # Execute the content update
-                docs_service.documents().batchUpdate(
-                    documentId=doc_id,
-                    body={'requests': requests}
-                ).execute()
-                
-                print(f"Successfully uploaded: {filename}")
-                uploaded_count += 1
-                
-            except Exception as e:
-                print(f"Error with {file_path}: {e}")
-                continue
-        
-        print(f"Successfully uploaded {uploaded_count} files!")
-        EOF
-        
-        python sync_to_drive.py
+        uploaded_count += 1
+
+    except Exception as e:
+        print(f"Error uploading raw file {file_path}: {e}")
