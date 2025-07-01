@@ -24,6 +24,13 @@ jobs:
       run: |
         pip install google-api-python-client google-auth-httplib2 google-auth-oauthlib
 
+    - name: 🔍 Debug: Show repo file structure
+      run: |
+        echo "Current directory:"
+        pwd
+        echo "Contents:"
+        ls -R
+
     - name: Sync to Google Drive
       env:
         GOOGLE_DRIVE_CREDENTIALS: ${{ secrets.GOOGLE_DRIVE_TOKEN }}
