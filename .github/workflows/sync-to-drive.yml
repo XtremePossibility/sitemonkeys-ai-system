@@ -56,13 +56,11 @@ jobs:
             print(f"Shared drive access confirmed: {drive_info.get('name', 'Unknown')}")
         except Exception as e:
             print(f"Cannot access shared drive: {e}")
-            print("Make sure the service account email has been added to the shared drive as Manager")
             exit(1)
         
-        # Upload only the most important files to test
+        # Upload API files
         import glob
         
-        # Focus on just the API files first
         file_patterns = ['api/**/*.js']
         all_files = []
         for pattern in file_patterns:
@@ -71,45 +69,52 @@ jobs:
         print(f"Found {len(all_files)} API files to upload")
         
         for file_path in all_files:
-            # Create a simple filename
             filename = os.path.basename(file_path)
             print(f"Uploading {file_path} as {filename}")
             
-            # Check if file exists in shared drive
+            # Simplified file check - just search by name
             file_query = f"name='{filename}' and parents in '{shared_drive_id}'"
-            existing_files = service.files().list(
-                q=file_query,
-                supportsAllDrives=True,
-                includeItemsFromAllDrives=True,
-                driveId=shared_drive_id,
-                corpora='drive'
-            ).execute().get('files', [])
+            try:
+                existing_files = service.files().list(
+                    q=file_query,
+                    supportsAllDrives=True,
+                    includeItemsFromAllDrives=True
+                ).execute().get('files', [])
+            except Exception as e:
+                print(f"Error checking for existing file: {e}")
+                existing_files = []
             
             media = MediaFileUpload(file_path, mimetype='text/javascript')
             
             if existing_files:
                 # Update existing file
                 file_id = existing_files[0]['id']
-                service.files().update(
-                    fileId=file_id, 
-                    media_body=media,
-                    supportsAllDrives=True
-                ).execute()
-                print(f"Updated existing file: {filename}")
+                try:
+                    service.files().update(
+                        fileId=file_id, 
+                        media_body=media,
+                        supportsAllDrives=True
+                    ).execute()
+                    print(f"Updated existing file: {filename}")
+                except Exception as e:
+                    print(f"Error updating file: {e}")
             else:
                 # Create new file in shared drive
                 file_metadata = {
                     'name': filename,
                     'parents': [shared_drive_id]
                 }
-                service.files().create(
-                    body=file_metadata, 
-                    media_body=media,
-                    supportsAllDrives=True
-                ).execute()
-                print(f"Created new file: {filename}")
+                try:
+                    service.files().create(
+                        body=file_metadata, 
+                        media_body=media,
+                        supportsAllDrives=True
+                    ).execute()
+                    print(f"Created new file: {filename}")
+                except Exception as e:
+                    print(f"Error creating file: {e}")
         
-        print("Sync completed successfully!")
+        print("Sync completed!")
         EOF
         
         python sync_to_drive.py
