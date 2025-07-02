@@ -12,7 +12,7 @@ import {
   generateRoxyResponse,
   analyzePromptType,
   validateModeCompliance 
-} from '../lib/personalities.js';
+} from './lib/personalities.js';
 
 // Hardened assumption health monitoring
 function checkAssumptionHealth(message, conversationHistory) {
