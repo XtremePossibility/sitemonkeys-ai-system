@@ -35,7 +35,15 @@ for file_path in all_files:
     'mimeType': 'application/vnd.google-apps.document',
     'parents': [shared_drive_id],
 }
-media = MediaFileUpload(file_path, mimetype='text/plain')
+
+media = MediaFileUpload(file_path, mimetype='text/plain', resumable=True)
+
+drive_service.files().create(
+    body=file_metadata,
+    media_body=media,
+    fields='id',
+    supportsAllDrives=True
+).execute()
 
         query = f"name='{filename}' and '{shared_drive_id}' in parents"
         existing = drive_service.files().list(
