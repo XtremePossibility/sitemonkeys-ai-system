@@ -178,21 +178,25 @@ export default async function handler(req, res) {
     let modeFingerprint = '';
     
     switch (mode) {
-      case 'truth_general':
-        modePrompt = processTruthGeneral();
-        modeFingerprint = 'TG-PROD-001';
-        break;
-      case 'business_validation':
-        modePrompt = processBusinessValidation();
-        modeFingerprint = 'BV-PROD-001';
-        break;
-      default:
-        return res.status(400).json({
-          error: 'Invalid mode specified',
-          valid_modes: ['truth_general', 'business_validation'],
-          attempted_mode: mode
-        });
-    }
+  case 'truth_general':
+    modePrompt = processTruthGeneral();
+    modeFingerprint = 'TG-PROD-001';
+    break;
+  case 'business_validation':
+    modePrompt = processBusinessValidation();
+    modeFingerprint = 'BV-PROD-001';
+    break;
+  case 'site_monkeys':
+    modePrompt = processBusinessValidation();
+    modeFingerprint = 'BV-PROD-001';
+    break;
+  default:
+    return res.status(400).json({
+      error: 'Invalid mode specified',
+      valid_modes: ['truth_general', 'business_validation', 'site_monkeys'],
+      attempted_mode: mode
+    });
+}
 
     // Assumption health monitoring
     const assumptionWarnings = checkAssumptionHealth(message, conversation_history);
