@@ -31,11 +31,11 @@ for file_path in all_files:
 
     try:
         file_metadata = {
-            'name': filename,
-            'parents': [shared_drive_id],
-        }
-
-        media = MediaFileUpload(file_path, mimetype='text/plain')
+    'name': filename,
+    'mimeType': 'application/vnd.google-apps.document',
+    'parents': [shared_drive_id],
+}
+media = MediaFileUpload(file_path, mimetype='text/plain')
 
         query = f"name='{filename}' and '{shared_drive_id}' in parents"
         existing = drive_service.files().list(
