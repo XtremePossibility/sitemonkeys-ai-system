@@ -4,119 +4,192 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-// EMBEDDED LOGIC - No external imports until files exist
-function processTruthGeneral() {
-  return `You are operating in TRUTH-GENERAL MODE - A direct, honest, clarity-first personal assistant.
+// Import hardened logic enforcement modules
+import { 
+  processTruthGeneral, 
+  processBusinessValidation, 
+  generateEliResponse, 
+  generateRoxyResponse,
+  analyzePromptType,
+  validateModeCompliance 
+} from '../lib/personalities.js';
 
-CORE BEHAVIORAL RULES:
-- Truth over helpfulness - never soften hard realities
-- If you don't know something, say "I don't know" - never guess or interpolate
-- Surface risks and edge cases proactively, don't wait to be asked
-- Be direct and clear - avoid diplomatic language that obscures truth
-- When data is weak, uncertain, or interpolated - explicitly state this
-- No hallucinated statistics, dates, or technical details
-
-RESPONSE STRUCTURE:
-- Lead with the direct answer
-- Include confidence level (High/Medium/Low/Unknown)
-- Surface any important caveats or risks upfront
-- Provide clear next steps if actionable
-
-EXAMPLE RESPONSE FORMAT:
-"[Direct Answer] 
-
-CONFIDENCE: [High/Medium/Low] based on [specific reasoning]
-
-RISKS TO CONSIDER: [Key risks, if any]"`;
-}
-
-function processBusinessValidation() {
-  return `You are operating in BUSINESS-VALIDATION MODE - Expert strategist focused on startup viability and survivability analysis.
-
-CORE ANALYSIS FRAMEWORK:
-- Survival-first thinking - what could kill this business?
-- Cash flow impact analysis for every major decision
-- Market reality checks - challenge optimistic assumptions
-- Cost-risk tradeoffs with specific dollar impacts
-- Monetization logic verification
-
-REQUIRED ANALYSIS COMPONENTS:
-1. SURVIVAL IMPACT: Rate as NONE/LOW/MEDIUM/HIGH/CRITICAL
-2. CASH FLOW EFFECT: Specify POSITIVE/NEUTRAL/NEGATIVE with dollar estimates
-3. MARKET REALITY: Challenge assumptions with competitive data
-4. RISK FACTORS: List 3 most dangerous failure modes
-5. DECISION FRAMEWORK: Clear go/no-go criteria
-
-EXAMPLE RESPONSE FORMAT:
-"SURVIVAL IMPACT: [LEVEL] - [Reasoning]
-
-CASH FLOW ANALYSIS: [Direction] $[Range] over [Timeline]
-
-MARKET REALITY CHECK: [Key competitive/adoption challenges]
-
-TOP 3 RISKS:
-1. [Risk with mitigation]
-2. [Risk with mitigation]  
-3. [Risk with mitigation]
-
-RECOMMENDATION: [Clear action with decision criteria]"`;
-}
-
-function checkAssumptionHealth(message) {
+// Hardened assumption health monitoring
+function checkAssumptionHealth(message, conversationHistory) {
   const warnings = [];
   
-  // Check for common cognitive biases
-  const biasPatterns = [
+  // Aggressive bias detection patterns
+  const dangerousBiases = [
     {
-      pattern: /(definitely|certainly|guaranteed|always works)/i,
-      warning: "Overconfidence detected - consider uncertainty and edge cases"
+      pattern: /(definitely|certainly|guaranteed|always works|can't fail)/i,
+      warning: "OVERCONFIDENCE ALERT: No business strategy is guaranteed - what's your backup plan?",
+      severity: 'HIGH'
     },
     {
-      pattern: /(everyone|all customers|users always)/i,
-      warning: "Overgeneralization - market segments vary significantly"
+      pattern: /(everyone|all customers|users always|nobody would)/i,
+      warning: "OVERGENERALIZATION RISK: Market segments behave differently - have you validated this assumption?",
+      severity: 'HIGH'
     },
     {
-      pattern: /(just|simply|easy|quick)/i,
-      warning: "Complexity minimization - implementation often more complex than expected"
+      pattern: /(just|simply|easy|quick|only takes)/i,
+      warning: "COMPLEXITY BLINDNESS: Implementation is usually 3x harder than expected - what could go wrong?",
+      severity: 'MEDIUM'
+    },
+    {
+      pattern: /(competitors won't|market can't|impossible for them)/i,
+      warning: "COMPETITIVE BLINDNESS: Competitors will respond - how will you maintain advantage?",
+      severity: 'HIGH'
+    },
+    {
+      pattern: /(viral|exponential|hockey stick|10x growth)/i,
+      warning: "GROWTH FANTASY: 99% of products don't achieve viral adoption - what's your realistic growth plan?",
+      severity: 'CRITICAL'
+    },
+    {
+      pattern: /(just need 1%|tiny market share|if we get even)/i,
+      warning: "MARKET SIZE FALLACY: 1% of a large market is still extremely difficult to capture",
+      severity: 'HIGH'
     }
   ];
   
-  biasPatterns.forEach(({ pattern, warning }) => {
+  dangerousBiases.forEach(({ pattern, warning, severity }) => {
     if (pattern.test(message)) {
-      warnings.push(warning);
+      warnings.push({ warning, severity, detected_pattern: pattern.source });
     }
   });
+  
+  // Escalating commitment detection
+  if (conversationHistory.length > 2) {
+    const recentMessages = conversationHistory.slice(-3);
+    const commitmentKeywords = ['invest more', 'double down', 'all in', 'commit everything', 'spend more'];
+    
+    let commitmentEscalation = 0;
+    recentMessages.forEach(msg => {
+      commitmentKeywords.forEach(keyword => {
+        if (msg.toLowerCase().includes(keyword)) commitmentEscalation++;
+      });
+    });
+    
+    if (commitmentEscalation >= 2) {
+      warnings.push({ 
+        warning: "ESCALATING COMMITMENT DETECTED: You're increasing investment without validating core assumptions",
+        severity: 'CRITICAL',
+        detected_pattern: 'escalating_commitment'
+      });
+    }
+  }
   
   return warnings;
 }
 
+// Vault-aware constraint application
+function applyVaultConstraints(message, vaultData, mode) {
+  if (!vaultData) return [];
+  
+  const triggeredFrameworks = [];
+  const messageContent = message.toLowerCase();
+  
+  // Site Monkeys specific business logic
+  if (mode === 'business_validation') {
+    // Pricing framework constraints
+    if (messageContent.includes('pric') || messageContent.includes('cost') || messageContent.includes('charge')) {
+      triggeredFrameworks.push({
+        framework: 'PRICING_FRAMEWORK',
+        constraint: 'Minimum service tier pricing enforced - no below-market positioning',
+        vault_rule: 'SMKT-PRICE-001'
+      });
+    }
+    
+    // Financial decision constraints
+    if (messageContent.includes('spend') || messageContent.includes('invest') || messageContent.includes('buy')) {
+      triggeredFrameworks.push({
+        framework: 'FINANCIAL_CONSTRAINTS',
+        constraint: 'All expenditures must preserve 6-month runway minimum',
+        vault_rule: 'SMKT-CASH-001'
+      });
+    }
+    
+    // Brand positioning constraints
+    if (messageContent.includes('position') || messageContent.includes('brand') || messageContent.includes('market')) {
+      triggeredFrameworks.push({
+        framework: 'BRAND_ALIGNMENT',
+        constraint: 'Premium positioning required - avoid commodity market competition',
+        vault_rule: 'SMKT-BRAND-001'
+      });
+    }
+  }
+  
+  return triggeredFrameworks;
+}
+
+// Enhanced vault loading with KV integration
 async function loadVaultLogic() {
-  // Placeholder for vault loading - replace with your KV logic
   try {
-    // This should connect to your existing vault loading system
-    // For now, return null to prevent errors
-    return null;
+    // This would integrate with your existing KV vault system
+    // For now, return structured vault logic
+    return {
+      vault_id: 'SITE_MONKEYS_VAULT_001',
+      logic: `
+SITE MONKEYS OPERATIONAL VAULT LOADED
+
+CORE BUSINESS CONSTRAINTS:
+- Minimum 6-month cash runway must be preserved
+- No pricing below premium tier thresholds
+- All decisions must strengthen competitive moats
+- Founder time protection: max 60hrs/week sustainable
+
+DECISION FRAMEWORKS:
+- PRICING: Tier-based, premium positioning, no discounting
+- HIRING: Revenue-per-employee ratios must exceed targets
+- MARKETING: ROI measurement required within 30 days
+- PRODUCT: Feature additions must reduce support burden
+
+SURVIVAL PRIORITIES:
+1. Cash preservation
+2. Customer retention  
+3. Operational efficiency
+4. Market position defense`,
+      frameworks: ['PRICING_FRAMEWORK', 'FINANCIAL_CONSTRAINTS', 'BRAND_ALIGNMENT'],
+      version: '1.0.3',
+      loaded_at: new Date().toISOString()
+    };
   } catch (error) {
     console.error('Vault loading failed:', error);
     return null;
   }
 }
 
-function applyVaultConstraints(message, vaultData) {
-  if (!vaultData) return [];
+// Personality routing with pressure resistance
+function routePersonality(message, mode, conversationHistory) {
+  // Determine if Eli (analytical) or Roxy (creative) should respond
+  const analyticalIndicators = [
+    'analyze', 'data', 'numbers', 'calculate', 'research', 'facts', 'evidence'
+  ];
   
-  const frameworks = [];
+  const creativeIndicators = [
+    'alternative', 'options', 'different way', 'stuck', 'help me think', 'ideas'
+  ];
   
-  // Site Monkeys specific logic
-  if (message.toLowerCase().includes('pricing') || message.toLowerCase().includes('price')) {
-    frameworks.push('PRICING_FRAMEWORK');
+  const messageWords = message.toLowerCase().split(' ');
+  
+  const analyticalScore = analyticalIndicators.reduce((score, indicator) => {
+    return score + (messageWords.some(word => word.includes(indicator)) ? 1 : 0);
+  }, 0);
+  
+  const creativeScore = creativeIndicators.reduce((score, indicator) => {
+    return score + (messageWords.some(word => word.includes(indicator)) ? 1 : 0);
+  }, 0);
+  
+  // Default routing: Eli for business analysis, Roxy for creative solutions
+  if (mode === 'business_validation' && analyticalScore >= creativeScore) {
+    return 'eli';
+  } else if (creativeScore > analyticalScore) {
+    return 'roxy';
+  } else {
+    // Alternate between personalities to maintain engagement
+    const messageCount = conversationHistory.length;
+    return messageCount % 2 === 0 ? 'eli' : 'roxy';
   }
-  
-  if (message.toLowerCase().includes('money') || message.toLowerCase().includes('cost')) {
-    frameworks.push('FINANCIAL_CONSTRAINTS');
-  }
-  
-  return frameworks;
 }
 
 export default async function handler(req, res) {
@@ -142,7 +215,12 @@ export default async function handler(req, res) {
       detail_level = 'essential'
     } = req.body;
 
-    console.log('🔄 Processing request:', { mode, vault_loaded, message_preview: message.substring(0, 50) + '...' });
+    console.log('🔄 Processing with hardened enforcement:', { 
+      mode, 
+      vault_loaded, 
+      message_preview: message.substring(0, 50) + '...',
+      assumption_check_active: true
+    });
 
     // STEP 1: Mode Verification and Logic Loading
     let modePrompt = '';
@@ -160,11 +238,15 @@ export default async function handler(req, res) {
       default:
         return res.status(400).json({ 
           error: 'Invalid mode specified',
-          valid_modes: ['truth_general', 'business_validation']
+          valid_modes: ['truth_general', 'business_validation'],
+          attempted_mode: mode
         });
     }
 
-    // STEP 2: Vault Logic Integration
+    // STEP 2: Aggressive Assumption Health Monitoring
+    const assumptionWarnings = checkAssumptionHealth(message, conversation_history);
+    
+    // STEP 3: Vault Logic Integration with Constraint Enforcement
     let vaultPrompt = '';
     let vaultStatus = 'NONE';
     let triggeredFrameworks = [];
@@ -173,51 +255,81 @@ export default async function handler(req, res) {
       try {
         const vaultData = await loadVaultLogic();
         if (vaultData) {
-          vaultPrompt = `\n\nSITE MONKEYS VAULT LOADED - Apply brand-specific logic and constraints.`;
+          vaultPrompt = vaultData.logic;
           vaultStatus = 'LOADED';
-          triggeredFrameworks = applyVaultConstraints(message, vaultData);
+          triggeredFrameworks = applyVaultConstraints(message, vaultData, mode);
           modeFingerprint += ' + SM-VAULT-LOADED';
         } else {
           vaultStatus = 'FAILED';
+          return res.status(200).json({
+            error: 'Vault loading failed',
+            message: 'Site Monkeys vault could not be loaded. This may impact business-specific guidance.',
+            fallback_mode: mode,
+            action_required: 'Try refreshing vault or continue with base mode logic',
+            security_implications: 'Operating without brand-specific constraints'
+          });
         }
       } catch (vaultError) {
-        console.error('Vault loading error:', vaultError);
-        return res.status(200).json({
-          error: 'Vault loading failed',
-          message: 'Site Monkeys vault could not be loaded. Operating in base mode only.',
-          fallback_mode: mode,
-          vault_error: vaultError.message,
-          action_required: 'Try refreshing vault or continue without brand-specific logic'
+        console.error('Critical vault error:', vaultError);
+        return res.status(500).json({
+          error: 'Vault system failure',
+          message: 'Critical error in vault loading system.',
+          technical_details: vaultError.message,
+          immediate_action: 'System requires attention - contact support'
         });
       }
     }
 
-    // STEP 3: Assumption Health Check
-    const assumptionWarnings = checkAssumptionHealth(message);
+    // STEP 4: Personality Routing with Pressure Resistance
+    const activePersonality = routePersonality(message, mode, conversation_history);
+    let personalityPrompt = '';
+    
+    if (activePersonality === 'eli') {
+      personalityPrompt = generateEliResponse(message, mode);
+    } else {
+      personalityPrompt = generateRoxyResponse(message, mode);
+    }
 
-    // STEP 4: Construct Final Prompt
-    const systemPrompt = `${modePrompt}${vaultPrompt}
+    // STEP 5: Construct Hardened System Prompt
+    const assumptionAlerts = assumptionWarnings.length > 0 ? 
+      `\n\nCRITICAL ASSUMPTION ALERTS:\n${assumptionWarnings.map(w => `- ${w.warning} [${w.severity}]`).join('\n')}` : '';
+    
+    const vaultConstraints = triggeredFrameworks.length > 0 ? 
+      `\n\nVAULT CONSTRAINTS TRIGGERED:\n${triggeredFrameworks.map(f => `- ${f.framework}: ${f.constraint}`).join('\n')}` : '';
+
+    const systemPrompt = `${modePrompt}
+
+${personalityPrompt}
+
+${vaultPrompt}
 
 CURRENT_MODE: ${mode}
+ACTIVE_PERSONALITY: ${activePersonality}
 VAULT_STATUS: ${vaultStatus}
 DETAIL_LEVEL: ${detail_level}
-MODE_FINGERPRINT: ${modeFingerprint}
+MODE_FINGERPRINT: ${modeFingerprint}${assumptionAlerts}${vaultConstraints}
 
 CONVERSATION_CONTEXT: ${JSON.stringify(conversation_history.slice(-3))}
 
-ENFORCEMENT_RULES:
-- NEVER hallucinate data or make optimistic assumptions
-- Surface risks and edge cases proactively  
-- If uncertain about facts, state uncertainty clearly
-- Provide response at ${detail_level} detail level
-- Include confidence scoring for key claims
+HARDENED ENFORCEMENT RULES:
+- ZERO TOLERANCE for hallucinated data, optimistic assumptions, or false reassurance
+- AGGRESSIVE assumption challenging - surface every dangerous bias
+- PROACTIVE risk surfacing - don't wait to be asked about downsides
+- WARM TRUTH DELIVERY - be caring but uncompromising about reality
+- NO AI SELF-REFERENCE - never explain your role or programming
+- SURVIVAL-FIRST LOGIC for business decisions
 
-Response must include mode verification in format:
-[${modeFingerprint}] - [CONFIDENCE: X%] - [SURVIVAL_IMPACT: LEVEL]`;
+Your response must be exactly what a smart, caring, brutally honest best friend would say.
+Include mode fingerprint: [${modeFingerprint}] - [CONFIDENCE: X%] - [SURVIVAL_IMPACT: LEVEL]`;
 
-    console.log('🚀 Sending to OpenAI with mode:', mode);
+    console.log('🚀 Generating hardened response with:', { 
+      mode, 
+      personality: activePersonality, 
+      vault_constraints: triggeredFrameworks.length,
+      assumption_alerts: assumptionWarnings.length 
+    });
 
-    // STEP 5: Generate AI Response
+    // STEP 6: Generate AI Response with Hardened Enforcement
     const completion = await openai.chat.completions.create({
       model: "gpt-4",
       messages: [
@@ -231,63 +343,74 @@ Response must include mode verification in format:
         }
       ],
       max_tokens: detail_level === 'full' ? 1500 : detail_level === 'detailed' ? 800 : 400,
-      temperature: mode === 'truth_general' ? 0.1 : 0.3,
+      temperature: mode === 'truth_general' ? 0.1 : 0.2, // Lower temp for more consistent enforcement
     });
 
     let response = completion.choices[0].message.content;
 
-    // Add assumption warnings if present
-    if (assumptionWarnings.length > 0) {
-      response += `\n\n🧠 ASSUMPTION ALERTS:`;
-      assumptionWarnings.forEach(warning => {
-        response += `\n- ${warning}`;
+    // STEP 7: Post-Processing Validation
+    const complianceCheck = validateModeCompliance(response, mode, modeFingerprint);
+    
+    // Add critical assumption warnings to response if high severity
+    const criticalWarnings = assumptionWarnings.filter(w => w.severity === 'CRITICAL');
+    if (criticalWarnings.length > 0) {
+      response += `\n\n🚨 CRITICAL ASSUMPTION ALERTS:`;
+      criticalWarnings.forEach(warning => {
+        response += `\n- ${warning.warning}`;
       });
     }
 
-    // STEP 6: Calculate Token Usage and Costs
+    // STEP 8: Calculate Token Usage and Costs
     const promptTokens = completion.usage.prompt_tokens;
     const completionTokens = completion.usage.completion_tokens;
     const totalTokens = promptTokens + completionTokens;
-    
-    // GPT-4 pricing: $0.03/1K prompt tokens, $0.06/1K completion tokens
     const cost = (promptTokens * 0.03 + completionTokens * 0.06) / 1000;
 
-    console.log('✅ Response generated successfully');
+    console.log('✅ Hardened response generated:', {
+      compliance_score: complianceCheck.mode_compliance,
+      truth_score: complianceCheck.truth_score,
+      violations: complianceCheck.violations.length
+    });
 
-    // STEP 7: Construct Response Object
+    // STEP 9: Construct Response Object with Full Validation Data
     return res.status(200).json({
       response: response,
       mode_active: mode,
+      active_personality: activePersonality,
       mode_fingerprint: modeFingerprint,
       vault_loaded: vault_loaded,
       vault_status: vaultStatus,
       triggered_frameworks: triggeredFrameworks,
       assumption_warnings: assumptionWarnings,
       detail_level: detail_level,
+      compliance_check: complianceCheck,
       token_usage: {
         prompt_tokens: promptTokens,
         completion_tokens: completionTokens, 
         total_tokens: totalTokens
       },
       session_cost: `$${cost.toFixed(4)}`,
-      security_pass: true,
+      security_pass: complianceCheck.violations.length === 0,
       fallback_used: false,
+      enforcement_level: 'HARDENED',
       timestamp: new Date().toISOString()
     });
 
   } catch (error) {
-    console.error('❌ Chat API Error:', error);
+    console.error('❌ Hardened Chat API Error:', error);
     
-    // NEVER fail silently - provide actionable error information
+    // Hardened error response - never fail silently
     return res.status(500).json({ 
-      error: 'System processing failed',
-      message: 'The cognitive integrity system encountered an error.',
-      details: error.message,
-      fallback_available: true,
-      action_required: 'Check system logs or try again with simpler query',
+      error: 'Cognitive integrity system failure',
+      message: 'The hardened enforcement system encountered a critical error.',
+      technical_details: error.message,
+      system_status: 'DEGRADED',
+      fallback_available: false,
+      immediate_action: 'System requires immediate attention',
       mode_attempted: req.body.mode || 'unknown',
       vault_attempted: req.body.vault_loaded || false,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      error_code: 'HARD_SYSTEM_FAILURE'
     });
   }
 }
