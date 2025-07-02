@@ -1,24 +1,20 @@
-// generateFingerprint.js - Structured Fingerprint Generation and Injection
+Mouthwash resuming cleaning// generateFingerprint.js - Structured Fingerprint Generation and Injection
 
 export function generateFingerprint(mode, vaultLoaded, confidence, structureCompliance, tokenCost, additionalData = {}) {
-  // Generate mode-specific fingerprint codes
   const modeFingerprints = {
     'truth_general': 'TG-PROD-001',
     'business_validation': 'BV-PROD-001',
-    'site_monkeys_vault': 'SM-VAULT-LOADED'
+    'site_monkeys': 'SM-VAULT-LOADED'
   };
   
-  // Determine vault status display
   let vaultStatus = 'NONE';
   if (vaultLoaded) {
     vaultStatus = 'LOADED';
-    if (mode !== 'site_monkeys_vault') {
-      // Add vault suffix to existing mode
+    if (mode !== 'site_monkeys') {
       modeFingerprints[mode] += ' + SM-VAULT-LOADED';
     }
   }
   
-  // Structure compliance mapping
   const complianceDisplay = {
     'COMPLIANT': 'PASS',
     'PARTIAL': 'WARN', 
@@ -26,12 +22,10 @@ export function generateFingerprint(mode, vaultLoaded, confidence, structureComp
     'UNKNOWN': 'UNKNOWN'
   };
   
-  // Confidence level standardization
   const confidenceDisplay = typeof confidence === 'string' ? 
     confidence.toUpperCase() : 
     confidence >= 80 ? 'HIGH' : confidence >= 60 ? 'MEDIUM' : confidence >= 40 ? 'LOW' : 'UNKNOWN';
   
-  // Create structured fingerprint object
   const fingerprintData = {
     mode: modeFingerprints[mode] || 'UNKNOWN-MODE',
     vault_loaded: vaultLoaded,
@@ -48,7 +42,6 @@ export function generateFingerprint(mode, vaultLoaded, confidence, structureComp
     security_pass: additionalData.security_pass || false
   };
   
-  // Generate clean display line
   const displayLine = `[Mode: ${fingerprintData.mode} | Confidence: ${fingerprintData.confidence} | Structure: ${fingerprintData.structure_display} | Vault: ${fingerprintData.vault_status} | Cost: ${fingerprintData.cost_display}]`;
   
   return {
@@ -59,7 +52,6 @@ export function generateFingerprint(mode, vaultLoaded, confidence, structureComp
 }
 
 export function injectFingerprintIntoResponse(response, fingerprintData) {
-  // Auto-inject fingerprint at the end of response
   const injectedResponse = `${response}
 
 🔍 ${fingerprintData.display_line}`;
@@ -98,7 +90,6 @@ export function validateFingerprintStructure(fingerprintData) {
   return validation;
 }
 
-// Convenience function for chat.js integration
 export function createAndInjectFingerprint(response, mode, vaultLoaded, confidence, structureCompliance, tokenCost, additionalData = {}) {
   const fingerprint = generateFingerprint(mode, vaultLoaded, confidence, structureCompliance, tokenCost, additionalData);
   const injection = injectFingerprintIntoResponse(response, fingerprint);
