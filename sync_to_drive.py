@@ -6,7 +6,7 @@ from googleapiclient.http import MediaFileUpload
 from google.oauth2.service_account import Credentials
 
 # === CONFIGURATION ===
-shared_drive_id = '1HmKCowIi62M2ajoEjcepRNbN1M4lRKee'
+shared_drive_id = '1CGjbCAlk_Uk2FvgYOiq33zxpzDTuygof'
 print(f"Using shared drive: {shared_drive_id}")
 
 # === AUTH ===
