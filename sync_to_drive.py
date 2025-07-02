@@ -16,7 +16,7 @@ creds = Credentials.from_service_account_info(creds_info)
 drive_service = build('drive', 'v3', credentials=creds)
 
 # === FILE GATHERING ===
-file_patterns = ['api/**/*.js']
+file_patterns = ['**/*.js', '**/*.py', '**/*.json', '**/*.html', '**/*.css']
 all_files = []
 for pattern in file_patterns:
     all_files.extend(glob.glob(pattern, recursive=True))
