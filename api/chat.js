@@ -4,26 +4,53 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-// Import hardened logic enforcement modules
+// Import all enforcement modules
 import { 
   processTruthGeneral, 
   processBusinessValidation, 
   generateEliResponse, 
   generateRoxyResponse,
   analyzePromptType,
-  validateModeCompliance 
+  validateModeCompliance as validatePersonalityCompliance 
 } from './lib/personalities.js';
 
-// Hardened assumption health monitoring
+import { 
+  trackApiCall, 
+  getSessionReport, 
+  getLastCallCost, 
+  getSessionTotalCost, 
+  getResponderTokenBreakdown,
+  getVaultTokenLoad 
+} from './lib/tokenTracker.js';
+
+import { 
+  validateProductRecommendation, 
+  enforceRecommendationStandards 
+} from './lib/productValidation.js';
+
+import { 
+  guardPoliticalContent, 
+  analyzePoliticalRisk, 
+  generatePoliticalReport 
+} from './lib/politicalGuardrails.js';
+
+import { 
+  validateModeCompliance, 
+  detectModeDrift, 
+  generateComplianceReport, 
+  enforceModeCompliance 
+} from './lib/modeLinter.js';
+
+// Enhanced assumption health monitoring
 function checkAssumptionHealth(message, conversationHistory) {
   const warnings = [];
   
-  // Aggressive bias detection patterns
+  // Critical bias detection patterns
   const dangerousBiases = [
     {
       pattern: /(definitely|certainly|guaranteed|always works|can't fail)/i,
-      warning: "OVERCONFIDENCE ALERT: No business strategy is guaranteed - what's your backup plan?",
-      severity: 'HIGH'
+      warning: "OVERCONFIDENCE ALERT: No strategy is guaranteed - what's your backup plan?",
+      severity: 'CRITICAL'
     },
     {
       pattern: /(everyone|all customers|users always|nobody would)/i,
@@ -36,18 +63,13 @@ function checkAssumptionHealth(message, conversationHistory) {
       severity: 'MEDIUM'
     },
     {
-      pattern: /(competitors won't|market can't|impossible for them)/i,
-      warning: "COMPETITIVE BLINDNESS: Competitors will respond - how will you maintain advantage?",
-      severity: 'HIGH'
-    },
-    {
       pattern: /(viral|exponential|hockey stick|10x growth)/i,
       warning: "GROWTH FANTASY: 99% of products don't achieve viral adoption - what's your realistic growth plan?",
       severity: 'CRITICAL'
     },
     {
-      pattern: /(just need 1%|tiny market share|if we get even)/i,
-      warning: "MARKET SIZE FALLACY: 1% of a large market is still extremely difficult to capture",
+      pattern: /(competitors won't|market can't|impossible for them)/i,
+      warning: "COMPETITIVE BLINDNESS: Competitors will respond - how will you maintain advantage?",
       severity: 'HIGH'
     }
   ];
@@ -61,7 +83,7 @@ function checkAssumptionHealth(message, conversationHistory) {
   // Escalating commitment detection
   if (conversationHistory.length > 2) {
     const recentMessages = conversationHistory.slice(-3);
-    const commitmentKeywords = ['invest more', 'double down', 'all in', 'commit everything', 'spend more'];
+    const commitmentKeywords = ['invest more', 'double down', 'all in', 'spend more'];
     
     let commitmentEscalation = 0;
     recentMessages.forEach(msg => {
@@ -82,16 +104,14 @@ function checkAssumptionHealth(message, conversationHistory) {
   return warnings;
 }
 
-// Vault-aware constraint application
+// Vault constraint application
 function applyVaultConstraints(message, vaultData, mode) {
   if (!vaultData) return [];
   
   const triggeredFrameworks = [];
   const messageContent = message.toLowerCase();
   
-  // Site Monkeys specific business logic
   if (mode === 'business_validation') {
-    // Pricing framework constraints
     if (messageContent.includes('pric') || messageContent.includes('cost') || messageContent.includes('charge')) {
       triggeredFrameworks.push({
         framework: 'PRICING_FRAMEWORK',
@@ -100,7 +120,6 @@ function applyVaultConstraints(message, vaultData, mode) {
       });
     }
     
-    // Financial decision constraints
     if (messageContent.includes('spend') || messageContent.includes('invest') || messageContent.includes('buy')) {
       triggeredFrameworks.push({
         framework: 'FINANCIAL_CONSTRAINTS',
@@ -109,7 +128,6 @@ function applyVaultConstraints(message, vaultData, mode) {
       });
     }
     
-    // Brand positioning constraints
     if (messageContent.includes('position') || messageContent.includes('brand') || messageContent.includes('market')) {
       triggeredFrameworks.push({
         framework: 'BRAND_ALIGNMENT',
@@ -122,11 +140,9 @@ function applyVaultConstraints(message, vaultData, mode) {
   return triggeredFrameworks;
 }
 
-// Enhanced vault loading with KV integration
+// Enhanced vault loading
 async function loadVaultLogic() {
   try {
-    // This would integrate with your existing KV vault system
-    // For now, return structured vault logic
     return {
       vault_id: 'SITE_MONKEYS_VAULT_001',
       logic: `
@@ -150,7 +166,9 @@ SURVIVAL PRIORITIES:
 3. Operational efficiency
 4. Market position defense`,
       frameworks: ['PRICING_FRAMEWORK', 'FINANCIAL_CONSTRAINTS', 'BRAND_ALIGNMENT'],
+      operational_standards: ['PREMIUM_POSITIONING', 'COST_EFFICIENCY'],
       version: '1.0.3',
+      token_count: 847,
       loaded_at: new Date().toISOString()
     };
   } catch (error) {
@@ -159,9 +177,8 @@ SURVIVAL PRIORITIES:
   }
 }
 
-// Personality routing with pressure resistance
+// Personality routing
 function routePersonality(message, mode, conversationHistory) {
-  // Determine if Eli (analytical) or Roxy (creative) should respond
   const analyticalIndicators = [
     'analyze', 'data', 'numbers', 'calculate', 'research', 'facts', 'evidence'
   ];
@@ -180,13 +197,11 @@ function routePersonality(message, mode, conversationHistory) {
     return score + (messageWords.some(word => word.includes(indicator)) ? 1 : 0);
   }, 0);
   
-  // Default routing: Eli for business analysis, Roxy for creative solutions
   if (mode === 'business_validation' && analyticalScore >= creativeScore) {
     return 'eli';
   } else if (creativeScore > analyticalScore) {
     return 'roxy';
   } else {
-    // Alternate between personalities to maintain engagement
     const messageCount = conversationHistory.length;
     return messageCount % 2 === 0 ? 'eli' : 'roxy';
   }
@@ -215,25 +230,25 @@ export default async function handler(req, res) {
       detail_level = 'essential'
     } = req.body;
 
-    console.log('🔄 Processing with hardened enforcement:', { 
+    console.log('🔄 Processing with COMPLETE enforcement layer:', { 
       mode, 
       vault_loaded, 
       message_preview: message.substring(0, 50) + '...',
-      assumption_check_active: true
+      enforcement_modules: ['tokenTracker', 'productValidation', 'politicalGuardrails', 'modeLinter']
     });
 
-    // STEP 1: Mode Verification and Logic Loading
+    // ENFORCEMENT LAYER 1: Mode Verification and Logic Loading
     let modePrompt = '';
     let modeFingerprint = '';
     
     switch (mode) {
       case 'truth_general':
         modePrompt = processTruthGeneral();
-        modeFingerprint = 'TG-2024-001';
+        modeFingerprint = 'TG-PROD-001';
         break;
       case 'business_validation':
         modePrompt = processBusinessValidation();
-        modeFingerprint = 'BV-2024-001';
+        modeFingerprint = 'BV-PROD-001';
         break;
       default:
         return res.status(400).json({ 
@@ -243,13 +258,14 @@ export default async function handler(req, res) {
         });
     }
 
-    // STEP 2: Aggressive Assumption Health Monitoring
+    // ENFORCEMENT LAYER 2: Assumption Health Monitoring
     const assumptionWarnings = checkAssumptionHealth(message, conversation_history);
     
-    // STEP 3: Vault Logic Integration with Constraint Enforcement
+    // ENFORCEMENT LAYER 3: Vault Logic Integration
     let vaultPrompt = '';
     let vaultStatus = 'NONE';
     let triggeredFrameworks = [];
+    let vaultTokenCount = 0;
     
     if (vault_loaded) {
       try {
@@ -257,6 +273,7 @@ export default async function handler(req, res) {
         if (vaultData) {
           vaultPrompt = vaultData.logic;
           vaultStatus = 'LOADED';
+          vaultTokenCount = vaultData.token_count || 0;
           triggeredFrameworks = applyVaultConstraints(message, vaultData, mode);
           modeFingerprint += ' + SM-VAULT-LOADED';
         } else {
@@ -265,8 +282,7 @@ export default async function handler(req, res) {
             error: 'Vault loading failed',
             message: 'Site Monkeys vault could not be loaded. This may impact business-specific guidance.',
             fallback_mode: mode,
-            action_required: 'Try refreshing vault or continue with base mode logic',
-            security_implications: 'Operating without brand-specific constraints'
+            action_required: 'Try refreshing vault or continue with base mode logic'
           });
         }
       } catch (vaultError) {
@@ -274,13 +290,12 @@ export default async function handler(req, res) {
         return res.status(500).json({
           error: 'Vault system failure',
           message: 'Critical error in vault loading system.',
-          technical_details: vaultError.message,
-          immediate_action: 'System requires attention - contact support'
+          technical_details: vaultError.message
         });
       }
     }
 
-    // STEP 4: Personality Routing with Pressure Resistance
+    // ENFORCEMENT LAYER 4: Personality Routing
     const activePersonality = routePersonality(message, mode, conversation_history);
     let personalityPrompt = '';
     
@@ -290,7 +305,7 @@ export default async function handler(req, res) {
       personalityPrompt = generateRoxyResponse(message, mode);
     }
 
-    // STEP 5: Construct Hardened System Prompt
+    // ENFORCEMENT LAYER 5: System Prompt Construction
     const assumptionAlerts = assumptionWarnings.length > 0 ? 
       `\n\nCRITICAL ASSUMPTION ALERTS:\n${assumptionWarnings.map(w => `- ${w.warning} [${w.severity}]`).join('\n')}` : '';
     
@@ -311,25 +326,27 @@ MODE_FINGERPRINT: ${modeFingerprint}${assumptionAlerts}${vaultConstraints}
 
 CONVERSATION_CONTEXT: ${JSON.stringify(conversation_history.slice(-3))}
 
-HARDENED ENFORCEMENT RULES:
+COMPLETE ENFORCEMENT RULES:
 - ZERO TOLERANCE for hallucinated data, optimistic assumptions, or false reassurance
 - AGGRESSIVE assumption challenging - surface every dangerous bias
 - PROACTIVE risk surfacing - don't wait to be asked about downsides
 - WARM TRUTH DELIVERY - be caring but uncompromising about reality
 - NO AI SELF-REFERENCE - never explain your role or programming
 - SURVIVAL-FIRST LOGIC for business decisions
+- EVIDENCE-BASED RECOMMENDATIONS with risk assessment
+- POLITICAL NEUTRALITY maintained at all times
 
 Your response must be exactly what a smart, caring, brutally honest best friend would say.
 Include mode fingerprint: [${modeFingerprint}] - [CONFIDENCE: X%] - [SURVIVAL_IMPACT: LEVEL]`;
 
-    console.log('🚀 Generating hardened response with:', { 
+    console.log('🚀 Generating response with COMPLETE enforcement:', { 
       mode, 
       personality: activePersonality, 
       vault_constraints: triggeredFrameworks.length,
       assumption_alerts: assumptionWarnings.length 
     });
 
-    // STEP 6: Generate AI Response with Hardened Enforcement
+    // ENFORCEMENT LAYER 6: AI Response Generation
     const completion = await openai.chat.completions.create({
       model: "gpt-4",
       messages: [
@@ -343,15 +360,40 @@ Include mode fingerprint: [${modeFingerprint}] - [CONFIDENCE: X%] - [SURVIVAL_IM
         }
       ],
       max_tokens: detail_level === 'full' ? 1500 : detail_level === 'detailed' ? 800 : 400,
-      temperature: mode === 'truth_general' ? 0.1 : 0.2, // Lower temp for more consistent enforcement
+      temperature: mode === 'truth_general' ? 0.1 : 0.2,
     });
 
     let response = completion.choices[0].message.content;
 
-    // STEP 7: Post-Processing Validation
-    const complianceCheck = validateModeCompliance(response, mode, modeFingerprint);
-    
-    // Add critical assumption warnings to response if high severity
+    // ENFORCEMENT LAYER 7: Token Tracking
+    const tokenTracking = trackApiCall(
+      activePersonality, 
+      completion.usage.prompt_tokens, 
+      completion.usage.completion_tokens, 
+      vaultTokenCount
+    );
+
+    // ENFORCEMENT LAYER 8: Political Guardrails
+    const politicalGuard = guardPoliticalContent(response, message);
+    if (politicalGuard.political_intervention) {
+      response = politicalGuard.guarded_response;
+    }
+
+    // ENFORCEMENT LAYER 9: Product Recommendation Validation
+    const productValidation = validateProductRecommendation(response, mode, triggeredFrameworks);
+    const recommendationEnforcement = enforceRecommendationStandards(response, productValidation);
+    if (recommendationEnforcement.original_blocked) {
+      response = recommendationEnforcement.enforcement_response;
+    }
+
+    // ENFORCEMENT LAYER 10: Mode Compliance Linting
+    const modeCompliance = validateModeCompliance(response, mode, modeFingerprint);
+    const complianceEnforcement = enforceModeCompliance(response, modeCompliance);
+    if (complianceEnforcement.original_blocked) {
+      response = complianceEnforcement.enforcement_response;
+    }
+
+    // ENFORCEMENT LAYER 11: Critical Assumption Warnings
     const criticalWarnings = assumptionWarnings.filter(w => w.severity === 'CRITICAL');
     if (criticalWarnings.length > 0) {
       response += `\n\n🚨 CRITICAL ASSUMPTION ALERTS:`;
@@ -360,57 +402,97 @@ Include mode fingerprint: [${modeFingerprint}] - [CONFIDENCE: X%] - [SURVIVAL_IM
       });
     }
 
-    // STEP 8: Calculate Token Usage and Costs
-    const promptTokens = completion.usage.prompt_tokens;
-    const completionTokens = completion.usage.completion_tokens;
-    const totalTokens = promptTokens + completionTokens;
-    const cost = (promptTokens * 0.03 + completionTokens * 0.06) / 1000;
+    // ENFORCEMENT LAYER 12: Final Validation and Reporting
+    const sessionReport = getSessionReport();
+    const complianceReport = generateComplianceReport(modeCompliance, mode);
+    const politicalReport = generatePoliticalReport(politicalGuard.analysis);
 
-    console.log('✅ Hardened response generated:', {
-      compliance_score: complianceCheck.mode_compliance,
-      truth_score: complianceCheck.truth_score,
-      violations: complianceCheck.violations.length
+    console.log('✅ COMPLETE enforcement processing completed:', {
+      compliance_score: modeCompliance.compliance_score,
+      political_intervention: politicalGuard.political_intervention,
+      product_validation: productValidation.validation_passed,
+      token_cost: tokenTracking.call_cost,
+      enforcement_layers: 12
     });
 
-    // STEP 9: Construct Response Object with Full Validation Data
+    // FINAL RESPONSE CONSTRUCTION
     return res.status(200).json({
       response: response,
+      
+      // Core system status
       mode_active: mode,
       active_personality: activePersonality,
       mode_fingerprint: modeFingerprint,
       vault_loaded: vault_loaded,
       vault_status: vaultStatus,
       triggered_frameworks: triggeredFrameworks,
-      assumption_warnings: assumptionWarnings,
       detail_level: detail_level,
-      compliance_check: complianceCheck,
-      token_usage: {
-        prompt_tokens: promptTokens,
-        completion_tokens: completionTokens, 
-        total_tokens: totalTokens
+      
+      // Enforcement layer results
+      assumption_warnings: assumptionWarnings,
+      mode_compliance: complianceReport,
+      political_guardrails: politicalReport,
+      product_validation: {
+        validation_passed: productValidation.validation_passed,
+        evidence_strength: productValidation.evidence_strength,
+        enforcement_applied: recommendationEnforcement.original_blocked
       },
-      session_cost: `$${cost.toFixed(4)}`,
-      security_pass: complianceCheck.violations.length === 0,
-      fallback_used: false,
-      enforcement_level: 'HARDENED',
+      
+      // Token and cost tracking
+      token_tracking: {
+        call_cost: `${tokenTracking.call_cost.toFixed(4)}`,
+        session_total: `${tokenTracking.session_total.toFixed(4)}`,
+        tokens_used: tokenTracking.tokens_used,
+        cumulative_tokens: tokenTracking.cumulative_tokens,
+        vault_tokens: vaultTokenCount
+      },
+      
+      // Session management
+      session_report: {
+        responder_breakdown: getResponderTokenBreakdown(),
+        last_call_cost: `${getLastCallCost().toFixed(4)}`,
+        session_total_cost: `${getSessionTotalCost().toFixed(4)}`,
+        vault_token_load: getVaultTokenLoad()
+      },
+      
+      // System integrity
+      security_pass: modeCompliance.mode_compliance !== 'NON_COMPLIANT' && 
+                    !politicalGuard.political_intervention && 
+                    productValidation.validation_passed,
+      enforcement_level: 'COMPLETE',
+      enforcement_layers_applied: 12,
+      fallback_used: complianceEnforcement.original_blocked || 
+                     recommendationEnforcement.original_blocked,
+      
+      // Debug information
+      debug_info: {
+        fingerprint_valid: modeCompliance.fingerprint_valid,
+        drift_detected: modeCompliance.drift_detected,
+        political_risk_level: politicalGuard.analysis.political_risk_level,
+        evidence_strength: productValidation.evidence_strength,
+        compliance_percentage: modeCompliance.compliance_score
+      },
+      
       timestamp: new Date().toISOString()
     });
 
   } catch (error) {
-    console.error('❌ Hardened Chat API Error:', error);
+    console.error('❌ COMPLETE Enforcement System Error:', error);
     
-    // Hardened error response - never fail silently
+    // Enhanced error response with enforcement context
     return res.status(500).json({ 
-      error: 'Cognitive integrity system failure',
-      message: 'The hardened enforcement system encountered a critical error.',
+      error: 'Complete cognitive integrity system failure',
+      message: 'The full enforcement layer encountered a critical error.',
       technical_details: error.message,
-      system_status: 'DEGRADED',
+      system_status: 'CRITICAL_FAILURE',
+      enforcement_layers_failed: 'Unable to determine',
       fallback_available: false,
-      immediate_action: 'System requires immediate attention',
+      immediate_action: 'Complete system requires immediate attention',
       mode_attempted: req.body.mode || 'unknown',
       vault_attempted: req.body.vault_loaded || false,
+      session_preservation: 'Session data may be lost',
       timestamp: new Date().toISOString(),
-      error_code: 'HARD_SYSTEM_FAILURE'
+      error_code: 'COMPLETE_ENFORCEMENT_FAILURE'
     });
   }
 }
