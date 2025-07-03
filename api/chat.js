@@ -350,7 +350,19 @@ return res.status(200).json({
   enforcement_level: 'ACTIVE',
   fallback_used: modeEnforcement.original_blocked || productEnforcement.original_blocked,
   timestamp: new Date().toISOString()
-});
+    });
+  } catch (error) {
+    console.error('❌ Active Enforcement Chat API Error:', error);
+    
+    return res.status(500).json({
+      error: 'Active enforcement system failure',
+      message: 'The cognitive integrity system with active enforcement encountered an error.',
+      details: error.message,
+      enforcement_level: 'FAILED',
+      timestamp: new Date().toISOString()
+    });
+  }
+}
     } else {
       console.log('🛡️ Skipping mode compliance - political template applied');
     }
