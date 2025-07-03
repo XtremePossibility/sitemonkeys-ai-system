@@ -168,6 +168,7 @@ export default async function handler(req, res) {
   }
 
   try {
+    console.log('🔍 Starting chat handler...'); // DEBUG LINE
     const {
       message,
       conversation_history = [],
@@ -176,6 +177,7 @@ export default async function handler(req, res) {
       verify_mode = false,
       detail_level = 'essential'
     } = req.body;
+    console.log('✅ Request body parsed successfully'); // DEBUG LINE
 
     console.log('🔄 Processing with ACTIVE enforcement:', {mode, vault_loaded, message_preview: message.substring(0, 50) + '...'});
 
