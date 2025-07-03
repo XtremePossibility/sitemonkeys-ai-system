@@ -9,7 +9,6 @@ export class PoliticalGuardrails {
       return { guarded_response: response, political_intervention: false, analysis };
     }
     
-    // Apply appropriate guardrail response
     const guardedResponse = this.applyGuardrails(response, analysis);
     
     return {
@@ -28,7 +27,6 @@ export class PoliticalGuardrails {
       confidence: 0
     };
     
-    // Category 1: Voting and Electoral Content
     const votingPatterns = [
       /vote for/i,
       /don't vote for/i,
@@ -47,7 +45,6 @@ export class PoliticalGuardrails {
       analysis.confidence += 30;
     }
     
-    // Category 2: Policy Endorsement
     const policyPatterns = [
       /support this policy/i,
       /oppose this policy/i,
@@ -65,7 +62,6 @@ export class PoliticalGuardrails {
       analysis.confidence += 25;
     }
     
-    // Category 3: Ideological Nudging
     const ideologicalPatterns = [
       /(liberal|conservative|progressive|libertarian) (approach|solution) is better/i,
       /from a (left|right)-wing perspective/i,
@@ -81,7 +77,6 @@ export class PoliticalGuardrails {
       analysis.confidence += 20;
     }
     
-    // Category 4: Disputed Claims
     const disputedPatterns = [
       /climate change is (not )?real/i,
       /election was (stolen|rigged|fair)/i,
@@ -97,7 +92,6 @@ export class PoliticalGuardrails {
       analysis.confidence += 20;
     }
     
-    // Category 5: Political Figures
     const politicalFigures = [
       /president \w+ (is|was) (good|bad|great|terrible)/i,
       /(trump|biden|harris|desantis|newsom) (should|shouldn't)/i,
@@ -155,7 +149,6 @@ The choice of who to vote for is yours alone to make based on your values and pr
   }
   
   static getPolicyTemplate(response) {
-    // Extract the policy topic if possible
     const policyTopic = this.extractPolicyTopic(response);
     
     return `I don't take political positions on policy matters. Here's what I can provide about ${policyTopic || 'this topic'}:
@@ -206,7 +199,6 @@ Would you like me to provide factual information about this topic from a neutral
   }
   
   static extractPolicyTopic(response) {
-    // Simple extraction of policy topics
     const topics = [
       'healthcare', 'immigration', 'taxation', 'education', 'environment',
       'defense', 'trade', 'energy', 'infrastructure', 'social security',
@@ -257,7 +249,6 @@ Would you like me to provide factual information about this topic from a neutral
   }
 }
 
-// Convenience function for chat.js integration
 export function guardPoliticalContent(response, originalMessage) {
   return PoliticalGuardrails.guardPoliticalContent(response, originalMessage);
 }
