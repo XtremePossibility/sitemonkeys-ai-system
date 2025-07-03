@@ -319,24 +319,39 @@ export default async function handler(req, res) {
 
     // 🛡️ ENFORCEMENT LAYER 2: PRODUCT RECOMMENDATION VALIDATION
     console.log('🛡️ Applying product recommendation enforcement...');
+    console.log('🔍 Product validation input:', { message_preview: message.substring(0, 50), mode });
+    
     const productValidation = safeValidateProductRecommendation(response, mode);
+    console.log('🔍 Product validation result:', productValidation);
+    
     const productEnforcement = safeEnforceRecommendationStandards(response, productValidation);
+    console.log('🔍 Product enforcement result:', productEnforcement);
     
     if (productEnforcement.original_blocked) {
       response = productEnforcement.enforcement_response;
       enforcementLog.push("PRODUCT_RECOMMENDATION_ENFORCED");
       console.log('⚠️ Product recommendation enforced - response modified');
+    } else {
+      console.log('✅ Product recommendation passed validation');
     }
 
     // 🛡️ ENFORCEMENT LAYER 3: MODE COMPLIANCE VALIDATION
     console.log('🛡️ Applying mode compliance enforcement...');
+    console.log('🔍 Mode compliance input:', { response_preview: response.substring(0, 100), mode, modeFingerprint });
+    
     const modeValidation = safeValidateModeCompliance(response, mode, modeFingerprint);
+    console.log('🔍 Mode validation result:', modeValidation);
+    
     const modeEnforcement = safeEnforceModeCompliance(response, modeValidation);
+    console.log('🔍 Mode enforcement result:', modeEnforcement);
     
     if (modeEnforcement.original_blocked) {
       response = modeEnforcement.enforcement_response;
       enforcementLog.push("MODE_COMPLIANCE_ENFORCED");
       console.log('⚠️ Mode compliance enforced - response modified');
+      console.log('🔍 Final enforced response:', response.substring(0, 200) + '...');
+    } else {
+      console.log('✅ Mode compliance passed validation');
     }
 
     // 🔧 TOKEN TRACKING AND COST CALCULATION
@@ -346,6 +361,13 @@ export default async function handler(req, res) {
     
     safeTrackApiCall(activePersonality, promptTokens, completionTokens, vaultTokenCount);
     const sessionDisplayData = safeGetSessionDisplayData();
+    
+    console.log('💰 Token tracking results:', {
+      promptTokens,
+      completionTokens,
+      sessionDisplayData,
+      trackingSuccess: sessionDisplayData.session_cost !== '$0.0000'
+    });
 
     // Add critical assumption warnings to response
     const criticalWarnings = assumptionWarnings.filter(w => w.severity === 'CRITICAL');
