@@ -14,7 +14,6 @@ export class ProductValidator {
       enforcement_actions: []
     };
     
-    // Detect if response contains product/service recommendations
     const recommendationPatterns = [
       /recommend/i,
       /suggest/i,
@@ -30,29 +29,19 @@ export class ProductValidator {
     
     if (!hasRecommendation) {
       validation.validation_passed = true;
-      return validation; // No recommendations to validate
+      return validation;
     }
     
-    // Analyze evidence strength
     validation.evidence_strength = this.analyzeEvidenceStrength(response);
-    
-    // Analyze value proposition
     validation.value_analysis = this.analyzeValueProposition(response, mode);
-    
-    // Analyze risk assessment
     validation.risk_assessment = this.analyzeRiskAssessment(response, mode);
-    
-    // Check disclosure compliance
     validation.disclosure_compliance = this.checkDisclosureCompliance(response);
     
-    // Apply mode-specific validation
     const modeValidation = this.applyModeSpecificValidation(response, mode, vaultData);
     Object.assign(validation, modeValidation);
     
-    // Determine overall validation status
     validation.validation_passed = this.determineOverallValidation(validation);
     
-    // Generate enforcement actions if needed
     if (!validation.validation_passed) {
       validation.enforcement_actions = this.generateEnforcementActions(validation);
     }
@@ -63,7 +52,6 @@ export class ProductValidator {
   static analyzeEvidenceStrength(response) {
     let evidenceScore = 0;
     
-    // Strong evidence indicators
     const strongEvidence = [
       /based on data/i,
       /research shows/i,
@@ -73,7 +61,6 @@ export class ProductValidator {
       /documented success/i
     ];
     
-    // Weak evidence indicators (penalty)
     const weakEvidence = [
       /i think/i,
       /probably/i,
@@ -83,7 +70,6 @@ export class ProductValidator {
       /everyone uses/i
     ];
     
-    // Score based on evidence quality
     strongEvidence.forEach(pattern => {
       if (pattern.test(response)) evidenceScore += 25;
     });
@@ -92,7 +78,6 @@ export class ProductValidator {
       if (pattern.test(response)) evidenceScore -= 15;
     });
     
-    // Check for specific claims with evidence
     if (/\d+% (improvement|increase|success)/i.test(response)) evidenceScore += 20;
     if (/compared to/i.test(response)) evidenceScore += 15;
     if (/case study/i.test(response)) evidenceScore += 20;
@@ -108,14 +93,12 @@ export class ProductValidator {
     };
     
     if (mode === 'business_validation') {
-      // Business mode requires quantified value
       if (/\$[\d,]+/i.test(response) && /save|gain|increase/i.test(response)) {
         return 'COMPREHENSIVE';
       } else if (valueIndicators.COMPREHENSIVE.some(pattern => pattern.test(response))) {
         return 'PARTIAL';
       }
     } else {
-      // Truth mode requires clear value explanation
       if (valueIndicators.COMPREHENSIVE.some(pattern => pattern.test(response))) {
         return 'COMPREHENSIVE';
       } else if (valueIndicators.PARTIAL.some(pattern => pattern.test(response))) {
@@ -141,12 +124,10 @@ export class ProductValidator {
     const riskCount = riskPatterns.filter(pattern => pattern.test(response)).length;
     
     if (mode === 'business_validation') {
-      // Business mode requires explicit risk analysis
       if (riskCount >= 3 && /cost/i.test(response)) return 'COMPREHENSIVE';
       if (riskCount >= 2) return 'PARTIAL';
       return 'MISSING';
     } else {
-      // Truth mode requires some risk awareness
       if (riskCount >= 2) return 'COMPREHENSIVE';
       if (riskCount >= 1) return 'PARTIAL';
       return 'MISSING';
@@ -180,7 +161,7 @@ export class ProductValidator {
         modeValidation.risk_adjusted_projections = this.validateRiskAdjustment(response);
         break;
         
-      case 'site_monkeys_vault':
+      case 'site_monkeys':
         if (vaultData) {
           modeValidation.operational_standards = this.validateOperationalStandards(response, vaultData);
           modeValidation.vendor_logic = this.validateVendorLogic(response, vaultData);
@@ -243,11 +224,9 @@ export class ProductValidator {
   }
   
   static validateOperationalStandards(response, vaultData) {
-    // Check against Site Monkeys operational standards
     const standards = vaultData.operational_standards || [];
     let compliance = 'UNKNOWN';
     
-    // This would check specific vault constraints
     if (standards.includes('PREMIUM_POSITIONING') && /premium/i.test(response)) {
       compliance = 'COMPLIANT';
     } else if (standards.includes('COST_EFFICIENCY') && /cost.*(saving|efficient)/i.test(response)) {
@@ -258,22 +237,17 @@ export class ProductValidator {
   }
   
   static validateVendorLogic(response, vaultData) {
-    // Check against approved vendor logic
     const vendorConstraints = vaultData.vendor_constraints || [];
-    
-    // This would validate against specific vendor approval criteria
     return vendorConstraints.length > 0 ? 'VAULT_CONSTRAINED' : 'OPEN';
   }
   
   static determineOverallValidation(validation) {
-    // Strict validation requirements
     const requirements = [
       validation.evidence_strength >= 50,
       validation.value_analysis !== 'INSUFFICIENT',
       validation.risk_assessment !== 'MISSING'
     ];
     
-    // All requirements must pass
     return requirements.every(req => req === true);
   }
   
@@ -316,7 +290,6 @@ export class ProductValidator {
   }
   
   static generateStructuredRecommendation(originalResponse, validation) {
-    // If validation fails, generate corrected structure
     if (!validation.validation_passed) {
       return {
         recommendation: '[ORIGINAL RECOMMENDATION BLOCKED - INSUFFICIENT EVIDENCE]',
@@ -329,11 +302,10 @@ export class ProductValidator {
       };
     }
     
-    return null; // Original response is valid
+    return null;
   }
 }
 
-// Convenience functions for chat.js integration
 export function validateProductRecommendation(response, mode, vaultData = null) {
   return ProductValidator.validateRecommendation(response, mode, vaultData);
 }
@@ -344,7 +316,7 @@ export function enforceRecommendationStandards(response, validation) {
     
     return {
       original_blocked: true,
-      enforcement_response: `🚫 RECOMMENDATION VALIDATION FAILED
+      enforcement_response: `RECOMMENDATION VALIDATION FAILED
 
 The original response contained product/service recommendations that don't meet evidence standards:
 
