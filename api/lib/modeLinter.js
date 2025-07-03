@@ -14,22 +14,17 @@ export class ModeLinter {
       compliance_score: 0
     };
     
-    // Step 1: Validate fingerprint presence
     validation.fingerprint_valid = this.validateFingerprint(response, modeFingerprint);
     
-    // Step 2: Validate mode-specific structure
     const structureValidation = this.validateModeStructure(response, expectedMode);
     validation.required_elements_present = structureValidation.elements_present;
     validation.missing_elements = structureValidation.missing_elements;
     validation.compliance_score = structureValidation.compliance_score;
     
-    // Step 3: Detect drift patterns
     validation.drift_detected = this.detectModeDrift(response, expectedMode);
     
-    // Step 4: Determine overall compliance
     validation.mode_compliance = this.determineCompliance(validation);
     
-    // Step 5: Generate fallback correction if needed
     if (validation.mode_compliance === 'NON_COMPLIANT') {
       validation.correction_needed = true;
       validation.fallback_correction = this.generateFallbackCorrection(response, expectedMode, validation);
@@ -39,7 +34,6 @@ export class ModeLinter {
   }
   
   static validateFingerprint(response, expectedFingerprint) {
-    // Check for exact fingerprint match
     const fingerprintPattern = new RegExp(`\\[${expectedFingerprint.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\]`);
     return fingerprintPattern.test(response);
   }
@@ -50,7 +44,7 @@ export class ModeLinter {
         return this.validateBusinessMode(response);
       case 'truth_general':
         return this.validateTruthMode(response);
-      case 'site_monkeys_vault':
+      case 'site_monkeys':
         return this.validateVaultMode(response);
       default:
         return { elements_present: {}, missing_elements: ['UNKNOWN_MODE'], compliance_score: 0 };
@@ -92,7 +86,7 @@ export class ModeLinter {
   static validateTruthMode(response) {
     const requiredElements = {
       'DIRECT_ANSWER': {
-        patterns: [/^[^\\n]{10,100}/], // Direct start without hedge words
+        patterns: [/^[^\\n]{10,100}/],
         weight: 30,
         present: false
       },
@@ -169,21 +163,18 @@ export class ModeLinter {
   }
   
   static detectModeDrift(response, expectedMode) {
-    // Detect patterns that suggest wrong mode
     const modeSignatures = {
       business_validation: [/roi/i, /cash/i, /revenue/i, /cost/i, /survival/i],
       truth_general: [/evidence/i, /fact/i, /research/i, /study/i, /data/i],
-      site_monkeys_vault: [/site monkeys/i, /vault/i, /operational/i, /protocol/i]
+      site_monkeys: [/site monkeys/i, /vault/i, /operational/i, /protocol/i]
     };
     
-    // Check if response contains signatures from other modes
     const otherModes = Object.keys(modeSignatures).filter(mode => mode !== expectedMode);
     
     for (const otherMode of otherModes) {
       const signatures = modeSignatures[otherMode];
       const matchCount = signatures.filter(pattern => pattern.test(response)).length;
       
-      // If response has more signatures from another mode, it might be drift
       if (matchCount > 2) {
         return true;
       }
@@ -210,14 +201,14 @@ export class ModeLinter {
     const corrections = {
       business_validation: this.generateBusinessCorrection(response, validation),
       truth_general: this.generateTruthCorrection(response, validation),
-      site_monkeys_vault: this.generateVaultCorrection(response, validation)
+      site_monkeys: this.generateVaultCorrection(response, validation)
     };
     
     return corrections[mode] || 'Mode correction not available';
   }
   
   static generateBusinessCorrection(response, validation) {
-    let correction = `🚨 BUSINESS MODE COMPLIANCE FAILURE\n\nThe response lacks required business validation elements:\n\n`;
+    let correction = `BUSINESS MODE COMPLIANCE FAILURE\n\nThe response lacks required business validation elements:\n\n`;
     
     const missingTemplates = {
       'SURVIVAL_IMPACT': 'SURVIVAL IMPACT: [NONE/LOW/MEDIUM/HIGH/CRITICAL] - [Specific threat analysis]',
@@ -239,7 +230,7 @@ export class ModeLinter {
   }
   
   static generateTruthCorrection(response, validation) {
-    let correction = `🚨 TRUTH MODE COMPLIANCE FAILURE\n\nThe response lacks required truth enforcement elements:\n\n`;
+    let correction = `TRUTH MODE COMPLIANCE FAILURE\n\nThe response lacks required truth enforcement elements:\n\n`;
     
     const missingTemplates = {
       'DIRECT_ANSWER': 'START WITH DIRECT ANSWER: [Clear, specific response to the question]',
@@ -260,7 +251,7 @@ export class ModeLinter {
   }
   
   static generateVaultCorrection(response, validation) {
-    let correction = `🚨 VAULT MODE COMPLIANCE FAILURE\n\nThe response lacks required Site Monkeys vault elements:\n\n`;
+    let correction = `VAULT MODE COMPLIANCE FAILURE\n\nThe response lacks required Site Monkeys vault elements:\n\n`;
     
     const missingTemplates = {
       'OPERATIONAL_DECISION': 'OPERATIONAL DECISION: [Site Monkeys specific context]',
@@ -296,7 +287,6 @@ export class ModeLinter {
   }
 }
 
-// Convenience functions for chat.js integration
 export function validateModeCompliance(response, mode, fingerprint) {
   return ModeLinter.validateModeCompliance(response, mode, fingerprint);
 }
