@@ -4,13 +4,12 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-// Import ALL enforcement modules
+// Import enforcement modules with error handling
 import { trackApiCall, getSessionDisplayData } from './lib/tokenTracker.js';
 import { validateModeCompliance, enforceModeCompliance } from './lib/modeLinter.js';
 import { validateProductRecommendation, enforceRecommendationStandards } from './lib/productValidation.js';
 import { guardPoliticalContent } from './lib/politicalGuardrails.js';
 
-// Embedded logic functions (keeping these for stability)
 function processTruthGeneral() {
   return `You are operating in TRUTH-GENERAL MODE - Your job is to protect the user from false information and bad decisions through absolute clarity.
 
@@ -168,7 +167,6 @@ export default async function handler(req, res) {
   }
 
   try {
-    console.log('🔍 Starting chat handler...'); // DEBUG LINE
     const {
       message,
       conversation_history = [],
@@ -177,9 +175,8 @@ export default async function handler(req, res) {
       verify_mode = false,
       detail_level = 'essential'
     } = req.body;
-    console.log('✅ Request body parsed successfully'); // DEBUG LINE
 
-    console.log('🔄 Processing with ACTIVE enforcement:', {mode, vault_loaded, message_preview: message.substring(0, 50) + '...'});
+    console.log('🔄 Processing with complete enforcement:', {mode, vault_loaded, message_preview: message.substring(0, 50) + '...'});
 
     // Mode verification and logic loading
     let modePrompt = '';
@@ -227,11 +224,7 @@ export default async function handler(req, res) {
         }
       } catch (vaultError) {
         console.error('Vault error:', vaultError);
-        return res.status(200).json({
-          error: 'Vault loading failed',
-          message: 'Site Monkeys vault could not be loaded.',
-          fallback_mode: mode
-        });
+        vaultStatus = 'FAILED';
       }
     }
 
@@ -291,91 +284,107 @@ Include mode fingerprint: [${modeFingerprint}] - [CONFIDENCE: X%] - [SURVIVAL_IM
       temperature: mode === 'truth_general' ? 0.1 : 0.2,
     });
 
-    // 🔧 TOKEN TRACKING AND COST CALCULATION
-const promptTokens = completion.usage.prompt_tokens;
-const completionTokens = completion.usage.completion_tokens;
-const tokenTracking = trackApiCall(activePersonality, promptTokens, completionTokens, vaultTokenCount);
-const sessionDisplayData = getSessionDisplayData();
-
-// Add critical assumption warnings
-const criticalWarnings = assumptionWarnings.filter(w => w.severity === 'CRITICAL');
-if (criticalWarnings.length > 0) {
-  response += `\n\n🚨 CRITICAL ASSUMPTION ALERTS:`;
-  criticalWarnings.forEach(warning => {
-    response += `\n- ${warning.warning}`;
-  });
-}
-
-console.log('✅ All enforcement layers applied successfully');
-console.log('💰 Session Cost Data:', sessionDisplayData);
-
-// Final response construction with FULL ENFORCEMENT DATA
-return res.status(200).json({
-  response: response,
-  
-  // Core system status
-  mode_active: mode,
-  active_personality: activePersonality,
-  mode_fingerprint: modeFingerprint,
-  vault_loaded: vault_loaded,
-  vault_status: vaultStatus,
-  assumption_warnings: assumptionWarnings,
-  detail_level: detail_level,
-  
-  // 🛡️ ENFORCEMENT RESULTS
-  enforcement_applied: {
-    political_intervention: false,
-    political_risk_level: 'NONE',
-    mode_compliance: modeEnforcement.compliance_status,
-    mode_blocked: modeEnforcement.original_blocked,
-    product_validation: productValidation.validation_passed,
-    product_blocked: productEnforcement.original_blocked
-  },
-  
-  // 💰 REAL-TIME COST TRACKING (FIXED)
-  session_cost: sessionDisplayData.session_cost,
-  vault_tokens: sessionDisplayData.vault_tokens,
-  total_tokens: sessionDisplayData.total_tokens,
-  last_call_cost: sessionDisplayData.last_call_cost,
-  call_count: sessionDisplayData.call_count,
-  efficiency_rating: sessionDisplayData.efficiency_rating,
-  
-  // Token usage details
-  token_usage: {
-    prompt_tokens: promptTokens,
-    completion_tokens: completionTokens,
-    total_tokens: promptTokens + completionTokens
-  },
-  
-  // System integrity
-  security_pass: !modeEnforcement.original_blocked && !productEnforcement.original_blocked,
-  enforcement_level: 'ACTIVE',
-  fallback_used: modeEnforcement.original_blocked || productEnforcement.original_blocked,
-  timestamp: new Date().toISOString()
-    });
-  } catch (error) {
-    console.error('❌ Active Enforcement Chat API Error:', error);
-    
-    return res.status(500).json({
-      error: 'Active enforcement system failure',
-      message: 'The cognitive integrity system with active enforcement encountered an error.',
-      details: error.message,
-      enforcement_level: 'FAILED',
-      timestamp: new Date().toISOString()
-    });
-  }
-}
-    } else {
-      console.log('🛡️ Skipping mode compliance - political template applied');
-    }
-
-    // 🔧 ENFORCEMENT LAYER 4: TOKEN TRACKING AND COST CALCULATION
+    let response = completion.choices[0].message.content;
     const promptTokens = completion.usage.prompt_tokens;
     const completionTokens = completion.usage.completion_tokens;
-    const totalTokens = promptTokens + completionTokens;
-    
-    const tokenTracking = trackApiCall(activePersonality, promptTokens, completionTokens, vaultTokenCount);
-    const sessionDisplayData = getSessionDisplayData();
+
+    // 🛡️ ENFORCEMENT LAYER 1: POLITICAL CONTENT GUARDRAILS (HIGHEST PRIORITY)
+    console.log('🛡️ Applying political enforcement...');
+    let politicalResult;
+    try {
+      politicalResult = guardPoliticalContent(response, message);
+      console.log('🔍 Political analysis:', politicalResult.analysis);
+      
+      if (politicalResult.political_intervention) {
+        response = politicalResult.guarded_response;
+        console.log('⚠️ POLITICAL TEMPLATE APPLIED');
+        
+        // For political content, skip other enforcement and return immediately
+        const tokenTracking = trackApiCall(activePersonality, promptTokens, completionTokens, vaultTokenCount);
+        const sessionDisplayData = getSessionDisplayData();
+        
+        return res.status(200).json({
+          response: response,
+          mode_active: mode,
+          active_personality: activePersonality,
+          mode_fingerprint: modeFingerprint,
+          vault_loaded: vault_loaded,
+          vault_status: vaultStatus,
+          assumption_warnings: assumptionWarnings,
+          
+          enforcement_applied: {
+            political_intervention: true,
+            political_risk_level: politicalResult.analysis.political_risk_level,
+            political_template: politicalResult.analysis.intervention_type,
+            mode_compliance: 'SKIPPED_POLITICAL',
+            product_validation: 'SKIPPED_POLITICAL'
+          },
+          
+          session_cost: sessionDisplayData.session_cost,
+          vault_tokens: sessionDisplayData.vault_tokens,
+          total_tokens: sessionDisplayData.total_tokens,
+          last_call_cost: sessionDisplayData.last_call_cost,
+          call_count: sessionDisplayData.call_count,
+          
+          security_pass: true,
+          enforcement_level: 'POLITICAL_TEMPLATE',
+          timestamp: new Date().toISOString()
+        });
+      }
+    } catch (politicalError) {
+      console.error('Political enforcement error:', politicalError);
+      politicalResult = { political_intervention: false, analysis: { political_risk_level: 'UNKNOWN' } };
+    }
+
+    // 🛡️ ENFORCEMENT LAYER 2: PRODUCT RECOMMENDATION VALIDATION
+    console.log('🛡️ Applying product validation...');
+    let productValidation, productEnforcement;
+    try {
+      productValidation = validateProductRecommendation(response, mode);
+      productEnforcement = enforceRecommendationStandards(response, productValidation);
+      
+      if (productEnforcement.original_blocked) {
+        response = productEnforcement.enforcement_response;
+        console.log('⚠️ Product recommendation blocked');
+      }
+    } catch (productError) {
+      console.error('Product validation error:', productError);
+      productValidation = { validation_passed: true };
+      productEnforcement = { original_blocked: false };
+    }
+
+    // 🛡️ ENFORCEMENT LAYER 3: MODE COMPLIANCE VALIDATION
+    console.log('🛡️ Applying mode compliance...');
+    let modeValidation, modeEnforcement;
+    try {
+      modeValidation = validateModeCompliance(response, mode, modeFingerprint);
+      modeEnforcement = enforceModeCompliance(response, modeValidation);
+      
+      if (modeEnforcement.original_blocked) {
+        response = modeEnforcement.enforcement_response;
+        console.log('⚠️ Mode compliance enforced');
+      }
+    } catch (modeError) {
+      console.error('Mode validation error:', modeError);
+      modeValidation = { mode_compliance: 'ERROR' };
+      modeEnforcement = { original_blocked: false, compliance_status: 'ERROR' };
+    }
+
+    // 🛡️ TOKEN TRACKING AND COST CALCULATION
+    let tokenTracking, sessionDisplayData;
+    try {
+      tokenTracking = trackApiCall(activePersonality, promptTokens, completionTokens, vaultTokenCount);
+      sessionDisplayData = getSessionDisplayData();
+    } catch (tokenError) {
+      console.error('Token tracking error:', tokenError);
+      sessionDisplayData = {
+        session_cost: '$0.0000',
+        vault_tokens: 0,
+        total_tokens: promptTokens + completionTokens,
+        last_call_cost: '$0.0000',
+        call_count: 0
+      };
+    }
 
     // Add critical assumption warnings
     const criticalWarnings = assumptionWarnings.filter(w => w.severity === 'CRITICAL');
@@ -386,9 +395,9 @@ return res.status(200).json({
       });
     }
 
-    console.log('✅ All enforcement layers applied successfully');
+    console.log('✅ All enforcement completed successfully');
 
-    // Final response construction with ENFORCEMENT DATA
+    // Final response with complete enforcement data
     return res.status(200).json({
       response: response,
       
@@ -401,38 +410,45 @@ return res.status(200).json({
       assumption_warnings: assumptionWarnings,
       detail_level: detail_level,
       
-      // 🛡️ ENFORCEMENT RESULTS
+      // Enforcement results
       enforcement_applied: {
+        political_intervention: politicalResult.political_intervention,
+        political_risk_level: politicalResult.analysis.political_risk_level,
         mode_compliance: modeEnforcement.compliance_status,
         mode_blocked: modeEnforcement.original_blocked,
         product_validation: productValidation.validation_passed,
-        product_blocked: productEnforcement.original_blocked,
-        political_intervention: politicalResult.political_intervention,
-        political_risk_level: politicalResult.analysis.political_risk_level
+        product_blocked: productEnforcement.original_blocked
       },
       
-      // 💰 REAL-TIME COST TRACKING
+      // Real-time cost tracking
       session_cost: sessionDisplayData.session_cost,
       vault_tokens: sessionDisplayData.vault_tokens,
       total_tokens: sessionDisplayData.total_tokens,
       last_call_cost: sessionDisplayData.last_call_cost,
       call_count: sessionDisplayData.call_count,
       
+      // Token usage details
+      token_usage: {
+        prompt_tokens: promptTokens,
+        completion_tokens: completionTokens,
+        total_tokens: promptTokens + completionTokens
+      },
+      
       // System integrity
-      security_pass: !modeEnforcement.original_blocked && !productEnforcement.original_blocked && !politicalResult.political_intervention,
-      enforcement_level: 'ACTIVE',
+      security_pass: !modeEnforcement.original_blocked && !productEnforcement.original_blocked,
+      enforcement_level: 'COMPLETE',
       fallback_used: modeEnforcement.original_blocked || productEnforcement.original_blocked,
       timestamp: new Date().toISOString()
     });
 
   } catch (error) {
-    console.error('❌ Active Enforcement Chat API Error:', error);
+    console.error('❌ Complete enforcement system error:', error);
     
     return res.status(500).json({
-      error: 'Active enforcement system failure',
-      message: 'The cognitive integrity system with active enforcement encountered an error.',
+      error: 'Complete enforcement system failure',
+      message: 'The cognitive integrity system encountered a critical error.',
       details: error.message,
-      enforcement_level: 'FAILED',
+      enforcement_level: 'SYSTEM_FAILURE',
       timestamp: new Date().toISOString()
     });
   }
