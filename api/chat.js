@@ -291,16 +291,15 @@ Include mode fingerprint: [${modeFingerprint}] - [CONFIDENCE: X%] - [SURVIVAL_IM
 
     let response = completion.choices[0].message.content;
 
-    // 🔧 ENFORCEMENT LAYER 1: MODE COMPLIANCE VALIDATION
-    console.log('🛡️ Applying mode compliance enforcement...');
-    const modeValidation = validateModeCompliance(response, mode, modeFingerprint);
-    const modeEnforcement = enforceModeCompliance(response, modeValidation);
-    if (modeEnforcement.original_blocked) {
-      response = modeEnforcement.enforcement_response;
-      console.log('⚠️ Mode compliance enforced - response modified');
+    // 🔧 ENFORCEMENT LAYER 1: POLITICAL CONTENT GUARDRAILS (FIRST - HIGHEST PRIORITY)
+    console.log('🛡️ Applying political content enforcement...');
+    const politicalResult = guardPoliticalContent(response, message);
+    if (politicalResult.political_intervention) {
+      response = politicalResult.guarded_response;
+      console.log('⚠️ Political content enforced - response replaced with template');
     }
 
-    // 🔧 ENFORCEMENT LAYER 2: PRODUCT RECOMMENDATION VALIDATION
+    // 🔧 ENFORCEMENT LAYER 2: PRODUCT RECOMMENDATION VALIDATION (SECOND - CONTENT VALIDATION)
     console.log('🛡️ Applying product recommendation enforcement...');
     const productValidation = validateProductRecommendation(response, mode);
     const productEnforcement = enforceRecommendationStandards(response, productValidation);
@@ -309,12 +308,21 @@ Include mode fingerprint: [${modeFingerprint}] - [CONFIDENCE: X%] - [SURVIVAL_IM
       console.log('⚠️ Product recommendation enforced - response modified');
     }
 
-    // 🔧 ENFORCEMENT LAYER 3: POLITICAL CONTENT GUARDRAILS
-    console.log('🛡️ Applying political content enforcement...');
-    const politicalResult = guardPoliticalContent(response, message);
-    if (politicalResult.political_intervention) {
-      response = politicalResult.guarded_response;
-      console.log('⚠️ Political content enforced - response modified');
+    // 🔧 ENFORCEMENT LAYER 3: MODE COMPLIANCE VALIDATION (LAST - STRUCTURAL VALIDATION)
+    // Only apply if no political intervention occurred (political templates don't need mode validation)
+    let modeValidation = { mode_compliance: 'COMPLIANT' };
+    let modeEnforcement = { original_blocked: false, compliance_status: 'COMPLIANT' };
+    
+    if (!politicalResult.political_intervention) {
+      console.log('🛡️ Applying mode compliance enforcement...');
+      modeValidation = validateModeCompliance(response, mode, modeFingerprint);
+      modeEnforcement = enforceModeCompliance(response, modeValidation);
+      if (modeEnforcement.original_blocked) {
+        response = modeEnforcement.enforcement_response;
+        console.log('⚠️ Mode compliance enforced - response modified');
+      }
+    } else {
+      console.log('🛡️ Skipping mode compliance - political template applied');
     }
 
     // 🔧 ENFORCEMENT LAYER 4: TOKEN TRACKING AND COST CALCULATION
