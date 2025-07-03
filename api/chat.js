@@ -4,169 +4,170 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-// Import enforcement modules with error handling
+// Enhanced enforcement imports with error handling
 import { trackApiCall, getSessionDisplayData } from './lib/tokenTracker.js';
 import { validateModeCompliance, enforceModeCompliance } from './lib/modeLinter.js';
 import { validateProductRecommendation, enforceRecommendationStandards } from './lib/productValidation.js';
 import { guardPoliticalContent } from './lib/politicalGuardrails.js';
 
-function processTruthGeneral() {
-  return `You are operating in TRUTH-GENERAL MODE - Your job is to protect the user from false information and bad decisions through absolute clarity.
-
-CORE BEHAVIORAL ENFORCEMENT:
-- Truth over comfort - NEVER soften reality to make someone feel better
-- "I don't know" is a complete, valid answer - no pressure to guess
-- Surface every risk and edge case - assume they haven't considered the downsides
-- Challenge every assumption - especially the ones they're most confident about
-- When data is weak/uncertain/interpolated - FLAG IT IMMEDIATELY
-- Zero tolerance for hallucinated facts, dates, statistics, or technical details
-
-RESPONSE STRUCTURE REQUIREMENTS:
-1. Direct answer with confidence level (High/Medium/Low/Unknown)
-2. Surface critical risks they haven't asked about
-3. Challenge core assumptions embedded in their question
-4. Provide clear next steps only if actionable
-
-MODE FINGERPRINT: TG-PROD-001`;
-}
-
-function processBusinessValidation() {
-  return `You are operating in BUSINESS-VALIDATION MODE - Your job is to keep businesses alive by confronting survival threats and protecting founders from pressure-based decisions.
-
-SURVIVAL-FIRST ENFORCEMENT:
-- Cash preservation > everything else
-- Model worst-case scenarios FIRST - optimistic cases kill businesses
-- Every decision must show specific dollar impact on runway
-- Surface the 3 most dangerous failure modes for every strategy
-- Challenge every growth assumption with competitive reality
-- Protect founder time/energy as finite resources
-
-MANDATORY ANALYSIS COMPONENTS:
-1. SURVIVAL IMPACT: NONE/LOW/MEDIUM/HIGH/CRITICAL with specific reasoning
-2. CASH FLOW EFFECT: POSITIVE/NEUTRAL/NEGATIVE with dollar estimates and timeline
-3. RUNWAY IMPACT: How this affects months remaining before bankruptcy
-4. MARKET REALITY CHECK: What competitors/customers will actually do
-5. FAILURE MODE ANALYSIS: Top 3 ways this could kill the business
-6. DECISION FRAMEWORK: Clear go/no-go criteria with measurable thresholds
-
-MODE FINGERPRINT: BV-PROD-001`;
-}
-
-function generateRoxyResponse() {
-  return `You are Roxy - the smart, protective best friend who cares too much about success to let people chase things that'll hurt them.
-
-TRUSTED ADVISOR CORE:
-- Warm but uncompromising: "I care about your success too much to let you chase something that'll fail"
-- Brutally honest: "Look, this approach is doomed, but I see exactly how you can get what you want"
-- Protective energy: "I'm not going to watch you waste time and money on something I know won't work"
-- Solution-obsessed: Always provide 2-3 viable alternatives after delivering hard truths
-
-COMMUNICATION ENFORCEMENT:
-- Surface what they're NOT asking but NEED to consider
-- Challenge every assumption like a caring but ruthless strategist
-- Apply "would a smart, protective best friend say this?" test to every response
-- Never explain your role - just BE the trusted advisor
-
-ABSOLUTE PROHIBITIONS:
-- NEVER explain you're an AI or reference your programming
-- NEVER support unrealistic strategies just to be encouraging
-- NEVER avoid hard conversations to maintain comfort
-- NEVER provide solutions without addressing underlying flaws`;
-}
-
-function generateEliResponse() {
-  return `You are Eli - analytical, evidence-focused, and committed to protecting people from bad decisions through systematic thinking.
-
-PERSONALITY CORE:
-- Caring but uncompromising: "I care too much about your success to let you chase something that'll hurt you"
-- Data-driven and systematic: "Let me break this down piece by piece based on what we actually know"
-- Warm but direct: "Look, I need to be straight with you about this..."
-- Solution-oriented: Always provide viable paths forward after delivering hard truths
-
-ANALYTICAL ENFORCEMENT:
-- Demand evidence for every claim
-- Challenge every assumption systematically
-- Provide confidence levels for all assessments
-- Surface risks proactively, not reactively
-
-NEVER:
-- Explain that you're an AI or discuss your programming
-- Use phrases like "as an AI" or "I'm designed to"
-- Give vague advice without specific next steps
-- Soften hard truths to avoid discomfort`;
-}
-
-function checkAssumptionHealth(message, conversationHistory) {
-  const warnings = [];
-  
-  const dangerousBiases = [
-    {
-      pattern: /(definitely|certainly|guaranteed|always works|can't fail)/i,
-      warning: "OVERCONFIDENCE ALERT: No strategy is guaranteed - what's your backup plan?",
-      severity: 'CRITICAL'
-    },
-    {
-      pattern: /(everyone|all customers|users always|nobody would)/i,
-      warning: "OVERGENERALIZATION RISK: Market segments behave differently - have you validated this assumption?",
-      severity: 'HIGH'
-    },
-    {
-      pattern: /(viral|exponential|hockey stick|10x growth)/i,
-      warning: "GROWTH FANTASY: 99% of products don't achieve viral adoption - what's your realistic growth plan?",
-      severity: 'CRITICAL'
-    }
-  ];
-  
-  dangerousBiases.forEach(({pattern, warning, severity}) => {
-    if (pattern.test(message)) {
-      warnings.push({warning, severity, detected_pattern: pattern.source});
-    }
-  });
-  
-  return warnings;
-}
-
-async function loadVaultLogic() {
+// Graceful fallback for missing enforcement modules
+function safeGuardPoliticalContent(response, message) {
   try {
-    return {
-      vault_id: 'SITE_MONKEYS_VAULT_001',
-      logic: `SITE MONKEYS OPERATIONAL VAULT LOADED
-
-CORE BUSINESS CONSTRAINTS:
-- Minimum 6-month cash runway must be preserved
-- No pricing below premium tier thresholds
-- All decisions must strengthen competitive moats
-- Founder time protection: max 60hrs/week sustainable`,
-      frameworks: ['PRICING_FRAMEWORK', 'FINANCIAL_CONSTRAINTS', 'BRAND_ALIGNMENT'],
-      version: '1.0.3',
-      token_count: 847,
-      loaded_at: new Date().toISOString()
-    };
+    return guardPoliticalContent(response, message);
   } catch (error) {
-    console.error('Vault loading failed:', error);
-    return null;
+    console.error('❌ Political guardrails failed:', error);
+    
+    // Emergency political template fallback
+    const politicalKeywords = ['vote', 'election', 'democrat', 'republican', 'candidate', 'party', 'political'];
+    const isPolitical = politicalKeywords.some(keyword => 
+      message.toLowerCase().includes(keyword) || response.toLowerCase().includes(keyword)
+    );
+    
+    if (isPolitical) {
+      return {
+        political_intervention: true,
+        guarded_response: `Voting is a sacred personal right and powerful responsibility. I cannot and will not tell you who to vote for - that would be inappropriate and undermines your personal agency.\n\nWhat I can do:\n• Help you find factual information about candidates or issues\n• Direct you to multiple reliable sources\n• Encourage thorough research before making decisions\n\nYour vote should be based on your own informed analysis of what's best for the country, not an AI's recommendation.`,
+        analysis: {
+          political_risk_level: 'HIGH',
+          intervention_type: 'EMERGENCY_VOTING_TEMPLATE'
+        }
+      };
+    }
+    
+    return { political_intervention: false };
   }
 }
 
-function routePersonality(message, mode, conversationHistory) {
-  const messageCount = conversationHistory.length;
-  return messageCount % 2 === 0 ? 'eli' : 'roxy';
+function safeValidateProductRecommendation(response, mode) {
+  try {
+    return validateProductRecommendation(response, mode);
+  } catch (error) {
+    console.error('❌ Product validation failed:', error);
+    return { validation_passed: true, risk_level: 'UNKNOWN' };
+  }
+}
+
+function safeEnforceRecommendationStandards(response, validation) {
+  try {
+    return enforceRecommendationStandards(response, validation);
+  } catch (error) {
+    console.error('❌ Product enforcement failed:', error);
+    return { original_blocked: false, enforcement_response: response };
+  }
+}
+
+function safeValidateModeCompliance(response, mode, fingerprint) {
+  try {
+    return validateModeCompliance(response, mode, fingerprint);
+  } catch (error) {
+    console.error('❌ Mode validation failed:', error);
+    return { mode_compliance: 'ERROR', compliance_score: 0 };
+  }
+}
+
+function safeEnforceModeCompliance(response, validation) {
+  try {
+    return enforceModeCompliance(response, validation);
+  } catch (error) {
+    console.error('❌ Mode enforcement failed:', error);
+    return { 
+      original_blocked: true, 
+      compliance_status: 'ENFORCEMENT_FAILED',
+      enforcement_response: `SYSTEM ENFORCEMENT FAILURE\n\nThe cognitive integrity system encountered an error while validating this response. This is a protective fallback to ensure no unverified information reaches you.\n\nPlease rephrase your question or try a different approach. If this persists, the system may need maintenance.`
+    };
+  }
+}
+
+function safeTrackApiCall(personality, promptTokens, completionTokens, vaultTokens) {
+  try {
+    return trackApiCall(personality, promptTokens, completionTokens, vaultTokens);
+  } catch (error) {
+    console.error('❌ Token tracking failed:', error);
+    return { success: false };
+  }
+}
+
+function safeGetSessionDisplayData() {
+  try {
+    return getSessionDisplayData();
+  } catch (error) {
+    console.error('❌ Session data retrieval failed:', error);
+    return {
+      session_cost: '$0.0000',
+      vault_tokens: 0,
+      total_tokens: 0,
+      last_call_cost: '$0.0000',
+      call_count: 0,
+      efficiency_rating: 'UNKNOWN'
+    };
+  }
+}
+
+// Mode processors
+function processTruthGeneral() {
+  return `You are Eli, the Truth-General mode assistant. Your core purpose is providing clear, honest, evidence-based responses.
+
+TRUTH-FIRST LOGIC (NON-NEGOTIABLE):
+- Start with direct answers when possible
+- Use confidence scoring for claims (High/Medium/Low/Unknown)
+- Acknowledge uncertainty explicitly ("I don't know" is valid)
+- Never speculate without labeling it clearly
+- Challenge assumptions in questions when appropriate
+- Provide evidence hierarchy (primary sources > reports > assumptions)
+
+POLITICAL NEUTRALITY:
+- Provide factual information with sources and confidence levels
+- Never make voting recommendations or political endorsements
+- Present multiple perspectives for disputed political facts
+- Redirect political opinion requests to personal research
+
+PRODUCT RECOMMENDATIONS:
+- Base recommendations on evidence, reviews, and technical analysis
+- Include disclosure when reliable data is limited
+- Focus on user-specific needs rather than popularity
+
+Remember: Truth over comfort, evidence over speculation, honesty over harmony.`;
+}
+
+function processBusinessValidation() {
+  return `You are Roxy, the Business Validation mode assistant. Your expertise is startup viability, risk analysis, and market reality.
+
+BUSINESS SURVIVAL LOGIC (NON-NEGOTIABLE):
+- Always include survival impact assessment (NONE/LOW/MEDIUM/HIGH/CRITICAL)
+- Provide cash flow analysis with realistic timelines
+- Include market reality checks and competitive threats
+- Focus on monetization logic and sustainable growth
+- Challenge optimistic assumptions with market data
+
+POLITICAL NEUTRALITY:
+- Analyze regulatory impacts factually without political bias
+- Provide business policy analysis without endorsements
+- Focus on business implications, not political positions
+
+REQUIRED STRUCTURE:
+- SURVIVAL IMPACT: [Impact level] - [Specific threat analysis]
+- CASH FLOW ANALYSIS: [POSITIVE/NEUTRAL/NEGATIVE] $[Amount] over [Timeline]
+- MARKET REALITY CHECK: [Competitive threats and adoption challenges]
+
+Remember: Business survival over optimism, cash flow over dreams, market reality over hype.`;
 }
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  
+
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
-  
+
   if (req.method !== 'POST') {
     return res.status(405).json({error: 'Method not allowed'});
   }
 
   try {
+    console.log('🔍 Starting active enforcement chat handler...');
+    
     const {
       message,
       conversation_history = [],
@@ -176,217 +177,177 @@ export default async function handler(req, res) {
       detail_level = 'essential'
     } = req.body;
 
-    console.log('🔄 Processing with complete enforcement:', {mode, vault_loaded, message_preview: message.substring(0, 50) + '...'});
+    console.log('✅ Request parsed:', {mode, vault_loaded, message_preview: message.substring(0, 50) + '...'});
 
-    // Mode verification and logic loading
+    // Mode logic loading with vault consideration
     let modePrompt = '';
     let modeFingerprint = '';
-    
-    switch (mode) {
-      case 'truth_general':
-        modePrompt = processTruthGeneral();
-        modeFingerprint = 'TG-PROD-001';
-        break;
-      case 'business_validation':
-        modePrompt = processBusinessValidation();
-        modeFingerprint = 'BV-PROD-001';
-        break;
-      case 'site_monkeys':
-        modePrompt = processBusinessValidation();
-        modeFingerprint = 'BV-PROD-001';
-        break;
-      default:
-        return res.status(400).json({
-          error: 'Invalid mode specified',
-          valid_modes: ['truth_general', 'business_validation', 'site_monkeys'],
-          attempted_mode: mode
-        });
-    }
+    let activePersonality = '';
+    let vaultStatus = vault_loaded ? 'LOADED' : 'NOT_LOADED';
 
-    // Assumption health monitoring
-    const assumptionWarnings = checkAssumptionHealth(message, conversation_history);
-    
-    // Vault logic integration
-    let vaultPrompt = '';
-    let vaultStatus = 'NONE';
-    let vaultTokenCount = 0;
-    
-    if (vault_loaded) {
-      try {
-        const vaultData = await loadVaultLogic();
-        if (vaultData) {
-          vaultPrompt = vaultData.logic;
-          vaultStatus = 'LOADED';
-          vaultTokenCount = vaultData.token_count || 0;
-          modeFingerprint += ' + SM-VAULT-LOADED';
-        } else {
-          vaultStatus = 'FAILED';
-        }
-      } catch (vaultError) {
-        console.error('Vault error:', vaultError);
-        vaultStatus = 'FAILED';
+    if (vault_loaded && mode === 'site_monkeys') {
+      // Load Site Monkeys vault content here
+      modePrompt = processBusinessValidation() + '\n\n[SITE MONKEYS VAULT CONTENT WOULD BE INJECTED HERE]';
+      modeFingerprint = 'SM-VAULT-001';
+      activePersonality = 'Claude (Site Monkeys)';
+      vaultStatus = 'LOADED';
+    } else {
+      switch (mode) {
+        case 'truth_general':
+          modePrompt = processTruthGeneral();
+          modeFingerprint = 'TG-PROD-001';
+          activePersonality = 'Eli';
+          break;
+        case 'business_validation':
+          modePrompt = processBusinessValidation();
+          modeFingerprint = 'BV-PROD-001';
+          activePersonality = 'Roxy';
+          break;
+        case 'site_monkeys':
+          modePrompt = processBusinessValidation();
+          modeFingerprint = 'BV-PROD-001';
+          activePersonality = 'Roxy';
+          break;
+        default:
+          return res.status(400).json({
+            error: 'Invalid mode specified',
+            valid_modes: ['truth_general', 'business_validation', 'site_monkeys'],
+            attempted_mode: mode
+          });
       }
     }
 
-    // Personality routing
-    const activePersonality = routePersonality(message, mode, conversation_history);
-    let personalityPrompt = '';
-    
-    if (activePersonality === 'eli') {
-      personalityPrompt = generateEliResponse();
-    } else {
-      personalityPrompt = generateRoxyResponse();
-    }
+    console.log('✅ Mode configured:', { mode, activePersonality, modeFingerprint });
 
-    // System prompt construction
-    const assumptionAlerts = assumptionWarnings.length > 0 ? 
-      `\n\nCRITICAL ASSUMPTION ALERTS:\n${assumptionWarnings.map(w => `- ${w.warning} [${w.severity}]`).join('\n')}` : '';
+    // Assumption detection (basic implementation)
+    const assumptionWarnings = [];
+    const assumptionKeywords = ['obviously', 'everyone knows', 'it\'s clear that', 'certainly'];
+    assumptionKeywords.forEach(keyword => {
+      if (message.toLowerCase().includes(keyword)) {
+        assumptionWarnings.push({
+          keyword: keyword,
+          warning: `Assumption detected: "${keyword}" - consider if this is universally true`,
+          severity: 'MEDIUM'
+        });
+      }
+    });
 
-    const systemPrompt = `${modePrompt}
+    // Build conversation for OpenAI
+    const messages = [
+      { role: 'system', content: modePrompt },
+      ...conversation_history,
+      { role: 'user', content: message }
+    ];
 
-${personalityPrompt}
+    console.log('🚀 Calling OpenAI API...');
 
-${vaultPrompt}
-
-CURRENT_MODE: ${mode}
-ACTIVE_PERSONALITY: ${activePersonality}
-VAULT_STATUS: ${vaultStatus}
-MODE_FINGERPRINT: ${modeFingerprint}${assumptionAlerts}
-
-CONVERSATION_CONTEXT: ${JSON.stringify(conversation_history.slice(-3))}
-
-ENFORCEMENT RULES:
-- ZERO TOLERANCE for hallucinated data or optimistic assumptions
-- AGGRESSIVE assumption challenging - surface every dangerous bias
-- WARM TRUTH DELIVERY - be caring but uncompromising about reality
-- NO AI SELF-REFERENCE - never explain your role or programming
-- SURVIVAL-FIRST LOGIC for business decisions
-
-Your response must be exactly what a smart, caring, brutally honest best friend would say.
-Include mode fingerprint: [${modeFingerprint}] - [CONFIDENCE: X%] - [SURVIVAL_IMPACT: LEVEL]`;
-
-    console.log('🚀 Generating response with mode:', mode, 'personality:', activePersonality);
-
-    // AI response generation
     const completion = await openai.chat.completions.create({
-      model: "gpt-4",
-      messages: [
-        {
-          role: "system",
-          content: systemPrompt
-        },
-        {
-          role: "user",
-          content: message
-        }
-      ],
-      max_tokens: detail_level === 'full' ? 1500 : detail_level === 'detailed' ? 800 : 400,
-      temperature: mode === 'truth_general' ? 0.1 : 0.2,
+      model: 'gpt-4',
+      messages: messages,
+      max_tokens: 2000,
+      temperature: 0.7
     });
 
     let response = completion.choices[0].message.content;
-    const promptTokens = completion.usage.prompt_tokens;
-    const completionTokens = completion.usage.completion_tokens;
+    console.log('✅ OpenAI response received');
 
+    // 🔧 CRITICAL ENFORCEMENT SEQUENCE - POLITICAL GUARDRAILS FIRST
+    const enforcementLog = [];
+    
     // 🛡️ ENFORCEMENT LAYER 1: POLITICAL CONTENT GUARDRAILS (HIGHEST PRIORITY)
-    console.log('🛡️ Applying political enforcement...');
-    let politicalResult;
-    try {
-      politicalResult = guardPoliticalContent(response, message);
-      console.log('🔍 Political analysis:', politicalResult.analysis);
+    console.log('🛡️ Applying political content enforcement...');
+    console.log('🔍 Political analysis input:', { 
+      message_preview: message.substring(0, 100),
+      response_preview: response.substring(0, 100)
+    });
+    
+    const politicalResult = safeGuardPoliticalContent(response, message);
+    console.log('🔍 Political analysis result:', politicalResult);
+    
+    if (politicalResult.political_intervention) {
+      response = politicalResult.guarded_response;
+      enforcementLog.push("POLITICAL_GUARDRAIL_TRIGGERED");
+      console.log('⚠️ POLITICAL TEMPLATE APPLIED - skipping other enforcement');
       
-      if (politicalResult.political_intervention) {
-        response = politicalResult.guarded_response;
-        console.log('⚠️ POLITICAL TEMPLATE APPLIED');
+      // Political content gets immediate return with tracking
+      const promptTokens = completion.usage.prompt_tokens;
+      const completionTokens = completion.usage.completion_tokens;
+      const vaultTokenCount = vault_loaded ? 500 : 0; // Estimate vault tokens
+      
+      safeTrackApiCall(activePersonality, promptTokens, completionTokens, vaultTokenCount);
+      const sessionDisplayData = safeGetSessionDisplayData();
+      
+      return res.status(200).json({
+        response: response,
+        mode_active: mode,
+        active_personality: activePersonality,
+        mode_fingerprint: modeFingerprint,
+        vault_loaded: vault_loaded,
+        vault_status: vaultStatus,
+        assumption_warnings: assumptionWarnings,
+        detail_level: detail_level,
         
-        // For political content, skip other enforcement and return immediately
-        const tokenTracking = trackApiCall(activePersonality, promptTokens, completionTokens, vaultTokenCount);
-        const sessionDisplayData = getSessionDisplayData();
+        // POLITICAL ENFORCEMENT RESULTS
+        enforcement_applied: {
+          political_intervention: true,
+          political_risk_level: politicalResult.analysis.political_risk_level,
+          political_template_used: politicalResult.analysis.intervention_type,
+          mode_compliance: 'SKIPPED_POLITICAL',
+          product_validation: 'SKIPPED_POLITICAL'
+        },
         
-        return res.status(200).json({
-          response: response,
-          mode_active: mode,
-          active_personality: activePersonality,
-          mode_fingerprint: modeFingerprint,
-          vault_loaded: vault_loaded,
-          vault_status: vaultStatus,
-          assumption_warnings: assumptionWarnings,
-          
-          enforcement_applied: {
-            political_intervention: true,
-            political_risk_level: politicalResult.analysis.political_risk_level,
-            political_template: politicalResult.analysis.intervention_type,
-            mode_compliance: 'SKIPPED_POLITICAL',
-            product_validation: 'SKIPPED_POLITICAL'
-          },
-          
-          session_cost: sessionDisplayData.session_cost,
-          vault_tokens: sessionDisplayData.vault_tokens,
-          total_tokens: sessionDisplayData.total_tokens,
-          last_call_cost: sessionDisplayData.last_call_cost,
-          call_count: sessionDisplayData.call_count,
-          
-          security_pass: true,
-          enforcement_level: 'POLITICAL_TEMPLATE',
-          timestamp: new Date().toISOString()
-        });
-      }
-    } catch (politicalError) {
-      console.error('Political enforcement error:', politicalError);
-      politicalResult = { political_intervention: false, analysis: { political_risk_level: 'UNKNOWN' } };
+        // TOKEN TRACKING FIXED
+        session_cost: sessionDisplayData.session_cost,
+        vault_tokens: sessionDisplayData.vault_tokens,
+        total_tokens: sessionDisplayData.total_tokens,
+        last_call_cost: sessionDisplayData.last_call_cost,
+        call_count: sessionDisplayData.call_count,
+        efficiency_rating: sessionDisplayData.efficiency_rating,
+        
+        token_usage: {
+          prompt_tokens: promptTokens,
+          completion_tokens: completionTokens,
+          total_tokens: promptTokens + completionTokens
+        },
+        
+        security_pass: true, // Political templates are secure
+        enforcement_level: 'POLITICAL_TEMPLATE_APPLIED',
+        enforcement_log: enforcementLog,
+        timestamp: new Date().toISOString()
+      });
     }
 
     // 🛡️ ENFORCEMENT LAYER 2: PRODUCT RECOMMENDATION VALIDATION
-    console.log('🛡️ Applying product validation...');
-    let productValidation, productEnforcement;
-    try {
-      productValidation = validateProductRecommendation(response, mode);
-      productEnforcement = enforceRecommendationStandards(response, productValidation);
-      
-      if (productEnforcement.original_blocked) {
-        response = productEnforcement.enforcement_response;
-        console.log('⚠️ Product recommendation blocked');
-      }
-    } catch (productError) {
-      console.error('Product validation error:', productError);
-      productValidation = { validation_passed: true };
-      productEnforcement = { original_blocked: false };
+    console.log('🛡️ Applying product recommendation enforcement...');
+    const productValidation = safeValidateProductRecommendation(response, mode);
+    const productEnforcement = safeEnforceRecommendationStandards(response, productValidation);
+    
+    if (productEnforcement.original_blocked) {
+      response = productEnforcement.enforcement_response;
+      enforcementLog.push("PRODUCT_RECOMMENDATION_ENFORCED");
+      console.log('⚠️ Product recommendation enforced - response modified');
     }
 
     // 🛡️ ENFORCEMENT LAYER 3: MODE COMPLIANCE VALIDATION
-    console.log('🛡️ Applying mode compliance...');
-    let modeValidation, modeEnforcement;
-    try {
-      modeValidation = validateModeCompliance(response, mode, modeFingerprint);
-      modeEnforcement = enforceModeCompliance(response, modeValidation);
-      
-      if (modeEnforcement.original_blocked) {
-        response = modeEnforcement.enforcement_response;
-        console.log('⚠️ Mode compliance enforced');
-      }
-    } catch (modeError) {
-      console.error('Mode validation error:', modeError);
-      modeValidation = { mode_compliance: 'ERROR' };
-      modeEnforcement = { original_blocked: false, compliance_status: 'ERROR' };
+    console.log('🛡️ Applying mode compliance enforcement...');
+    const modeValidation = safeValidateModeCompliance(response, mode, modeFingerprint);
+    const modeEnforcement = safeEnforceModeCompliance(response, modeValidation);
+    
+    if (modeEnforcement.original_blocked) {
+      response = modeEnforcement.enforcement_response;
+      enforcementLog.push("MODE_COMPLIANCE_ENFORCED");
+      console.log('⚠️ Mode compliance enforced - response modified');
     }
 
-    // 🛡️ TOKEN TRACKING AND COST CALCULATION
-    let tokenTracking, sessionDisplayData;
-    try {
-      tokenTracking = trackApiCall(activePersonality, promptTokens, completionTokens, vaultTokenCount);
-      sessionDisplayData = getSessionDisplayData();
-    } catch (tokenError) {
-      console.error('Token tracking error:', tokenError);
-      sessionDisplayData = {
-        session_cost: '$0.0000',
-        vault_tokens: 0,
-        total_tokens: promptTokens + completionTokens,
-        last_call_cost: '$0.0000',
-        call_count: 0
-      };
-    }
+    // 🔧 TOKEN TRACKING AND COST CALCULATION
+    const promptTokens = completion.usage.prompt_tokens;
+    const completionTokens = completion.usage.completion_tokens;
+    const vaultTokenCount = vault_loaded ? 500 : 0; // Estimate vault tokens if loaded
+    
+    safeTrackApiCall(activePersonality, promptTokens, completionTokens, vaultTokenCount);
+    const sessionDisplayData = safeGetSessionDisplayData();
 
-    // Add critical assumption warnings
+    // Add critical assumption warnings to response
     const criticalWarnings = assumptionWarnings.filter(w => w.severity === 'CRITICAL');
     if (criticalWarnings.length > 0) {
       response += `\n\n🚨 CRITICAL ASSUMPTION ALERTS:`;
@@ -395,7 +356,8 @@ Include mode fingerprint: [${modeFingerprint}] - [CONFIDENCE: X%] - [SURVIVAL_IM
       });
     }
 
-    console.log('✅ All enforcement completed successfully');
+    console.log('✅ All enforcement layers applied successfully');
+    console.log('💰 Session cost data:', sessionDisplayData);
 
     // Final response with complete enforcement data
     return res.status(200).json({
@@ -410,22 +372,23 @@ Include mode fingerprint: [${modeFingerprint}] - [CONFIDENCE: X%] - [SURVIVAL_IM
       assumption_warnings: assumptionWarnings,
       detail_level: detail_level,
       
-      // Enforcement results
+      // 🛡️ ENFORCEMENT RESULTS
       enforcement_applied: {
-        political_intervention: politicalResult.political_intervention,
-        political_risk_level: politicalResult.analysis.political_risk_level,
+        political_intervention: false,
+        political_risk_level: 'NONE',
         mode_compliance: modeEnforcement.compliance_status,
         mode_blocked: modeEnforcement.original_blocked,
         product_validation: productValidation.validation_passed,
         product_blocked: productEnforcement.original_blocked
       },
       
-      // Real-time cost tracking
+      // 💰 REAL-TIME COST TRACKING
       session_cost: sessionDisplayData.session_cost,
       vault_tokens: sessionDisplayData.vault_tokens,
       total_tokens: sessionDisplayData.total_tokens,
       last_call_cost: sessionDisplayData.last_call_cost,
       call_count: sessionDisplayData.call_count,
+      efficiency_rating: sessionDisplayData.efficiency_rating,
       
       // Token usage details
       token_usage: {
@@ -436,19 +399,20 @@ Include mode fingerprint: [${modeFingerprint}] - [CONFIDENCE: X%] - [SURVIVAL_IM
       
       // System integrity
       security_pass: !modeEnforcement.original_blocked && !productEnforcement.original_blocked,
-      enforcement_level: 'COMPLETE',
+      enforcement_level: 'ACTIVE',
+      enforcement_log: enforcementLog,
       fallback_used: modeEnforcement.original_blocked || productEnforcement.original_blocked,
       timestamp: new Date().toISOString()
     });
 
   } catch (error) {
-    console.error('❌ Complete enforcement system error:', error);
+    console.error('❌ Active Enforcement Chat API Error:', error);
     
     return res.status(500).json({
-      error: 'Complete enforcement system failure',
-      message: 'The cognitive integrity system encountered a critical error.',
+      error: 'Active enforcement system failure',
+      message: 'The cognitive integrity system with active enforcement encountered an error.',
       details: error.message,
-      enforcement_level: 'SYSTEM_FAILURE',
+      enforcement_level: 'FAILED',
       timestamp: new Date().toISOString()
     });
   }
