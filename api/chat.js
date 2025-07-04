@@ -6,7 +6,7 @@ import { MODES, calculateConfidenceScore } from './config/modes.js';
 import { verifyVaultAccess, generateVaultContext } from './lib/vault.js';
 import { processWithEliAndRoxy } from './lib/ai-processors.js';
 import { runOptimizationEnhancer } from './lib/optimization.js';
-import { checkAssumptionHealth, detectAssumptionConflicts, trackOverride } from './lib/assumptions.js';
+import { checkAssumptionHealth, trackOverride } from './lib/assumptions.js';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -52,14 +52,6 @@ if (!MODES[mode]) {
   return res.status(400).json({
     response: "**System Error:** Invalid mode specified.",
     error: 'INVALID_MODE'
-  });
-}
-      // SECURITY CHECK - Use the vault verification that already exists
-const vaultVerification = await verifyVaultAccess(mode, vault_loaded);
-if (vault_loaded && mode !== 'site_monkeys') {
-  return res.status(403).json({
-    response: "**System:** Vault access denied.",
-    error: 'VAULT_ACCESS_DENIED'
   });
 }
 
