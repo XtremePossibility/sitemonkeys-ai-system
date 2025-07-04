@@ -188,3 +188,100 @@ function generateRecommendations(validationResults) {
   
   return recommendations;
 }
+
+// MAIN CHAT.JS INTEGRATION FUNCTION
+export async function processWithEliAndRoxy({
+  message,
+  mode,
+  vaultVerification, 
+  conversationHistory,
+  userPreference,
+  openai
+}) {
+  try {
+    // Route to appropriate personality and processing logic
+    const routing = routeToPersonality(message, mode, conversationHistory);
+    
+    // Process with the determined personality
+    const personalityResponse = processWithPersonality(
+      message, 
+      routing.processor, 
+      routing.personality, 
+      conversationHistory
+    );
+    
+    // Build the system prompt with personality and logic
+    const systemPrompt = routing.logic + '\n\n' + personalityResponse;
+    
+    // Prepare messages for OpenAI
+    const messages = [
+      { role: 'system', content: systemPrompt },
+      ...conversationHistory.slice(-6),
+      { role: 'user', content: message }
+    ];
+    
+    // Call OpenAI
+    const completion = await openai.chat.completions.create({
+      model: 'gpt-4',
+      messages: messages,
+      max_tokens: 1000,
+      temperature: mode === 'truth_general' ? 0.3 : 0.7,
+    });
+    
+    let response = completion.choices[0].message.content;
+    
+    // Enhance with optimization if needed
+    const enhancement = await enhanceWithOptimization(response, mode, {
+      message,
+      vaultVerification,
+      conversationHistory
+    });
+    
+    if (enhancement.optimization_applied) {
+      response = enhancement.enhanced_response;
+    }
+    
+    // Validate response integrity
+    const validation = validateResponseIntegrity(response, mode, vaultVerification, message);
+    
+    // Generate system report
+    const systemReport = generateSystemReport(
+      validation, 
+      completion.usage, 
+      (completion.usage.prompt_tokens * 0.00003) + (completion.usage.completion_tokens * 0.00006)
+    );
+    
+    return {
+      response: response,
+      mode_active: mode,
+      vault_loaded: vaultVerification?.allowed || false,
+      security_pass: validation.overall_integrity === 'PASS',
+      cognitive_integrity: {
+        integrity_status: validation.overall_integrity,
+        truth_score: validation.truth_score,
+        mode_compliance: validation.mode_compliance
+      },
+      system_report: systemReport,
+      enhancement: {
+        meta_questions: enhancement.meta_questions,
+        optimization_applied: enhancement.optimization_applied
+      },
+      performance: {
+        token_usage: completion.usage,
+        estimated_cost: systemReport.performance_metrics.session_cost
+      }
+    };
+    
+  } catch (error) {
+    console.error('AI Processing error:', error);
+    
+    return {
+      response: `🛡️ COGNITIVE INTEGRITY MAINTAINED\n\nProcessing error encountered: ${error.message}\n\nFallback mode activated - core decision-making principles preserved.`,
+      mode_active: mode,
+      vault_loaded: vaultVerification?.allowed || false,
+      security_pass: false,
+      error: error.message,
+      fallback_used: true
+    };
+  }
+}
