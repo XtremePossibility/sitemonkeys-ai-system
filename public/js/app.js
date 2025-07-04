@@ -176,14 +176,14 @@ async function sendMessage() {
 let reply = data.response || 'No response received';
 
 // EXTRACT system verification info BEFORE cleaning - FIXED FOR NEW BACKEND
-const systemVerification = {
-  mode_used: data.mode_active || 'UNKNOWN',
-  vault_status: data.vault_status?.loaded ? 'LOADED' : 'NOT_LOADED',
-  triggered_frameworks: data.enforcement_applied || [],
-  assumption_warnings: data.assumption_analysis?.detected || [],
-  security_pass: data.security_pass || false,
-  fallback_used: data.performance?.api_error?.fallback_used || false
-}; 
+    const systemVerification = {
+      mode_used: data.mode_active || 'UNKNOWN',
+      vault_status: data.vault_status?.loaded ? 'LOADED' : 'NOT_LOADED',
+      triggered_frameworks: data.enforcement_applied || [],
+      assumption_warnings: data.assumption_analysis?.detected || [],
+      security_pass: data.security_pass || false,
+      fallback_used: data.performance?.api_error?.fallback_used || false
+    }; 
 
     // LOG system status for debugging
     console.log('🔍 SYSTEM VERIFICATION:', systemVerification);
