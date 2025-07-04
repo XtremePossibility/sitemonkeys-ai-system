@@ -3,8 +3,6 @@
 // TIER 2: HEALTH ASSESSMENT AND CONFLICT DETECTION
 // TIER 3: OVERRIDE TRACKING AND PATTERN ANALYSIS
 
-import { logOverride, getDriftStatus } from '../config/modes.js';
-
 // TIER 3: ASSUMPTION TRACKING DATABASE
 let assumptionDatabase = {
   session_assumptions: [],
