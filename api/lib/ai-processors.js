@@ -280,6 +280,8 @@ export async function processWithEliAndRoxy({
   }
 }
 
+// ==================== ALL FUNCTION DEFINITIONS ====================
+
 // AI ROUTING LOGIC WITH MODE-SPECIFIC REASONING
 function determineAIRouting(message, mode, claudeRequested, userPreference) {
   // Claude requested explicitly
@@ -533,7 +535,7 @@ function validateProductRecommendations(response) {
   return { violations };
 }
 
-// MODE COMPLIANCE VALIDATION
+// MODE COMPLIANCE VALIDATION - PROPERLY DEFINED
 function validateModeCompliance(response, mode, vaultLoaded) {
   const violations = [];
   
