@@ -1,18 +1,24 @@
 // optimization.js - Response Enhancement and Truth Validation
 
-export async function runOptimizationEnhancer(response, mode, context) {
+export function runOptimizationEnhancer({
+  mode,
+  baseResponse,
+  message,
+  triggeredFrameworks = [],
+  vaultLoaded = false
+}) {
   try {
     // STEP 1: Truth Validation
-    const truthScore = validateTruthContent(response);
+    const truthScore = validateTruthContent(baseResponse);
     
     // STEP 2: Mode Compliance Check
-    const modeCompliance = checkModeCompliance(response, mode);
+    const modeCompliance = checkModeCompliance(baseResponse, mode);
     
     // STEP 3: Enhancement Based on Context
-    let enhancedResponse = response;
+    let enhancedResponse = baseResponse;
     
-    if (context.vault_loaded && context.triggered_frameworks.length > 0) {
-      enhancedResponse = applyVaultEnhancements(response, context.triggered_frameworks);
+    if (vaultLoaded && triggeredFrameworks.length > 0) {
+      enhancedResponse = applyVaultEnhancements(baseResponse, triggeredFrameworks);
     }
     
     // STEP 4: Risk Surface Enhancement
@@ -20,27 +26,30 @@ export async function runOptimizationEnhancer(response, mode, context) {
       enhancedResponse = enhanceBusinessRisks(enhancedResponse);
     }
     
-    // STEP 5: Assumption Challenge
-    if (context.assumption_warnings.length > 0) {
-      enhancedResponse = addAssumptionChallenges(enhancedResponse, context.assumption_warnings);
-    }
-    
-    // STEP 6: Quality Scoring
+    // STEP 5: Quality Scoring
     const qualityMetrics = calculateQualityScore(enhancedResponse, mode);
     
-    return enhancedResponse + `\n\n--- SYSTEM VERIFICATION ---
-TRUTH_SCORE: ${truthScore}%
-MODE_COMPLIANCE: ${modeCompliance}
-QUALITY_METRICS: ${JSON.stringify(qualityMetrics)}`;
+    // Return object format expected by production chat.js
+    return {
+      enhancedResponse: enhancedResponse,
+      optimization_applied: true,
+      optimization_tags: ['truth_validation', 'mode_compliance'],
+      optimizations: qualityMetrics
+    };
     
   } catch (error) {
     console.error('Optimization enhancement failed:', error);
-    // Return original response if enhancement fails
-    return response;
+    // Return original baseResponse if enhancement fails
+    return {
+      enhancedResponse: baseResponse,
+      optimization_applied: false,
+      optimization_tags: [],
+      optimizations: {}
+    };
   }
 }
 
-function validateTruthContent(response) {
+function validateTruthContent(baseResponse) {
   // Check for hallucination indicators
   const hallucinationFlags = [
     /\d{4}-\d{2}-\d{2}/, // Specific dates (often hallucinated)
@@ -53,7 +62,7 @@ function validateTruthContent(response) {
   let truthScore = 100;
   
   hallucinationFlags.forEach(flag => {
-    if (flag.test(response)) {
+    if (flag.test(baseResponse)) {
       truthScore -= 15; // Penalize potential hallucinations
     }
   });
@@ -67,7 +76,7 @@ function validateTruthContent(response) {
   ];
   
   truthIndicators.forEach(indicator => {
-    if (indicator.test(response)) {
+    if (indicator.test(baseResponse)) {
       truthScore += 5; // Reward uncertainty acknowledgment
     }
   });
@@ -75,90 +84,81 @@ function validateTruthContent(response) {
   return Math.max(0, Math.min(100, truthScore));
 }
 
-function checkModeCompliance(response, mode) {
+function checkModeCompliance(baseResponse, mode) {
   switch (mode) {
     case 'truth_general':
-      return checkTruthModeCompliance(response);
+      return checkTruthModeCompliance(baseResponse);
     case 'business_validation':
-      return checkBusinessModeCompliance(response);
+      return checkBusinessModeCompliance(baseResponse);
     default:
       return 'UNKNOWN_MODE';
   }
 }
 
-function checkTruthModeCompliance(response) {
+function checkTruthModeCompliance(baseResponse) {
   const requiredElements = [
     /confidence:/i,
     /(high|medium|low|unknown)/i
   ];
   
-  const compliance = requiredElements.every(element => element.test(response));
+  const compliance = requiredElements.every(element => element.test(baseResponse));
   return compliance ? 'COMPLIANT' : 'PARTIAL';
 }
 
-function checkBusinessModeCompliance(response) {
+function checkBusinessModeCompliance(baseResponse) {
   const requiredElements = [
     /(survival impact|cash flow|risk)/i,
     /\$[\d,]+/i, // Dollar amounts
     /(high|medium|low|critical)/i
   ];
   
-  const compliance = requiredElements.filter(element => element.test(response)).length;
+  const compliance = requiredElements.filter(element => element.test(baseResponse)).length;
   
   if (compliance >= 2) return 'COMPLIANT';
   if (compliance >= 1) return 'PARTIAL';
   return 'NON_COMPLIANT';
 }
 
-function applyVaultEnhancements(response, triggeredFrameworks) {
-  let enhanced = response;
+function applyVaultEnhancements(baseResponse, triggeredFrameworks) {
+  let enhanced = baseResponse;
   
-  // Add vault-specific context
-  if (triggeredFrameworks.includes('PRICING_FRAMEWORK')) {
-    enhanced += `\n\n🏢 SITE MONKEYS CONTEXT: This decision impacts our service pricing strategy and client positioning.`;
+  // Check triggered frameworks by name
+  const frameworkNames = triggeredFrameworks.map(tf => tf.name || tf);
+  
+  if (frameworkNames.includes('pricing_strategy')) {
+    enhanced += `\n\n🍌 SITE MONKEYS CONTEXT: This decision impacts our service pricing strategy and client positioning.`;
   }
   
-  if (triggeredFrameworks.includes('FINANCIAL_CONSTRAINTS')) {
+  if (frameworkNames.includes('resource_allocation')) {
     enhanced += `\n\n💰 FINANCIAL REALITY: Consider impact on current runway and client commitments.`;
   }
   
-  if (triggeredFrameworks.includes('BRAND_ALIGNMENT')) {
+  if (frameworkNames.includes('operational_decisions')) {
     enhanced += `\n\n🎯 BRAND ALIGNMENT: Evaluate consistency with Site Monkeys positioning and values.`;
   }
   
   return enhanced;
 }
 
-function enhanceBusinessRisks(response) {
+function enhanceBusinessRisks(baseResponse) {
   // Add proactive risk surfacing if missing
-  if (!response.toLowerCase().includes('risk')) {
-    response += `\n\n⚠️ ADDITIONAL RISKS TO CONSIDER:
+  if (!baseResponse.toLowerCase().includes('risk')) {
+    baseResponse += `\n\n⚠️ ADDITIONAL RISKS TO CONSIDER:
 - Market timing and competitive response
 - Implementation complexity and timeline
 - Resource allocation and opportunity cost`;
   }
   
-  return response;
+  return baseResponse;
 }
 
-function addAssumptionChallenges(response, warnings) {
-  if (warnings.length > 0) {
-    response += `\n\n🧠 ASSUMPTION CHALLENGES:`;
-    warnings.forEach(warning => {
-      response += `\n- ${warning}`;
-    });
-  }
-  
-  return response;
-}
-
-function calculateQualityScore(response, mode) {
+function calculateQualityScore(baseResponse, mode) {
   const metrics = {
-    word_count: response.split(' ').length,
-    has_confidence: /confidence:/i.test(response),
-    has_risks: /risk/i.test(response),
-    has_numbers: /\$|\d+%|\d+/.test(response),
-    has_uncertainty: /(uncertain|unclear|depends)/i.test(response)
+    word_count: baseResponse.split(' ').length,
+    has_confidence: /confidence:/i.test(baseResponse),
+    has_risks: /risk/i.test(baseResponse),
+    has_numbers: /\$|\d+%|\d+/.test(baseResponse),
+    has_uncertainty: /(uncertain|unclear|depends)/i.test(baseResponse)
   };
   
   let score = 0;
