@@ -55,12 +55,12 @@ export async function processWithEliAndRoxy({
 
     // ENHANCEMENT AND VALIDATION
     const enhanced = runOptimizationEnhancer({
-      mode,
-      baseResponse: response.response,
-      message,
-      triggeredFrameworks,
-      vaultLoaded: vaultVerification.allowed
-    });
+  mode,
+  baseResponse: response.response,
+  message,
+  triggeredFrameworks,
+  vaultLoaded: vaultVerification.allowed
+});
 
     const assumptionHealth = checkAssumptionHealth(enhanced.enhancedResponse || response.response);
     const conflicts = detectAssumptionConflicts(enhanced.enhancedResponse || response.response, vaultContext);
