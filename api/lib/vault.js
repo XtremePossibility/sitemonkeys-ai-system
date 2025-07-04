@@ -3,8 +3,6 @@
 // TIER 2: BUSINESS RULE ENFORCEMENT 
 // TIER 3: CONFLICT DETECTION AND RESOLUTION
 
-import { logOverride } from '../config/modes.js';
-
 // TIER 1: VAULT ACCESS CONTROL
 export async function verifyVaultAccess(mode, vaultRequested) {
   if (mode !== 'site_monkeys' && vaultRequested) {
