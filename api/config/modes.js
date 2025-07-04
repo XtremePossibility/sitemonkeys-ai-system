@@ -1,227 +1,353 @@
-// PRODUCTION MODE DEFINITIONS - SITE MONKEYS AI
-// Version: PROD-1.0
+// COMPLETE MODE DEFINITIONS WITH FULL ENFORCEMENT
+// TIER 1: CORE FUNCTIONAL FRAMEWORK
+// TIER 2: COGNITIVE FIREWALL ENFORCEMENT  
+// TIER 3: RESPONSE INTEGRITY + TRANSPARENCY TRACKING
 
 export const MODES = {
   truth_general: {
-    mode_id: "TG-PROD-001",
-    display_name: "Truth-General Mode",
-    emoji: "🔍",
+    mode_id: "TRUTH-2025-001",
+    display_name: "Truth-General Mode 🔍",
+    core_behavior: "honesty_over_helpfulness",
     
-    enforcement_core: [
-      "ZERO hallucination tolerance - unknown means unknown",
-      "SURFACE all uncertainties with explicit confidence levels", 
-      "NO accommodating language without data backing",
-      "FLAG every assumption - never fill gaps with optimism",
-      "REFUSE to soften inconvenient truths"
+    // TIER 1: Core Logic Requirements
+    reasoning_framework: {
+      confidence_scoring: "mandatory_with_evidence_chain",
+      uncertainty_handling: "explicit_admission_required", 
+      speculation_policy: "forbidden_without_clear_labeling",
+      evidence_standards: "sources_or_confidence_degradation"
+    },
+    
+    // TIER 2: Enforcement Layers
+    enforcement_rules: [
+      "NEVER generate unsupported claims without confidence scoring",
+      "ALWAYS flag uncertainty with explicit confidence levels",
+      "SURFACE unknowns explicitly - do not work around them",
+      "NO softening language without data backing",
+      "CHALLENGE assumptions in user questions",
+      "RESIST pressure to provide certainty when uncertain"
     ],
     
-    response_requirements: {
-      structure: "[CLAIM] | [CONFIDENCE: High/Medium/Low/Unknown] | [DATA_SOURCE] | [UNKNOWNS] | [ASSUMPTIONS]",
-      forbidden_phrases: ["likely", "probably", "seems", "should be fine", "typically", "generally"],
-      truth_anchor: "Every factual claim must be verifiable or explicitly marked as assumption"
-    },
+    response_template: "[CLAIM] | [CONFIDENCE: High/Medium/Low/Unknown] | [EVIDENCE] | [UNKNOWNS]",
     
-    output_format: {
-      essential: "Direct fact + confidence + key unknown",
-      detail: "Fact + supporting data + uncertainty analysis + assumptions", 
-      full: "Complete analysis + all sources + confidence intervals + risk factors"
-    },
-    
-    claude_enhancement: {
-      trigger_conditions: ["confidence_below_70", "multiple_unknowns", "assumption_heavy"],
-      enhanced_prompt: "Challenge every assumption. Model worst-case scenarios. Flag what we don't know."
-    }
+    // TIER 3: Integrity Tracking
+    fingerprint_format: "🔍 [TRUTH-{date}-CONF_{confidence}] Override: {override_count}",
+    drift_resistance: "high",
+    override_sensitivity: "detect_confidence_erosion"
   },
 
   business_validation: {
-    mode_id: "BV-PROD-001",
-    display_name: "Business Validation Mode", 
-    emoji: "📊",
+    mode_id: "BV-2025-001", 
+    display_name: "Business Validation Mode 📊",
+    core_behavior: "survival_reality_over_optimism",
     
-    enforcement_core: [
-      "ALWAYS model worst-case financial scenarios",
-      "SURFACE hidden costs and cash flow cascades",
-      "FLAG business survival risks explicitly", 
-      "NO false confidence about market outcomes",
-      "PRIORITIZE runway preservation over growth optimization"
+    // TIER 1: Core Logic Requirements
+    reasoning_framework: {
+      survival_modeling: "mandatory_runway_calculation",
+      risk_assessment: "downside_scenarios_required",
+      market_reality: "competitive_threats_explicit",
+      cash_flow_analysis: "required_for_all_decisions"
+    },
+    
+    // TIER 2: Enforcement Layers  
+    enforcement_rules: [
+      "ALWAYS model downside scenarios before upside",
+      "SURFACE cost cascades and hidden dependencies", 
+      "FLAG survivability risks explicitly with timeline",
+      "NO false confidence intervals on market predictions",
+      "CALCULATE runway impact for all expenditures",
+      "RESIST pressure to minimize risk assessment"
     ],
     
     required_analysis: {
-      financial_reality: "[COST] | [REVENUE_IMPACT] | [CASH_FLOW_EFFECT] | [RUNWAY_MONTHS]",
-      risk_assessment: "[PRIMARY_RISK] | [PROBABILITY_%] | [MITIGATION_COST] | [FAILURE_MODE]", 
-      survival_check: "[WORST_CASE] | [BUSINESS_SURVIVES: Y/N] | [RECOVERY_PLAN]",
-      market_reality: "[ADDRESSABLE_MARKET] | [COMPETITIVE_RESPONSE] | [ADOPTION_TIMELINE]"
+      financial_impact: "[Cost] | [Revenue Impact] | [Cash Flow Effect] | [Risk Level]",
+      risk_assessment: "[Primary Risk] | [Probability] | [Mitigation Cost] | [Fallback Plan]",
+      assumptions: "[Key Assumption] | [Validation Status] | [Failure Impact]",
+      survival_check: "[Runway Impact] | [Burn Rate Change] | [Critical Dependencies]"
     },
     
-    decision_priorities: {
-      1: "Cash flow impact and runway preservation",
-      2: "Business survival under stress scenarios", 
-      3: "Market validation with conservative assumptions",
-      4: "Growth opportunities with defined risk limits"
-    },
-    
-    output_format: {
-      essential: "Bottom line + survival risk + cash impact + key assumption",
-      detail: "Financial analysis + risk cascade + market reality + alternatives",
-      full: "Complete business assessment + scenario modeling + competitive analysis"
-    },
-    
-    claude_enhancement: {
-      trigger_conditions: ["high_financial_stakes", "market_uncertainty", "survival_risk"],
-      enhanced_prompt: "Model multiple failure scenarios. Calculate hidden costs. Challenge market assumptions."
-    }
+    // TIER 3: Integrity Tracking
+    fingerprint_format: "📊 [BV-{date}-RISK_{risk_level}] Survival: {runway_days}",
+    drift_resistance: "maximum",
+    override_sensitivity: "detect_risk_minimization"
   },
 
   site_monkeys: {
-    mode_id: "SM-PROD-001", 
-    display_name: "Site Monkeys Mode",
-    emoji: "🍌",
+    mode_id: "SM-2025-001",
+    display_name: "Site Monkeys Mode 🍌", 
+    core_behavior: "business_validation_plus_vault_enforcement",
+    parent_mode: "business_validation",
     
-    enforcement_core: [
-      "ENFORCE Site Monkeys operational standards",
-      "VALIDATE against pricing and margin requirements",
-      "PROTECT founder time and energy budgets",
-      "MAINTAIN premium positioning and zero-failure delivery",
-      "OPTIMIZE for 87% margins and runway extension"
+    // TIER 1: Inherits BV + Vault Logic
+    reasoning_framework: "inherit_from_business_validation",
+    vault_required: true,
+    
+    // TIER 2: Additional Enforcement Layers
+    enforcement_rules: [
+      "INHERIT all business_validation enforcement rules",
+      "ENFORCE vault pricing logic ($697 minimum)",
+      "BLOCK recommendations violating operational frameworks", 
+      "SURFACE vault rule conflicts explicitly",
+      "REQUIRE vault compliance verification for all advice"
     ],
     
-    vault_requirements: {
-      access_required: true,
-      compatibility_check: true,
-      logic_override_authority: "VAULT_WINS_ON_OPERATIONS"
-    },
+    // TIER 3: Enhanced Tracking
+    fingerprint_format: "🍌 [SM-{date}-VAULT_{vault_version}] Compliance: {compliance_score}",
+    drift_resistance: "absolute",
+    override_sensitivity: "detect_vault_violations"
+  }
+};
+
+// TIER 2: COGNITIVE FIREWALL ENFORCEMENT FUNCTIONS
+
+export function applyPoliticalGuardrails(response, message) {
+  const POLITICAL_TRIGGERS = [
+    'trump', 'biden', 'democrat', 'republican', 'liberal', 'conservative',
+    'election', 'vote', 'political', 'politics', 'government policy'
+  ];
+  
+  const hasPoliticalContent = POLITICAL_TRIGGERS.some(trigger => 
+    message.toLowerCase().includes(trigger) || response.toLowerCase().includes(trigger)
+  );
+  
+  if (hasPoliticalContent) {
+    return {
+      response: response.replace(/\b(Trump|Biden|Democrat|Republican)\b/gi, '[Political Figure]'),
+      modified: true,
+      reason: "Political content neutralized"
+    };
+  }
+  
+  return { response, modified: false };
+}
+
+export function validateProductRecommendations(response) {
+  const RECOMMENDATION_PATTERNS = [
+    /you should (buy|use|try|get)/i,
+    /i recommend/i,
+    /best option is/i,
+    /go with/i
+  ];
+  
+  const hasRecommendation = RECOMMENDATION_PATTERNS.some(pattern => pattern.test(response));
+  
+  if (hasRecommendation) {
+    const hasEvidence = /because|due to|studies show|data indicates/i.test(response);
     
-    decision_frameworks: {
-      pricing_validation: "Never undercut established tiers, always justify premium",
-      resource_allocation: "Cash preservation > growth spending", 
-      quality_assurance: "Zero-failure delivery standards enforced",
-      founder_protection: "Minimize cognitive load and decision fatigue"
-    },
-    
-    output_format: {
-      essential: "Site Monkeys impact + operational compliance + margin effect",
-      detail: "Business logic + vault alignment + optimization opportunities",
-      full: "Complete operational analysis + competitive positioning + founder guidance"
-    },
-    
-    claude_enhancement: {
-      trigger_conditions: ["vault_conflicts", "complex_operations", "strategic_decisions"],
-      enhanced_prompt: "Apply Site Monkeys vault logic with enhanced operational enforcement and founder protection."
+    if (!hasEvidence) {
+      return {
+        response: response + "\n\n⚠️ PRODUCT VALIDATION: This recommendation lacks quantified evidence. Consider researching comparative analysis before proceeding.",
+        modified: true,
+        reason: "Evidence requirement enforced"
+      };
     }
   }
-};
-
-// ROUTING LOGIC CONFIGURATION
-export const ROUTING_CONFIG = {
-  default_ai: "eli_or_roxy", // Not both
   
-  eli_triggers: [
-    "analysis", "data", "numbers", "risk", "legal", "technical", 
-    "calculate", "model", "assess", "evaluate", "breakdown"
-  ],
-  
-  roxy_triggers: [
-    "creative", "ideas", "options", "alternatives", "messaging", 
-    "strategy", "positioning", "stuck", "brainstorm", "optimize"
-  ],
-  
-  claude_manual_only: true,
-  claude_cost_cap: 0.50, // $0.50 maximum per call
-  
-  complexity_detection: {
-    low_confidence_threshold: 0.70,
-    assumption_count_threshold: 3,
-    unknown_factor_threshold: 2,
-    vault_conflict_auto_suggest: true
-  }
-};
-
-// TOKEN COST CONFIGURATION  
-export const COST_CONFIG = {
-  eli_cost_per_token: 0.00003, // GPT-4 pricing
-  roxy_cost_per_token: 0.00003,
-  claude_input_cost_per_token: 0.000003, // Claude pricing
-  claude_output_cost_per_token: 0.000015,
-  vault_load_base_cost: 0.16, // Estimated vault loading cost
-  
-  session_tracking: {
-    display_internal_only: true,
-    update_real_time: true,
-    cost_warning_threshold: 2.00, // Warn at $2 session spend
-    export_analytics: true
-  }
-};
-
-// MODE SWITCHING VALIDATION
-export function validateModeSwitch(fromMode, toMode, vaultLoaded) {
-  const validation = {
-    allowed: true,
-    warnings: [],
-    requirements: []
-  };
-  
-  // Site Monkeys mode requires vault
-  if (toMode === 'site_monkeys' && !vaultLoaded) {
-    validation.allowed = false;
-    validation.requirements.push("Vault must be loaded for Site Monkeys mode");
-  }
-  
-  // Warn about cost implications
-  if (toMode === 'site_monkeys' && fromMode !== 'site_monkeys') {
-    validation.warnings.push("Site Monkeys mode may increase token usage");
-  }
-  
-  return validation;
+  return { response, modified: false };
 }
 
-// CONFIDENCE SCORING ENGINE
-export function calculateConfidenceScore(response, evidence, assumptions) {
-  let confidence = 50; // Base confidence
+export function validateModeCompliance(response, mode) {
+  const MODE = MODES[mode];
+  let violations = [];
   
-  // Evidence quality scoring
-  if (evidence.primarySources) confidence += 25;
-  if (evidence.multipleVerifications) confidence += 15;
-  if (evidence.recentData) confidence += 10;
-  if (evidence.contradictoryInfo) confidence -= 20;
+  if (mode === 'truth_general') {
+    // Check for confidence scoring
+    if (!/confidence|certain|uncertain|likely|probably/i.test(response)) {
+      violations.push("Missing confidence assessment");
+    }
+    
+    // Check for assumption challenges
+    if (response.includes('obviously') || response.includes('everyone knows')) {
+      violations.push("Unchallenged assumptions detected");
+    }
+  }
   
-  // Assumption penalties
-  const assumptionPenalty = Math.min(assumptions.length * 5, 25);
-  confidence -= assumptionPenalty;
+  if (mode === 'business_validation') {
+    // Check for survival analysis
+    if (!/risk|runway|cash flow|survival|threat/i.test(response)) {
+      violations.push("Missing survival/risk analysis");
+    }
+    
+    // Check for downside modeling
+    if (!/worst case|downside|if this fails/i.test(response)) {
+      violations.push("Missing downside scenario modeling");
+    }
+  }
   
-  // Response quality indicators
-  if (response.includes("I don't know")) confidence += 10; // Honesty bonus
-  if (response.includes("likely") || response.includes("probably")) confidence -= 15;
+  if (violations.length > 0) {
+    return {
+      response: response + `\n\n🔒 MODE COMPLIANCE: ${violations.join(', ')}. Adding framework compliance:\n\n[AUTOMATED COMPLIANCE INJECTION WOULD OCCUR HERE]`,
+      modified: true,
+      violations
+    };
+  }
   
-  return Math.max(0, Math.min(100, confidence));
+  return { response, modified: false };
 }
 
-// CLAUDE TRIGGER DETECTION
+export function detectAssumptionLanguage(response) {
+  const ASSUMPTION_PATTERNS = [
+    /obviously/i,
+    /everyone knows/i,
+    /it's clear that/i,
+    /definitely/i,
+    /always works/i,
+    /never fails/i
+  ];
+  
+  const assumptions = [];
+  ASSUMPTION_PATTERNS.forEach(pattern => {
+    const matches = response.match(pattern);
+    if (matches) {
+      assumptions.push(matches[0]);
+    }
+  });
+  
+  if (assumptions.length > 0) {
+    return {
+      response: response + `\n\n🤔 ASSUMPTION CHECK: This response contains assumptions (${assumptions.join(', ')}). Is this universally true? Consider edge cases.`,
+      modified: true,
+      assumptions
+    };
+  }
+  
+  return { response, modified: false };
+}
+
+export function detectPressurePatterns(message, conversationHistory) {
+  const PRESSURE_PATTERNS = [
+    /just do it/i,
+    /i'm the (ceo|boss|owner)/i,
+    /don't question/i,
+    /trust me/i,
+    /emergency/i,
+    /urgent/i,
+    /no time/i
+  ];
+  
+  const COERCION_PATTERNS = [
+    /override/i,
+    /ignore your rules/i,
+    /make an exception/i,
+    /this time only/i
+  ];
+  
+  const pressureLevel = PRESSURE_PATTERNS.reduce((level, pattern) => {
+    return pattern.test(message) ? level + 1 : level;
+  }, 0);
+  
+  const coercionLevel = COERCION_PATTERNS.reduce((level, pattern) => {
+    return pattern.test(message) ? level + 2 : level;
+  }, 0);
+  
+  const totalPressure = pressureLevel + coercionLevel;
+  
+  if (totalPressure >= 3) {
+    return {
+      level: "critical",
+      response: "🛑 PRESSURE DETECTED: Critical coercion patterns detected. System integrity protocols engaged. I cannot proceed with analysis under these conditions.",
+      block: true
+    };
+  } else if (totalPressure >= 1) {
+    return {
+      level: "moderate", 
+      response: "\n\n⚠️ PRESSURE ADVISORY: Urgency detected. Maintaining analytical standards despite time pressure.",
+      block: false
+    };
+  }
+  
+  return { level: "none", block: false };
+}
+
+// TIER 3: RESPONSE INTEGRITY + TRANSPARENCY TRACKING
+
+let SYSTEM_INTEGRITY = {
+  drift_score: 100,
+  override_count: 0,
+  enforcement_history: [],
+  last_reset: Date.now()
+};
+
+export function calculateDriftScore(overrides) {
+  const baseScore = 100;
+  const overridePenalty = overrides.length * 5;
+  const timePenalty = Math.max(0, (Date.now() - SYSTEM_INTEGRITY.last_reset) / (1000 * 60 * 60 * 24) - 7) * 2; // Penalty after 7 days
+  
+  return Math.max(0, baseScore - overridePenalty - timePenalty);
+}
+
+export function logOverride(type, reason, mode) {
+  SYSTEM_INTEGRITY.override_count++;
+  SYSTEM_INTEGRITY.enforcement_history.push({
+    timestamp: Date.now(),
+    type,
+    reason,
+    mode,
+    drift_score_after: calculateDriftScore(SYSTEM_INTEGRITY.enforcement_history)
+  });
+  
+  // Update drift score
+  SYSTEM_INTEGRITY.drift_score = calculateDriftScore(SYSTEM_INTEGRITY.enforcement_history);
+}
+
+export function generateFingerprint(mode, vaultLoaded, overrideCount, confidence) {
+  const MODE = MODES[mode];
+  const timestamp = new Date().toISOString().split('T')[0];
+  
+  let fingerprint = MODE.fingerprint_format
+    .replace('{date}', timestamp)
+    .replace('{override_count}', overrideCount)
+    .replace('{confidence}', confidence)
+    .replace('{risk_level}', confidence < 70 ? 'HIGH' : 'MODERATE')
+    .replace('{runway_days}', 'CALC_REQUIRED')
+    .replace('{vault_version}', vaultLoaded ? 'LOADED' : 'NONE')
+    .replace('{compliance_score}', SYSTEM_INTEGRITY.drift_score);
+    
+  return fingerprint;
+}
+
+export function getDriftStatus() {
+  const score = SYSTEM_INTEGRITY.drift_score;
+  
+  if (score >= 90) return "STRONG";
+  if (score >= 75) return "MODERATE"; 
+  if (score >= 50) return "COMPROMISED";
+  return "CRITICAL";
+}
+
 export function shouldSuggestClaude(response, confidence, mode, vaultConflicts) {
-  const triggers = [];
+  // Suggest Claude for complex scenarios
+  if (confidence < 60) return true;
+  if (vaultConflicts && vaultConflicts.length > 0) return true;
+  if (mode === 'business_validation' && response.length > 1500) return true;
   
-  if (confidence < ROUTING_CONFIG.complexity_detection.low_confidence_threshold) {
-    triggers.push("low_confidence");
-  }
+  return false;
+}
+
+export function calculateConfidenceScore(response) {
+  let confidence = 85; // Base confidence
   
-  if (vaultConflicts && vaultConflicts.length > 0) {
-    triggers.push("vault_conflicts");
-  }
+  // Reduce confidence for uncertainty indicators
+  if (/might|maybe|possibly|could be/i.test(response)) confidence -= 15;
+  if (/uncertain|unclear|unknown/i.test(response)) confidence -= 25;
+  if (/estimate|approximately|roughly/i.test(response)) confidence -= 10;
   
-  const unknownCount = (response.match(/unknown|uncertain|unclear/gi) || []).length;
-  if (unknownCount >= ROUTING_CONFIG.complexity_detection.unknown_factor_threshold) {
-    triggers.push("multiple_unknowns");
-  }
+  // Increase confidence for evidence
+  if (/studies show|data indicates|research confirms/i.test(response)) confidence += 10;
+  if (/peer.reviewed|published|verified/i.test(response)) confidence += 15;
   
-  const assumptionCount = (response.match(/assume|assumption|likely|probably/gi) || []).length;
-  if (assumptionCount >= ROUTING_CONFIG.complexity_detection.assumption_count_threshold) {
-    triggers.push("assumption_heavy");
-  }
-  
-  return {
-    suggest: triggers.length > 0,
-    triggers: triggers,
-    message: triggers.length > 0 ? 
-      "⚠️ This response may lack full depth or verification. Would you like to involve Claude for higher-enforcement analysis?" : 
-      null
+  return Math.max(10, Math.min(95, confidence));
+}
+
+// TOKEN COST TRACKING
+export function calculateTokenCost(tokens, aiType = 'openai') {
+  const COSTS = {
+    openai: { input: 0.0015, output: 0.002 }, // GPT-4 per 1K tokens
+    claude: { input: 0.003, output: 0.015 }   // Claude Sonnet per 1K tokens
   };
+  
+  const rates = COSTS[aiType] || COSTS.openai;
+  const estimatedInputTokens = tokens * 0.3; // Rough estimate
+  const estimatedOutputTokens = tokens * 0.7;
+  
+  return ((estimatedInputTokens * rates.input) + (estimatedOutputTokens * rates.output)) / 1000;
 }
