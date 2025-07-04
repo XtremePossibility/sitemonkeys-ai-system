@@ -15,7 +15,7 @@ export default async function handler(req, res) {
 
   try {
     // Process request with full cognitive firewall
-    const result = await processRequest(req.body);
+    const result = await processRequest({
     
     // Return structured response for frontend
     return res.status(200).json(result);
