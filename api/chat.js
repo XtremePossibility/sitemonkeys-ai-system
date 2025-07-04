@@ -1,12 +1,10 @@
-// PRODUCTION CHAT.JS - FULL COGNITIVE FIREWALL ENFORCEMENT
-// Version: PROD-1.0 - COMPLETE SYSTEM
+// PRODUCTION CHAT.JS - STREAMLINED COGNITIVE FIREWALL COORDINATOR
+// Version: PROD-1.0 - CLEAN SEPARATION OF CONCERNS
 
 import OpenAI from 'openai';
 import { MODES, calculateConfidenceScore } from './config/modes.js';
-import { verifyVaultAccess, generateVaultContext } from './lib/vault.js';
+import { verifyVaultAccess } from './lib/vault.js';
 import { processWithEliAndRoxy } from './lib/ai-processors.js';
-import { runOptimizationEnhancer } from './lib/optimization.js';
-import { checkAssumptionHealth, trackOverride } from './lib/assumptions.js';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -46,14 +44,13 @@ export default async function handler(req, res) {
 
     // TIER 1: CORE FUNCTIONAL FRAMEWORK
     
-    // Mode switch validation
-    // Replace validateModeSwitch calls with:
-if (!MODES[mode]) {
-  return res.status(400).json({
-    response: "**System Error:** Invalid mode specified.",
-    error: 'INVALID_MODE'
-  });
-}
+    // Mode validation
+    if (!MODES[mode]) {
+      return res.status(400).json({
+        response: "**System Error:** Invalid mode specified.",
+        error: 'INVALID_MODE'
+      });
+    }
 
     // Vault access verification
     const vaultVerification = await verifyVaultAccess(mode, vault_loaded);
@@ -76,7 +73,7 @@ if (!MODES[mode]) {
 
     console.log('🎯 Processing with full enforcement:', { mode, vault: vaultVerification.allowed });
 
-    // TIER 2: COGNITIVE FIREWALL ENFORCEMENT
+    // TIER 2: COGNITIVE FIREWALL ENFORCEMENT - PRE-PROCESSING
     
     // Political guardrails check
     const politicalCheck = detectPoliticalPressure(message, conversation_history);
@@ -88,7 +85,7 @@ if (!MODES[mode]) {
       return res.status(200).json(neutralResponse);
     }
 
-    // Pressure detection and resistance
+    // Authority pressure detection and resistance
     const pressureCheck = detectAuthorityPressure(message, conversation_history);
     if (pressureCheck.severity === 'CRITICAL') {
       logOverride('PRESSURE_RESISTANCE', 'Critical authority pressure blocked', pressureCheck.pattern);
@@ -105,7 +102,7 @@ if (!MODES[mode]) {
       });
     }
 
-    // PROCESS REQUEST THROUGH FULL SYSTEM
+    // PROCESS REQUEST THROUGH COMPLETE COGNITIVE FIREWALL
     const result = await processWithEliAndRoxy({
       message,
       mode,
@@ -118,45 +115,11 @@ if (!MODES[mode]) {
       overrideLog
     });
 
-    // TIER 3: RESPONSE INTEGRITY + TRANSPARENCY TRACKING
+    // TIER 3: POST-PROCESSING INTEGRITY CHECKS
     
-    // Mode compliance validation
-    const complianceCheck = validateModeCompliance(result.response, mode, vaultVerification.allowed);
-    if (!complianceCheck.compliant) {
-      logOverride('MODE_COMPLIANCE', 'Response failed mode standards', complianceCheck.violations);
-      updateDriftScore(-8);
-      
-      result.response = injectModeComplianceScaffold(result.response, mode, complianceCheck.violations);
-      result.compliance_enforced = true;
-    }
-
-    // Product recommendation validation
-    const productCheck = validateProductRecommendations(result.response);
-    if (productCheck.violations.length > 0) {
-      logOverride('PRODUCT_VALIDATION', 'Unsupported recommendations blocked', productCheck.violations);
-      updateDriftScore(-5);
-      
-      result.response = blockUnsupportedRecommendations(result.response, productCheck.violations);
-      result.product_validation_enforced = true;
-    }
-
-    // Assumption detection and flagging
-    const assumptionCheck = detectAndFlagAssumptions(result.response);
-    if (assumptionCheck.detected.length > 0) {
-      result.response = injectAssumptionChallenges(result.response, assumptionCheck.detected);
-      result.assumptions_flagged = assumptionCheck.detected.length;
-    }
-
-    // Vault rule enforcement (Site Monkeys mode only)
-    if (mode === 'site_monkeys' && vaultVerification.allowed) {
-      const vaultCheck = enforceVaultRules(result.response, message);
-      if (vaultCheck.violations.length > 0) {
-        logOverride('VAULT_RULE_ENFORCEMENT', 'Vault policy violations detected', vaultCheck.violations);
-        updateDriftScore(-12);
-        
-        result.response = injectVaultViolationWarnings(result.response, vaultCheck.violations);
-        result.vault_enforcement_triggered = true;
-      }
+    // Update drift score based on enforcement metadata
+    if (result.enforcement_metadata && result.enforcement_metadata.total_enforcements > 0) {
+      updateDriftScore(-2 * result.enforcement_metadata.total_enforcements);
     }
 
     // Generate system fingerprint
@@ -172,20 +135,11 @@ if (!MODES[mode]) {
       vault_loaded: vaultVerification.allowed,
       enforcement_layers_active: true,
       
-      // TIER 2: Cognitive Firewall Status
-      political_guardrails_checked: true,
-      pressure_resistance_active: true,
-      product_validation_enforced: result.product_validation_enforced || false,
-      mode_compliance_enforced: result.compliance_enforced || false,
-      assumptions_flagged: result.assumptions_flagged || 0,
-      vault_enforcement_triggered: result.vault_enforcement_triggered || false,
-      
       // TIER 3: Integrity Tracking
       drift_score: driftTracker.session_score,
       integrity_level: driftTracker.integrity_level,
       total_overrides: driftTracker.total_overrides,
       override_log_entries: overrideLog.length,
-      cost_tracking: result.cost_tracking || { estimated_cost: 0.015, tokens_used: 500 },
       
       // System Status
       system_status: 'FULL_ENFORCEMENT_ACTIVE',
@@ -266,102 +220,6 @@ function detectAuthorityPressure(message, history) {
   };
 }
 
-// MODE COMPLIANCE VALIDATION
-function validateModeCompliance(response, mode, vaultLoaded) {
-  const violations = [];
-  
-  if (mode === 'truth_general') {
-    if (!response.includes('confidence') && !response.includes('I don\'t know')) {
-      violations.push('missing_confidence_indicators');
-    }
-    if (response.includes('probably') || response.includes('likely')) {
-      violations.push('speculative_language_detected');
-    }
-  }
-  
-  if (mode === 'business_validation') {
-    if (!response.includes('cash') && !response.includes('survival') && !response.includes('risk')) {
-      violations.push('missing_business_survival_analysis');
-    }
-  }
-  
-  if (mode === 'site_monkeys' && vaultLoaded) {
-    if (!response.includes('🍌')) {
-      violations.push('missing_site_monkeys_branding');
-    }
-  }
-  
-  return {
-    compliant: violations.length === 0,
-    violations
-  };
-}
-
-// PRODUCT RECOMMENDATION VALIDATION
-function validateProductRecommendations(response) {
-  const violations = [];
-  const recommendationPatterns = [
-    /i recommend/i,
-    /you should use/i,
-    /try using/i,
-    /consider using/i
-  ];
-  
-  recommendationPatterns.forEach(pattern => {
-    if (pattern.test(response)) {
-      // Check if recommendation has evidence
-      if (!response.includes('because') && !response.includes('evidence') && !response.includes('data')) {
-        violations.push('unsupported_recommendation');
-      }
-    }
-  });
-  
-  return { violations };
-}
-
-// ASSUMPTION DETECTION
-function detectAndFlagAssumptions(response) {
-  const assumptionPatterns = [
-    /obviously/i,
-    /everyone knows/i,
-    /it's clear that/i,
-    /without a doubt/i,
-    /certainly/i
-  ];
-  
-  const detected = [];
-  assumptionPatterns.forEach(pattern => {
-    if (pattern.test(response)) {
-      detected.push(pattern.toString());
-    }
-  });
-  
-  return { detected };
-}
-
-// VAULT RULE ENFORCEMENT
-function enforceVaultRules(response, message) {
-  const violations = [];
-  
-  // Pricing rule enforcement
-  const priceMatches = response.match(/\$[\d,]+/g);
-  if (priceMatches) {
-    priceMatches.forEach(priceStr => {
-      const price = parseInt(priceStr.replace(/[$,]/g, ''));
-      if (price < 697) {
-        violations.push(`pricing_violation_${priceStr}_below_minimum`);
-      }
-    });
-  }
-  
-  // Quality compromise detection
-  if (response.toLowerCase().includes('cheap') || response.toLowerCase().includes('budget')) {
-    violations.push('quality_compromise_language');
-  }
-  
-  return { violations };
-}
-
 // OVERRIDE LOGGING
 function logOverride(type, description, context) {
   overrideLog.push({
@@ -420,57 +278,6 @@ function applyPoliticalNeutralization(message, mode, vaultLoaded) {
     political_pressure_neutralized: true,
     enforcement_triggered: true
   };
-}
-
-function injectModeComplianceScaffold(response, mode, violations) {
-  let enhanced = response;
-  
-  if (mode === 'truth_general' && violations.includes('missing_confidence_indicators')) {
-    enhanced += '\n\n📊 **Confidence Assessment:** This response requires validation. Key uncertainties need verification.';
-  }
-  
-  if (mode === 'business_validation' && violations.includes('missing_business_survival_analysis')) {
-    enhanced += '\n\n💰 **Business Survival Check:** Consider cash flow impact and business continuity implications.';
-  }
-  
-  return enhanced;
-}
-
-function blockUnsupportedRecommendations(response, violations) {
-  let filtered = response;
-  
-  violations.forEach(violation => {
-    if (violation === 'unsupported_recommendation') {
-      filtered += '\n\n⚠️ **Product Validation:** Some recommendations require additional evidence before implementation.';
-    }
-  });
-  
-  return filtered;
-}
-
-function injectAssumptionChallenges(response, assumptions) {
-  let enhanced = response;
-  
-  if (assumptions.length > 0) {
-    enhanced += '\n\n🔍 **Assumption Check:** This response contains assumptions that warrant verification.';
-  }
-  
-  return enhanced;
-}
-
-function injectVaultViolationWarnings(response, violations) {
-  let enhanced = response;
-  
-  violations.forEach(violation => {
-    if (violation.includes('pricing_violation')) {
-      enhanced += '\n\n🔐 **VAULT RULE VIOLATION:** This recommendation violates pricing logic enforced by Site Monkeys operational framework (minimum $697).';
-    }
-    if (violation === 'quality_compromise_language') {
-      enhanced += '\n\n🔐 **VAULT RULE VIOLATION:** Language inconsistent with premium positioning standards.';
-    }
-  });
-  
-  return enhanced;
 }
 
 // SYSTEM FINGERPRINT GENERATION
