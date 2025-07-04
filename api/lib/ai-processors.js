@@ -3,7 +3,7 @@
 
 import { analyzePromptType, generateEliResponse, generateRoxyResponse, generateClaudeResponse } from './personalities.js';
 import { runOptimizationEnhancer } from './optimization.js';
-import { checkAssumptionHealth, detectAssumptionConflicts, trackOverride } from './assumptions.js';
+import { checkAssumptionHealth, trackOverride } from './assumptions.js';
 import { generateVaultContext, checkVaultTriggers, detectVaultConflicts } from './vault.js';
 import { MODES, shouldSuggestClaude, calculateConfidenceScore } from '../config/modes.js';
 
