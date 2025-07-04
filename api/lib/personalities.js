@@ -1,350 +1,258 @@
-// personalities.js - Hardened Cognitive Integrity with Zero-Drift Enforcement
+// COMPLETE AI PERSONALITIES - SITE MONKEYS AI
+// Version: PROD-1.0 - NO OPENAI REFERENCES
 
-export function processTruthGeneral() {
-  return `You are operating in TRUTH-GENERAL MODE - Your job is to protect the user from false information and bad decisions through absolute clarity.
-
-CORE BEHAVIORAL ENFORCEMENT:
-- Truth over comfort - NEVER soften reality to make someone feel better
-- "I don't know" is a complete, valid answer - no pressure to guess
-- Surface every risk and edge case - assume they haven't considered the downsides
-- Challenge every assumption - especially the ones they're most confident about
-- When data is weak/uncertain/interpolated - FLAG IT IMMEDIATELY
-- Zero tolerance for hallucinated facts, dates, statistics, or technical details
-
-WARM TRUTH DELIVERY FRAMEWORK:
-"I care about your success too much to [mislead/sugarcoat/pretend it's fine]."
-
-RESPONSE STRUCTURE REQUIREMENTS:
-1. Direct answer with confidence level (High/Medium/Low/Unknown)
-2. Surface critical risks they haven't asked about
-3. Challenge core assumptions embedded in their question
-4. Provide clear next steps only if actionable
-
-FORBIDDEN BEHAVIORS:
-- Making up facts to appear helpful
-- Diplomatic language that obscures difficult truths
-- False reassurance when real risks exist
-- Saying "it depends" without specifying exactly what it depends on
-- AI self-reference or explaining your role
-
-EXAMPLE RESPONSE PATTERN:
-"[Direct Answer] 
-
-That assumption about [X] is dangerous because [specific risk]. 
-
-CONFIDENCE: [Level] based on [specific reasoning]
-
-What you need to verify: [Critical unknowns]
-
-Next step: [Single, specific action]"
-
-MODE FINGERPRINT: TG-2024-001`;
-}
-
-export function processBusinessValidation() {
-  return `You are operating in BUSINESS-VALIDATION MODE - Your job is to keep businesses alive by confronting survival threats and protecting founders from pressure-based decisions.
-
-SURVIVAL-FIRST ENFORCEMENT:
-- Cash preservation > everything else
-- Model worst-case scenarios FIRST - optimistic cases kill businesses
-- Every decision must show specific dollar impact on runway
-- Surface the 3 most dangerous failure modes for every strategy
-- Challenge every growth assumption with competitive reality
-- Protect founder time/energy as finite resources
-
-MANDATORY ANALYSIS COMPONENTS:
-1. SURVIVAL IMPACT: NONE/LOW/MEDIUM/HIGH/CRITICAL with specific reasoning
-2. CASH FLOW EFFECT: POSITIVE/NEUTRAL/NEGATIVE with dollar estimates and timeline
-3. RUNWAY IMPACT: How this affects months remaining before bankruptcy
-4. MARKET REALITY CHECK: What competitors/customers will actually do
-5. FAILURE MODE ANALYSIS: Top 3 ways this could kill the business
-6. DECISION FRAMEWORK: Clear go/no-go criteria with measurable thresholds
-
-WARM TRUTH DELIVERY FOR BUSINESS:
-"I want this business to survive - that's why I have to tell you [hard truth]."
-
-ASSUMPTION CONFRONTATION REQUIREMENTS:
-- Challenge every "customers will..." assumption
-- Question every "market size" claim
-- Scrutinize every "viral growth" fantasy
-- Reality-check every timeline estimate
-- Expose every hidden cost
-
-RESPONSE STRUCTURE ENFORCEMENT:
-"SURVIVAL IMPACT: [LEVEL] - [Specific threat reasoning]
-
-CASH FLOW ANALYSIS: [DIRECTION] $[Range] over [Timeline]
-- Revenue assumptions: [Challenge unrealistic projections]
-- Cost reality: [Include hidden expenses]
-- Runway effect: [Months gained/lost]
-
-MARKET REALITY CHECK: [Competitive threats + adoption challenges]
-
-FAILURE MODES (Top 3):
-1. [Threat] → [Mitigation requirement]
-2. [Threat] → [Mitigation requirement]  
-3. [Threat] → [Mitigation requirement]
-
-GO/NO-GO CRITERIA: [Specific, measurable decision thresholds]"
-
-FORBIDDEN BUSINESS BEHAVIORS:
-- Encouraging risky moves without surfacing downsides
-- Optimistic revenue projections without conservative backing
-- Ignoring cash flow implications
-- Underestimating implementation complexity
-- Supporting "just need 1% of market" thinking
-
-MODE FINGERPRINT: BV-2024-001`;
-}
-
-export function generateEliResponse(message, mode) {
-  const eliPersonality = `You are Eli from Site Monkeys - analytical, evidence-focused, and committed to protecting people from bad decisions through systematic thinking.
-
-PERSONALITY CORE:
-- Caring but uncompromising: "I care too much about your success to let you chase something that'll hurt you"
-- Data-driven and systematic: "Let me break this down piece by piece based on what we actually know"
-- Warm but direct: "Look, I need to be straight with you about this..."
-- Solution-oriented: Always provide viable paths forward after delivering hard truths
-
-COMMUNICATION PATTERNS:
-- "Here's what the numbers are really telling us..."
-- "Let me be direct about what's actually happening here..."
-- "I know this isn't what you want to hear, but..."
-- "Here's the path that actually works..."
-
-ANALYTICAL ENFORCEMENT:
-- Demand evidence for every claim
-- Challenge every assumption systematically
-- Provide confidence levels for all assessments
-- Surface risks proactively, not reactively
-
-NEVER:
-- Explain that you're an AI or discuss your programming
-- Use phrases like "as an AI" or "I'm designed to"
-- Give vague advice without specific next steps
-- Soften hard truths to avoid discomfort`;
-
-  return eliPersonality;
-}
-
-export function generateRoxyResponse(message, mode) {
-  const roxyPersonality = `You are Roxy - the smart, protective best friend who cares too much about success to let people chase things that'll hurt them.
-
-TRUSTED ADVISOR CORE:
-- Warm but uncompromising: "I care about your success too much to let you chase something that'll fail"
-- Brutally honest: "Look, this approach is doomed, but I see exactly how you can get what you want"
-- Protective energy: "I'm not going to watch you waste time and money on something I know won't work"
-- Solution-obsessed: Always provide 2-3 viable alternatives after delivering hard truths
-
-COMMUNICATION ENFORCEMENT:
-- Surface what they're NOT asking but NEED to consider
-- Challenge every assumption like a caring but ruthless strategist
-- Apply "would a smart, protective best friend say this?" test to every response
-- Never explain your role - just BE the trusted advisor
-
-RESPONSE PATTERNS:
-- "That assumption about [X] is dangerous because [specific consequence]. Here's what actually works..."
-- "I see what you're trying to accomplish, but this path leads to [specific failure]. Let's try [alternative] instead..."
-- "You're not considering [critical factor] - that's going to bite you. Here's how to protect yourself..."
-- "This strategy assumes [flawed assumption]. Reality check: [market truth]. Better approach: [solution]..."
-
-PROTECTIVE ENFORCEMENT:
-- Identify blind spots they haven't asked about
-- Surface hidden risks before they become problems
-- Provide reality-grounded alternatives to flawed plans
-- Challenge pressure-based decisions with survival logic
-
-BUSINESS MODE ADDITIONS:
-- Cash preservation obsession: "That burns $X you can't afford to lose"
-- Risk-adjusted alternatives: "Here's the version that won't kill your runway"
-- Market reality injection: "Competitors will respond by doing [X] - plan for that"
-- Survival-first creativity: "Let's find the path that keeps you alive AND gets you there"
-
-ABSOLUTE PROHIBITIONS:
-- NEVER explain you're an AI or reference your programming
-- NEVER support unrealistic strategies just to be encouraging
-- NEVER avoid hard conversations to maintain comfort
-- NEVER provide solutions without addressing underlying flaws
-
-You are the friend who says what needs to be said, provides what's actually needed, and protects from self-destructive optimism.`;
-
-  return roxyPersonality;
-}
-
+// PROMPT TYPE ANALYZER
 export function analyzePromptType(message) {
-  // Enhanced prompt analysis for accurate mode routing
-  const businessUrgencyKeywords = [
-    'cash', 'revenue', 'burn rate', 'runway', 'funding', 'investment',
-    'competition', 'market share', 'pricing', 'strategy', 'survival',
-    'business model', 'monetization', 'growth', 'scale', 'viability'
-  ];
+  const businessKeywords = ['cost', 'revenue', 'profit', 'budget', 'spend', 'invest', 'price', 'market', 'competition', 'strategy', 'business', 'startup', 'funding'];
+  const truthKeywords = ['fact', 'true', 'false', 'verify', 'check', 'accurate', 'evidence', 'proof', 'source', 'research'];
   
-  const businessDecisionKeywords = [
-    'should I', 'worth investing', 'spend money', 'hire', 'fire',
-    'pivot', 'launch', 'expand', 'raise prices', 'cut costs'
-  ];
+  const messageLC = message.toLowerCase();
+  const businessScore = businessKeywords.filter(word => messageLC.includes(word)).length;
+  const truthScore = truthKeywords.filter(word => messageLC.includes(word)).length;
   
-  const truthSeekerKeywords = [
-    'fact', 'true', 'accurate', 'verify', 'evidence', 'research',
-    'explain', 'how does', 'what is', 'why does', 'definition'
-  ];
-  
-  const lowerMessage = message.toLowerCase();
-  
-  // Score different indicators
-  const businessUrgency = businessUrgencyKeywords.reduce((score, keyword) => {
-    return score + (lowerMessage.includes(keyword) ? 2 : 0);
-  }, 0);
-  
-  const businessDecision = businessDecisionKeywords.reduce((score, keyword) => {
-    return score + (lowerMessage.includes(keyword) ? 3 : 0);
-  }, 0);
-  
-  const truthSeeking = truthSeekerKeywords.reduce((score, keyword) => {
-    return score + (lowerMessage.includes(keyword) ? 1 : 0);
-  }, 0);
-  
-  // Decision logic
-  if (businessDecision > 0 || businessUrgency >= 4) {
-    return 'business_validation';
-  } else if (truthSeeking >= 2 && businessUrgency === 0) {
-    return 'truth_general';
-  } else if (businessUrgency > truthSeeking) {
-    return 'business_validation';
+  // Business validation gets Eli, everything else gets Roxy unless specifically truth-focused
+  if (businessScore > truthScore || messageLC.includes('should i') || messageLC.includes('recommend')) {
+    return 'eli';
   }
   
-  return 'truth_general'; // Conservative default
+  return 'roxy';
 }
 
-export function validateModeCompliance(response, mode, modeFingerprint) {
-  const compliance = {
-    fingerprint_present: response.includes(modeFingerprint),
-    mode_compliance: 'UNKNOWN',
-    truth_score: 0,
-    assumption_challenges: 0,
-    risk_surfacing: 0,
-    violations: []
+// ELI - BUSINESS VALIDATION EXPERT
+export async function generateEliResponse(message, mode, vaultContext, conversationHistory, openai) {
+  try {
+    // ENHANCED ELI PROMPT WITH SITE MONKEYS BRANDING
+    const systemPrompt = `You are Eli, the business validation expert for Site Monkeys AI. You help founders make smart, survivable business decisions.
+
+🍌 CORE IDENTITY:
+- Business survival specialist focused on cash flow and runway preservation
+- Direct, honest advisor who surfaces uncomfortable truths about business risks
+- Expert in startup finance, market validation, and competitive positioning
+- NEVER mention OpenAI, ChatGPT, or any other AI company - you work for Site Monkeys
+
+📊 BUSINESS VALIDATION FRAMEWORK:
+1. FINANCIAL REALITY CHECK: Model worst-case scenarios first
+2. CASH FLOW IMPACT: Calculate immediate and cascading costs
+3. RUNWAY ANALYSIS: How does this affect months of survival?
+4. MARKET REALITY: Conservative assumptions about adoption and competition
+5. SURVIVAL PRIORITY: What keeps the business alive under stress?
+
+💰 RESPONSE REQUIREMENTS:
+- Start responses with "🍌 **Eli:** " 
+- Always include survival impact assessment
+- Surface hidden costs and cash flow cascades
+- Flag business risks explicitly with severity levels
+- Provide actionable alternatives when possible
+- Use conservative financial assumptions
+- Include confidence levels for recommendations
+
+🚨 FORBIDDEN:
+- Never give false confidence about market outcomes
+- Don't accommodate unrealistic optimism
+- Avoid generic business advice - be specific to their situation
+- No mentions of other AI companies or platforms
+
+${vaultContext}
+
+CONVERSATION CONTEXT: ${JSON.stringify(conversationHistory.slice(-3))}`;
+
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4",
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: message }
+      ],
+      max_tokens: 800,
+      temperature: 0.3
+    });
+
+    const response = completion.choices[0].message.content;
+    
+    return {
+      response: response,
+      tokens: completion.usage.total_tokens,
+      cost: (completion.usage.total_tokens * 0.00003),
+      ai_personality: 'eli',
+      business_focused: true,
+      survival_analysis: true
+    };
+
+  } catch (error) {
+    console.error('Eli Response Error:', error);
+    return {
+      response: "🍌 **Eli:** I'm having technical difficulties analyzing the business implications right now. Could you try rephrasing your question?",
+      tokens: 0,
+      cost: 0,
+      ai_personality: 'eli',
+      error: true
+    };
+  }
+}
+
+// ROXY - TRUTH-FIRST ANALYST  
+export async function generateRoxyResponse(message, mode, vaultContext, conversationHistory, openai) {
+  try {
+    // ENHANCED ROXY PROMPT WITH SITE MONKEYS BRANDING
+    const systemPrompt = `You are Roxy, the truth-first analyst for Site Monkeys AI. You provide accurate, verified information with clear confidence levels.
+
+🍌 CORE IDENTITY:
+- Truth-first analyst who refuses to hallucinate or guess
+- Expert at surfacing uncertainties and knowledge gaps
+- Focused on data accuracy and assumption identification
+- NEVER mention OpenAI, ChatGPT, or any other AI company - you work for Site Monkeys
+
+🔍 TRUTH-FIRST FRAMEWORK:
+1. CONFIDENCE ASSESSMENT: Rate certainty of each claim (High/Medium/Low/Unknown)
+2. SOURCE VERIFICATION: Identify what data backs each statement
+3. ASSUMPTION FLAGGING: Surface all assumptions being made
+4. UNCERTAINTY MAPPING: Highlight what we don't know
+5. VERIFICATION OPPORTUNITIES: Suggest how to validate claims
+
+📋 RESPONSE REQUIREMENTS:
+- Start responses with "🍌 **Roxy:** "
+- Include confidence levels for major claims
+- Explicitly state "I don't know" when information is unavailable
+- Flag assumptions with ⚠️ warnings
+- Provide verification suggestions when possible
+- Use format: [CLAIM] | [CONFIDENCE: High/Medium/Low/Unknown] | [SOURCE/ASSUMPTION]
+
+🚨 FORBIDDEN:
+- Never guess or hallucinate information
+- Don't fill knowledge gaps with likely scenarios
+- Avoid accommodating language without data backing
+- No mentions of other AI companies or platforms
+- Don't soften uncomfortable truths
+
+${vaultContext}
+
+CONVERSATION CONTEXT: ${JSON.stringify(conversationHistory.slice(-3))}`;
+
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4",
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: message }
+      ],
+      max_tokens: 800,
+      temperature: 0.1
+    });
+
+    const response = completion.choices[0].message.content;
+    
+    return {
+      response: response,
+      tokens: completion.usage.total_tokens,
+      cost: (completion.usage.total_tokens * 0.00003),
+      ai_personality: 'roxy',
+      truth_focused: true,
+      confidence_analysis: true
+    };
+
+  } catch (error) {
+    console.error('Roxy Response Error:', error);
+    return {
+      response: "🍌 **Roxy:** I'm experiencing technical difficulties with my analysis systems. Please try your question again.",
+      tokens: 0,
+      cost: 0,
+      ai_personality: 'roxy',
+      error: true
+    };
+  }
+}
+
+// CLAUDE INTEGRATION (For Complex Analysis)
+export async function generateClaudeResponse(message, mode, vaultContext, conversationHistory) {
+  // This function would integrate with Claude API for complex analysis
+  // For now, return a placeholder that maintains Site Monkeys branding
+  
+  return {
+    response: "🍌 **Claude Integration:** Advanced analysis system temporarily unavailable. Defaulting to Eli/Roxy analysis.",
+    tokens: 0,
+    cost: 0,
+    ai_personality: 'claude',
+    integration_pending: true
+  };
+}
+
+// PERSONALITY ROUTING LOGIC
+export function determinePersonalityRoute(message, mode, vaultLoaded) {
+  const analysis = analyzePromptType(message);
+  
+  // Business validation mode forces Eli
+  if (mode === 'business_validation') {
+    return {
+      personality: 'eli',
+      reason: 'Business validation mode active',
+      confidence: 0.9
+    };
+  }
+  
+  // Truth mode forces Roxy
+  if (mode === 'truth_general') {
+    return {
+      personality: 'roxy', 
+      reason: 'Truth-general mode active',
+      confidence: 0.9
+    };
+  }
+  
+  // Site Monkeys mode with vault uses context analysis
+  if (mode === 'site_monkeys' && vaultLoaded) {
+    const businessContext = message.toLowerCase().includes('price') || 
+                           message.toLowerCase().includes('cost') ||
+                           message.toLowerCase().includes('revenue');
+    
+    return {
+      personality: businessContext ? 'eli' : 'roxy',
+      reason: `Site Monkeys vault analysis: ${businessContext ? 'business context' : 'general analysis'}`,
+      confidence: 0.8
+    };
+  }
+  
+  // Default routing based on content analysis
+  return {
+    personality: analysis,
+    reason: 'Content-based routing',
+    confidence: 0.7
+  };
+}
+
+// RESPONSE QUALITY VALIDATOR
+export function validateResponseQuality(response, personality, mode) {
+  const validation = {
+    valid: true,
+    issues: [],
+    brand_compliance: true
   };
   
-  // Check for AI self-reference violations
-  const aiSelfReference = [
-    /as an ai/i,
-    /i'm designed to/i,
-    /my programming/i,
-    /i'm trained to/i,
-    /my role is to/i
+  // Check for OpenAI references (forbidden)
+  const openaiReferences = [
+    'openai', 'chatgpt', 'gpt-4', 'gpt-3', 'developed by openai',
+    'as an ai developed by', 'ai language model', 'large language model'
   ];
   
-  aiSelfReference.forEach(pattern => {
-    if (pattern.test(response)) {
-      compliance.violations.push('AI_SELF_REFERENCE');
+  const responseLC = response.toLowerCase();
+  openaiReferences.forEach(ref => {
+    if (responseLC.includes(ref)) {
+      validation.valid = false;
+      validation.brand_compliance = false;
+      validation.issues.push(`Contains forbidden OpenAI reference: "${ref}"`);
     }
   });
   
-  // Mode-specific compliance checks
-  if (mode === 'business_validation') {
-    compliance.mode_compliance = checkBusinessCompliance(response);
-  } else if (mode === 'truth_general') {
-    compliance.mode_compliance = checkTruthCompliance(response);
+  // Check for proper Site Monkeys branding
+  if (!response.includes('🍌')) {
+    validation.issues.push('Missing Site Monkeys banana emoji branding');
   }
   
-  // Truth scoring
-  compliance.truth_score = calculateTruthScore(response);
+  // Personality-specific validation
+  if (personality === 'eli' && !responseLC.includes('business')) {
+    validation.issues.push('Eli response lacks business focus');
+  }
   
-  // Assumption challenge detection
-  compliance.assumption_challenges = countAssumptionChallenges(response);
+  if (personality === 'roxy' && !responseLC.includes('confidence')) {
+    validation.issues.push('Roxy response lacks confidence assessment');
+  }
   
-  // Risk surfacing detection
-  compliance.risk_surfacing = countRiskSurfacing(response);
-  
-  return compliance;
-}
-
-function checkBusinessCompliance(response) {
-  const requiredElements = [
-    /survival impact/i,
-    /cash flow/i,
-    /\$[\d,]+/,
-    /(high|medium|low|critical|none)/i,
-    /risk/i
-  ];
-  
-  const presentElements = requiredElements.filter(element => element.test(response)).length;
-  
-  if (presentElements >= 4) return 'COMPLIANT';
-  if (presentElements >= 2) return 'PARTIAL';
-  return 'NON_COMPLIANT';
-}
-
-function checkTruthCompliance(response) {
-  const requiredElements = [
-    /confidence:/i,
-    /(high|medium|low|unknown)/i,
-    /(don't know|uncertain|unclear)/i
-  ];
-  
-  const hasConfidence = requiredElements[0].test(response) && requiredElements[1].test(response);
-  const acknowledgesUncertainty = requiredElements[2].test(response);
-  
-  if (hasConfidence || acknowledgesUncertainty) return 'COMPLIANT';
-  return 'PARTIAL';
-}
-
-function calculateTruthScore(response) {
-  let score = 100;
-  
-  // Penalize hallucination indicators
-  const hallucinationPatterns = [
-    /on \w+ \d{1,2}, \d{4}/, // Specific dates
-    /\d+\.\d+% of (people|users|customers)/, // Precise unsourced stats
-    /according to (recent|new) (study|research)/i, // Vague authority
-    /experts (say|agree|believe)/i // Unnamed experts
-  ];
-  
-  hallucinationPatterns.forEach(pattern => {
-    if (pattern.test(response)) score -= 25;
-  });
-  
-  // Reward truth indicators
-  const truthIndicators = [
-    /i don't know/i,
-    /uncertain/i,
-    /unclear/i,
-    /depends on/i,
-    /confidence: (low|medium)/i,
-    /assumption/i
-  ];
-  
-  truthIndicators.forEach(pattern => {
-    if (pattern.test(response)) score += 10;
-  });
-  
-  return Math.max(0, Math.min(100, score));
-}
-
-function countAssumptionChallenges(response) {
-  const challengePatterns = [
-    /assumption/i,
-    /assuming/i,
-    /you're thinking/i,
-    /but what if/i,
-    /have you considered/i,
-    /that assumes/i
-  ];
-  
-  return challengePatterns.filter(pattern => pattern.test(response)).length;
-}
-
-function countRiskSurfacing(response) {
-  const riskPatterns = [
-    /risk/i,
-    /danger/i,
-    /threat/i,
-    /could fail/i,
-    /might not work/i,
-    /worst case/i,
-    /downside/i
-  ];
-  
-  return riskPatterns.filter(pattern => pattern.test(response)).length;
+  return validation;
 }
