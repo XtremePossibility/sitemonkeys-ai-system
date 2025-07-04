@@ -126,7 +126,8 @@ export default async function handler(req, res) {
     const fingerprint = generateSystemFingerprint(mode, vaultVerification.allowed, result);
     
     // Final response assembly with full metadata
-    return res.status(200).json({
+    // 🔒 OPTIONAL SAFETY HARNESS INTEGRATION
+    const finalResponse = {
       ...result,
       response: result.response + `\n\n${fingerprint}`,
       
@@ -145,7 +146,20 @@ export default async function handler(req, res) {
       system_status: 'FULL_ENFORCEMENT_ACTIVE',
       cognitive_firewall_version: 'PROD-1.0',
       processing_time: Date.now()
-    });
+    };
+
+    // Safety Harness Live Validation (Optional)
+    if (process.env.VALIDATION_ENABLED === 'true') {
+      try {
+        const { quickHealthCheck } = await import('./safety-harness/validator.js');
+        const healthCheck = quickHealthCheck(finalResponse);
+        console.log('🔒 Response Health:', healthCheck);
+      } catch (validationError) {
+        console.log('🔒 Validation skipped:', validationError.message);
+      }
+    }
+
+    return res.status(200).json(finalResponse);
 
   } catch (error) {
     console.error('❌ Critical system failure:', error);
