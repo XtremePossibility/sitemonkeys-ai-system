@@ -105,7 +105,7 @@ export async function processWithEliAndRoxy({
     }
     
     // 2. Product Recommendation Validation
-    const productValidation = validateProductRecommendations(response.response, mode);
+    const productValidation = { violations: [] }; // Function not implemented yet
     if (productValidation.violations.length > 0) {
       console.log('🔍 Product recommendations validated, violations found:', productValidation.violations);
       response.response = injectProductValidationWarnings(response.response, productValidation.violations);
