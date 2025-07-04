@@ -173,17 +173,17 @@ async function sendMessage() {
     }
 
     const data = await response.json();
-    let reply = data.response || 'No response received';
+let reply = data.response || 'No response received';
 
-    // EXTRACT system verification info BEFORE cleaning
-    const systemVerification = {
-      mode_used: data.mode_active || 'UNKNOWN',
-      vault_status: data.vault_loaded ? 'LOADED' : 'NOT_LOADED',
-      triggered_frameworks: data.triggered_frameworks || [],
-      assumption_warnings: data.assumption_warnings || [],
-      security_pass: data.security_pass || false,
-      fallback_used: data.fallback_used || false
-    };
+// EXTRACT system verification info BEFORE cleaning - FIXED FOR NEW BACKEND
+const systemVerification = {
+  mode_used: data.mode_active || 'UNKNOWN',
+  vault_status: data.vault_status?.loaded ? 'LOADED' : 'NOT_LOADED',
+  triggered_frameworks: data.enforcement_applied || [],
+  assumption_warnings: data.assumption_analysis?.detected || [],
+  security_pass: data.security_pass || false,
+  fallback_used: data.performance?.api_error?.fallback_used || false
+}; 
 
     // LOG system status for debugging
     console.log('🔍 SYSTEM VERIFICATION:', systemVerification);
