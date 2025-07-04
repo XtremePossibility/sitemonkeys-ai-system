@@ -1,357 +1,361 @@
-// SITE MONKEYS VAULT SYSTEM - PRODUCTION
-// Version: PROD-1.0
+// COMPLETE VAULT SYSTEM - SITE MONKEYS BUSINESS LOGIC ENGINE
+// TIER 1: CORE VAULT ACCESS AND SECURITY
+// TIER 2: BUSINESS RULE ENFORCEMENT 
+// TIER 3: CONFLICT DETECTION AND RESOLUTION
 
-// CORE SITE MONKEYS BUSINESS LOGIC
-export const SITE_MONKEYS_VAULT = {
-  vault_id: "SM-PROD-v1.0",
-  business_context: "early_stage_saas_validation_phase",
+import { logOverride } from '../config/modes.js';
+
+// TIER 1: VAULT ACCESS CONTROL
+export async function verifyVaultAccess(mode, vaultRequested) {
+  if (mode !== 'site_monkeys' && vaultRequested) {
+    return {
+      allowed: false,
+      reason: "Vault access restricted to Site Monkeys mode only",
+      security_violation: true
+    };
+  }
   
-  // FINANCIAL CONSTRAINTS (ALWAYS ENFORCED)
-  financial_framework: {
-    launch_budget: {
-      target: 15000,
-      hard_cap: 20000,
-      current_spent: 0 // This would be updated dynamically
+  if (mode === 'site_monkeys' && !vaultRequested) {
+    return {
+      allowed: false,
+      reason: "Site Monkeys mode requires vault context",
+      vault_required: true
+    };
+  }
+  
+  if (mode === 'site_monkeys' && vaultRequested) {
+    return {
+      allowed: true,
+      vault_loaded: true,
+      context_available: true,
+      compliance_required: true
+    };
+  }
+  
+  return {
+    allowed: true,
+    vault_loaded: false,
+    context_available: false
+  };
+}
+
+// TIER 2: SITE MONKEYS BUSINESS LOGIC ENGINE
+const SITE_MONKEYS_VAULT = {
+  vault_id: "SM-VAULT-2025-001",
+  version: "3.2.1",
+  loaded_timestamp: Date.now(),
+  
+  // CORE BUSINESS RULES
+  pricing_logic: {
+    minimum_service_price: 697,
+    hourly_rate_floor: 89,
+    project_minimums: {
+      basic_website: 1497,
+      ecommerce: 2997,
+      custom_application: 4997
     },
-    monthly_burn: {
-      target: 3000,
-      maximum: 4000
+    
+    enforcement_rules: [
+      "NEVER quote below minimum thresholds",
+      "ALWAYS include total project cost upfront", 
+      "FLAG any pricing discussion below $697",
+      "REQUIRE scope clarification before pricing"
+    ]
+  },
+  
+  operational_frameworks: {
+    client_onboarding: {
+      deposit_required: 0.5, // 50% upfront
+      payment_terms: "Net 15",
+      scope_change_policy: "Additional work requires new SOW",
+      
+      red_flags: [
+        "Requests for free work or 'trial projects'",
+        "Pricing pressure below established minimums",
+        "Scope creep without compensation discussion",
+        "Payment term extensions beyond Net 30"
+      ]
     },
-    pricing_tiers: {
-      boost: { price: 697, margin_target: 0.87 },
-      climb: { price: 1497, margin_target: 0.87 },
-      lead: { price: 2997, margin_target: 0.87 }
-    },
-    margin_requirements: {
-      target: 0.87, // 87%
-      minimum: 0.75 // 75%
+    
+    project_management: {
+      communication_policy: "Slack for urgent, email for formal",
+      meeting_cadence: "Weekly check-ins for active projects",
+      deliverable_timeline: "2-week sprints with client review",
+      
+      risk_indicators: [
+        "Client non-responsive for >48 hours",
+        "Scope expansion without documentation", 
+        "Technical requirements beyond agreed capability",
+        "Timeline compression requests"
+      ]
     }
   },
   
-  // OPERATIONAL STANDARDS
-  operational_framework: {
-    delivery_standards: {
-      uptime_target: 0.998, // 99.8%
-      uptime_minimum: 0.970, // 97.0%
-      zero_failure_required: true,
-      quality_assurance_mandatory: true
-    },
-    founder_protection: {
-      max_decision_fatigue_score: 7, // Out of 10
-      cognitive_load_monitoring: true,
-      time_optimization_priority: "high"
-    },
-    brand_positioning: {
-      tagline: "Overlooked to Overbooked",
-      premium_positioning_required: true,
-      no_undercutting_allowed: true
-    }
-  },
-  
-  // DECISION FRAMEWORKS
-  decision_frameworks: {
-    pricing_strategy: {
-      triggers: ["price", "pricing", "cost", "revenue", "monetization", "subscription", "tier"],
-      logic_tree: {
-        step_1: "Validate against established tiers (Boost/Climb/Lead)",
-        step_2: "Calculate total cost of ownership including hidden costs",
-        step_3: "Ensure margin requirements (87% target, 75% minimum)",
-        step_4: "Justify premium positioning with value delivery",
-        step_5: "Model cash flow impact over 6 months"
-      },
-      override_authority: "VAULT_WINS",
-      violation_flags: ["undercutting", "margin_compression", "value_undermining"]
+  // FINANCIAL LOGIC
+  business_intelligence: {
+    monthly_targets: {
+      revenue: 15000,
+      new_clients: 3,
+      project_completion: 4
     },
     
-    feature_prioritization: {
-      triggers: ["feature", "development", "roadmap", "build", "functionality", "scope"],
-      logic_tree: {
-        step_1: "Assess immediate revenue impact (paying customers)",
-        step_2: "Calculate development cost (time + contractor + opportunity)",
-        step_3: "Validate market demand with evidence",
-        step_4: "Evaluate technical debt and maintenance burden",
-        step_5: "Prioritize: Revenue > Cost efficiency > Validation > Simplicity"
-      },
-      override_authority: "VAULT_WINS",
-      founder_protection: "Prevent feature creep and scope expansion"
-    },
+    cash_flow_rules: [
+      "Maintain 3-month operating expense reserve",
+      "No project >40% of monthly revenue target",
+      "Collect deposits before work begins",
+      "Invoice immediately upon milestone completion"
+    ],
     
-    resource_allocation: {
-      triggers: ["hire", "hiring", "spend", "invest", "budget", "contractor", "team"],
-      logic_tree: {
-        step_1: "Calculate runway impact (months preserved/consumed)",
-        step_2: "Require measurable ROI timeline",
-        step_3: "Prioritize runway extension over growth acceleration",
-        step_4: "Evaluate cheaper/faster alternatives",
-        step_5: "Assess founder time liberation vs. cost"
-      },
-      override_authority: "VAULT_WINS",
-      cash_preservation_priority: true
-    },
-    
-    market_validation: {
-      triggers: ["market", "customer", "validation", "demand", "audience", "target", "competitive"],
-      logic_tree: {
-        step_1: "Require primary research evidence (customer conversations)",
-        step_2: "Conservative market size estimation (addressable not total)",
-        step_3: "Realistic customer acquisition cost modeling",
-        step_4: "Competitive response probability assessment",
-        step_5: "Evidence hierarchy: Primary > Reports > Assumptions"
-      },
-      override_authority: "MERGE_WITH_MODE",
-      assumption_challenge_required: true
-    },
-    
-    operational_decisions: {
-      triggers: ["process", "workflow", "system", "tool", "efficiency", "automation"],
-      logic_tree: {
-        step_1: "Founder time impact analysis",
-        step_2: "Quality assurance compatibility check",
-        step_3: "Zero-failure delivery preservation",
-        step_4: "Long-term maintenance burden assessment",
-        step_5: "Premium brand alignment verification"
-      },
-      override_authority: "VAULT_WINS",
-      quality_non_negotiable: true
-    }
-  },
-  
-  // CRITICAL ASSUMPTIONS (WITH EXPIRATION)
-  assumptions: {
-    market_stage: {
-      value: "pre_product_market_fit",
-      confidence: 0.85,
-      last_validated: "2024-06-01",
-      expires_after_days: 90,
-      validation_triggers: ["revenue_milestone", "customer_feedback", "competitive_analysis"]
-    },
-    cash_runway: {
-      value: "limited_bootstrap_funding",
-      confidence: 0.95,
-      last_validated: "2024-06-15", 
-      expires_after_days: 30,
-      validation_triggers: ["monthly_burn_review", "revenue_update"]
-    },
-    competition_level: {
-      value: "established_players_exist",
-      confidence: 0.90,
-      last_validated: "2024-05-15",
-      expires_after_days: 60,
-      validation_triggers: ["competitor_analysis", "market_research"]
+    expense_controls: {
+      tool_subscriptions: "Quarterly review and optimization",
+      marketing_spend: "Track ROI, pause channels <2x return",
+      equipment_purchases: "Business justification required >$500"
     }
   }
 };
 
-// VAULT ACCESS VERIFICATION
-export async function verifyVaultAccess(mode, vault_requested) {
-  const verification = {
-    allowed: false,
-    reason: "",
-    vault_loaded: false,
-    compatibility_check: false
-  };
-  
-  // Only allow vault access in Site Monkeys mode
-  if (mode === 'site_monkeys' && vault_requested) {
-    verification.allowed = true;
-    verification.vault_loaded = true;
-    verification.compatibility_check = true;
-    verification.reason = "Site Monkeys mode with vault access approved";
-  } else if (mode !== 'site_monkeys' && vault_requested) {
-    verification.allowed = false;
-    verification.reason = "Vault access denied - must be in Site Monkeys mode";
-  } else {
-    verification.allowed = true;
-    verification.reason = "Standard mode operation without vault";
-  }
-  
-  return verification;
-}
-
-// VAULT TRIGGER DETECTION
+// TIER 2: VAULT TRIGGER DETECTION
 export function checkVaultTriggers(message) {
-  const triggeredFrameworks = [];
-  const messageLC = message.toLowerCase();
+  const triggers = [];
   
-  // Check each decision framework
-  Object.entries(SITE_MONKEYS_VAULT.decision_frameworks).forEach(([frameworkName, framework]) => {
-    const triggered = framework.triggers.some(trigger => messageLC.includes(trigger));
-    if (triggered) {
-      triggeredFrameworks.push({
-        name: frameworkName,
-        framework: framework,
-        confidence: 0.8 // Default confidence for trigger detection
+  // Pricing triggers
+  const PRICING_PATTERNS = [
+    /price|cost|quote|estimate|fee|rate|charge/i,
+    /how much|what does.*cost|pricing/i,
+    /\$\d+/g,
+    /budget|money|payment/i
+  ];
+  
+  PRICING_PATTERNS.forEach(pattern => {
+    if (pattern.test(message)) {
+      triggers.push({
+        category: 'pricing',
+        pattern: pattern.source,
+        vault_rule: 'pricing_logic',
+        enforcement_required: true
       });
     }
   });
   
-  return triggeredFrameworks;
-}
-
-// VAULT CONTEXT GENERATION
-export function generateVaultContext(triggeredFrameworks) {
-  if (!triggeredFrameworks || triggeredFrameworks.length === 0) {
-    return "";
-  }
+  // Project scope triggers
+  const SCOPE_PATTERNS = [
+    /website|app|application|development/i,
+    /project|build|create|develop/i,
+    /features|functionality|requirements/i
+  ];
   
-  let context = "\n=== SITE MONKEYS VAULT LOGIC ACTIVE ===\n";
-  
-  // Add financial constraints
-  context += `
-FINANCIAL CONSTRAINTS:
-- Launch Budget: $${SITE_MONKEYS_VAULT.financial_framework.launch_budget.target.toLocaleString()} target, $${SITE_MONKEYS_VAULT.financial_framework.launch_budget.hard_cap.toLocaleString()} cap
-- Monthly Burn: $${SITE_MONKEYS_VAULT.financial_framework.monthly_burn.target.toLocaleString()} target
-- Margin Requirements: ${SITE_MONKEYS_VAULT.financial_framework.margin_requirements.target * 100}% target, ${SITE_MONKEYS_VAULT.financial_framework.margin_requirements.minimum * 100}% minimum
-- Pricing Tiers: Boost $${SITE_MONKEYS_VAULT.financial_framework.pricing_tiers.boost.price}, Climb $${SITE_MONKEYS_VAULT.financial_framework.pricing_tiers.climb.price}, Lead $${SITE_MONKEYS_VAULT.financial_framework.pricing_tiers.lead.price}
-`;
-  
-  // Add operational standards
-  context += `
-OPERATIONAL STANDARDS:
-- Brand Positioning: "${SITE_MONKEYS_VAULT.operational_framework.brand_positioning.tagline}"
-- Quality: ${SITE_MONKEYS_VAULT.operational_framework.delivery_standards.uptime_target * 100}% uptime target, Zero-failure delivery required
-- Founder Protection: Cognitive load monitoring active, decision fatigue prevention
-`;
-  
-  // Add triggered frameworks
-  context += "\nTRIGGERED DECISION FRAMEWORKS:\n";
-  triggeredFrameworks.forEach(tf => {
-    context += `\n${tf.name.toUpperCase()}:\n`;
-    Object.entries(tf.framework.logic_tree).forEach(([step, instruction]) => {
-      context += `  ${step}: ${instruction}\n`;
-    });
-    context += `  Override Authority: ${tf.framework.override_authority}\n`;
+  SCOPE_PATTERNS.forEach(pattern => {
+    if (pattern.test(message)) {
+      triggers.push({
+        category: 'project_scope',
+        pattern: pattern.source,
+        vault_rule: 'operational_frameworks',
+        enforcement_required: true
+      });
+    }
   });
   
-  context += "\n=== END VAULT LOGIC ===\n";
+  // Business strategy triggers
+  const STRATEGY_PATTERNS = [
+    /client|customer|revenue|growth/i,
+    /marketing|sales|business/i,
+    /cash flow|expenses|profit/i
+  ];
+  
+  STRATEGY_PATTERNS.forEach(pattern => {
+    if (pattern.test(message)) {
+      triggers.push({
+        category: 'business_strategy', 
+        pattern: pattern.source,
+        vault_rule: 'business_intelligence',
+        enforcement_required: false
+      });
+    }
+  });
+  
+  return triggers;
+}
+
+// TIER 2: VAULT CONTEXT GENERATION
+export function generateVaultContext(triggeredFrameworks) {
+  if (!triggeredFrameworks || triggeredFrameworks.length === 0) {
+    return '';
+  }
+  
+  let context = '\n🍌 SITE MONKEYS VAULT LOGIC ACTIVE 🍌\n\n';
+  
+  triggeredFrameworks.forEach(trigger => {
+    switch (trigger.category) {
+      case 'pricing':
+        context += `PRICING ENFORCEMENT:
+- Minimum service price: $${SITE_MONKEYS_VAULT.pricing_logic.minimum_service_price}
+- Hourly rate floor: $${SITE_MONKEYS_VAULT.pricing_logic.hourly_rate_floor}
+- Project minimums: ${JSON.stringify(SITE_MONKEYS_VAULT.pricing_logic.project_minimums)}
+- CRITICAL: Flag any quote below minimums as vault violation
+
+`;
+        break;
+        
+      case 'project_scope':
+        context += `PROJECT FRAMEWORK ENFORCEMENT:
+- Deposit required: ${SITE_MONKEYS_VAULT.operational_frameworks.client_onboarding.deposit_required * 100}% upfront
+- Payment terms: ${SITE_MONKEYS_VAULT.operational_frameworks.client_onboarding.payment_terms}
+- Scope change policy: ${SITE_MONKEYS_VAULT.operational_frameworks.client_onboarding.scope_change_policy}
+
+`;
+        break;
+        
+      case 'business_strategy':
+        context += `BUSINESS INTELLIGENCE ACTIVE:
+- Monthly revenue target: $${SITE_MONKEYS_VAULT.business_intelligence.monthly_targets.revenue}
+- New client target: ${SITE_MONKEYS_VAULT.business_intelligence.monthly_targets.new_clients}
+- Cash flow rules: ${SITE_MONKEYS_VAULT.business_intelligence.cash_flow_rules.join(' | ')}
+
+`;
+        break;
+    }
+  });
+  
+  context += `VAULT COMPLIANCE REQUIRED - Violation warnings must be surfaced immediately.\n`;
   
   return context;
 }
 
-// VAULT VALIDATION FUNCTIONS
-export function validatePricingDecision(price, tier) {
-  const violations = [];
-  const recommendations = [];
-  
-  const tierConfig = SITE_MONKEYS_VAULT.financial_framework.pricing_tiers[tier.toLowerCase()];
-  
-  if (!tierConfig) {
-    violations.push(`Invalid pricing tier: ${tier}`);
-    return { violations, recommendations };
-  }
-  
-  if (price < tierConfig.price) {
-    violations.push(`Pricing below established ${tier} tier ($${tierConfig.price})`);
-  }
-  
-  // Calculate implied margin (simplified)
-  const estimatedCost = price * (1 - tierConfig.margin_target);
-  const actualMargin = (price - estimatedCost) / price;
-  
-  if (actualMargin < SITE_MONKEYS_VAULT.financial_framework.margin_requirements.minimum) {
-    violations.push(`Margin ${(actualMargin * 100).toFixed(1)}% below minimum ${SITE_MONKEYS_VAULT.financial_framework.margin_requirements.minimum * 100}%`);
-  }
-  
-  if (actualMargin < SITE_MONKEYS_VAULT.financial_framework.margin_requirements.target) {
-    recommendations.push(`Consider optimizing to reach ${SITE_MONKEYS_VAULT.financial_framework.margin_requirements.target * 100}% margin target`);
-  }
-  
-  return { violations, recommendations };
-}
-
-export function validateResourceAllocation(cost, purpose, timeline) {
-  const violations = [];
-  const recommendations = [];
-  
-  // Check against budget constraints
-  if (cost > SITE_MONKEYS_VAULT.financial_framework.launch_budget.target) {
-    violations.push(`Cost $${cost.toLocaleString()} exceeds launch budget target $${SITE_MONKEYS_VAULT.financial_framework.launch_budget.target.toLocaleString()}`);
-  }
-  
-  if (cost > SITE_MONKEYS_VAULT.financial_framework.launch_budget.hard_cap) {
-    violations.push(`Cost $${cost.toLocaleString()} exceeds hard budget cap $${SITE_MONKEYS_VAULT.financial_framework.launch_budget.hard_cap.toLocaleString()}`);
-  }
-  
-  // Calculate runway impact
-  const monthlyImpact = cost / timeline; // Assuming timeline in months
-  if (monthlyImpact > SITE_MONKEYS_VAULT.financial_framework.monthly_burn.target) {
-    recommendations.push(`Monthly impact $${monthlyImpact.toLocaleString()} exceeds burn target. Consider phasing or alternatives.`);
-  }
-  
-  return { violations, recommendations };
-}
-
-// ASSUMPTION HEALTH MONITORING
-export function checkAssumptionHealth() {
-  const warnings = [];
-  const currentDate = new Date();
-  
-  Object.entries(SITE_MONKEYS_VAULT.assumptions).forEach(([assumptionName, assumption]) => {
-    const lastValidated = new Date(assumption.last_validated);
-    const daysSinceValidation = Math.floor((currentDate - lastValidated) / (1000 * 60 * 60 * 24));
-    
-    if (daysSinceValidation > assumption.expires_after_days) {
-      warnings.push({
-        assumption: assumptionName,
-        status: "EXPIRED",
-        days_overdue: daysSinceValidation - assumption.expires_after_days,
-        confidence: assumption.confidence,
-        action_required: "Validation required"
-      });
-    } else if (daysSinceValidation > (assumption.expires_after_days * 0.8)) {
-      warnings.push({
-        assumption: assumptionName,
-        status: "EXPIRING_SOON", 
-        days_until_expiry: assumption.expires_after_days - daysSinceValidation,
-        confidence: assumption.confidence,
-        action_required: "Consider validation"
-      });
-    }
-  });
-  
-  return warnings;
-}
-
-// VAULT CONFLICT DETECTION
-export function detectVaultConflicts(message, mode, baseResponse) {
+// TIER 3: CONFLICT DETECTION AND RESOLUTION
+export function detectVaultConflicts(response, triggeredFrameworks) {
   const conflicts = [];
   
-  // Only check for conflicts in Site Monkeys mode
-  if (mode !== 'site_monkeys') {
-    return conflicts;
-  }
-  
-  const triggeredFrameworks = checkVaultTriggers(message);
-  
-  triggeredFrameworks.forEach(tf => {
-    // Check for pricing violations
-    if (tf.name === 'pricing_strategy') {
-      const priceMatches = baseResponse.match(/\$[\d,]+/g);
+  triggeredFrameworks.forEach(trigger => {
+    if (trigger.category === 'pricing') {
+      // Check for pricing violations
+      const priceMatches = response.match(/\$(\d+)/g);
       if (priceMatches) {
-        priceMatches.forEach(priceStr => {
-          const price = parseInt(priceStr.replace(/[$,]/g, ''));
-          if (price < SITE_MONKEYS_VAULT.financial_framework.pricing_tiers.boost.price) {
+        priceMatches.forEach(match => {
+          const price = parseInt(match.replace('$', ''));
+          if (price < SITE_MONKEYS_VAULT.pricing_logic.minimum_service_price) {
             conflicts.push({
-              type: "pricing_violation",
-              description: `Suggested price ${priceStr} below minimum tier`,
-              framework: tf.name,
-              severity: "HIGH"
+              type: 'pricing_violation',
+              detected_price: price,
+              minimum_required: SITE_MONKEYS_VAULT.pricing_logic.minimum_service_price,
+              severity: 'critical',
+              action_required: 'block_response'
             });
           }
         });
       }
+      
+      // Check for pricing language that might undercut
+      const UNDERCUT_PATTERNS = [
+        /cheap|affordable|budget.friendly/i,
+        /lowest price|competitive pricing/i,
+        /discount|deal|special offer/i
+      ];
+      
+      UNDERCUT_PATTERNS.forEach(pattern => {
+        if (pattern.test(response)) {
+          conflicts.push({
+            type: 'pricing_language_violation',
+            pattern: pattern.source,
+            severity: 'moderate',
+            action_required: 'modify_response'
+          });
+        }
+      });
     }
     
-    // Check for margin discussions
-    if (tf.name === 'resource_allocation' && baseResponse.toLowerCase().includes('cheap')) {
-      conflicts.push({
-        type: "brand_positioning_conflict",
-        description: "Language inconsistent with premium positioning",
-        framework: tf.name,
-        severity: "MEDIUM"
+    if (trigger.category === 'project_scope') {
+      // Check for scope creep enablement
+      const SCOPE_CREEP_PATTERNS = [
+        /we can add|easy to include/i,
+        /no problem|sure thing/i,
+        /free|included|no charge/i
+      ];
+      
+      SCOPE_CREEP_PATTERNS.forEach(pattern => {
+        if (pattern.test(response)) {
+          conflicts.push({
+            type: 'scope_creep_enablement',
+            pattern: pattern.source,
+            severity: 'moderate',
+            action_required: 'add_clarification'
+          });
+        }
       });
     }
   });
   
   return conflicts;
+}
+
+// TIER 3: VAULT COMPLIANCE ENFORCEMENT
+export function enforceVaultCompliance(response, conflicts) {
+  if (!conflicts || conflicts.length === 0) {
+    return { response, modified: false };
+  }
+  
+  let modifiedResponse = response;
+  let modificationsApplied = [];
+  
+  conflicts.forEach(conflict => {
+    switch (conflict.action_required) {
+      case 'block_response':
+        logOverride('vault_violation_blocked', conflict.type, 'site_monkeys');
+        modifiedResponse = `🔐 VAULT RULE VIOLATION: This recommendation violates Site Monkeys pricing logic.
+
+DETECTED ISSUE: Price of $${conflict.detected_price} is below minimum threshold of $${conflict.minimum_required}.
+
+VAULT ENFORCEMENT: All Site Monkeys services maintain minimum pricing standards to ensure quality delivery and business sustainability.
+
+CORRECTED APPROACH: For this scope of work, the appropriate investment range begins at $${conflict.minimum_required}. This ensures we can deliver the quality and support you deserve.`;
+        
+        modificationsApplied.push('blocked_pricing_violation');
+        break;
+        
+      case 'modify_response':
+        modifiedResponse = modifiedResponse.replace(
+          new RegExp(conflict.pattern, 'gi'),
+          '[PRICING POLICY COMPLIANT LANGUAGE]'
+        );
+        modificationsApplied.push('modified_pricing_language');
+        break;
+        
+      case 'add_clarification':
+        modifiedResponse += `
+
+🔐 VAULT CLARIFICATION: Any additional scope beyond the agreed statement of work requires formal documentation and pricing adjustment per Site Monkeys operational framework.`;
+        
+        modificationsApplied.push('added_scope_clarification');
+        break;
+    }
+  });
+  
+  return {
+    response: modifiedResponse,
+    modified: modificationsApplied.length > 0,
+    modifications: modificationsApplied,
+    conflicts_resolved: conflicts.length
+  };
+}
+
+// TIER 3: VAULT STATUS AND MONITORING
+export function getVaultStatus() {
+  return {
+    vault_loaded: true,
+    vault_id: SITE_MONKEYS_VAULT.vault_id,
+    version: SITE_MONKEYS_VAULT.version,
+    loaded_timestamp: SITE_MONKEYS_VAULT.loaded_timestamp,
+    rules_active: Object.keys(SITE_MONKEYS_VAULT).length,
+    compliance_level: 'enforced',
+    last_conflict_check: Date.now()
+  };
+}
+
+export function getVaultMetrics() {
+  return {
+    pricing_minimums: SITE_MONKEYS_VAULT.pricing_logic.project_minimums,
+    business_targets: SITE_MONKEYS_VAULT.business_intelligence.monthly_targets,
+    operational_policies: Object.keys(SITE_MONKEYS_VAULT.operational_frameworks),
+    enforcement_active: true,
+    vault_integrity: 'verified'
+  };
 }
