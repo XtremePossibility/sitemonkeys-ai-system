@@ -1,4 +1,4 @@
-import { processRequest } from './lib/chatProcessor.js';
+import { processWithEliAndRoxy } from './lib/ai-processors.js';
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -15,7 +15,7 @@ export default async function handler(req, res) {
 
   try {
     // Process request with full cognitive firewall
-    const result = await processRequest({
+    const result = await processWithEliAndRoxy({
     
     // Return structured response for frontend
     return res.status(200).json(result);
