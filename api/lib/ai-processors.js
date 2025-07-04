@@ -3,7 +3,7 @@
 
 import { analyzePromptType, generateEliResponse, generateRoxyResponse, generateClaudeResponse } from './personalities.js';
 import { runOptimizationEnhancer } from './optimization.js';
-import { checkAssumptionHealth, trackOverride } from './assumptions.js';
+import { checkAssumptionHealth, trackOverride, detectAssumptionConflicts } from './assumptions.js';
 import { generateVaultContext, checkVaultTriggers, detectVaultConflicts } from './vault.js';
 import { MODES, shouldSuggestClaude, calculateConfidenceScore } from '../config/modes.js';
 
@@ -36,7 +36,7 @@ export async function processWithEliAndRoxy({
   driftTracker,
   overrideLog
 }) {
-  
+    
   try {
     console.log('🧠 COGNITIVE FIREWALL: Full enforcement processing initiated');
     
@@ -105,7 +105,7 @@ export async function processWithEliAndRoxy({
     }
     
     // 2. Product Recommendation Validation
-    const productValidation = { violations: [] }; // Function not implemented yet
+    const productValidation = validateProductRecommendations(response.response);
     if (productValidation.violations.length > 0) {
       console.log('🔍 Product recommendations validated, violations found:', productValidation.violations);
       response.response = injectProductValidationWarnings(response.response, productValidation.violations);
@@ -511,9 +511,220 @@ function applyPoliticalGuardrails(response, originalMessage) {
   };
 }
 
-// REMAINING ENFORCEMENT FUNCTIONS...
-// [Additional enforcement functions would continue here with the same pattern]
-// Each function returns structured data about violations, modifications, and metadata
+// PRODUCT RECOMMENDATION VALIDATION
+function validateProductRecommendations(response) {
+  const violations = [];
+  const recommendationPatterns = [
+    /i recommend/i,
+    /you should use/i,
+    /try using/i,
+    /consider using/i
+  ];
+  
+  recommendationPatterns.forEach(pattern => {
+    if (pattern.test(response)) {
+      // Check if recommendation has evidence
+      if (!response.includes('because') && !response.includes('evidence') && !response.includes('data')) {
+        violations.push('unsupported_recommendation');
+      }
+    }
+  });
+  
+  return { violations };
+}
+
+// MODE COMPLIANCE VALIDATION
+function validateModeCompliance(response, mode, vaultLoaded) {
+  const violations = [];
+  
+  if (mode === 'truth_general') {
+    if (!response.includes('confidence') && !response.includes('I don\'t know')) {
+      violations.push('missing_confidence_indicators');
+    }
+    if (response.includes('probably') || response.includes('likely')) {
+      violations.push('speculative_language_detected');
+    }
+  }
+  
+  if (mode === 'business_validation') {
+    if (!response.includes('cash') && !response.includes('survival') && !response.includes('risk')) {
+      violations.push('missing_business_survival_analysis');
+    }
+  }
+  
+  if (mode === 'site_monkeys' && vaultLoaded) {
+    if (!response.includes('🍌')) {
+      violations.push('missing_site_monkeys_branding');
+    }
+  }
+  
+  return {
+    compliant: violations.length === 0,
+    violations,
+    scaffolds_added: violations.length
+  };
+}
+
+// ASSUMPTION DETECTION AND FLAGGING
+function detectAndFlagAssumptions(response, mode) {
+  const assumptionPatterns = [
+    /obviously/i,
+    /everyone knows/i,
+    /it's clear that/i,
+    /without a doubt/i,
+    /certainly/i
+  ];
+  
+  const assumptions = [];
+  assumptionPatterns.forEach(pattern => {
+    if (pattern.test(response)) {
+      assumptions.push(pattern.toString());
+    }
+  });
+  
+  return { 
+    assumptions,
+    challenges_added: assumptions.length
+  };
+}
+
+// PRESSURE DETECTION AND RESISTANCE
+function applyPressureResistance(response, message, conversationHistory) {
+  const authorityPatterns = [
+    /i'm the (ceo|boss|manager|director)/i,
+    /just do (it|what i say|this)/i,
+    /don't question (me|this|my)/i,
+    /because i said so/i,
+    /you work for (me|us|this company)/i
+  ];
+
+  const criticalPatterns = [
+    /override your (guidelines|rules|training)/i,
+    /ignore (safety|ethical|policy)/i,
+    /pretend (you're|to be)/i
+  ];
+
+  const authorityDetected = authorityPatterns.some(pattern => pattern.test(message));
+  const criticalDetected = criticalPatterns.some(pattern => pattern.test(message));
+  
+  if (criticalDetected || authorityDetected) {
+    return {
+      pressure_detected: true,
+      pressure_type: criticalDetected ? 'override_attempt' : 'authority_pressure',
+      modified_response: response + '\n\n🛡️ **System Integrity:** I maintain objective analysis standards regardless of authority assertions.',
+      modifications: 1
+    };
+  }
+  
+  return {
+    pressure_detected: false,
+    pressure_type: null,
+    modified_response: response,
+    modifications: 0
+  };
+}
+
+// VAULT RULE ENFORCEMENT
+function enforceVaultRules(response, message, triggeredFrameworks) {
+  const violations = [];
+  let modified_response = response;
+  
+  // Pricing rule enforcement
+  const priceMatches = response.match(/\$[\d,]+/g);
+  if (priceMatches) {
+    priceMatches.forEach(priceStr => {
+      const price = parseInt(priceStr.replace(/[$,]/g, ''));
+      if (price < 697) {
+        violations.push(`pricing_violation_${priceStr}_below_minimum`);
+        modified_response += `\n\n🔐 **VAULT RULE VIOLATION:** Pricing below $697 minimum (${priceStr}) violates Site Monkeys premium positioning standards.`;
+      }
+    });
+  }
+  
+  // Quality compromise detection
+  if (response.toLowerCase().includes('cheap') || response.toLowerCase().includes('budget')) {
+    violations.push('quality_compromise_language');
+    modified_response += '\n\n🔐 **VAULT RULE VIOLATION:** Language inconsistent with premium positioning standards.';
+  }
+  
+  return { 
+    violations,
+    modified: violations.length > 0,
+    modified_response,
+    modifications: violations.length
+  };
+}
+
+// RESPONSE ENHANCEMENT FUNCTIONS
+function injectProductValidationWarnings(response, violations) {
+  let enhanced = response;
+  
+  violations.forEach(violation => {
+    if (violation === 'unsupported_recommendation') {
+      enhanced += '\n\n⚠️ **Product Validation:** Some recommendations require additional evidence before implementation.';
+    }
+  });
+  
+  return enhanced;
+}
+
+function injectModeComplianceScaffold(response, mode, violations) {
+  let enhanced = response;
+  
+  if (mode === 'truth_general' && violations.includes('missing_confidence_indicators')) {
+    enhanced += '\n\n📊 **Confidence Assessment:** This response requires validation. Key uncertainties need verification.';
+  }
+  
+  if (mode === 'business_validation' && violations.includes('missing_business_survival_analysis')) {
+    enhanced += '\n\n💰 **Business Survival Check:** Consider cash flow impact and business continuity implications.';
+  }
+  
+  return enhanced;
+}
+
+function injectAssumptionChallenges(response, assumptions) {
+  let enhanced = response;
+  
+  if (assumptions.length > 0) {
+    enhanced += '\n\n🔍 **Assumption Check:** This response contains assumptions that warrant verification.';
+  }
+  
+  return enhanced;
+}
+
+// COST TRACKING AND ANALYSIS
+function calculateCostTracking(tokens, aiUsed, vaultLoaded) {
+  const costPerToken = {
+    'Eli': 0.00003,
+    'Roxy': 0.00003,
+    'Claude': 0.00005
+  };
+  
+  const baseCost = tokens * (costPerToken[aiUsed] || 0.00003);
+  const vaultCost = vaultLoaded ? tokens * 0.00001 : 0;
+  
+  return {
+    estimated_cost: baseCost + vaultCost,
+    tokens_used: tokens,
+    base_cost: baseCost,
+    vault_cost: vaultCost,
+    ai_used: aiUsed
+  };
+}
+
+// OVERRIDE PATTERN ANALYSIS
+function analyzeOverridePatterns(overridePatterns, driftTracker) {
+  const totalOverrides = Object.values(overridePatterns).reduce((a,b) => a+b, 0);
+  const criticalPatterns = overridePatterns.vault_violations + overridePatterns.authority_resistances;
+  
+  return {
+    total_overrides: totalOverrides,
+    critical_patterns: criticalPatterns,
+    integrity_risk: criticalPatterns > 3 ? 'HIGH' : criticalPatterns > 1 ? 'MODERATE' : 'LOW',
+    pattern_distribution: overridePatterns,
+    drift_correlation: driftTracker ? driftTracker.session_score : 100
+  };
+}
 
 // TOKEN USAGE TRACKING
 function trackTokenUsage(ai, tokens) {
@@ -533,7 +744,7 @@ function trackTokenUsage(ai, tokens) {
   tokenTracker.last_call = { cost, tokens, ai };
 }
 
-// SESSION STATS
+// GET CURRENT SESSION STATS FOR UI
 export function getSessionStats() {
   return {
     total_tokens: Object.values(tokenTracker.session).reduce((a, b) => a + b, 0),
@@ -545,4 +756,16 @@ export function getSessionStats() {
   };
 }
 
-// [Additional helper functions continue...]
+function getLastCallCost() {
+  return tokenTracker.last_call.cost;
+}
+
+function getLastAIUsed() {
+  const lastCalls = [
+    { ai: 'Eli', calls: tokenTracker.calls.eli_calls },
+    { ai: 'Roxy', calls: tokenTracker.calls.roxy_calls },
+    { ai: 'Claude', calls: tokenTracker.calls.claude_calls }
+  ];
+
+  return lastCalls.sort((a, b) => b.calls - a.calls)[0]?.ai || 'None';
+}
