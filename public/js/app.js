@@ -175,7 +175,7 @@ async function sendMessage() {
     const data = await response.json();
 let reply = data.response || 'No response received';
 
-// EXTRACT system verification info BEFORE cleaning - FIXED FOR NEW BACKEND
+// EXTRACT system verification info BEFORE cleaning - FIXED FOR PRODUCTION BACKEND
     const systemVerification = {
       mode_used: data.mode_active || 'UNKNOWN',
       vault_status: data.vault_status?.loaded ? 'LOADED' : 'NOT_LOADED',
@@ -183,7 +183,7 @@ let reply = data.response || 'No response received';
       assumption_warnings: data.assumption_analysis?.detected || [],
       security_pass: data.security_pass || false,
       fallback_used: data.performance?.api_error?.fallback_used || false
-    }; 
+    };
 
     // LOG system status for debugging
     console.log('🔍 SYSTEM VERIFICATION:', systemVerification);
