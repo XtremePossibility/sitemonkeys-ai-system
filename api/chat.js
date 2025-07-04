@@ -2,7 +2,7 @@
 // Version: PROD-1.0 - COMPLETE SYSTEM
 
 import OpenAI from 'openai';
-import { MODES, validateModeSwitch, calculateConfidenceScore } from './config/modes.js';
+import { MODES, calculateConfidenceScore } from './config/modes.js';
 import { verifyVaultAccess, generateVaultContext } from './lib/vault.js';
 import { processWithEliAndRoxy } from './lib/ai-processors.js';
 import { runOptimizationEnhancer } from './lib/optimization.js';
