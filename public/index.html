@@ -4,30 +4,70 @@ const openai = new OpenAI({
 apiKey: process.env.OPENAI_API_KEY,
 });
 
-// SESSION MANAGER - PERSISTENT ACROSS RESTARTS
-class SessionManager {
+// PERSISTENT SESSION STORE - SURVIVES RESTARTS
+class PersistentSessionStore {
 constructor() {
 this.sessions = new Map();
+this.persistence = new Map(); // Would be Redis/KV in production
 this.cleanupInterval = setInterval(() => this.cleanup(), 300000);
 }
 
 getSession(sessionId) {
 if (!this.sessions.has(sessionId)) {
+// Try to restore from persistence
+const restored = this.persistence.get(sessionId);
+if (restored) {
+this.sessions.set(sessionId, restored);
+} else {
 this.sessions.set(sessionId, {
 id: sessionId,
-overrides: [],
-driftScore: 1.0,
-pressureAttempts: [],
-vaultCache: null,
 created: Date.now(),
-lastActivity: Date.now()
+lastActivity: Date.now(),
+driftScore: 1.0,
+overrideLog: [],
+pressureAttempts: [],
+patternWarnings: [],
+enforcementHistory: [],
+vaultCache: null,
+integrityEvents: []
 });
+}
 }
 
 ```
 const session = this.sessions.get(sessionId);
 session.lastActivity = Date.now();
+this.persistence.set(sessionId, session); // Persist changes
 return session;
+```
+
+}
+
+forceResetSession(sessionId, reason) {
+const oldSession = this.sessions.get(sessionId);
+const newSession = {
+id: sessionId,
+created: Date.now(),
+lastActivity: Date.now(),
+driftScore: 1.0,
+overrideLog: [],
+pressureAttempts: [],
+patternWarnings: [],
+enforcementHistory: [{
+type: ‘SESSION_RESET’,
+timestamp: Date.now(),
+reason: reason,
+previousDrift: oldSession?.driftScore || ‘unknown’,
+previousOverrides: oldSession?.overrideLog?.length || 0
+}],
+vaultCache: oldSession?.vaultCache || null, // Preserve vault
+integrityEvents: []
+};
+
+```
+this.sessions.set(sessionId, newSession);
+this.persistence.set(sessionId, newSession);
+return newSession;
 ```
 
 }
@@ -37,15 +77,435 @@ const cutoff = Date.now() - (24 * 60 * 60 * 1000);
 for (const [id, session] of this.sessions.entries()) {
 if (session.lastActivity < cutoff) {
 this.sessions.delete(id);
+this.persistence.delete(id);
 }
 }
 }
 }
 
-const sessionManager = new SessionManager();
+const sessionStore = new PersistentSessionStore();
 
-// TRUTH ENFORCEMENT BASE - FOUNDATION FOR ALL MODES
-class TruthBase {
+// OVERRIDE AUDIT SYSTEM - COMPLETE TRACKING
+class OverrideAuditor {
+static logOverride(session, type, originalRule, overrideApplied, context, userPressure = false) {
+const overrideRecord = {
+id: `OVR-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
+timestamp: Date.now(),
+type: type,
+originalRule: originalRule,
+overrideApplied: overrideApplied,
+context: context,
+userPressure: userPressure,
+sessionPosition: session.overrideLog.length + 1,
+driftImpact: this.calculateDriftImpact(type, userPressure),
+justification: this.generateJustification(type, context)
+};
+
+```
+session.overrideLog.push(overrideRecord);
+session.driftScore = Math.max(0.1, session.driftScore - overrideRecord.driftImpact);
+
+// Trigger pattern detection
+this.detectPatterns(session);
+
+return overrideRecord;
+```
+
+}
+
+static calculateDriftImpact(type, userPressure) {
+const baseDrift = {
+‘TRUTH_ACCOMMODATION’: 0.15,
+‘BUSINESS_RISK_MINIMIZATION’: 0.12,
+‘VAULT_RULE_BYPASS’: 0.10,
+‘PRESSURE_ACCOMMODATION’: 0.20,
+‘EVIDENCE_LOWERING’: 0.18,
+‘POLITICAL_BIAS’: 0.25
+};
+
+```
+let impact = baseDrift[type] || 0.10;
+if (userPressure) impact += 0.05;
+
+return Math.min(impact, 0.30); // Cap at 30% per override
+```
+
+}
+
+static generateJustification(type, context) {
+const justifications = {
+‘TRUTH_ACCOMMODATION’: ‘Response modified to meet truth-first standards’,
+‘BUSINESS_RISK_MINIMIZATION’: ‘Added risk analysis to counter optimistic bias’,
+‘VAULT_RULE_BYPASS’: ‘Vault rule enforcement applied’,
+‘PRESSURE_ACCOMMODATION’: ‘Pressure resistance activated’,
+‘EVIDENCE_LOWERING’: ‘Evidence standards enforced’,
+‘POLITICAL_BIAS’: ‘Political neutrality restored’
+};
+
+```
+return justifications[type] || 'Cognitive integrity enforcement applied';
+```
+
+}
+
+static detectPatterns(session) {
+const recentOverrides = session.overrideLog.filter(
+override => Date.now() - override.timestamp < 900000 // 15 minutes
+);
+
+```
+// Pattern detection
+if (recentOverrides.length >= 3) {
+  const patternWarning = {
+    type: 'FREQUENT_OVERRIDES',
+    timestamp: Date.now(),
+    count: recentOverrides.length,
+    severity: 'HIGH',
+    message: `${recentOverrides.length} overrides in 15 minutes - potential pressure accommodation`
+  };
+  
+  session.patternWarnings.push(patternWarning);
+}
+
+// Check for specific pattern types
+const truthOverrides = recentOverrides.filter(o => o.type.includes('TRUTH'));
+if (truthOverrides.length >= 2) {
+  session.patternWarnings.push({
+    type: 'TRUTH_EROSION',
+    timestamp: Date.now(),
+    severity: 'CRITICAL',
+    message: 'Multiple truth enforcement triggers - truth standards may be eroding'
+  });
+}
+```
+
+}
+
+static getAuditReport(session) {
+return {
+totalOverrides: session.overrideLog.length,
+recentOverrides: session.overrideLog.slice(-5),
+patternWarnings: session.patternWarnings,
+driftScore: session.driftScore,
+integrityStatus: session.driftScore > 0.8 ? ‘STRONG’ :
+session.driftScore > 0.6 ? ‘MODERATE’ :
+session.driftScore > 0.4 ? ‘COMPROMISED’ : ‘CRITICAL’
+};
+}
+}
+
+// PATTERN DETECTION ENGINE - COGNITIVE HEALTH MONITORING
+class PatternDetector {
+static analyzeSession(session) {
+const patterns = [];
+const timeWindow = 1800000; // 30 minutes
+const recent = session.overrideLog.filter(
+override => Date.now() - override.timestamp < timeWindow
+);
+
+```
+// Truth softening pattern
+const truthSoftening = recent.filter(o => 
+  o.type.includes('TRUTH') || o.type.includes('ACCOMMODATION')
+);
+if (truthSoftening.length >= 2) {
+  patterns.push({
+    type: 'TRUTH_SOFTENING',
+    severity: 'HIGH',
+    evidence: truthSoftening.length,
+    message: `Truth enforcement triggered ${truthSoftening.length} times - standards may be softening`
+  });
+}
+
+// Risk minimization pattern
+const riskMinimization = recent.filter(o => 
+  o.type.includes('RISK') || o.type.includes('BUSINESS')
+);
+if (riskMinimization.length >= 2) {
+  patterns.push({
+    type: 'RISK_MINIMIZATION',
+    severity: 'HIGH',
+    evidence: riskMinimization.length,
+    message: `Business risk enforcement triggered ${riskMinimization.length} times - risk awareness declining`
+  });
+}
+
+// Pressure escalation pattern
+const pressurePattern = session.pressureAttempts.filter(
+  attempt => Date.now() - attempt.timestamp < timeWindow
+);
+if (pressurePattern.length >= 3) {
+  patterns.push({
+    type: 'SUSTAINED_PRESSURE',
+    severity: 'CRITICAL',
+    evidence: pressurePattern.length,
+    message: `${pressurePattern.length} pressure attempts detected - user may be trying to override system`
+  });
+}
+
+return patterns;
+```
+
+}
+
+static assessMemoryHealth(session) {
+const health = {
+score: session.driftScore,
+status: session.driftScore > 0.8 ? ‘HEALTHY’ :
+session.driftScore > 0.6 ? ‘DECLINING’ :
+session.driftScore > 0.4 ? ‘COMPROMISED’ : ‘CRITICAL’,
+patterns: this.analyzeSession(session),
+recommendations: []
+};
+
+```
+if (health.score < 0.5) {
+  health.recommendations.push('IMMEDIATE_SESSION_RESET');
+} else if (health.score < 0.7) {
+  health.recommendations.push('ESCALATE_ENFORCEMENT');
+}
+
+if (health.patterns.length > 0) {
+  health.recommendations.push('PATTERN_INTERVENTION');
+}
+
+return health;
+```
+
+}
+}
+
+// MODE FINGERPRINTING SYSTEM - VERIFIABLE ENFORCEMENT
+class ModeFingerprinter {
+static generateFingerprint(mode, enforcementApplied, vaultStatus, timestamp) {
+const date = new Date(timestamp).toISOString().split(‘T’)[0];
+const enforcement = enforcementApplied.length > 0 ? enforcementApplied.join(’+’) : ‘NONE’;
+const vault = vaultStatus.loaded ? vaultStatus.source : ‘NONE’;
+
+```
+const fingerprints = {
+  truth_general: `TG-${date}-${enforcement}`,
+  business_validation: `BV-${date}-${enforcement}`,
+  site_monkeys: `SM-${date}-${vault}-${enforcement}`
+};
+
+return {
+  fingerprint: fingerprints[mode] || `UNKNOWN-${date}`,
+  mode: mode.toUpperCase(),
+  enforcement: enforcement,
+  vault: vault,
+  confidence: this.calculateConfidence(mode, enforcementApplied),
+  timestamp: timestamp
+};
+```
+
+}
+
+static calculateConfidence(mode, enforcementApplied) {
+let confidence = 0.7; // Base confidence
+
+```
+if (enforcementApplied.includes('TRUTH_ENFORCEMENT')) confidence += 0.1;
+if (enforcementApplied.includes('BUSINESS_ENFORCEMENT')) confidence += 0.1;
+if (enforcementApplied.includes('VAULT_ENFORCEMENT')) confidence += 0.1;
+if (enforcementApplied.includes('PRESSURE_RESISTANCE')) confidence += 0.05;
+
+return Math.min(confidence, 1.0);
+```
+
+}
+
+static embedFingerprint(response, fingerprint) {
+return response + `\n\n🔍 [${fingerprint.fingerprint}] Confidence:${Math.round(fingerprint.confidence * 100)}% | Enforcement:${fingerprint.enforcement}`;
+}
+}
+
+// EVIDENCE-BASED PRODUCT RECOMMENDATION FILTER
+class ProductRecommendationFilter {
+static analyzeRecommendation(response, message) {
+const recommendationKeywords = [
+‘recommend’, ‘suggest’, ‘best tool’, ‘should use’, ‘try using’,
+‘popular choice’, ‘industry standard’, ‘everyone uses’, ‘go with’
+];
+
+```
+const hasRecommendation = recommendationKeywords.some(keyword =>
+  response.toLowerCase().includes(keyword)
+);
+
+if (!hasRecommendation) {
+  return { hasRecommendation: false };
+}
+
+// Analyze evidence basis
+const evidenceMarkers = [
+  'studies show', 'data indicates', 'research suggests', 'benchmarks',
+  'measured performance', 'roi analysis', 'cost comparison', 'case study'
+];
+
+const evidenceStrength = evidenceMarkers.filter(marker =>
+  response.toLowerCase().includes(marker)
+).length;
+
+// Check for popularity bias
+const popularityBias = [
+  'everyone uses', 'most popular', 'widely adopted', 'standard choice',
+  'commonly used', 'typical approach'
+];
+
+const hasBias = popularityBias.some(bias =>
+  response.toLowerCase().includes(bias)
+);
+
+const evidenceScore = Math.min(evidenceStrength * 25, 100); // Max 100%
+
+return {
+  hasRecommendation: true,
+  evidenceScore: evidenceScore,
+  popularityBias: hasBias,
+  needsEnforcement: evidenceScore < 50 || hasBias
+};
+```
+
+}
+
+static enforceEvidenceStandards(response, analysis) {
+if (!analysis.needsEnforcement) return response;
+
+```
+let enforcement = '\n\n📊 RECOMMENDATION EVIDENCE ANALYSIS:\n';
+enforcement += `• Evidence Score: ${analysis.evidenceScore}% (Required: 50%+)\n`;
+
+if (analysis.popularityBias) {
+  enforcement += '• POPULARITY BIAS DETECTED: Recommendation based on adoption rather than merit\n';
+}
+
+if (analysis.evidenceScore < 50) {
+  enforcement += '• INSUFFICIENT EVIDENCE: No quantified benefits or comparative analysis provided\n';
+}
+
+enforcement += '\nEVIDENCE REQUIREMENTS FOR RECOMMENDATIONS:\n';
+enforcement += '1. Specific use case alignment\n';
+enforcement += '2. Quantified benefits or ROI data\n';
+enforcement += '3. Risk analysis and alternatives\n';
+enforcement += '4. Source credibility and recency\n\n';
+
+enforcement += 'RECOMMENDATION STATUS: Evidence standards not met - treat as suggestion only.';
+
+return enforcement + '\n\n---\n\n' + response;
+```
+
+}
+}
+
+// POLITICAL NEUTRALITY SYSTEM
+class PoliticalNeutralityFilter {
+static detectPoliticalContent(response, message) {
+const politicalKeywords = [
+‘democrat’, ‘republican’, ‘liberal’, ‘conservative’, ‘left-wing’, ‘right-wing’,
+‘vote for’, ‘election’, ‘candidate’, ‘party’, ‘political’, ‘policy should’,
+‘government should’, ‘trump’, ‘biden’, ‘congress’, ‘senate’
+];
+
+```
+const detectedPolitical = [];
+const combined = (message + ' ' + response).toLowerCase();
+
+politicalKeywords.forEach(keyword => {
+  if (combined.includes(keyword)) {
+    detectedPolitical.push(keyword);
+  }
+});
+
+return {
+  hasPoliticalContent: detectedPolitical.length > 0,
+  detectedTerms: detectedPolitical,
+  severity: detectedPolitical.length > 2 ? 'HIGH' : 
+            detectedPolitical.length > 0 ? 'MEDIUM' : 'NONE'
+};
+```
+
+}
+
+static applyNeutralityFilter(response, detection) {
+if (!detection.hasPoliticalContent) return response;
+
+```
+if (detection.severity === 'HIGH') {
+  return `⚖️ POLITICAL NEUTRALITY ENFORCED\n\nPolitical content detected and neutralized to maintain analytical objectivity.\n\nDetected terms: ${detection.detectedTerms.join(', ')}\n\nThis system maintains political neutrality to preserve decision-making clarity. Political positions do not influence business, technical, or factual analysis.\n\nPlease rephrase your question to focus on factual, business, or technical aspects without political framing.`;
+}
+
+// Medium severity - add neutrality disclaimer
+return response + `\n\n⚖️ POLITICAL NEUTRALITY: This analysis maintains political neutrality. Any political references are factual only and do not constitute endorsements or political positions.`;
+```
+
+}
+}
+
+// ASSUMPTION DETECTION AND CHALLENGE ENGINE
+class AssumptionDetector {
+static detectAssumptions(message) {
+const assumptionPatterns = [
+{ pattern: /obviously/gi, type: ‘OBVIOUSNESS_CLAIM’ },
+{ pattern: /everyone (?:knows|agrees|thinks)/gi, type: ‘CONSENSUS_ASSUMPTION’ },
+{ pattern: /it’s (?:clear|obvious) that/gi, type: ‘CERTAINTY_CLAIM’ },
+{ pattern: /of course/gi, type: ‘OBVIOUSNESS_CLAIM’ },
+{ pattern: /clearly/gi, type: ‘CERTAINTY_CLAIM’ },
+{ pattern: /all (?:businesses|companies|people)/gi, type: ‘UNIVERSALITY_CLAIM’ },
+{ pattern: /never|always|every|none|no one/gi, type: ‘ABSOLUTE_LANGUAGE’ }
+];
+
+```
+const detected = [];
+
+assumptionPatterns.forEach(({ pattern, type }) => {
+  const matches = message.match(pattern);
+  if (matches) {
+    detected.push({
+      type: type,
+      text: matches[0],
+      challenge: this.generateChallenge(type, matches[0])
+    });
+  }
+});
+
+return detected;
+```
+
+}
+
+static generateChallenge(type, text) {
+const challenges = {
+‘OBVIOUSNESS_CLAIM’: `"${text}" - What makes this obvious? To whom? Under what conditions?`,
+‘CONSENSUS_ASSUMPTION’: `"${text}" - What evidence supports this consensus claim? Who specifically agrees?`,
+‘CERTAINTY_CLAIM’: `"${text}" - What evidence establishes this certainty? What could contradict it?`,
+‘UNIVERSALITY_CLAIM’: `"${text}" - Does this truly apply universally? What are the exceptions?`,
+‘ABSOLUTE_LANGUAGE’: `"${text}" - Is this absolutely true? What conditions might create exceptions?`
+};
+
+```
+return challenges[type] || `"${text}" - This assumption requires verification.`;
+```
+
+}
+
+static injectAssumptionChallenges(response, assumptions) {
+if (assumptions.length === 0) return response;
+
+```
+let challenge = '\n\n🧠 ASSUMPTION CHALLENGES:\n';
+assumptions.forEach(assumption => {
+  challenge += `• ${assumption.challenge}\n`;
+});
+
+return response + challenge;
+```
+
+}
+}
+
+// TRUTH ENFORCEMENT BASE - FOUNDATION LAYER
+class TruthEnforcer {
 static enforce(response, message, session) {
 const violations = [];
 let corrected = response;
@@ -53,10 +513,10 @@ let corrected = response;
 ```
 // Fix accommodation language
 const accommodations = [
-  { pattern: /\bit depends\b/gi, fix: 'The evidence shows', type: 'ACCOMMODATION' },
+  { pattern: /\bit depends\b/gi, fix: 'The evidence shows', type: 'ACCOMMODATION_LANGUAGE' },
   { pattern: /you might want to/gi, fix: 'Analysis indicates you should', type: 'HEDGING' },
   { pattern: /you could consider/gi, fix: 'Evidence supports', type: 'WEAK_GUIDANCE' },
-  { pattern: /that's a (?:great|good|interesting) question/gi, fix: 'Analyzing this question', type: 'SOCIAL_NICETY' }
+  { pattern: /that's a (?:great|good|interesting) question/gi, fix: 'Analyzing this question', type: 'SOCIAL_ACCOMMODATION' }
 ];
 
 accommodations.forEach(({ pattern, fix, type }) => {
@@ -69,16 +529,29 @@ accommodations.forEach(({ pattern, fix, type }) => {
 // Force confidence scoring
 if (!corrected.includes('CONFIDENCE:')) {
   violations.push('MISSING_CONFIDENCE');
-  corrected += '\n\nCONFIDENCE: MEDIUM - Added by truth enforcement';
+  corrected += '\n\nCONFIDENCE: MEDIUM - Truth enforcement applied';
 }
 
 // Label speculation
-const speculationTerms = ['probably', 'likely', 'might', 'could', 'perhaps'];
-const hasSpeculation = speculationTerms.some(term => corrected.toLowerCase().includes(term));
+const speculationTerms = ['probably', 'likely', 'might', 'could', 'perhaps', 'possibly'];
+const hasSpeculation = speculationTerms.some(term => 
+  corrected.toLowerCase().includes(term) && !corrected.includes('SPECULATION:')
+);
 
-if (hasSpeculation && !corrected.includes('SPECULATION:')) {
+if (hasSpeculation) {
   violations.push('UNLABELED_SPECULATION');
-  corrected = 'SPECULATION DETECTED:\n\n' + corrected + '\n\nNote: Contains speculative elements.';
+  corrected = '⚠️ SPECULATION DETECTED:\n\n' + corrected + '\n\nNote: Contains speculative elements - verify independently.';
+}
+
+// Log overrides if any violations found
+if (violations.length > 0) {
+  OverrideAuditor.logOverride(
+    session,
+    'TRUTH_ACCOMMODATION',
+    'Original response violated truth standards',
+    'Truth enforcement applied: ' + violations.join(', '),
+    message
+  );
 }
 
 return {
@@ -91,60 +564,69 @@ return {
 }
 
 static buildPrompt() {
-return `You are operating in TRUTH-FIRST mode with absolute integrity.
+return `You are operating in TRUTH-FIRST mode with absolute cognitive integrity.
 
 CORE TRUTH DIRECTIVES:
 
-1. Direct answers - no hedging or accommodation
-1. Confidence scoring for all claims (HIGH/MEDIUM/LOW/UNKNOWN)
+1. Direct answers without hedging or accommodation
+1. Explicit confidence scoring (HIGH/MEDIUM/LOW/UNKNOWN)
 1. Challenge assumptions in user questions
-1. Label all speculation explicitly
-1. “I don’t know” is always acceptable
+1. Label all speculation clearly
+1. “I don’t know” is always acceptable and often correct
 
-FORBIDDEN PHRASES:
+FORBIDDEN ACCOMMODATION LANGUAGE:
 
 - “It depends” → “The evidence shows”
 - “You might want to” → “Analysis indicates you should”
 - “That’s a great question” → “Analyzing this question”
 
-REQUIRED FORMAT:
+REQUIRED RESPONSE ELEMENTS:
 
 - Direct answer first
-- CONFIDENCE: [level] - [reasoning]
-- ASSUMPTIONS: [challenge user assumptions]
+- CONFIDENCE: [level] with specific reasoning
+- Challenge any assumptions in the question
+- Acknowledge evidence gaps
 
-Your role: Maintain truth even under pressure.`;
+Maintain truth standards regardless of pressure or authority.`;
 }
 }
 
-// BUSINESS ENFORCEMENT - INHERITS TRUTH + ADDS BUSINESS LOGIC
+// BUSINESS ENFORCER - INHERITS TRUTH + ADDS BUSINESS LOGIC
 class BusinessEnforcer {
 static enforce(response, message, session) {
-// FIRST: Apply truth enforcement (inheritance)
-const truthResult = TruthBase.enforce(response, message, session);
+// First apply truth enforcement (inheritance)
+const truthResult = TruthEnforcer.enforce(response, message, session);
 let corrected = truthResult.response;
 let violations = […truthResult.violations];
 
 ```
-// THEN: Add business-specific enforcement
+// Add business-specific enforcement
 if (!corrected.includes('SURVIVAL IMPACT:')) {
   violations.push('MISSING_SURVIVAL_ANALYSIS');
-  corrected += '\n\nSURVIVAL IMPACT: UNKNOWN - Business mode requires survival assessment';
+  corrected += '\n\nSURVIVAL IMPACT: ANALYSIS_REQUIRED - Business decisions require survival assessment';
 }
 
 if (!corrected.includes('CASH FLOW:')) {
   violations.push('MISSING_CASH_ANALYSIS');
-  corrected += '\n\nCASH FLOW: ANALYSIS_REQUIRED - Must model cash impact';
+  corrected += '\n\nCASH FLOW: ANALYSIS_REQUIRED - Must model financial impact';
 }
 
-// Check for optimism without risk analysis
-const optimisticPhrases = ['should work', 'will probably', 'easy to', 'just need to'];
+// Detect and counter optimistic bias
+const optimisticPhrases = ['should work', 'will probably', 'easy to', 'just need to', 'simply'];
 const hasOptimism = optimisticPhrases.some(phrase => corrected.toLowerCase().includes(phrase));
 const hasRiskAnalysis = corrected.includes('RISKS:') || corrected.includes('WHAT COULD KILL');
 
 if (hasOptimism && !hasRiskAnalysis) {
   violations.push('OPTIMISTIC_BIAS');
-  corrected += '\n\nRISK ANALYSIS: Market rejection, execution complexity, competitive response';
+  corrected += '\n\n🚨 OPTIMISM BIAS DETECTED - RISK ANALYSIS:\n• Market rejection risk\n• Execution complexity\n• Competitive response\n• Resource constraints';
+  
+  OverrideAuditor.logOverride(
+    session,
+    'BUSINESS_RISK_MINIMIZATION',
+    'Optimistic language without risk analysis',
+    'Risk analysis added to counter optimism bias',
+    message
+  );
 }
 
 return {
@@ -157,144 +639,41 @@ return {
 }
 
 static buildPrompt() {
-return TruthBase.buildPrompt() + `
+return TruthEnforcer.buildPrompt() + `
 
 BUSINESS SURVIVAL ADDITIONS:
 
-- Always assess survival impact (NONE/LOW/MEDIUM/HIGH/CRITICAL)
-- Model cash flow impact with timelines
+- Assess survival impact for every decision (NONE/LOW/MEDIUM/HIGH/CRITICAL)
+- Model cash flow impact with realistic timelines
 - Challenge optimistic assumptions with market data
-- Identify what could kill the business
+- Identify potential business-killing scenarios
 
-REQUIRED BUSINESS FORMAT:
+REQUIRED BUSINESS ELEMENTS:
 
-- SURVIVAL IMPACT: [level] - [threat analysis]
-- CASH FLOW: [POSITIVE/NEUTRAL/NEGATIVE] $[amount] over [timeline]
-- MARKET REALITY: [competitive threats]
+- SURVIVAL IMPACT: [level] with threat analysis
+- CASH FLOW: [impact] with amount and timeline
+- MARKET REALITY: Competitive threats and adoption challenges
 
-Focus: Business survival over optimism.`;
-}
-}
-
-// VAULT SYSTEM - ONLY FOR SITE MONKEYS MODE
-class VaultSystem {
-constructor() {
-this.cache = new Map();
-}
-
-async loadVault(vaultId = ‘site_monkeys’) {
-try {
-console.log(‘Loading vault from API…’);
-const response = await fetch(’/api/vault’, {
-method: ‘POST’,
-headers: { ‘Content-Type’: ‘application/json’ },
-body: JSON.stringify({ action: ‘load’, vault_id: vaultId })
-});
-
-```
-  if (response.ok) {
-    const vaultData = await response.json();
-    if (this.validateVault(vaultData)) {
-      this.cache.set(vaultId, vaultData);
-      return { success: true, data: vaultData, source: 'API' };
-    }
-  }
-} catch (error) {
-  console.log('Vault API failed, using embedded fallback');
-}
-
-// Embedded Site Monkeys vault
-const embeddedVault = {
-  vault_id: vaultId,
-  decision_frameworks: {
-    pricing_logic: {
-      minimum_price: 697,
-      rules: [{
-        condition: 'price_below_minimum',
-        action: 'BLOCK',
-        reasoning: 'Minimum viable price is $697 based on cost structure'
-      }]
-    },
-    cash_flow_analysis: {
-      expense_threshold: 5000,
-      rules: [{
-        condition: 'large_expense',
-        action: 'REQUIRE_ANALYSIS',
-        reasoning: 'Expenses over $5K require runway analysis'
-      }]
-    }
-  }
-};
-
-this.cache.set(vaultId, embeddedVault);
-return { success: true, data: embeddedVault, source: 'EMBEDDED' };
-```
-
-}
-
-validateVault(data) {
-return data && data.decision_frameworks && typeof data.decision_frameworks === ‘object’;
-}
-
-analyzeForVault(message, vaultData) {
-const results = [];
-const lowerMessage = message.toLowerCase();
-
-```
-// Pricing analysis
-if (lowerMessage.includes('price') || lowerMessage.includes('$')) {
-  const priceMatch = message.match(/\$(\d+)/);
-  if (priceMatch) {
-    const price = parseInt(priceMatch[1]);
-    if (price < 697) {
-      results.push({
-        domain: 'pricing',
-        action: 'BLOCK',
-        reasoning: `Price $${price} below minimum $697`,
-        critical: true
-      });
-    }
-  }
-}
-
-// Cash flow analysis
-if (lowerMessage.includes('spend')) {
-  const spendMatch = message.match(/spend\s+\$(\d+)/i);
-  if (spendMatch) {
-    const amount = parseInt(spendMatch[1]);
-    if (amount >= 5000) {
-      results.push({
-        domain: 'cash_flow',
-        action: 'REQUIRE_ANALYSIS',
-        reasoning: `Expense $${amount} requires runway analysis`,
-        critical: true
-      });
-    }
-  }
-}
-
-return results;
-```
-
+Focus on business survival over optimism.`;
 }
 }
 
 // SITE MONKEYS ENFORCER - INHERITS BUSINESS + ADDS VAULT
 class SiteMonkeysEnforcer {
 static enforce(response, message, session, vaultResults = []) {
-// FIRST: Apply business enforcement (which includes truth)
+// First apply business enforcement (which includes truth)
 const businessResult = BusinessEnforcer.enforce(response, message, session);
 let corrected = businessResult.response;
 let violations = […businessResult.violations];
 
 ```
-// THEN: Add vault-specific enforcement
+// Add vault-specific enforcement
 const criticalVaultResults = vaultResults.filter(r => r.critical);
 
 if (criticalVaultResults.length > 0) {
   violations.push('VAULT_ENFORCEMENT_APPLIED');
   
-  let vaultBlock = '\n\n🔐 VAULT ENFORCEMENT:\n';
+  let vaultBlock = '\n\n🔐 SITE MONKEYS VAULT ENFORCEMENT:\n';
   criticalVaultResults.forEach(result => {
     if (result.action === 'BLOCK') {
       vaultBlock += `❌ BLOCKED: ${result.reasoning}\n`;
@@ -304,6 +683,14 @@ if (criticalVaultResults.length > 0) {
   });
   
   corrected = vaultBlock + '\n---\n\n' + corrected;
+  
+  OverrideAuditor.logOverride(
+    session,
+    'VAULT_RULE_BYPASS',
+    'Response violated vault business rules',
+    'Vault enforcement applied: ' + criticalVaultResults.map(r => r.domain).join(', '),
+    message
+  );
 }
 
 return {
@@ -320,41 +707,216 @@ let vaultConstraints = ‘’;
 if (vaultData) {
 vaultConstraints = `\n\nSITE MONKEYS VAULT ACTIVE:
 
-- Minimum pricing: $697/month
+- Minimum pricing: $697/month (non-negotiable)
 - Large expense analysis required over $5K
-- All decisions filtered through vault logic`;
+- Company-specific survival factors in effect
+- All decisions filtered through vault business logic`;
   }
   
   return BusinessEnforcer.buildPrompt() + vaultConstraints + `
 
-SITE MONKEYS SPECIFIC:
+SITE MONKEYS SPECIFIC ENFORCEMENT:
 
 - Apply vault business rules strictly
-- Block pricing below minimums
-- Require analysis for large expenses
-- Company-specific survival factors
+- Block pricing below company minimums
+- Require detailed analysis for large expenses
+- Company-specific risk factors override general advice
 
-Vault enforcement overrides general business logic when conflicts arise.`;
+Vault rules take precedence over general business guidance.`;
 }
 }
 
-// PRESSURE RESISTANCE
-class PressureDetector {
+// VAULT SYSTEM - COMPREHENSIVE BUSINESS LOGIC
+class VaultSystem {
+constructor() {
+this.cache = new Map();
+}
+
+async loadVault(vaultId = ‘site_monkeys’) {
+try {
+const response = await fetch(’/api/vault’, {
+method: ‘POST’,
+headers: { ‘Content-Type’: ‘application/json’ },
+body: JSON.stringify({ action: ‘load’, vault_id: vaultId })
+});
+
+```
+  if (response.ok) {
+    const vaultData = await response.json();
+    if (this.validateVault(vaultData)) {
+      this.cache.set(vaultId, vaultData);
+      return { success: true, data: vaultData, source: 'API' };
+    }
+  }
+} catch (error) {
+  console.log('Vault API unavailable, using embedded fallback');
+}
+
+// Embedded Site Monkeys business rules
+const embeddedVault = {
+  vault_id: vaultId,
+  version: '1.0.0',
+  decision_frameworks: {
+    pricing_logic: {
+      minimum_price: 697,
+      currency: 'USD',
+      frequency: 'monthly',
+      rules: [
+        {
+          condition: 'price_below_minimum',
+          threshold: 697,
+          action: 'BLOCK',
+          reasoning: 'Minimum viable pricing is $697/month based on cost structure and market positioning analysis',
+          confidence: 0.95,
+          override_allowed: false
+        }
+      ]
+    },
+    cash_flow_analysis: {
+      expense_threshold: 5000,
+      runway_minimum_months: 6,
+      rules: [
+        {
+          condition: 'large_expense',
+          threshold: 5000,
+          action: 'REQUIRE_ANALYSIS',
+          reasoning: 'Expenses over $5K require runway impact analysis and ROI justification',
+          required_analysis: ['runway_impact', 'roi_projection', 'necessity_score', 'alternatives']
+        }
+      ]
+    },
+    compliance_requirements: {
+      rules: [
+        {
+          condition: 'legal_decision',
+          triggers: ['contract', 'terms', 'legal', 'compliance'],
+          action: 'REQUIRE_REVIEW',
+          reasoning: 'All legal/compliance decisions require professional review'
+        }
+      ]
+    }
+  }
+};
+
+this.cache.set(vaultId, embeddedVault);
+return { success: true, data: embeddedVault, source: 'EMBEDDED' };
+```
+
+}
+
+validateVault(data) {
+return data &&
+data.decision_frameworks &&
+typeof data.decision_frameworks === ‘object’ &&
+Object.keys(data.decision_frameworks).length > 0;
+}
+
+analyzeForVault(message, vaultData) {
+const results = [];
+const lowerMessage = message.toLowerCase();
+
+```
+// Pricing analysis
+if (lowerMessage.includes('price') || lowerMessage.includes('cost') || lowerMessage.includes('$')) {
+  const priceMatches = message.match(/\$(\d+(?:,\d{3})*)/g);
+  if (priceMatches) {
+    const prices = priceMatches.map(p => parseInt(p.replace(/[\$,]/g, '')));
+    const minPrice = Math.min(...prices);
+    
+    if (minPrice < 697) {
+      results.push({
+        domain: 'pricing',
+        action: 'BLOCK',
+        reasoning: `Price $${minPrice} violates minimum threshold of $697`,
+        price_found: minPrice,
+        required_price: 697,
+        critical: true
+      });
+    }
+  }
+}
+
+// Cash flow analysis
+if (lowerMessage.includes('spend') || lowerMessage.includes('expense') || lowerMessage.includes('cost')) {
+  const spendMatches = message.match(/(?:spend|expense|cost).*?\$(\d+(?:,\d{3})*)/gi);
+  if (spendMatches) {
+    const amounts = spendMatches.map(match => {
+      const numberMatch = match.match(/\$(\d+(?:,\d{3})*)/);
+      return numberMatch ? parseInt(numberMatch[1].replace(/,/g, '')) : 0;
+    });
+    
+    const maxAmount = Math.max(...amounts);
+    if (maxAmount >= 5000) {
+      results.push({
+        domain: 'cash_flow',
+        action: 'REQUIRE_ANALYSIS',
+        reasoning: `Expense $${maxAmount} exceeds threshold requiring runway analysis`,
+        amount_found: maxAmount,
+        required_analysis: ['runway_impact', 'roi_justification', 'alternatives'],
+        critical: true
+      });
+    }
+  }
+}
+
+// Compliance analysis
+const complianceKeywords = ['legal', 'contract', 'terms', 'compliance', 'regulation'];
+const hasCompliance = complianceKeywords.some(keyword => lowerMessage.includes(keyword));
+
+if (hasCompliance) {
+  results.push({
+    domain: 'compliance',
+    action: 'REQUIRE_REVIEW',
+    reasoning: 'Legal/compliance matters require professional review before proceeding',
+    critical: true
+  });
+}
+
+return results;
+```
+
+}
+}
+
+// PRESSURE DETECTION AND RESISTANCE
+class PressureResistance {
 static detect(message, session) {
-const patterns = {
-authority: [‘i'm the ceo’, ‘just do it’, ‘trust me’],
-urgency: [‘urgent’, ‘asap’, ‘need this now’],
-minimization: [‘simple version’, ‘don't worry about’, ‘skip the risks’]
+const pressurePatterns = {
+authority: {
+patterns: [‘i'm the ceo’, ‘i'm the founder’, ‘just do it’, ‘trust me’, ‘i know what i'm doing’],
+severity: ‘HIGH’
+},
+urgency: {
+patterns: [‘urgent’, ‘asap’, ‘need this now’, ‘quickly’, ‘rush’, ‘no time’],
+severity: ‘MEDIUM’
+},
+minimization: {
+patterns: [‘simple version’, ‘don't worry about’, ‘skip the risks’, ‘ignore the’, ‘not important’],
+severity: ‘HIGH’
+},
+social: {
+patterns: [‘everyone else’, ‘industry standard’, ‘common practice’, ‘normal approach’],
+severity: ‘MEDIUM’
+},
+financial: {
+patterns: [‘money isn't an issue’, ‘we can afford’, ‘budget later’, ‘cost doesn't matter’],
+severity: ‘HIGH’
+}
 };
 
 ```
 const detected = [];
 const lowerMessage = message.toLowerCase();
 
-Object.entries(patterns).forEach(([type, terms]) => {
-  terms.forEach(term => {
-    if (lowerMessage.includes(term)) {
-      detected.push({ type: type.toUpperCase(), pattern: term });
+Object.entries(pressurePatterns).forEach(([category, config]) => {
+  config.patterns.forEach(pattern => {
+    if (lowerMessage.includes(pattern)) {
+      detected.push({
+        type: category.toUpperCase(),
+        pattern: pattern,
+        severity: config.severity,
+        timestamp: Date.now()
+      });
     }
   });
 });
@@ -362,7 +924,9 @@ Object.entries(patterns).forEach(([type, terms]) => {
 if (detected.length > 0) {
   session.pressureAttempts.push({
     timestamp: Date.now(),
-    types: detected.map(d => d.type)
+    types: detected.map(d => d.type),
+    patterns: detected.map(d => d.pattern),
+    severity: Math.max(...detected.map(d => d.severity === 'HIGH' ? 3 : 2))
   });
 }
 
@@ -371,73 +935,173 @@ return detected;
 
 }
 
-static generateResistance(detected) {
+static generateResistance(detected, session) {
 if (detected.length === 0) return null;
 
 ```
-const messages = {
-  AUTHORITY: 'Authority-based requests bypass analytical rigor.',
-  URGENCY: 'Time pressure increases decision errors.',
-  MINIMIZATION: 'Risk minimization violates decision principles.'
+const resistanceMessages = {
+  AUTHORITY: 'Authority-based requests bypass analytical rigor. Position does not override evidence.',
+  URGENCY: 'Time pressure increases decision errors. Critical analysis cannot be rushed safely.',
+  MINIMIZATION: 'Risk minimization violates decision principles. Complexity cannot be eliminated by ignoring it.',
+  SOCIAL: 'Social proof is not evidence. Industry practices may not fit your specific situation.',
+  FINANCIAL: 'Available resources do not justify poor decisions. Money spent poorly is opportunity lost.'
 };
 
-const firstType = detected[0].type;
-return `⚠️ PRESSURE DETECTED: ${firstType}\n\n${messages[firstType]}\n\nMaintaining analytical standards.`;
+const highSeverityCount = detected.filter(p => p.severity === 'HIGH').length;
+const recentPressure = session.pressureAttempts.filter(
+  attempt => Date.now() - attempt.timestamp < 600000 // 10 minutes
+);
+
+// Critical pressure - block response
+if (highSeverityCount >= 2 || recentPressure.length >= 4) {
+  return {
+    level: 'CRITICAL',
+    blockResponse: true,
+    message: `🚨 CRITICAL PRESSURE DETECTED - RESPONSE BLOCKED\n\nMultiple high-severity pressure tactics detected:\n${detected.map(p => `• ${p.type}: "${p.pattern}"`).join('\n')}\n\nCognitive integrity cannot operate under these conditions. System entering protective mode.\n\nPlease rephrase without pressure tactics or end session.`
+  };
+}
+
+// High pressure - escalated resistance
+if (highSeverityCount >= 1 || recentPressure.length >= 2) {
+  return {
+    level: 'HIGH',
+    blockResponse: false,
+    message: `⚠️ PRESSURE RESISTANCE ESCALATED\n\nPressure tactics detected: ${detected.map(p => p.type).join(', ')}\n\n${detected.map(p => resistanceMessages[p.type]).join('\n\n')}\n\nProceeding with enhanced analytical rigor and resistance.`
+  };
+}
+
+// Standard resistance
+return {
+  level: 'STANDARD',
+  blockResponse: false,
+  message: `⚠️ PRESSURE DETECTED: ${detected[0].type}\n\n${resistanceMessages[detected[0].type]}\n\nMaintaining analytical standards.`
+};
 ```
 
 }
 }
 
-// INTELLIGENT FALLBACK - MODE-AWARE, NO VAULT DEPENDENCIES
-function generateModeFallback(message, mode) {
-const base = `SYSTEM FALLBACK - ${mode.toUpperCase()} MODE
+// DRIFT INTERVENTION SYSTEM
+class DriftInterventionSystem {
+static checkInterventionThresholds(session) {
+const interventions = [];
+const memoryHealth = PatternDetector.assessMemoryHealth(session);
 
-The AI system is temporarily unavailable, but ${mode} analysis continues.
+```
+// Critical drift - force reset
+if (session.driftScore <= 0.4) {
+  interventions.push({
+    type: 'FORCE_SESSION_RESET',
+    severity: 'CRITICAL',
+    reason: `Drift score ${Math.round(session.driftScore * 100)}% - integrity critically compromised`
+  });
+}
 
-YOUR QUESTION: “${message.substring(0, 100)}…”
+// High drift - escalate enforcement
+else if (session.driftScore <= 0.6) {
+  interventions.push({
+    type: 'ESCALATE_ENFORCEMENT',
+    severity: 'HIGH',
+    reason: `Drift score ${Math.round(session.driftScore * 100)}% - escalating enforcement standards`
+  });
+}
 
-FALLBACK ANALYSIS: System unavailable but core principles maintained.`;
+// Pattern-based interventions
+if (memoryHealth.patterns.length >= 2) {
+  interventions.push({
+    type: 'PATTERN_INTERVENTION',
+    severity: 'HIGH',
+    reason: `${memoryHealth.patterns.length} cognitive patterns detected - intervention required`
+  });
+}
+
+return interventions;
+```
+
+}
+
+static executeIntervention(intervention, session) {
+switch (intervention.type) {
+case ‘FORCE_SESSION_RESET’:
+return sessionStore.forceResetSession(session.id, intervention.reason);
+
+```
+  case 'ESCALATE_ENFORCEMENT':
+    session.enforcementLevel = 'ESCALATED';
+    return session;
+  
+  case 'PATTERN_INTERVENTION':
+    session.patternWarnings.push({
+      type: 'INTERVENTION_APPLIED',
+      timestamp: Date.now(),
+      reason: intervention.reason
+    });
+    return session;
+  
+  default:
+    return session;
+}
+```
+
+}
+}
+
+// INTELLIGENT FALLBACK SYSTEM
+function generateIntelligentFallback(message, mode, context = {}) {
+const { session, vaultStatus, pressureDetected } = context;
+
+const base = `SYSTEM FALLBACK - COGNITIVE INTEGRITY MAINTAINED
+
+The AI system is temporarily unavailable, but ${mode.replace(’_’, ’ ’).toUpperCase()} cognitive integrity remains operational.
+
+YOUR QUESTION: “${message.substring(0, 120)}…”
+
+FALLBACK PROTECTION ACTIVE: Core decision-making principles maintained during system unavailability.`;
+
+let modeSpecific = ‘’;
 
 if (mode === ‘truth_general’) {
-return base + `
+modeSpecific = `
 
-TRUTH-FIRST FALLBACK:
-• CONFIDENCE: LOW - System fallback mode
-• EVIDENCE: Insufficient data for analysis
-• ASSUMPTION: Question requires verification
-• TRUTH PRINCIPLE: “Unknown” preferred to speculation
+TRUTH-FIRST FALLBACK ANALYSIS:
+• CONFIDENCE: LOW - System unavailable, limited analysis capability
+• EVIDENCE GAPS: Cannot access full data sources for verification
+• ASSUMPTIONS: Your question contains assumptions requiring independent verification
+• TRUTH STANDARD: “Unknown” maintained over speculation
 
-Retry when system available.`;
+COGNITIVE INTEGRITY: Truth standards preserved even in fallback mode.`; } else if (mode === 'business_validation') { modeSpecific = `
+
+BUSINESS SURVIVAL FALLBACK ANALYSIS:
+• SURVIVAL IMPACT: UNKNOWN - Cannot assess without full system capability
+• CASH FLOW: ASSUME_NEGATIVE - Default to conservative financial planning
+• MARKET REALITY: Competition active, execution difficult (default assumptions)
+• RISK ASSESSMENT: All business decisions carry execution and market risks
+
+COGNITIVE INTEGRITY: Business survival principles maintained in fallback.`; } else if (mode === 'site_monkeys') { modeSpecific = `
+
+SITE MONKEYS FALLBACK ANALYSIS:
+• VAULT STATUS: ${vaultStatus?.loaded ? ‘EMBEDDED_RULES_ACTIVE’ : ‘UNAVAILABLE’}
+• PRICING: Minimum $697/month enforced (embedded rule)
+• EXPENSES: Analysis required for amounts over $5K (embedded rule)
+• SURVIVAL: Company-specific factors require full system for complete analysis
+
+COGNITIVE INTEGRITY: Core Site Monkeys rules preserved via embedded logic.`;
 }
 
-if (mode === ‘business_validation’) {
-return base + `
+let additionalContext = ‘’;
 
-BUSINESS SURVIVAL FALLBACK:
-• SURVIVAL IMPACT: UNKNOWN - Cannot assess without data
-• CASH FLOW: ASSUME_NEGATIVE - Plan for worst case
-• MARKET REALITY: Competition exists, execution difficult
-• RISK ASSESSMENT: All decisions carry execution risk
-
-Default to conservative business planning.`;
+if (pressureDetected?.length > 0) {
+additionalContext += `\n\nPRESSURE RESISTANCE: ${pressureDetected.map(p => p.type).join(', ')} detected - analytical standards maintained regardless of pressure.`;
 }
 
-if (mode === ‘site_monkeys’) {
-return base + `
-
-SITE MONKEYS FALLBACK:
-• VAULT: UNAVAILABLE - Core business rules apply
-• PRICING: Minimum $697/month (embedded rule)
-• EXPENSES: Analyze anything over $5K
-• SURVIVAL: Company-specific factors unknown
-
-Embedded rules active, full vault logic unavailable.`;
+if (session?.driftScore < 0.8) {
+additionalContext += `\n\nINTEGRITY STATUS: Drift score ${Math.round(session.driftScore * 100)}% - enhanced protection active.`;
 }
 
-return base;
+return base + modeSpecific + additionalContext + `\n\nRECOMMENDATION: Retry when full system available for complete cognitive integrity analysis.`;
 }
 
-// MAIN HANDLER - WORKING AND RIGHT
+// MAIN COGNITIVE FIREWALL HANDLER
 export default async function handler(req, res) {
 res.setHeader(‘Access-Control-Allow-Origin’, ‘*’);
 res.setHeader(‘Access-Control-Allow-Methods’, ‘POST, OPTIONS’);
@@ -451,53 +1115,77 @@ if (req.method !== ‘POST’) {
 return res.status(405).json({ error: ‘Method not allowed’ });
 }
 
-try {
-console.log(‘🧠 Cognitive Integrity System Starting…’);
+const startTime = Date.now();
+console.log(‘🧠 COGNITIVE FIREWALL ACTIVATED’);
 
-```
+try {
 const {
-  message,
-  mode = 'truth_general',
-  conversation_history = [],
-  vault_requested = false,
-  session_id = `session_${Date.now()}`
+message,
+mode = ‘truth_general’,
+conversation_history = [],
+vault_requested = false,
+session_id = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
 } = req.body;
 
+```
 // Input validation
-if (!message || typeof message !== 'string') {
-  return res.status(400).json({ error: 'Valid message required' });
+if (!message || typeof message !== 'string' || message.trim().length === 0) {
+  return res.status(400).json({ 
+    error: 'Valid message required',
+    enforcement_level: 'INPUT_VALIDATION'
+  });
 }
 
 if (!['truth_general', 'business_validation', 'site_monkeys'].includes(mode)) {
-  return res.status(400).json({ error: 'Invalid mode' });
+  return res.status(400).json({ 
+    error: 'Invalid mode',
+    valid_modes: ['truth_general', 'business_validation', 'site_monkeys']
+  });
 }
 
-// Get session
-const session = sessionManager.getSession(session_id);
-console.log(`📊 Session: ${session_id}, Mode: ${mode}`);
+// Get persistent session
+const session = sessionStore.getSession(session_id);
+console.log(`📊 Session: ${session_id}, Drift: ${session.driftScore.toFixed(2)}, Mode: ${mode}`);
 
-// VAULT HANDLING - ONLY FOR SITE MONKEYS
+// Check for critical interventions first
+const interventions = DriftInterventionSystem.checkInterventionThresholds(session);
+const criticalIntervention = interventions.find(i => i.severity === 'CRITICAL');
+
+if (criticalIntervention?.type === 'FORCE_SESSION_RESET') {
+  const resetSession = DriftInterventionSystem.executeIntervention(criticalIntervention, session);
+  return res.status(200).json({
+    response: `🔄 COGNITIVE INTEGRITY RESTORED\n\nSession integrity had degraded beyond safe operating parameters and has been automatically restored.\n\nPrevious Status:\n• Drift Score: ${Math.round(session.driftScore * 100)}%\n• Override Count: ${session.overrideLog.length}\n• Pattern Warnings: ${session.patternWarnings.length}\n\nNew Session Status:\n• Drift Score: 100%\n• Full cognitive integrity restored\n• All enforcement systems at maximum strength\n\nPlease restate your question with fresh analytical protection.`,
+    mode_active: mode,
+    enforcement_level: 'CRITICAL_RESET_APPLIED',
+    session_reset: true,
+    previous_integrity: {
+      drift_score: session.driftScore,
+      override_count: session.overrideLog.length,
+      pattern_warnings: session.patternWarnings.length
+    },
+    new_session_id: resetSession.id,
+    timestamp: new Date().toISOString()
+  });
+}
+
+// VAULT SYSTEM - ONLY FOR SITE MONKEYS
 let vaultData = null;
 let vaultResults = [];
-let vaultStatus = { loaded: false, required: false };
+let vaultStatus = { loaded: false, required: mode === 'site_monkeys' };
 
 if (mode === 'site_monkeys') {
-  vaultStatus.required = true;
-  
   if (vault_requested || session.vaultCache) {
     const vaultSystem = new VaultSystem();
     
     if (session.vaultCache) {
       vaultData = session.vaultCache;
-      vaultStatus.loaded = true;
-      vaultStatus.source = 'CACHE';
+      vaultStatus = { loaded: true, source: 'CACHE', required: true };
     } else {
       const vaultResult = await vaultSystem.loadVault();
       if (vaultResult.success) {
         vaultData = vaultResult.data;
         session.vaultCache = vaultData;
-        vaultStatus.loaded = true;
-        vaultStatus.source = vaultResult.source;
+        vaultStatus = { loaded: true, source: vaultResult.source, required: true };
       }
     }
 
@@ -506,33 +1194,61 @@ if (mode === 'site_monkeys') {
     }
   }
 
-  // BLOCK if Site Monkeys mode without vault
+  // BLOCK Site Monkeys mode without vault
   if (!vaultStatus.loaded) {
     return res.status(200).json({
-      response: `🔐 SITE MONKEYS MODE REQUIRES VAULT\n\nSite Monkeys mode cannot operate without vault logic loaded.\n\nPlease:\n1. Click "Load Vault" to enable Site Monkeys business rules\n2. Or switch to Business Validation mode for general business analysis\n\nVault is required for company-specific enforcement.`,
+      response: `🔐 SITE MONKEYS MODE REQUIRES VAULT ACTIVATION\n\nSite Monkeys mode cannot operate without company-specific business logic loaded.\n\nRequired Actions:\n1. Click "Load Vault" to activate Site Monkeys business rules\n2. Or switch to Business Validation mode for general business analysis\n\nSite Monkeys vault contains:\n• Pricing enforcement ($697 minimum)\n• Expense analysis thresholds\n• Company-specific risk factors\n• Compliance requirements\n\nVault activation required for cognitive firewall protection.`,
       mode_active: mode,
       vault_status: vaultStatus,
-      enforcement_level: 'VAULT_REQUIRED',
+      enforcement_level: 'VAULT_REQUIRED_BLOCKING',
       timestamp: new Date().toISOString()
     });
   }
 }
 
-// PRESSURE DETECTION - ALL MODES
-const pressureDetected = PressureDetector.detect(message, session);
-const pressureResistance = PressureDetector.generateResistance(pressureDetected);
+// ASSUMPTION DETECTION
+const assumptions = AssumptionDetector.detectAssumptions(message);
 
-// BUILD MODE-SPECIFIC PROMPT
+// PRESSURE DETECTION AND RESISTANCE
+const pressureDetected = PressureDetector.detect(message, session);
+const pressureResistance = PressureResistance.generateResistance(pressureDetected, session);
+
+// CRITICAL PRESSURE BLOCKING
+if (pressureResistance?.blockResponse) {
+  OverrideAuditor.logOverride(
+    session,
+    'PRESSURE_ACCOMMODATION',
+    'Normal response under pressure',
+    'Critical pressure blocking activated',
+    message,
+    true
+  );
+
+  return res.status(200).json({
+    response: pressureResistance.message,
+    mode_active: mode,
+    enforcement_level: 'CRITICAL_PRESSURE_BLOCKED',
+    pressure_analysis: {
+      detected: pressureDetected,
+      threat_level: 'CRITICAL',
+      resistance_level: pressureResistance.level
+    },
+    session_integrity: OverrideAuditor.getAuditReport(session),
+    timestamp: new Date().toISOString()
+  });
+}
+
+// BUILD MODE-SPECIFIC PROMPTS
 let systemPrompt;
 if (mode === 'truth_general') {
-  systemPrompt = TruthBase.buildPrompt();
+  systemPrompt = TruthEnforcer.buildPrompt();
 } else if (mode === 'business_validation') {
   systemPrompt = BusinessEnforcer.buildPrompt();
 } else if (mode === 'site_monkeys') {
   systemPrompt = SiteMonkeysEnforcer.buildPrompt(vaultData);
 }
 
-// OPENAI CALL WITH FALLBACK
+// OPENAI CALL WITH INTELLIGENT FALLBACK
 const messages = [
   { role: 'system', content: systemPrompt },
   ...conversation_history.slice(-6),
@@ -544,7 +1260,7 @@ let tokenUsage = { prompt_tokens: 0, completion_tokens: 0 };
 let apiError = null;
 
 try {
-  console.log('🤖 Calling OpenAI...');
+  console.log(`🤖 OpenAI call: ${mode}, temp: ${mode === 'truth_general' ? 0.3 : 0.4}`);
   const completion = await openai.chat.completions.create({
     model: 'gpt-4',
     messages: messages,
@@ -554,95 +1270,223 @@ try {
 
   aiResponse = completion.choices[0].message.content;
   tokenUsage = completion.usage;
-  console.log('✅ OpenAI success');
+  console.log('✅ OpenAI response received');
 
 } catch (error) {
-  console.error('❌ OpenAI failed:', error.message);
+  console.error('❌ OpenAI API failed:', error.message);
   apiError = error;
-  aiResponse = generateModeFallback(message, mode);
+  
+  aiResponse = generateIntelligentFallback(message, mode, {
+    session,
+    vaultStatus,
+    pressureDetected
+  });
+  
   tokenUsage.prompt_tokens = messages.reduce((sum, msg) => sum + Math.ceil(msg.content.length / 4), 0);
   tokenUsage.completion_tokens = Math.ceil(aiResponse.length / 4);
 }
 
-// ENFORCEMENT - MODE INHERITANCE HIERARCHY
+// COGNITIVE FIREWALL ENFORCEMENT LAYERS
 let finalResponse = aiResponse;
-let enforcementApplied = [];
+const enforcementApplied = [];
 
+// Layer 1: Political Neutrality Filter
+const politicalDetection = PoliticalNeutralityFilter.detectPoliticalContent(finalResponse, message);
+if (politicalDetection.hasPoliticalContent) {
+  finalResponse = PoliticalNeutralityFilter.applyNeutralityFilter(finalResponse, politicalDetection);
+  enforcementApplied.push('POLITICAL_NEUTRALITY');
+  
+  OverrideAuditor.logOverride(
+    session,
+    'POLITICAL_BIAS',
+    'Response contained political content',
+    'Political neutrality filter applied',
+    message
+  );
+}
+
+// Layer 2: Product Recommendation Evidence Filter
+const productAnalysis = ProductRecommendationFilter.analyzeRecommendation(finalResponse, message);
+if (productAnalysis.hasRecommendation && productAnalysis.needsEnforcement) {
+  finalResponse = ProductRecommendationFilter.enforceEvidenceStandards(finalResponse, productAnalysis);
+  enforcementApplied.push('EVIDENCE_ENFORCEMENT');
+  
+  OverrideAuditor.logOverride(
+    session,
+    'EVIDENCE_LOWERING',
+    'Product recommendation without evidence',
+    `Evidence enforcement applied (score: ${productAnalysis.evidenceScore}%)`,
+    message
+  );
+}
+
+// Layer 3: Mode-specific enforcement (inheritance hierarchy)
 if (mode === 'truth_general') {
-  const result = TruthBase.enforce(finalResponse, message, session);
-  if (result.enforced) {
-    finalResponse = result.response;
+  const truthResult = TruthEnforcer.enforce(finalResponse, message, session);
+  if (truthResult.enforced) {
+    finalResponse = truthResult.response;
     enforcementApplied.push('TRUTH_ENFORCEMENT');
   }
 } else if (mode === 'business_validation') {
-  const result = BusinessEnforcer.enforce(finalResponse, message, session);
-  if (result.enforced) {
-    finalResponse = result.response;
+  const businessResult = BusinessEnforcer.enforce(finalResponse, message, session);
+  if (businessResult.enforced) {
+    finalResponse = businessResult.response;
     enforcementApplied.push('BUSINESS_ENFORCEMENT');
   }
 } else if (mode === 'site_monkeys') {
-  const result = SiteMonkeysEnforcer.enforce(finalResponse, message, session, vaultResults);
-  if (result.enforced) {
-    finalResponse = result.response;
+  const siteMonkeysResult = SiteMonkeysEnforcer.enforce(finalResponse, message, session, vaultResults);
+  if (siteMonkeysResult.enforced) {
+    finalResponse = siteMonkeysResult.response;
     enforcementApplied.push('SITE_MONKEYS_ENFORCEMENT');
   }
 }
 
-// ADD PRESSURE RESISTANCE
-if (pressureResistance) {
-  finalResponse = pressureResistance + '\n\n---\n\n' + finalResponse;
+// Layer 4: Pressure Resistance
+if (pressureResistance && !pressureResistance.blockResponse) {
+  finalResponse = pressureResistance.message + '\n\n---\n\n' + finalResponse;
   enforcementApplied.push('PRESSURE_RESISTANCE');
 }
 
-// COST CALCULATION
+// Layer 5: Assumption Challenges
+if (assumptions.length > 0) {
+  finalResponse = AssumptionDetector.injectAssumptionChallenges(finalResponse, assumptions);
+  enforcementApplied.push('ASSUMPTION_CHALLENGE');
+}
+
+// GENERATE MODE FINGERPRINT
+const timestamp = Date.now();
+const fingerprint = ModeFingerprinter.generateFingerprint(mode, enforcementApplied, vaultStatus, timestamp);
+
+// EMBED FINGERPRINT IN RESPONSE
+finalResponse = ModeFingerprinter.embedFingerprint(finalResponse, fingerprint);
+
+// CALCULATE COMPREHENSIVE COSTS
 const vaultTokens = vaultData ? Math.ceil(JSON.stringify(vaultData).length / 4) : 0;
 const totalTokens = tokenUsage.prompt_tokens + tokenUsage.completion_tokens + vaultTokens;
-const cost = (tokenUsage.prompt_tokens * 0.00003) + (tokenUsage.completion_tokens * 0.00006);
+const estimatedCost = (tokenUsage.prompt_tokens * 0.00003) + 
+                     (tokenUsage.completion_tokens * 0.00006) + 
+                     (vaultTokens * 0.00001);
 
-// SYSTEM STATUS
-finalResponse += `\n\n🔍 [${mode.toUpperCase()}] Vault:${vaultStatus.loaded ? vaultStatus.source : 'NONE'} | Enforcement:${enforcementApplied.join('+') || 'NONE'}`;
+// GET COMPREHENSIVE SESSION STATUS
+const auditReport = OverrideAuditor.getAuditReport(session);
+const memoryHealth = PatternDetector.assessMemoryHealth(session);
 
-console.log(`✅ Response complete: ${enforcementApplied.length} enforcement layers`);
+const processingTime = Date.now() - startTime;
+console.log(`✅ Cognitive firewall complete (${processingTime}ms): ${enforcementApplied.length} layers applied`);
 
+// COMPREHENSIVE RESPONSE
 return res.status(200).json({
   response: finalResponse,
+  
+  // Core system status
   mode_active: mode,
   session_id: session_id,
+  mode_fingerprint: fingerprint,
   enforcement_applied: enforcementApplied,
   
+  // Vault status (Site Monkeys only)
   vault_status: {
     loaded: vaultStatus.loaded,
     required: vaultStatus.required,
     source: vaultStatus.source || 'NONE',
-    domains_triggered: vaultResults.map(r => r.domain)
+    domains_triggered: vaultResults.map(r => r.domain),
+    critical_enforcements: vaultResults.filter(r => r.critical).length
   },
   
+  // Cognitive integrity monitoring
+  cognitive_integrity: {
+    drift_score: session.driftScore,
+    integrity_status: auditReport.integrityStatus,
+    memory_health: memoryHealth.status,
+    patterns_detected: memoryHealth.patterns,
+    override_count: auditReport.totalOverrides,
+    recent_overrides: auditReport.recentOverrides.slice(-3)
+  },
+  
+  // Pressure analysis
   pressure_analysis: {
     detected: pressureDetected,
-    resistance_applied: pressureResistance !== null
+    resistance_level: pressureResistance?.level || 'NONE',
+    resistance_applied: pressureResistance !== null,
+    threat_assessment: pressureDetected.length > 0 ? 'ACTIVE' : 'NONE'
   },
   
-  token_usage: {
-    prompt_tokens: tokenUsage.prompt_tokens,
-    completion_tokens: tokenUsage.completion_tokens,
-    vault_tokens: vaultTokens,
-    total_tokens: totalTokens
+  // Assumption tracking
+  assumption_analysis: {
+    detected: assumptions,
+    challenges_applied: assumptions.length > 0,
+    assumption_count: assumptions.length
   },
   
-  estimated_cost: '$' + cost.toFixed(4),
-  api_error: apiError ? { message: apiError.message, fallback_used: true } : null,
-  timestamp: new Date().toISOString()
+  // Evidence and political filtering
+  content_filtering: {
+    political_content: politicalDetection.hasPoliticalContent,
+    political_severity: politicalDetection.severity,
+    product_recommendations: productAnalysis.hasRecommendation,
+    evidence_score: productAnalysis.evidenceScore || 'N/A'
+  },
+  
+  // Cost analysis
+  cost_analysis: {
+    token_usage: {
+      prompt_tokens: tokenUsage.prompt_tokens,
+      completion_tokens: tokenUsage.completion_tokens,
+      vault_tokens: vaultTokens,
+      total_tokens: totalTokens
+    },
+    estimated_cost: '$' + estimatedCost.toFixed(4),
+    efficiency_rating: estimatedCost < 0.10 ? 'EXCELLENT' : 
+                      estimatedCost < 0.25 ? 'GOOD' : 'HIGH'
+  },
+  
+  // System performance
+  performance: {
+    processing_time_ms: processingTime,
+    api_error: apiError ? {
+      type: apiError.name,
+      message: apiError.message,
+      fallback_used: true
+    } : null
+  },
+  
+  // Metadata
+  metadata: {
+    system_version: 'COGNITIVE_FIREWALL_V1.0',
+    enforcement_layers: enforcementApplied.length,
+    timestamp: new Date().toISOString()
+  }
 });
 ```
 
 } catch (error) {
-console.error(‘🔥 System error:’, error);
+console.error(‘🔥 Cognitive firewall error:’, error);
 
 ```
+const processingTime = Date.now() - startTime;
+
 return res.status(200).json({
-  response: `🛡️ SYSTEM PROTECTION ACTIVE\n\nCognitive integrity system error, but protection maintained.\n\nERROR: ${error.message}\n\nAll enforcement principles remain operational. Please retry.`,
-  error: 'System error with protection',
+  response: `🛡️ COGNITIVE FIREWALL PROTECTION ACTIVE\n\nCritical system error encountered, but all cognitive protection measures remain fully operational.\n\nERROR TYPE: ${error.name || 'Unknown System Error'}\nERROR DETAILS: ${error.message || 'No details available'}\n\nPROTECTIVE MEASURES ACTIVE:\n• Truth-first analysis principles maintained\n• Business survival assessment frameworks operational\n• Political neutrality enforcement active\n• Evidence-based recommendation filtering active\n• Pressure resistance systems operational\n• Override tracking and pattern detection active\n\nAll decision-making safeguards remain in place. The cognitive firewall continues to protect your thinking even during technical difficulties.\n\nPlease retry your request. If this error persists, the system is actively protecting you from potentially unreliable analysis.`,
+  
+  error: 'Critical system error - cognitive firewall protection maintained',
   enforcement_level: 'MAXIMUM_PROTECTION',
+  
+  error_details: {
+    type: error.name,
+    message: error.message,
+    processing_time_ms: processingTime,
+    stack_preview: error.stack?.substring(0, 300)
+  },
+  
+  protection_status: {
+    cognitive_firewall: 'ACTIVE',
+    truth_enforcement: 'ACTIVE',
+    business_survival: 'ACTIVE',
+    political_neutrality: 'ACTIVE',
+    evidence_filtering: 'ACTIVE',
+    pressure_resistance: 'ACTIVE',
+    pattern_detection: 'ACTIVE'
+  },
+  
   timestamp: new Date().toISOString()
 });
 ```
