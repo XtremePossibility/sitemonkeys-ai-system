@@ -47,16 +47,21 @@ export default async function handler(req, res) {
     // TIER 1: CORE FUNCTIONAL FRAMEWORK
     
     // Mode switch validation
-    const modeValidation = validateModeSwitch('unknown', mode, vault_loaded);
-    if (!modeValidation.allowed) {
-      return res.status(403).json({
-        response: "🍌 **System:** Mode access denied. " + modeValidation.requirements.join(', '),
-        error: 'MODE_ACCESS_DENIED',
-        mode_active: mode,
-        vault_loaded: false,
-        enforcement_triggered: true
-      });
-    }
+    // Replace validateModeSwitch calls with:
+if (!MODES[mode]) {
+  return res.status(400).json({
+    response: "**System Error:** Invalid mode specified.",
+    error: 'INVALID_MODE'
+  });
+}
+      // SECURITY CHECK - Use the vault verification that already exists
+const vaultVerification = await verifyVaultAccess(mode, vault_loaded);
+if (vault_loaded && mode !== 'site_monkeys') {
+  return res.status(403).json({
+    response: "**System:** Vault access denied.",
+    error: 'VAULT_ACCESS_DENIED'
+  });
+}
 
     // Vault access verification
     const vaultVerification = await verifyVaultAccess(mode, vault_loaded);
