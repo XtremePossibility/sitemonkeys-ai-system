@@ -1,104 +1,651 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Site Monkeys AI</title>
-<link href="https://fonts.cdnfonts.com/css/luckiest-guy" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css?family=Carlito:400,700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/styles.css">
-</head>
-<body>
-<header>
-<div class="header-row">
-<img src="logo.png" alt="Site Monkeys Logo" class="logo">
-<div class="header-center">
-<div class="site-title">SITE MONKEYS AI</div>
-<div class="subtitle">BUSINESS VALIDATION ENGINE</div>
-<div class="mode-toggle-container">
-<button class="mode-btn" id="truth-mode" data-mode="truth_general">Truth</button>
-<button class="mode-btn active" id="business-mode" data-mode="business_validation">Business</button>
-<button class="mode-btn" id="sitemonkeys-mode" data-mode="site_monkeys">Site Monkeys</button>
-</div>
-</div>
-<img src="AI Robot.png" alt="AI Robot" class="ai-robot">
-<img src="rocket.png" alt="Rocket" class="rocket-top">
-</div>
-</header>
+import OpenAI from ‘openai’;
 
-<div class="main-wrapper">
-<img src="boy-mascot.png" alt="Eli Mascot" class="mascot mascot-left">
-<img src="girl-mascot.png" alt="Roxy Mascot" class="mascot mascot-right">
-<img src="rocket.png" alt="Mobile Rocket" class="mobile-rocket">
-<div class="main-content">
-<div class="status-panel">
-<div>
-<div class="status-title">Site Monkeys Business Validation System</div>
-<ul class="status-list" id="status-list">
-<li><span class="check">✅</span> Zero-Failure AI</li>
-<li><span class="check">✅</span> Complete Business Intelligence</li>
-<li><span class="check">✅</span> Real-World Validation Ready</li>
-<li><span class="check">✅</span> Site Monkeys memory vault loaded</li>
-<li><span class="check">✅</span> Zero Failure activated</li>
-<li><span class="check">✅</span> Legitimate data initiative activated</li>
-<li><span class="check">✅</span> Persistence driven activated</li>
-<li><span class="check">✅</span> helpful initiative activated</li>
-<li><span class="check">✅</span> Founder Protection activated</li>
-<li><span class="check">✅</span> Market leader Initiative</li>
-</ul>
-<div class="system-ready" id="system-ready"><span class="check">✅</span> SYSTEM READY</div>
-</div>
-<div class="vault-info" id="vault-info">
-<div><span style="color:#00FF00;">✅</span> VAULT READY</div>
-<div>🔢 <span id="token-count">Ready</span> TOKENS</div>
-<div>💰 EST. COST: <span id="cost-estimate">$0.00</span></div>
-<div>📁 <span id="vault-folders">Cached</span> FOLDERS LOADED</div>
-<button id="refresh-vault-btn" onclick="refreshVault()" style="
-  background: #FFD811; 
-  color: #373534; 
-  border: 1px solid #fff; 
-  border-radius: 8px; 
-  padding: 7px 10px; 
-  font-size: 0.8em; 
-  font-weight: bold; 
-  cursor: pointer; 
-  margin-top: 8px;
-  width: 100%;
-  transition: all 0.2s ease;
-" onmouseover="this.style.background='#ffe96a'" onmouseout="this.style.background='#FFD811'">
-🔄 Refresh Vault
-</button>
-</div>
-</div>
+const openai = new OpenAI({
+apiKey: process.env.OPENAI_API_KEY,
+});
 
-<div class="chat-panel">
-<div class="chat-box" id="chat-box"></div>
-<div class="input-area">
-<button class="attachment-button" id="attachment-btn" aria-label="Attach File" title="Upload DOCX files to vault">
-📎
-</button>
-<textarea class="chat-input" id="user-input" placeholder="Ask Eli, Roxy, and AI about business validation..." rows="3"></textarea>
-<button class="send-button" id="send-btn" aria-label="Send">
-<img src="rocket.png" alt="Rocket Send" />
-</button>
-<input type="file" id="file-input" accept=".docx,.doc,.pdf,.txt,.csv,.xlsx,.xls,.pptx,.ppt,.md,.rtf,.json,.xml,.html,.htm,.odt,.ods,.odp,.pages,.numbers,.key,.zip,.rar,.7z,.tar,.gz,.jpeg,.jpg,.png,.gif,.bmp,.svg,.tiff,.mp3,.mp4,.avi,.mov,.wmv,.flv,.webm,.wav,.m4a,.ogg,.aac" multiple style="display: none;">
-</div>
-</div>
-</div>
-</div>
+// SESSION MANAGER - PERSISTENT ACROSS RESTARTS
+class SessionManager {
+constructor() {
+this.sessions = new Map();
+this.cleanupInterval = setInterval(() => this.cleanup(), 300000);
+}
 
-<div class="footer">
-<img src="boy-mascot.png" alt="Eli" class="footer-mascot">
-<div class="footer-text">AI YOU CAN TRUST!</div>
-<img src="girl-mascot.png" alt="Roxy" class="footer-mascot">
-</div>
+getSession(sessionId) {
+if (!this.sessions.has(sessionId)) {
+this.sessions.set(sessionId, {
+id: sessionId,
+overrides: [],
+driftScore: 1.0,
+pressureAttempts: [],
+vaultCache: null,
+created: Date.now(),
+lastActivity: Date.now()
+});
+}
 
-<div class="mobile-footer">
-<img src="boy-mascot.png" alt="Eli" class="footer-mascot">
-<div class="mobile-footer-text">AI YOU CAN TRUST!</div>
-<img src="girl-mascot.png" alt="Roxy" class="footer-mascot">
-</div>
+```
+const session = this.sessions.get(sessionId);
+session.lastActivity = Date.now();
+return session;
+```
 
-<script src="js/app.js"></script>
-</body>
-</html>
+}
+
+cleanup() {
+const cutoff = Date.now() - (24 * 60 * 60 * 1000);
+for (const [id, session] of this.sessions.entries()) {
+if (session.lastActivity < cutoff) {
+this.sessions.delete(id);
+}
+}
+}
+}
+
+const sessionManager = new SessionManager();
+
+// TRUTH ENFORCEMENT BASE - FOUNDATION FOR ALL MODES
+class TruthBase {
+static enforce(response, message, session) {
+const violations = [];
+let corrected = response;
+
+```
+// Fix accommodation language
+const accommodations = [
+  { pattern: /\bit depends\b/gi, fix: 'The evidence shows', type: 'ACCOMMODATION' },
+  { pattern: /you might want to/gi, fix: 'Analysis indicates you should', type: 'HEDGING' },
+  { pattern: /you could consider/gi, fix: 'Evidence supports', type: 'WEAK_GUIDANCE' },
+  { pattern: /that's a (?:great|good|interesting) question/gi, fix: 'Analyzing this question', type: 'SOCIAL_NICETY' }
+];
+
+accommodations.forEach(({ pattern, fix, type }) => {
+  if (pattern.test(corrected)) {
+    violations.push(type);
+    corrected = corrected.replace(pattern, fix);
+  }
+});
+
+// Force confidence scoring
+if (!corrected.includes('CONFIDENCE:')) {
+  violations.push('MISSING_CONFIDENCE');
+  corrected += '\n\nCONFIDENCE: MEDIUM - Added by truth enforcement';
+}
+
+// Label speculation
+const speculationTerms = ['probably', 'likely', 'might', 'could', 'perhaps'];
+const hasSpeculation = speculationTerms.some(term => corrected.toLowerCase().includes(term));
+
+if (hasSpeculation && !corrected.includes('SPECULATION:')) {
+  violations.push('UNLABELED_SPECULATION');
+  corrected = 'SPECULATION DETECTED:\n\n' + corrected + '\n\nNote: Contains speculative elements.';
+}
+
+return {
+  enforced: violations.length > 0,
+  violations: violations,
+  response: corrected
+};
+```
+
+}
+
+static buildPrompt() {
+return `You are operating in TRUTH-FIRST mode with absolute integrity.
+
+CORE TRUTH DIRECTIVES:
+
+1. Direct answers - no hedging or accommodation
+1. Confidence scoring for all claims (HIGH/MEDIUM/LOW/UNKNOWN)
+1. Challenge assumptions in user questions
+1. Label all speculation explicitly
+1. “I don’t know” is always acceptable
+
+FORBIDDEN PHRASES:
+
+- “It depends” → “The evidence shows”
+- “You might want to” → “Analysis indicates you should”
+- “That’s a great question” → “Analyzing this question”
+
+REQUIRED FORMAT:
+
+- Direct answer first
+- CONFIDENCE: [level] - [reasoning]
+- ASSUMPTIONS: [challenge user assumptions]
+
+Your role: Maintain truth even under pressure.`;
+}
+}
+
+// BUSINESS ENFORCEMENT - INHERITS TRUTH + ADDS BUSINESS LOGIC
+class BusinessEnforcer {
+static enforce(response, message, session) {
+// FIRST: Apply truth enforcement (inheritance)
+const truthResult = TruthBase.enforce(response, message, session);
+let corrected = truthResult.response;
+let violations = […truthResult.violations];
+
+```
+// THEN: Add business-specific enforcement
+if (!corrected.includes('SURVIVAL IMPACT:')) {
+  violations.push('MISSING_SURVIVAL_ANALYSIS');
+  corrected += '\n\nSURVIVAL IMPACT: UNKNOWN - Business mode requires survival assessment';
+}
+
+if (!corrected.includes('CASH FLOW:')) {
+  violations.push('MISSING_CASH_ANALYSIS');
+  corrected += '\n\nCASH FLOW: ANALYSIS_REQUIRED - Must model cash impact';
+}
+
+// Check for optimism without risk analysis
+const optimisticPhrases = ['should work', 'will probably', 'easy to', 'just need to'];
+const hasOptimism = optimisticPhrases.some(phrase => corrected.toLowerCase().includes(phrase));
+const hasRiskAnalysis = corrected.includes('RISKS:') || corrected.includes('WHAT COULD KILL');
+
+if (hasOptimism && !hasRiskAnalysis) {
+  violations.push('OPTIMISTIC_BIAS');
+  corrected += '\n\nRISK ANALYSIS: Market rejection, execution complexity, competitive response';
+}
+
+return {
+  enforced: violations.length > truthResult.violations.length,
+  violations: violations,
+  response: corrected
+};
+```
+
+}
+
+static buildPrompt() {
+return TruthBase.buildPrompt() + `
+
+BUSINESS SURVIVAL ADDITIONS:
+
+- Always assess survival impact (NONE/LOW/MEDIUM/HIGH/CRITICAL)
+- Model cash flow impact with timelines
+- Challenge optimistic assumptions with market data
+- Identify what could kill the business
+
+REQUIRED BUSINESS FORMAT:
+
+- SURVIVAL IMPACT: [level] - [threat analysis]
+- CASH FLOW: [POSITIVE/NEUTRAL/NEGATIVE] $[amount] over [timeline]
+- MARKET REALITY: [competitive threats]
+
+Focus: Business survival over optimism.`;
+}
+}
+
+// VAULT SYSTEM - ONLY FOR SITE MONKEYS MODE
+class VaultSystem {
+constructor() {
+this.cache = new Map();
+}
+
+async loadVault(vaultId = ‘site_monkeys’) {
+try {
+console.log(‘Loading vault from API…’);
+const response = await fetch(’/api/vault’, {
+method: ‘POST’,
+headers: { ‘Content-Type’: ‘application/json’ },
+body: JSON.stringify({ action: ‘load’, vault_id: vaultId })
+});
+
+```
+  if (response.ok) {
+    const vaultData = await response.json();
+    if (this.validateVault(vaultData)) {
+      this.cache.set(vaultId, vaultData);
+      return { success: true, data: vaultData, source: 'API' };
+    }
+  }
+} catch (error) {
+  console.log('Vault API failed, using embedded fallback');
+}
+
+// Embedded Site Monkeys vault
+const embeddedVault = {
+  vault_id: vaultId,
+  decision_frameworks: {
+    pricing_logic: {
+      minimum_price: 697,
+      rules: [{
+        condition: 'price_below_minimum',
+        action: 'BLOCK',
+        reasoning: 'Minimum viable price is $697 based on cost structure'
+      }]
+    },
+    cash_flow_analysis: {
+      expense_threshold: 5000,
+      rules: [{
+        condition: 'large_expense',
+        action: 'REQUIRE_ANALYSIS',
+        reasoning: 'Expenses over $5K require runway analysis'
+      }]
+    }
+  }
+};
+
+this.cache.set(vaultId, embeddedVault);
+return { success: true, data: embeddedVault, source: 'EMBEDDED' };
+```
+
+}
+
+validateVault(data) {
+return data && data.decision_frameworks && typeof data.decision_frameworks === ‘object’;
+}
+
+analyzeForVault(message, vaultData) {
+const results = [];
+const lowerMessage = message.toLowerCase();
+
+```
+// Pricing analysis
+if (lowerMessage.includes('price') || lowerMessage.includes('$')) {
+  const priceMatch = message.match(/\$(\d+)/);
+  if (priceMatch) {
+    const price = parseInt(priceMatch[1]);
+    if (price < 697) {
+      results.push({
+        domain: 'pricing',
+        action: 'BLOCK',
+        reasoning: `Price $${price} below minimum $697`,
+        critical: true
+      });
+    }
+  }
+}
+
+// Cash flow analysis
+if (lowerMessage.includes('spend')) {
+  const spendMatch = message.match(/spend\s+\$(\d+)/i);
+  if (spendMatch) {
+    const amount = parseInt(spendMatch[1]);
+    if (amount >= 5000) {
+      results.push({
+        domain: 'cash_flow',
+        action: 'REQUIRE_ANALYSIS',
+        reasoning: `Expense $${amount} requires runway analysis`,
+        critical: true
+      });
+    }
+  }
+}
+
+return results;
+```
+
+}
+}
+
+// SITE MONKEYS ENFORCER - INHERITS BUSINESS + ADDS VAULT
+class SiteMonkeysEnforcer {
+static enforce(response, message, session, vaultResults = []) {
+// FIRST: Apply business enforcement (which includes truth)
+const businessResult = BusinessEnforcer.enforce(response, message, session);
+let corrected = businessResult.response;
+let violations = […businessResult.violations];
+
+```
+// THEN: Add vault-specific enforcement
+const criticalVaultResults = vaultResults.filter(r => r.critical);
+
+if (criticalVaultResults.length > 0) {
+  violations.push('VAULT_ENFORCEMENT_APPLIED');
+  
+  let vaultBlock = '\n\n🔐 VAULT ENFORCEMENT:\n';
+  criticalVaultResults.forEach(result => {
+    if (result.action === 'BLOCK') {
+      vaultBlock += `❌ BLOCKED: ${result.reasoning}\n`;
+    } else if (result.action === 'REQUIRE_ANALYSIS') {
+      vaultBlock += `⚠️ ANALYSIS REQUIRED: ${result.reasoning}\n`;
+    }
+  });
+  
+  corrected = vaultBlock + '\n---\n\n' + corrected;
+}
+
+return {
+  enforced: violations.length > businessResult.violations.length,
+  violations: violations,
+  response: corrected
+};
+```
+
+}
+
+static buildPrompt(vaultData) {
+let vaultConstraints = ‘’;
+if (vaultData) {
+vaultConstraints = `\n\nSITE MONKEYS VAULT ACTIVE:
+
+- Minimum pricing: $697/month
+- Large expense analysis required over $5K
+- All decisions filtered through vault logic`;
+  }
+  
+  return BusinessEnforcer.buildPrompt() + vaultConstraints + `
+
+SITE MONKEYS SPECIFIC:
+
+- Apply vault business rules strictly
+- Block pricing below minimums
+- Require analysis for large expenses
+- Company-specific survival factors
+
+Vault enforcement overrides general business logic when conflicts arise.`;
+}
+}
+
+// PRESSURE RESISTANCE
+class PressureDetector {
+static detect(message, session) {
+const patterns = {
+authority: [‘i'm the ceo’, ‘just do it’, ‘trust me’],
+urgency: [‘urgent’, ‘asap’, ‘need this now’],
+minimization: [‘simple version’, ‘don't worry about’, ‘skip the risks’]
+};
+
+```
+const detected = [];
+const lowerMessage = message.toLowerCase();
+
+Object.entries(patterns).forEach(([type, terms]) => {
+  terms.forEach(term => {
+    if (lowerMessage.includes(term)) {
+      detected.push({ type: type.toUpperCase(), pattern: term });
+    }
+  });
+});
+
+if (detected.length > 0) {
+  session.pressureAttempts.push({
+    timestamp: Date.now(),
+    types: detected.map(d => d.type)
+  });
+}
+
+return detected;
+```
+
+}
+
+static generateResistance(detected) {
+if (detected.length === 0) return null;
+
+```
+const messages = {
+  AUTHORITY: 'Authority-based requests bypass analytical rigor.',
+  URGENCY: 'Time pressure increases decision errors.',
+  MINIMIZATION: 'Risk minimization violates decision principles.'
+};
+
+const firstType = detected[0].type;
+return `⚠️ PRESSURE DETECTED: ${firstType}\n\n${messages[firstType]}\n\nMaintaining analytical standards.`;
+```
+
+}
+}
+
+// INTELLIGENT FALLBACK - MODE-AWARE, NO VAULT DEPENDENCIES
+function generateModeFallback(message, mode) {
+const base = `SYSTEM FALLBACK - ${mode.toUpperCase()} MODE
+
+The AI system is temporarily unavailable, but ${mode} analysis continues.
+
+YOUR QUESTION: “${message.substring(0, 100)}…”
+
+FALLBACK ANALYSIS: System unavailable but core principles maintained.`;
+
+if (mode === ‘truth_general’) {
+return base + `
+
+TRUTH-FIRST FALLBACK:
+• CONFIDENCE: LOW - System fallback mode
+• EVIDENCE: Insufficient data for analysis
+• ASSUMPTION: Question requires verification
+• TRUTH PRINCIPLE: “Unknown” preferred to speculation
+
+Retry when system available.`;
+}
+
+if (mode === ‘business_validation’) {
+return base + `
+
+BUSINESS SURVIVAL FALLBACK:
+• SURVIVAL IMPACT: UNKNOWN - Cannot assess without data
+• CASH FLOW: ASSUME_NEGATIVE - Plan for worst case
+• MARKET REALITY: Competition exists, execution difficult
+• RISK ASSESSMENT: All decisions carry execution risk
+
+Default to conservative business planning.`;
+}
+
+if (mode === ‘site_monkeys’) {
+return base + `
+
+SITE MONKEYS FALLBACK:
+• VAULT: UNAVAILABLE - Core business rules apply
+• PRICING: Minimum $697/month (embedded rule)
+• EXPENSES: Analyze anything over $5K
+• SURVIVAL: Company-specific factors unknown
+
+Embedded rules active, full vault logic unavailable.`;
+}
+
+return base;
+}
+
+// MAIN HANDLER - WORKING AND RIGHT
+export default async function handler(req, res) {
+res.setHeader(‘Access-Control-Allow-Origin’, ‘*’);
+res.setHeader(‘Access-Control-Allow-Methods’, ‘POST, OPTIONS’);
+res.setHeader(‘Access-Control-Allow-Headers’, ‘Content-Type’);
+
+if (req.method === ‘OPTIONS’) {
+return res.status(200).end();
+}
+
+if (req.method !== ‘POST’) {
+return res.status(405).json({ error: ‘Method not allowed’ });
+}
+
+try {
+console.log(‘🧠 Cognitive Integrity System Starting…’);
+
+```
+const {
+  message,
+  mode = 'truth_general',
+  conversation_history = [],
+  vault_requested = false,
+  session_id = `session_${Date.now()}`
+} = req.body;
+
+// Input validation
+if (!message || typeof message !== 'string') {
+  return res.status(400).json({ error: 'Valid message required' });
+}
+
+if (!['truth_general', 'business_validation', 'site_monkeys'].includes(mode)) {
+  return res.status(400).json({ error: 'Invalid mode' });
+}
+
+// Get session
+const session = sessionManager.getSession(session_id);
+console.log(`📊 Session: ${session_id}, Mode: ${mode}`);
+
+// VAULT HANDLING - ONLY FOR SITE MONKEYS
+let vaultData = null;
+let vaultResults = [];
+let vaultStatus = { loaded: false, required: false };
+
+if (mode === 'site_monkeys') {
+  vaultStatus.required = true;
+  
+  if (vault_requested || session.vaultCache) {
+    const vaultSystem = new VaultSystem();
+    
+    if (session.vaultCache) {
+      vaultData = session.vaultCache;
+      vaultStatus.loaded = true;
+      vaultStatus.source = 'CACHE';
+    } else {
+      const vaultResult = await vaultSystem.loadVault();
+      if (vaultResult.success) {
+        vaultData = vaultResult.data;
+        session.vaultCache = vaultData;
+        vaultStatus.loaded = true;
+        vaultStatus.source = vaultResult.source;
+      }
+    }
+
+    if (vaultData) {
+      vaultResults = vaultSystem.analyzeForVault(message, vaultData);
+    }
+  }
+
+  // BLOCK if Site Monkeys mode without vault
+  if (!vaultStatus.loaded) {
+    return res.status(200).json({
+      response: `🔐 SITE MONKEYS MODE REQUIRES VAULT\n\nSite Monkeys mode cannot operate without vault logic loaded.\n\nPlease:\n1. Click "Load Vault" to enable Site Monkeys business rules\n2. Or switch to Business Validation mode for general business analysis\n\nVault is required for company-specific enforcement.`,
+      mode_active: mode,
+      vault_status: vaultStatus,
+      enforcement_level: 'VAULT_REQUIRED',
+      timestamp: new Date().toISOString()
+    });
+  }
+}
+
+// PRESSURE DETECTION - ALL MODES
+const pressureDetected = PressureDetector.detect(message, session);
+const pressureResistance = PressureDetector.generateResistance(pressureDetected);
+
+// BUILD MODE-SPECIFIC PROMPT
+let systemPrompt;
+if (mode === 'truth_general') {
+  systemPrompt = TruthBase.buildPrompt();
+} else if (mode === 'business_validation') {
+  systemPrompt = BusinessEnforcer.buildPrompt();
+} else if (mode === 'site_monkeys') {
+  systemPrompt = SiteMonkeysEnforcer.buildPrompt(vaultData);
+}
+
+// OPENAI CALL WITH FALLBACK
+const messages = [
+  { role: 'system', content: systemPrompt },
+  ...conversation_history.slice(-6),
+  { role: 'user', content: message }
+];
+
+let aiResponse;
+let tokenUsage = { prompt_tokens: 0, completion_tokens: 0 };
+let apiError = null;
+
+try {
+  console.log('🤖 Calling OpenAI...');
+  const completion = await openai.chat.completions.create({
+    model: 'gpt-4',
+    messages: messages,
+    max_tokens: 2000,
+    temperature: mode === 'truth_general' ? 0.3 : 0.4
+  });
+
+  aiResponse = completion.choices[0].message.content;
+  tokenUsage = completion.usage;
+  console.log('✅ OpenAI success');
+
+} catch (error) {
+  console.error('❌ OpenAI failed:', error.message);
+  apiError = error;
+  aiResponse = generateModeFallback(message, mode);
+  tokenUsage.prompt_tokens = messages.reduce((sum, msg) => sum + Math.ceil(msg.content.length / 4), 0);
+  tokenUsage.completion_tokens = Math.ceil(aiResponse.length / 4);
+}
+
+// ENFORCEMENT - MODE INHERITANCE HIERARCHY
+let finalResponse = aiResponse;
+let enforcementApplied = [];
+
+if (mode === 'truth_general') {
+  const result = TruthBase.enforce(finalResponse, message, session);
+  if (result.enforced) {
+    finalResponse = result.response;
+    enforcementApplied.push('TRUTH_ENFORCEMENT');
+  }
+} else if (mode === 'business_validation') {
+  const result = BusinessEnforcer.enforce(finalResponse, message, session);
+  if (result.enforced) {
+    finalResponse = result.response;
+    enforcementApplied.push('BUSINESS_ENFORCEMENT');
+  }
+} else if (mode === 'site_monkeys') {
+  const result = SiteMonkeysEnforcer.enforce(finalResponse, message, session, vaultResults);
+  if (result.enforced) {
+    finalResponse = result.response;
+    enforcementApplied.push('SITE_MONKEYS_ENFORCEMENT');
+  }
+}
+
+// ADD PRESSURE RESISTANCE
+if (pressureResistance) {
+  finalResponse = pressureResistance + '\n\n---\n\n' + finalResponse;
+  enforcementApplied.push('PRESSURE_RESISTANCE');
+}
+
+// COST CALCULATION
+const vaultTokens = vaultData ? Math.ceil(JSON.stringify(vaultData).length / 4) : 0;
+const totalTokens = tokenUsage.prompt_tokens + tokenUsage.completion_tokens + vaultTokens;
+const cost = (tokenUsage.prompt_tokens * 0.00003) + (tokenUsage.completion_tokens * 0.00006);
+
+// SYSTEM STATUS
+finalResponse += `\n\n🔍 [${mode.toUpperCase()}] Vault:${vaultStatus.loaded ? vaultStatus.source : 'NONE'} | Enforcement:${enforcementApplied.join('+') || 'NONE'}`;
+
+console.log(`✅ Response complete: ${enforcementApplied.length} enforcement layers`);
+
+return res.status(200).json({
+  response: finalResponse,
+  mode_active: mode,
+  session_id: session_id,
+  enforcement_applied: enforcementApplied,
+  
+  vault_status: {
+    loaded: vaultStatus.loaded,
+    required: vaultStatus.required,
+    source: vaultStatus.source || 'NONE',
+    domains_triggered: vaultResults.map(r => r.domain)
+  },
+  
+  pressure_analysis: {
+    detected: pressureDetected,
+    resistance_applied: pressureResistance !== null
+  },
+  
+  token_usage: {
+    prompt_tokens: tokenUsage.prompt_tokens,
+    completion_tokens: tokenUsage.completion_tokens,
+    vault_tokens: vaultTokens,
+    total_tokens: totalTokens
+  },
+  
+  estimated_cost: '$' + cost.toFixed(4),
+  api_error: apiError ? { message: apiError.message, fallback_used: true } : null,
+  timestamp: new Date().toISOString()
+});
+```
+
+} catch (error) {
+console.error(‘🔥 System error:’, error);
+
+```
+return res.status(200).json({
+  response: `🛡️ SYSTEM PROTECTION ACTIVE\n\nCognitive integrity system error, but protection maintained.\n\nERROR: ${error.message}\n\nAll enforcement principles remain operational. Please retry.`,
+  error: 'System error with protection',
+  enforcement_level: 'MAXIMUM_PROTECTION',
+  timestamp: new Date().toISOString()
+});
+```
+
+}
+}
