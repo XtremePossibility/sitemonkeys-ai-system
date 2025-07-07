@@ -57,20 +57,25 @@ export default async function handler(req, res) {
         if (kvResponse.ok) {
           const kvText = await kvResponse.text();
           console.log(`📥 KV response length: ${kvText.length}`);
+          console.log(`📥 KV response preview: ${kvText.substring(0, 200)}...`);
           
           if (kvText && kvText !== 'null' && kvText.trim() !== '') {
             try {
               const kvData = JSON.parse(kvText);
+              console.log(`📊 KV data keys: ${Object.keys(kvData).join(', ')}`);
+              console.log(`📊 Vault content length: ${kvData.vault_content ? kvData.vault_content.length : 'undefined'}`);
               
               if (kvData.vault_content && kvData.vault_content.length > 200) {
                 vaultContent = kvData.vault_content;
                 vaultTokens = kvData.tokens || 0;
                 console.log(`✅ Vault loaded from KV: ${vaultTokens} tokens, ${vaultContent.length} characters`);
               } else {
-                throw new Error('KV data exists but vault_content is empty or too small');
+                console.log(`❌ KV vault_content too small: ${kvData.vault_content ? kvData.vault_content.length : 'undefined'} characters`);
+                throw new Error(`KV data exists but vault_content is ${kvData.vault_content ? 'only ' + kvData.vault_content.length + ' characters' : 'missing'} - needs refresh`);
               }
               
             } catch (parseError) {
+              console.log(`❌ KV parse error: ${parseError.message}`);
               throw new Error(`KV data parse failed: ${parseError.message}`);
             }
           } else {
