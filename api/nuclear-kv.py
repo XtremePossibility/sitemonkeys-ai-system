@@ -53,14 +53,16 @@ class handler(BaseHTTPRequestHandler):
                     
                     print(f"🔍 Key '{key}' exists before delete: {exists_before}")
                     
-                    # Attempt delete
-                    delete_response = requests.delete(f'{kv_url}/{key}', headers=headers, timeout=10)
+                    # ✅ UPSTASH REDIS CORRECT DELETE METHOD
+                    delete_response = requests.post(f'{kv_url}/del/{key}', headers=headers, timeout=10)
                     print(f"🗑️ Delete '{key}' response: {delete_response.status_code}")
                     
-                    # Alternative delete method
+                    # Alternative: Try direct Redis command format
                     if delete_response.status_code != 200:
-                        delete_response2 = requests.post(f'{kv_url}/del/{key}', headers=headers, timeout=10)
-                        print(f"🗑️ Alternative delete '{key}' response: {delete_response2.status_code}")
+                        redis_payload = {"command": ["DEL", key]}
+                        delete_response2 = requests.post(f'{kv_url}', headers=headers, json=redis_payload, timeout=10)
+                        print(f"🗑️ Redis DEL '{key}' response: {delete_response2.status_code}")
+                        delete_response = delete_response2  # Use the second attempt result
                     
                     # Verify deletion
                     verify_response = requests.get(f'{kv_url}/get/{key}', headers=headers, timeout=10)
