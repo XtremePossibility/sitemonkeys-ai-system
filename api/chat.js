@@ -18,7 +18,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { message, conversation_history = [], mode = 'site_monkeys' } = req.body;
+    const { message, conversation_history = [], mode = 'site_monkeys', claude_requested = false } = req.body;
 
     if (!message || typeof message !== 'string') {
       res.status(400).json({ error: 'Message is required and must be a string' });
@@ -26,6 +26,7 @@ export default async function handler(req, res) {
     }
 
     console.log(`🤖 Processing chat request in ${mode} mode:`, message.substring(0, 100));
+    console.log(`🔧 Claude requested: ${claude_requested}`);
 
     // ✅ STEP 1: Load vault if in site_monkeys mode (FIXED URL)
     let vaultContent = '';
@@ -71,8 +72,58 @@ export default async function handler(req, res) {
       }
     }
 
-    // ✅ STEP 2: Determine personality (Eli vs Roxy)
-    const personality = determinePersonality(message, mode);
+    // ✅ STEP 2: Determine personality (Eli vs Roxy vs Claude)
+    let personality;
+    let estimatedCost = 0;
+    
+    if (claude_requested) {
+      personality = 'claude';
+      // Estimate Claude cost before making the call
+      const estimatedTokens = Math.ceil(fullPrompt.length / 4) + 500; // Conservative estimate
+      estimatedCost = (estimatedTokens * 0.015) / 1000; // Claude Sonnet pricing
+      
+      console.log(`💰 Claude requested - Estimated cost: ${estimatedCost.toFixed(4)}`);
+      
+      // ✅ COST ENFORCEMENT FOR CLAUDE
+      if (estimatedCost > 0.50) {
+        console.log(`🚫 Claude blocked - Cost ${estimatedCost.toFixed(4)} exceeds $0.50 limit`);
+        return res.status(200).json({
+          response: `**CLAUDE COST LIMIT EXCEEDED**
+
+The estimated cost for this Claude request (${estimatedCost.toFixed(4)}) exceeds the $0.50 per-use limit.
+
+This is likely due to:
+- Large vault content (${vaultTokens} tokens)
+- Long conversation history
+- Complex prompt structure
+
+**OPTIONS:**
+1. Use Eli or Roxy (much cheaper: ~$0.03-0.06)
+2. Simplify your request
+3. Clear conversation history to reduce context
+
+Would you like me to process this with Eli or Roxy instead?`,
+          
+          mode_active: mode,
+          vault_status: { loaded: mode === 'site_monkeys' && vaultContent.length > 200, tokens: vaultTokens, file_count: vaultTokens > 0 ? 3 : 0 },
+          enforcement_applied: ['claude_cost_limit_exceeded'],
+          claude_blocked: true,
+          estimated_cost: `${estimatedCost.toFixed(4)}`,
+          cost_limit: '$0.50',
+          security_pass: false,
+          performance: { api_error: { fallback_used: false, cost_blocked: true } }
+        });
+      }
+      
+      if (estimatedCost > 0.25) {
+        console.log(`⚠️ Claude warning - Cost ${estimatedCost.toFixed(4)} exceeds $0.25 warning threshold`);
+        // Continue but log the warning
+      }
+      
+    } else {
+      personality = determinePersonality(message, mode);
+    }
+    
     console.log(`🎭 Selected personality: ${personality}`);
 
     // ✅ STEP 3: Build system prompt with vault integration
@@ -83,16 +134,37 @@ export default async function handler(req, res) {
     console.log(`🚀 Making ${personality} API call...`);
     const apiResponse = await makeRealAPICall(fullPrompt, personality);
 
-    // ✅ STEP 5: Extract real token usage
-    const promptTokens = apiResponse.usage?.prompt_tokens || Math.ceil(fullPrompt.length / 4);
-    const completionTokens = apiResponse.usage?.completion_tokens || Math.ceil(apiResponse.response.length / 4);
+    // ✅ STEP 5: Extract real token usage (handle different API response formats)
+    let promptTokens, completionTokens;
+    
+    if (personality === 'claude') {
+      // Claude uses input_tokens/output_tokens
+      promptTokens = apiResponse.usage?.input_tokens || Math.ceil(fullPrompt.length / 4);
+      completionTokens = apiResponse.usage?.output_tokens || Math.ceil(apiResponse.response.length / 4);
+    } else {
+      // OpenAI uses prompt_tokens/completion_tokens
+      promptTokens = apiResponse.usage?.prompt_tokens || Math.ceil(fullPrompt.length / 4);
+      completionTokens = apiResponse.usage?.completion_tokens || Math.ceil(apiResponse.response.length / 4);
+    }
 
     console.log(`📈 Real API usage: ${promptTokens} + ${completionTokens} = ${promptTokens + completionTokens} tokens`);
 
     // ✅ STEP 6: Track tokens with real data
     const trackingResult = trackApiCall(personality, promptTokens, completionTokens, vaultTokens);
     
-    console.log(`💰 Cost tracking: $${trackingResult.call_cost.toFixed(4)} this call, $${trackingResult.session_total.toFixed(4)} session`);
+    // ✅ CLAUDE COST WARNING (after actual cost is known)
+    let costWarning = null;
+    if (personality === 'claude' && trackingResult.call_cost > 0.25) {
+      costWarning = {
+        warning: true,
+        actual_cost: `${trackingResult.call_cost.toFixed(4)}`,
+        warning_threshold: '$0.25',
+        message: `⚠️ This Claude request cost ${trackingResult.call_cost.toFixed(4)}, which exceeds the $0.25 warning threshold.`
+      };
+      console.log(`⚠️ Claude cost warning: ${trackingResult.call_cost.toFixed(4)}`);
+    }
+    
+    console.log(`💰 Cost tracking: ${trackingResult.call_cost.toFixed(4)} this call, ${trackingResult.session_total.toFixed(4)} session`);
 
     // ✅ STEP 7: Apply response enforcement
     const enforcedResponse = applySystemEnforcement(apiResponse.response, mode, vaultContent);
@@ -127,6 +199,8 @@ export default async function handler(req, res) {
         call_cost: trackingResult.call_cost,
         session_total: trackingResult.session_total,
         vault_tokens: vaultTokens,
+        api_provider: personality === 'claude' ? 'anthropic' : 'openai',
+        cost_warning: costWarning,
         api_error: {
           fallback_used: false
         }
@@ -171,15 +245,73 @@ What would you like me to help with using the available fallback systems?`,
 }
 
 async function makeRealAPICall(prompt, personality) {
-  // ✅ REAL OpenAI API Integration
+  // ✅ CLAUDE MANUAL-ONLY ENFORCEMENT
+  if (personality === 'claude') {
+    const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
+    
+    if (!ANTHROPIC_API_KEY) {
+      throw new Error('Claude API key not configured');
+    }
+    
+    console.log('🎯 Making Claude API call (manual override)...');
+    
+    try {
+      const response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${ANTHROPIC_API_KEY}`,
+          'Content-Type': 'application/json',
+          'x-api-version': '2023-06-01'
+        },
+        body: JSON.stringify({
+          model: 'claude-3-sonnet-20240229',
+          max_tokens: 1000,
+          messages: [
+            {
+              role: 'user',
+              content: prompt
+            }
+          ]
+        }),
+        timeout: 30000
+      });
+
+      if (!response.ok) {
+        throw new Error(`Claude API error: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      
+      if (!data.content || !data.content[0] || !data.content[0].text) {
+        throw new Error('Invalid Claude API response structure');
+      }
+
+      return {
+        response: data.content[0].text,
+        usage: data.usage || {
+          input_tokens: Math.ceil(prompt.length / 4),
+          output_tokens: Math.ceil(data.content[0].text.length / 4),
+          total_tokens: Math.ceil(prompt.length / 4) + Math.ceil(data.content[0].text.length / 4)
+        }
+      };
+
+    } catch (claudeError) {
+      console.error('❌ Claude API call failed:', claudeError);
+      throw claudeError;
+    }
+  }
+  
+  // ✅ DEFAULT: Eli/Roxy use OpenAI
   const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
   
   if (!OPENAI_API_KEY) {
-    throw new Error('OpenAI API key not configured');
+    throw new Error('OpenAI API key not configured for Eli/Roxy');
   }
 
-  const model = personality === 'claude' ? 'gpt-4' : 'gpt-3.5-turbo';
+  const model = 'gpt-3.5-turbo'; // Cheaper default for Eli/Roxy
   const temperature = personality === 'eli' ? 0.3 : 0.7;
+  
+  console.log(`🎯 Making ${personality} OpenAI call...`);
   
   try {
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -224,16 +356,16 @@ async function makeRealAPICall(prompt, personality) {
       }
     };
 
-  } catch (apiError) {
-    console.error('❌ OpenAI API call failed:', apiError);
+  } catch (openaiError) {
+    console.error(`❌ ${personality} OpenAI API call failed:`, openaiError);
     
-    // Fallback to local processing
+    // Fallback response
     return {
       response: `**${personality.toUpperCase()} FALLBACK RESPONSE**
 
 I encountered an API error but can still help you using local processing.
 
-SYSTEM STATUS: API temporarily unavailable
+SYSTEM STATUS: ${personality === 'claude' ? 'Claude' : 'OpenAI'} API temporarily unavailable
 FALLBACK MODE: Truth-first principles maintained
 CONFIDENCE: Low (fallback processing)
 
