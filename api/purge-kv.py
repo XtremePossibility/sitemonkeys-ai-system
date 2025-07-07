@@ -55,17 +55,21 @@ class handler(BaseHTTPRequestHandler):
             
             for key in keys_to_delete:
                 try:
+                    # ✅ UPSTASH REDIS CORRECT DELETE SYNTAX
                     response = requests.post(
                         f'{kv_url}/del/{key}',
                         headers=headers,
                         timeout=10
                     )
                     
+                    print(f"Deleting {key}: {response.status_code}")
+                    
                     if response.status_code == 200:
                         deleted_count += 1
                         print(f"✅ Deleted: {key}")
                     else:
-                        print(f"⚠️ Could not delete {key}: {response.status_code}")
+                        print(f"⚠️ Could not delete {key}: {response.status_code} - {response.text}")
+                        errors.append(f"{key}: HTTP {response.status_code}")
                         
                 except Exception as del_error:
                     errors.append(f"{key}: {str(del_error)}")
