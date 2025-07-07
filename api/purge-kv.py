@@ -23,10 +23,10 @@ class handler(BaseHTTPRequestHandler):
                 'Authorization': f'Bearer {kv_token}',
             }
             
-            # ✅ DELETE ALL OLD VAULT KEYS
+            # ✅ DELETE ALL OLD VAULT KEYS (EXPANDED LIST)
             keys_to_delete = [
                 'sitemonkeys_vault',
-                'sitemonkeys_vault/_master_index',
+                'sitemonkeys_vault/_master_index', 
                 'sitemonkeys_vault/VAULT_MEMORY_FILES/_index',
                 'sitemonkeys_vault/00_EnforcementShell/_index',
                 'sitemonkeys_vault/01_Core_Directives/_index',
@@ -37,7 +37,17 @@ class handler(BaseHTTPRequestHandler):
                 'sitemonkeys_vault/client_experience',
                 'sitemonkeys_vault/offer_enforcement',
                 'sitemonkeys_vault/delivery_protocols',
-                'sitemonkeys_vault/internal_efficiency'
+                'sitemonkeys_vault/internal_efficiency',
+                # ✅ ADD THE CORRUPTED KEYS WE JUST FOUND
+                'vault_data',
+                'site_monkeys_vault', 
+                'sm_vault',
+                'vault',
+                # ✅ ADD ANY OTHER POSSIBLE VARIANTS
+                'vault_content',
+                'sitemonkeys_data',
+                'site_monkeys_data',
+                'sm_data'
             ]
             
             deleted_count = 0
