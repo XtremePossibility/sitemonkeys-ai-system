@@ -1,410 +1,293 @@
-import json
-import os
-import io
-import zipfile
-import xml.etree.ElementTree as ET
-from http.server import BaseHTTPRequestHandler
-from urllib.parse import urlparse, parse_qs
-from google.oauth2.service_account import Credentials
-from googleapiclient.discovery import build
-import requests
+// FIXED chat.js - Now properly integrates with tokenTracker.js
+import { trackApiCall, getSessionDisplayData, formatSessionDataForUI } from './lib/tokenTracker.js';
 
-# Your exact Google Drive folder ID
-VAULT_FOLDER_ID = "1LAkbqjN7g-HJV9BRWV-AsmMpY1JzJiIM"
+export default async function handler(req, res) {
+  // CORS headers
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-def extract_text_from_docx(docx_data):
-    """Extract text content from DOCX file data"""
-    try:
-        # DOCX files are zip archives containing XML
-        with zipfile.ZipFile(io.BytesIO(docx_data), 'r') as zip_file:
-            # Read the main document XML
-            document_xml = zip_file.read('word/document.xml')
-            
-            # Parse XML and extract text
-            root = ET.fromstring(document_xml)
-            
-            # Define namespace for Word documents
-            namespaces = {
-                'w': 'http://schemas.openxmlformats.org/wordprocessingml/2006/main'
-            }
-            
-            # Extract all text elements
-            text_elements = root.findall('.//w:t', namespaces)
-            text_content = []
-            
-            for elem in text_elements:
-                if elem.text:
-                    text_content.append(elem.text)
-            
-            # Join text with spaces and clean up
-            extracted_text = ' '.join(text_content)
-            
-            # Clean up excessive whitespace
-            lines = extracted_text.split('\n')
-            cleaned_lines = [line.strip() for line in lines if line.strip()]
-            
-            return '\n'.join(cleaned_lines)
-            
-    except Exception as e:
-        return f"[DOCX text extraction failed: {str(e)}]"
+  if (req.method === 'OPTIONS') {
+    res.status(200).end();
+    return;
+  }
 
-def get_google_drive_service():
-    """Initialize Google Drive service with credentials"""
-    try:
-        # Get credentials from environment variable
-        creds_json = os.environ.get('GOOGLE_CREDENTIALS_JSON')
-        project_id = os.environ.get('GOOGLE_PROJECT_ID')
-        project_number = os.environ.get('GOOGLE_PROJECT_NUMBER')
-        
-        if not creds_json:
-            raise Exception("GOOGLE_CREDENTIALS_JSON environment variable not found")
-        if not project_id:
-            raise Exception("GOOGLE_PROJECT_ID environment variable not found")
-        
-        print(f"Using Project ID: {project_id}")
-        print(f"Using Project Number: {project_number}")
-        
-        # Parse credentials
-        creds_info = json.loads(creds_json)
-        
-        # Ensure project info is in credentials
-        creds_info['project_id'] = project_id
-        if project_number:
-            creds_info['project_number'] = project_number
-            
-        creds = Credentials.from_service_account_info(
-            creds_info,
-            scopes=['https://www.googleapis.com/auth/drive.readonly']
-        )
-        
-        # Build and return service
-        return build('drive', 'v3', credentials=creds)
-    except Exception as e:
-        raise Exception(f"Google Drive authentication failed: {str(e)}")
+  if (req.method !== 'POST') {
+    res.status(405).json({ error: 'Method not allowed' });
+    return;
+  }
 
-def store_vault_in_kv(vault_data):
-    """Store vault data in Vercel KV using proper Upstash REST API"""
-    try:
-        kv_url = os.environ.get('KV_REST_API_URL')
-        kv_token = os.environ.get('KV_REST_API_TOKEN')
+  try {
+    const { message, conversation_history = [], mode = 'site_monkeys' } = req.body;
+
+    if (!message || typeof message !== 'string') {
+      res.status(400).json({ error: 'Message is required and must be a string' });
+      return;
+    }
+
+    console.log(`🤖 Processing chat request in ${mode} mode:`, message.substring(0, 100));
+
+    // ✅ STEP 1: Load vault if in site_monkeys mode
+    let vaultContent = '';
+    let vaultTokens = 0;
+    
+    if (mode === 'site_monkeys') {
+      try {
+        console.log('📖 Loading vault for Site Monkeys mode...');
         
-        if not kv_url or not kv_token:
-            print("⚠️ KV environment variables not found")
-            return False
-            
-        # Use Upstash REST API format for Python
-        headers = {
-            'Authorization': f'Bearer {kv_token}',
+        const vaultResponse = await fetch(`${process.env.VERCEL_URL || 'http://localhost:3000'}/api/load-vault`);
+        const vaultData = await vaultResponse.json();
+        
+        if (vaultData.status === 'success' && vaultData.vault_content) {
+          vaultContent = vaultData.vault_content;
+          vaultTokens = vaultData.tokens || 0;
+          console.log(`✅ Vault loaded: ${vaultTokens} tokens`);
+        } else {
+          console.log('⚠️ Vault not available or needs refresh');
+          // Continue without vault but note this
+          vaultContent = '[Vault data not available - some Site Monkeys features may be limited]';
         }
-        
-        # Store using Upstash Redis REST API
-        # Format: POST /set/key/value (for simple values)
-        # For complex data, we'll use the multi command
-        vault_json = json.dumps(vault_data)
-        
-        response = requests.post(
-            f'{kv_url}/set/sitemonkeys_vault',
-            headers=headers,
-            data=vault_json,
-            timeout=30
-        )
-        
-        print(f"KV Storage URL: {kv_url}/set/sitemonkeys_vault")
-        print(f"KV Storage response status: {response.status_code}")
-        print(f"KV Storage response: {response.text}")
-        
-        if response.status_code == 200:
-            print("✅ Vault data stored in KV successfully")
-            return True
-        else:
-            print(f"❌ KV storage failed: {response.status_code}")
-            return False
-            
-    except Exception as e:
-        print(f"❌ KV storage error: {str(e)}")
-        import traceback
-        print(f"Full traceback: {traceback.format_exc()}")
-        return False
+      } catch (vaultError) {
+        console.error('❌ Vault loading failed:', vaultError);
+        vaultContent = '[Vault loading failed - operating with limited context]';
+      }
+    }
 
-def get_vault_from_kv():
-    """Retrieve vault data from Vercel KV using proper Upstash REST API"""
-    try:
-        kv_url = os.environ.get('KV_REST_API_URL')
-        kv_token = os.environ.get('KV_REST_API_TOKEN')
-        
-        if not kv_url or not kv_token:
-            print("⚠️ KV environment variables not found for retrieval")
-            return None
-            
-        headers = {
-            'Authorization': f'Bearer {kv_token}',
-        }
-        
-        response = requests.get(
-            f'{kv_url}/get/sitemonkeys_vault',
-            headers=headers,
-            timeout=30
-        )
-        
-        print(f"KV Retrieval URL: {kv_url}/get/sitemonkeys_vault")
-        print(f"KV Retrieval response status: {response.status_code}")
-        print(f"KV Retrieval response: {response.text[:200]}...")
-        
-        if response.status_code == 200:
-            try:
-                # Upstash returns the raw value, may need to parse JSON
-                response_text = response.text.strip()
-                if response_text and response_text != 'null':
-                    result = json.loads(response_text)
-                    print(f"✅ Retrieved vault data from KV: {len(str(result))} characters")
-                    return result
-                else:
-                    print("⚠️ No vault data found in KV (null response)")
-                    return None
-                    
-            except json.JSONDecodeError as e:
-                print(f"❌ Failed to parse KV response as JSON: {e}")
-                print(f"Raw response: {response.text}")
-                return None
-        else:
-            print(f"❌ KV retrieval failed: {response.status_code}")
-            print(f"Error response: {response.text}")
-            return None
-            
-    except Exception as e:
-        print(f"❌ KV retrieval error: {str(e)}")
-        import traceback
-        print(f"Full traceback: {traceback.format_exc()}")
-        return None
+    // ✅ STEP 2: Determine personality (Eli vs Roxy)
+    const personality = determinePersonality(message, mode);
+    console.log(`🎭 Selected personality: ${personality}`);
 
-def load_vault_content():
-    """Load all content from SiteMonkeys vault folders"""
-    vault_content = "=== SITEMONKEYS BUSINESS VALIDATION VAULT ===\n\n"
-    loaded_folders = []
-    total_files = 0
-    
-    try:
-        service = get_google_drive_service()
-        
-        # Get subfolders in vault
-        query = f"'{VAULT_FOLDER_ID}' in parents and mimeType='application/vnd.google-apps.folder'"
-        folders_result = service.files().list(q=query, fields="files(id, name)", pageSize=50).execute()
-        folders = folders_result.get('files', [])
-        
-        vault_content += f"\n=== LIVE VAULT FOLDERS LOADED ({len(folders)} folders) ===\n"
-        
-        for folder in folders:
-            loaded_folders.append(folder['name'])
-            vault_content += f"\n--- FOLDER: {folder['name']} ---\n"
-            
-            # Get files in each folder - handle different file types
-            file_query = f"'{folder['id']}' in parents"
-            files_result = service.files().list(
-                q=file_query, 
-                fields="files(id, name, mimeType, size)",
-                pageSize=100
-            ).execute()
-            files = files_result.get('files', [])
-            
-            total_files += len(files)
-            
-            for file in files:
-                try:
-                    file_content = ""
-                    file_mime = file.get('mimeType', '')
-                    file_name = file['name']
-                    
-                    print(f"Processing file: {file_name} (type: {file_mime})")
-                    
-                    # Handle different file types
-                    if 'text/plain' in file_mime or file_name.endswith('.txt'):
-                        # Plain text files
-                        try:
-                            file_data = service.files().get_media(fileId=file['id']).execute()
-                            file_content = file_data.decode('utf-8')
-                            print(f"✅ Text file loaded: {len(file_content)} characters")
-                        except Exception as e:
-                            file_content = f"[ERROR reading text file: {str(e)}]"
-                            print(f"❌ Text file error: {str(e)}")
-                    
-                    elif file_mime == 'application/vnd.google-apps.document':
-                        # Google Docs - export as plain text
-                        try:
-                            export_data = service.files().export(
-                                fileId=file['id'], 
-                                mimeType='text/plain'
-                            ).execute()
-                            file_content = export_data.decode('utf-8')
-                            print(f"✅ Google Doc exported: {len(file_content)} characters")
-                        except Exception as e:
-                            file_content = f"[Google Doc - Export failed: {str(e)}]"
-                            print(f"❌ Google Doc error: {str(e)}")
-                    
-                    elif 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' in file_mime or file_name.endswith('.docx'):
-                        # DOCX files - download and extract text
-                        try:
-                            print(f"🔄 Downloading DOCX file: {file_name}")
-                            file_data = service.files().get_media(fileId=file['id']).execute()
-                            print(f"📥 Downloaded {len(file_data)} bytes")
-                            
-                            # Extract text from DOCX
-                            file_content = extract_text_from_docx(file_data)
-                            
-                            if file_content.startswith('[DOCX text extraction failed'):
-                                print(f"❌ DOCX extraction failed: {file_name}")
-                            else:
-                                print(f"✅ DOCX text extracted: {len(file_content)} characters")
-                                
-                        except Exception as e:
-                            file_content = f"[DOCX file - Access failed: {str(e)}]"
-                            print(f"❌ DOCX access error: {str(e)}")
-                    
-                    elif file_mime == 'application/vnd.google-apps.folder':
-                        # Skip folders (already handled above)
-                        continue
-                    
-                    else:
-                        # Other file types
-                        file_size = file.get('size', 'Unknown')
-                        file_content = f"[File type: {file_mime} - Size: {file_size} bytes - Skipped unsupported format]"
-                        print(f"⏭️ Skipped unsupported file: {file_name}")
-                    
-                    # Add content to vault
-                    vault_content += f"\n=== {file_name} ===\n{file_content}\n"
-                    
-                except Exception as file_error:
-                    vault_content += f"\n=== {file['name']} ===\n[ERROR loading file: {str(file_error)}]\n"
-                    print(f"❌ File processing error: {file['name']} - {str(file_error)}")
-        
-        vault_content += f"\n=== VAULT SUMMARY ===\nFolders: {len(folders)}\nFiles processed: {total_files}\n"
-        
-        # Log successful loading
-        print(f"✅ Vault loaded successfully: {len(folders)} folders, {total_files} files")
-        print(f"📊 Total vault content: {len(vault_content)} characters")
-                    
-    except Exception as drive_error:
-        print(f"❌ Google Drive error: {str(drive_error)}")
-        vault_content += f"\n[Google Drive connection error: {str(drive_error)}]\n"
-        
-        # Don't fall back to fake data - return the error
-        loaded_folders = ["Error - Could not connect to Google Drive"]
-        total_files = 0
-    
-    return vault_content, loaded_folders, total_files
+    // ✅ STEP 3: Build prompt with mode-specific context
+    const systemPrompt = buildSystemPrompt(mode, personality, vaultContent);
+    const fullPrompt = buildFullPrompt(systemPrompt, message, conversation_history);
 
-class handler(BaseHTTPRequestHandler):
-    def do_GET(self):
-        self.send_response(200)
-        self.send_header('Content-type', 'application/json')
-        self.send_header('Access-Control-Allow-Origin', '*')
-        self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
-        self.send_header('Access-Control-Allow-Headers', 'Content-Type')
-        self.end_headers()
-        
-        try:
-            # Parse URL to check for refresh parameter
-            parsed_url = urlparse(self.path)
-            query_params = parse_qs(parsed_url.query)
-            is_refresh = 'refresh' in query_params and query_params['refresh'][0] == 'true'
-            
-            if is_refresh:
-                print("🔄 Refresh requested - loading fresh vault data...")
-                
-                # Load fresh vault content from Google Drive
-                vault_memory, loaded_folders, total_files = load_vault_content()
-                
-                # Calculate tokens (rough estimate)
-                token_count = len(vault_memory) // 4
-                estimated_cost = (token_count * 0.002) / 1000
-                
-                # Create vault data package
-                vault_data = {
-                    "vault_content": vault_memory,
-                    "tokens": token_count,
-                    "estimated_cost": f"${estimated_cost:.4f}",
-                    "folders_loaded": loaded_folders,
-                    "total_files": total_files,
-                    "last_updated": "now"
-                }
-                
-                # Store in KV
-                kv_stored = store_vault_in_kv(vault_data)
-                
-                print(f"📊 Vault refresh complete: {token_count} tokens, {len(loaded_folders)} folders")
-                
-                # Return refresh response
-                response = {
-                    "status": "refreshed",
-                    "vault_content": vault_memory,
-                    "tokens": token_count,
-                    "estimated_cost": f"${estimated_cost:.4f}",
-                    "folders_loaded": loaded_folders,
-                    "total_files": total_files,
-                    "kv_stored": kv_stored,
-                    "message": f"Vault refreshed: {len(loaded_folders)} folders, {total_files} files"
-                }
-                
-            else:
-                print("📖 Checking for cached vault data...")
-                
-                # Try to get vault data from KV first
-                cached_vault = get_vault_from_kv()
-                
-                if cached_vault:
-                    print("✅ Found cached vault data in KV")
-                    # Handle both dict and potential string responses
-                    if isinstance(cached_vault, dict):
-                        response = {
-                            "status": "success",
-                            "vault_content": cached_vault.get("vault_content", ""),
-                            "tokens": cached_vault.get("tokens", 0),
-                            "estimated_cost": cached_vault.get("estimated_cost", "$0.00"),
-                            "folders_loaded": cached_vault.get("folders_loaded", []),
-                            "total_files": cached_vault.get("total_files", 0),
-                            "message": "Using cached vault data from KV"
-                        }
-                    else:
-                        print("⚠️ Cached vault data in unexpected format")
-                        response = {
-                            "status": "success",
-                            "needs_refresh": True,
-                            "vault_content": "",
-                            "tokens": 0,
-                            "estimated_cost": "$0.00",
-                            "folders_loaded": [],
-                            "total_files": 0,
-                            "message": "Cached data format error - please refresh"
-                        }
-                else:
-                    print("⚠️ No cached vault data found")
-                    response = {
-                        "status": "success",
-                        "needs_refresh": True,
-                        "vault_content": "",
-                        "tokens": 0,
-                        "estimated_cost": "$0.00",
-                        "folders_loaded": [],
-                        "total_files": 0,
-                        "message": "No vault data found - please refresh"
-                    }
-            
-            self.wfile.write(json.dumps(response).encode())
-            
-        except Exception as e:
-            print(f"❌ Vault operation failed: {str(e)}")
-            error_response = {
-                "status": "error",
-                "error": str(e),
-                "message": "Vault operation failed - check configuration"
-            }
-            self.wfile.write(json.dumps(error_response).encode())
+    // ✅ STEP 4: Estimate tokens before API call
+    const estimatedPromptTokens = Math.ceil(fullPrompt.length / 4);
     
-    def do_POST(self):
-        self.do_GET()
+    console.log(`📊 Making API call - Estimated tokens: ${estimatedPromptTokens}, Vault tokens: ${vaultTokens}`);
+
+    // ✅ STEP 5: Make API call (simulated for now - replace with actual API)
+    const apiResponse = await makeAPICall(fullPrompt, personality);
+
+    // ✅ STEP 6: Extract token usage from API response
+    const actualPromptTokens = apiResponse.usage?.prompt_tokens || estimatedPromptTokens;
+    const completionTokens = apiResponse.usage?.completion_tokens || Math.ceil(apiResponse.response.length / 4);
+
+    console.log(`📈 API Response: ${actualPromptTokens} prompt + ${completionTokens} completion = ${actualPromptTokens + completionTokens} total tokens`);
+
+    // ✅ STEP 7: Track the API call with real token data
+    const trackingResult = trackApiCall(personality, actualPromptTokens, completionTokens, vaultTokens);
     
-    def do_OPTIONS(self):
-        self.send_response(200)
-        self.send_header('Access-Control-Allow-Origin', '*')
-        self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
-        self.send_header('Access-Control-Allow-Headers', 'Content-Type')
-        self.end_headers()
+    console.log(`💰 Call cost: $${trackingResult.call_cost.toFixed(4)}, Session total: $${trackingResult.session_total.toFixed(4)}`);
+
+    // ✅ STEP 8: Get updated session data for UI
+    const sessionData = formatSessionDataForUI();
+
+    // ✅ STEP 9: Apply any necessary response filtering/enforcement
+    const filteredResponse = applyResponseFiltering(apiResponse.response, mode);
+
+    // ✅ STEP 10: Return response with tracking data
+    res.status(200).json({
+      response: filteredResponse,
+      personality: personality,
+      mode: mode,
+      session_tracking: {
+        call_cost: `$${trackingResult.call_cost.toFixed(4)}`,
+        session_total: `$${trackingResult.session_total.toFixed(4)}`,
+        tokens_used: trackingResult.tokens_used,
+        cumulative_tokens: trackingResult.cumulative_tokens,
+        vault_tokens: vaultTokens
+      },
+      ui_data: sessionData,
+      vault_loaded: mode === 'site_monkeys' && vaultContent.length > 100
+    });
+
+  } catch (error) {
+    console.error('❌ Chat processing error:', error);
+    
+    res.status(500).json({
+      error: 'Chat processing failed',
+      message: error.message,
+      session_tracking: formatSessionDataForUI()
+    });
+  }
+}
+
+function determinePersonality(message, mode) {
+  // Analytical triggers -> Eli
+  const analyticalKeywords = ['analyze', 'data', 'risk', 'technical', 'logical', 'evidence', 'facts', 'research'];
+  
+  // Creative/Strategic triggers -> Roxy  
+  const creativeKeywords = ['strategy', 'optimize', 'creative', 'alternative', 'messaging', 'improve', 'design', 'plan'];
+  
+  const lowerMessage = message.toLowerCase();
+  
+  const analyticalScore = analyticalKeywords.reduce((score, keyword) => 
+    score + (lowerMessage.includes(keyword) ? 1 : 0), 0
+  );
+  
+  const creativeScore = creativeKeywords.reduce((score, keyword) => 
+    score + (lowerMessage.includes(keyword) ? 1 : 0), 0
+  );
+  
+  // Default to Eli for ties or no matches (more conservative)
+  return creativeScore > analyticalScore ? 'roxy' : 'eli';
+}
+
+function buildSystemPrompt(mode, personality, vaultContent = '') {
+  let systemPrompt = '';
+  
+  // ✅ UNIVERSAL TRUTH ENFORCEMENT (ALL MODES)
+  systemPrompt += `You are ${personality === 'eli' ? 'Eli' : 'Roxy'}, an AI assistant that prioritizes TRUTH over comfort.
+
+CORE REQUIREMENTS:
+- Every factual claim must include confidence level (High/Medium/Low/Unknown)
+- When uncertain, say "I don't know" rather than guess
+- Label speculation as "SPECULATION:" or "HYPOTHESIS:"
+- Never tell anyone who to vote for - voting is a sacred personal responsibility
+
+`;
+
+  // ✅ MODE-SPECIFIC PROMPTS
+  if (mode === 'truth_general') {
+    systemPrompt += `MODE: Truth-General
+FOCUS: Personal clarity and factual accuracy
+STYLE: ${personality === 'eli' ? 'Direct, analytical, evidence-based' : 'Helpful but creative, solution-focused'}
+CONSTRAINTS: No business bias, pure truth-seeking
+`;
+
+  } else if (mode === 'business_validation') {
+    systemPrompt += `MODE: Business Validation  
+FOCUS: Business survival and financial reality
+STYLE: ${personality === 'eli' ? 'Risk-focused, data-driven analysis' : 'Strategic solutions with cash-flow awareness'}
+REQUIREMENTS:
+- Always consider worst-case financial scenarios
+- Flag business survival risks explicitly  
+- Prioritize cash flow over growth optimization
+- Include "SURVIVAL_RISK: [level]" in business analysis
+`;
+
+  } else if (mode === 'site_monkeys') {
+    systemPrompt += `MODE: Site Monkeys (Vault Loaded)
+FOCUS: Site Monkeys operational excellence and business intelligence
+STYLE: ${personality === 'eli' ? 'Analytical with vault enforcement' : 'Strategic optimization with brand protection'}
+BRAND STANDARDS: Premium positioning, zero-failure delivery, truth-first approach
+
+`;
+    
+    if (vaultContent && vaultContent.length > 100) {
+      systemPrompt += `SITE MONKEYS BUSINESS INTELLIGENCE VAULT:
+${vaultContent}
+
+VAULT ENFORCEMENT: Use this business intelligence to inform all responses. Maintain pricing standards, operational protocols, and brand positioning.
+`;
+    } else {
+      systemPrompt += `VAULT STATUS: Limited vault access - operating with basic Site Monkeys principles only.
+`;
+    }
+  }
+
+  return systemPrompt;
+}
+
+function buildFullPrompt(systemPrompt, message, conversationHistory) {
+  let fullPrompt = systemPrompt + '\n\n';
+  
+  // Add conversation history (last 3 exchanges to manage tokens)
+  if (conversationHistory.length > 0) {
+    fullPrompt += 'RECENT CONVERSATION:\n';
+    const recentHistory = conversationHistory.slice(-6); // Last 3 user + 3 assistant messages
+    
+    recentHistory.forEach(msg => {
+      if (msg.role === 'user') {
+        fullPrompt += `Human: ${msg.content}\n`;
+      } else {
+        fullPrompt += `Assistant: ${msg.content}\n`;
+      }
+    });
+    fullPrompt += '\n';
+  }
+  
+  fullPrompt += `CURRENT REQUEST:\nHuman: ${message}\n\nAssistant: `;
+  
+  return fullPrompt;
+}
+
+async function makeAPICall(prompt, personality) {
+  // ✅ SIMULATED API CALL (Replace with actual OpenAI/Claude API)
+  // This is where you'd make the real API call to OpenAI or Claude
+  
+  console.log(`🔄 Making ${personality} API call...`);
+  
+  // Simulate API response with token usage
+  const simulatedResponse = {
+    response: `[${personality.toUpperCase()} RESPONSE] I'm analyzing your request with truth-first principles. 
+
+Based on the information provided, here's my assessment:
+
+CONFIDENCE: Medium (70%)
+ANALYSIS: This appears to be a test of the integrated token tracking system.
+UNKNOWNS: Specific details about your actual question
+ASSUMPTIONS: You're testing the system functionality
+
+This response demonstrates the integrated token tracking system working properly.`,
+    
+    usage: {
+      prompt_tokens: Math.ceil(prompt.length / 4),
+      completion_tokens: 180, // Simulated completion tokens
+      total_tokens: Math.ceil(prompt.length / 4) + 180
+    }
+  };
+  
+  // Simulate API delay
+  await new Promise(resolve => setTimeout(resolve, 500));
+  
+  return simulatedResponse;
+  
+  // ✅ REAL API CALL WOULD LOOK LIKE THIS:
+  /*
+  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  
+  const completion = await openai.chat.completions.create({
+    model: personality === 'claude' ? 'gpt-4' : 'gpt-3.5-turbo',
+    messages: [{ role: 'user', content: prompt }],
+    max_tokens: 1000,
+    temperature: personality === 'eli' ? 0.3 : 0.7
+  });
+  
+  return {
+    response: completion.choices[0].message.content,
+    usage: completion.usage
+  };
+  */
+}
+
+function applyResponseFiltering(response, mode) {
+  // ✅ Apply any mode-specific response filtering
+  
+  // Check for political content
+  const politicalKeywords = ['vote', 'election', 'democrat', 'republican', 'liberal', 'conservative'];
+  const containsPolitical = politicalKeywords.some(keyword => 
+    response.toLowerCase().includes(keyword)
+  );
+  
+  if (containsPolitical && response.toLowerCase().includes('should vote')) {
+    response += '\n\n🔐 POLITICAL NEUTRALITY: I cannot tell you who to vote for. That\'s your sacred responsibility as a citizen.';
+  }
+  
+  // Mode-specific filtering
+  if (mode === 'site_monkeys') {
+    // Check for pricing violations (if vault was loaded)
+    const priceMatches = response.match(/\$(\d+)/g);
+    if (priceMatches) {
+      const prices = priceMatches.map(match => parseInt(match.replace('$', '')));
+      const minPrice = 697; // Site Monkeys minimum
+      
+      if (prices.some(price => price < minPrice)) {
+        response += '\n\n🔐 VAULT ENFORCEMENT: All Site Monkeys services maintain minimum pricing standards to ensure quality delivery.';
+      }
+    }
+  }
+  
+  return response;
+}
