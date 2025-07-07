@@ -82,7 +82,7 @@ def get_google_drive_service():
         raise Exception(f"Google Drive authentication failed: {str(e)}")
 
 def store_vault_in_kv(vault_data):
-    """Store vault data in Vercel KV - CORRECTED FOR NEW STRUCTURE"""
+    """Store vault data in Vercel KV - FIXED FOR 400 ERRORS"""
     try:
         kv_url = os.environ.get('KV_REST_API_URL')
         kv_token = os.environ.get('KV_REST_API_TOKEN')
@@ -93,11 +93,51 @@ def store_vault_in_kv(vault_data):
             
         headers = {
             'Authorization': f'Bearer {kv_token}',
+            'Content-Type': 'application/json'
         }
         
-        # ✅ STORE MASTER VAULT INDEX (UPDATED STRUCTURE)
+        # ✅ COMPRESS VAULT DATA TO AVOID SIZE LIMITS
+        vault_content = vault_data.get("vault_content", "")
+        
+        # If content is too large, compress it
+        if len(vault_content) > 80000:  # 80KB limit
+            print(f"⚠️ Vault content large ({len(vault_content)} chars), compressing...")
+            # Keep only essential sections
+            lines = vault_content.split('\n')
+            compressed_lines = []
+            skip_section = False
+            
+            for line in lines:
+                # Skip very long sections but keep headers
+                if line.startswith('===') or line.startswith('---'):
+                    compressed_lines.append(line)
+                    skip_section = False
+                elif len(line) > 500:  # Skip very long lines
+                    if not skip_section:
+                        compressed_lines.append("[Large content section - truncated for KV storage]")
+                        skip_section = True
+                else:
+                    compressed_lines.append(line)
+                    skip_section = False
+            
+            vault_content = '\n'.join(compressed_lines)
+            print(f"📦 Compressed vault to {len(vault_content)} characters")
+        
+        # ✅ CREATE SMALLER PAYLOAD
+        compressed_vault_data = {
+            "vault_content": vault_content,
+            "tokens": vault_data.get("tokens", 0),
+            "estimated_cost": vault_data.get("estimated_cost", "$0.00"),
+            "folders_loaded": vault_data.get("folders_loaded", []),
+            "total_files": vault_data.get("total_files", 0),
+            "structure_version": "simplified_post_consolidation",
+            "last_updated": vault_data.get("last_updated", "now"),
+            "compression_applied": len(vault_content) != len(vault_data.get("vault_content", ""))
+        }
+        
+        # ✅ STORE MASTER INDEX FIRST (SMALLER)
         master_index = {
-            "vault_structure": "simplified_post_consolidation",
+            "vault_structure": "simplified_post_consolidation", 
             "auto_load_files": EXPECTED_AUTO_LOAD_FILES,
             "manual_load_folders": MANUAL_LOAD_FOLDERS,
             "last_updated": vault_data.get("last_updated", "now"),
@@ -105,35 +145,35 @@ def store_vault_in_kv(vault_data):
             "total_files": vault_data.get("total_files", 0)
         }
         
-        # Store master index
+        print(f"📤 Storing master index ({len(json.dumps(master_index))} bytes)...")
         response = requests.post(
             f'{kv_url}/set/sitemonkeys_vault/_master_index',
             headers=headers,
-            data=json.dumps(master_index),
+            json=master_index,
             timeout=30
         )
         
+        print(f"Master index response: {response.status_code}")
         if response.status_code != 200:
-            print(f"❌ Failed to store master index: {response.status_code}")
+            print(f"❌ Master index storage failed: {response.status_code} - {response.text}")
             return False
         
-        # ✅ STORE MAIN VAULT CONTENT  
-        vault_json = json.dumps(vault_data)
+        # ✅ STORE MAIN VAULT CONTENT
+        print(f"📤 Storing main vault ({len(json.dumps(compressed_vault_data))} bytes)...")
         response = requests.post(
             f'{kv_url}/set/sitemonkeys_vault',
             headers=headers,
-            data=vault_json,
+            json=compressed_vault_data,
             timeout=30
         )
         
-        print(f"KV Storage URL: {kv_url}/set/sitemonkeys_vault")
-        print(f"KV Storage response status: {response.status_code}")
-        
+        print(f"Main vault response: {response.status_code}")
         if response.status_code == 200:
             print("✅ Vault data stored in KV successfully")
             return True
         else:
-            print(f"❌ KV storage failed: {response.status_code}")
+            print(f"❌ KV storage failed: {response.status_code} - {response.text}")
+            print(f"Payload size: {len(json.dumps(compressed_vault_data))} bytes")
             return False
             
     except Exception as e:
