@@ -28,7 +28,7 @@ export default async function handler(req, res) {
     console.log(`🤖 Processing chat request in ${mode} mode:`, message.substring(0, 100));
     console.log(`🔧 Claude requested: ${claude_requested}`);
 
-    // ✅ STEP 1: Load vault if in site_monkeys mode (FIXED URL)
+    // ✅ STEP 1: Load vault if in site_monkeys mode (KV-FIRST APPROACH)
     let vaultContent = '';
     let vaultTokens = 0;
     
@@ -36,39 +36,63 @@ export default async function handler(req, res) {
       try {
         console.log('📖 Loading vault for Site Monkeys mode...');
         
-        // ✅ FIX: Construct proper URL with protocol
-        const baseUrl = process.env.VERCEL_URL 
-          ? `https://${process.env.VERCEL_URL}` 
-          : 'http://localhost:3000';
+        // ✅ DIRECT KV ACCESS (bypass HTTP API call)
+        const kv_url = process.env.KV_REST_API_URL;
+        const kv_token = process.env.KV_REST_API_TOKEN;
         
-        const vaultUrl = `${baseUrl}/api/load-vault`;
-        console.log(`🔗 Vault URL: ${vaultUrl}`);
+        if (!kv_url || !kv_token) {
+          throw new Error('KV environment variables not configured');
+        }
         
-        const vaultResponse = await fetch(vaultUrl, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
+        console.log('🔍 Checking KV for vault data...');
+        
+        const kvResponse = await fetch(`${kv_url}/get/sitemonkeys_vault`, {
+          headers: { 
+            'Authorization': `Bearer ${kv_token}`,
+            'Content-Type': 'application/json'
           },
-          timeout: 10000
+          timeout: 5000
         });
         
-        if (!vaultResponse.ok) {
-          throw new Error(`Vault API returned ${vaultResponse.status}`);
-        }
-        
-        const vaultData = await vaultResponse.json();
-        
-        if (vaultData.status === 'success' && vaultData.vault_content) {
-          vaultContent = vaultData.vault_content;
-          vaultTokens = vaultData.tokens || 0;
-          console.log(`✅ Vault loaded: ${vaultTokens} tokens, ${vaultContent.length} characters`);
+        if (kvResponse.ok) {
+          const kvText = await kvResponse.text();
+          console.log(`📥 KV response length: ${kvText.length}`);
+          
+          if (kvText && kvText !== 'null' && kvText.trim() !== '') {
+            try {
+              const kvData = JSON.parse(kvText);
+              
+              if (kvData.vault_content && kvData.vault_content.length > 200) {
+                vaultContent = kvData.vault_content;
+                vaultTokens = kvData.tokens || 0;
+                console.log(`✅ Vault loaded from KV: ${vaultTokens} tokens, ${vaultContent.length} characters`);
+              } else {
+                throw new Error('KV data exists but vault_content is empty or too small');
+              }
+              
+            } catch (parseError) {
+              throw new Error(`KV data parse failed: ${parseError.message}`);
+            }
+          } else {
+            throw new Error('KV returned empty or null data - vault needs refresh');
+          }
         } else {
-          console.log('⚠️ Vault not available or needs refresh');
-          vaultContent = '[VAULT_STATUS: Data not available - refresh vault to enable full Site Monkeys capabilities]';
+          throw new Error(`KV API returned ${kvResponse.status} ${kvResponse.statusText}`);
         }
+        
       } catch (vaultError) {
-        console.error('❌ Vault loading failed:', vaultError);
-        vaultContent = '[VAULT_ERROR: Could not load business intelligence - operating with limited context]';
+        console.error('❌ Vault loading failed:', vaultError.message);
+        
+        // Provide helpful error context
+        vaultContent = `[VAULT_STATUS: ${vaultError.message}]
+
+🔧 TROUBLESHOOTING:
+- If KV data is empty: Visit /api/load-vault?refresh=true to reload
+- If KV API fails: Check KV_REST_API_URL and KV_REST_API_TOKEN
+- If authentication fails: Verify service account permissions
+
+Operating with limited Site Monkeys context until vault is available.`;
+        vaultTokens = 0;
       }
     }
 
