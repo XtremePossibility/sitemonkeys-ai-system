@@ -229,7 +229,7 @@ def load_vault_content():
         folders_result = service.files().list(q=query, fields="files(id, name)", pageSize=50).execute()
         folders = folders_result.get('files', [])
         
-        vault_content += f"\n=== LIVE VAULT FOLDERS LOADED ({len(folders)} folders) ===\n"
+        vault_content += f"\n=== LIVE VAULT FOLDERS LOADED ({len(loaded_folders)} folders) ===\n"
         
         # ZERO-FAILURE: Filter to only the 3 required folders
         target_folders = ['00_EnforcementShell', '01_Core_Directives', 'VAULT_MEMORY_FILES']
@@ -316,7 +316,7 @@ def load_vault_content():
                     vault_content += f"\n=== {file['name']} ===\n[ERROR loading file: {str(file_error)}]\n"
                     print(f"❌ File processing error: {file['name']} - {str(file_error)}")
         
-        vault_content += f"\n=== VAULT SUMMARY ===\nFolders: {len(folders)}\nFiles processed: {total_files}\n"
+        vault_content += f"\n=== VAULT SUMMARY ===\nFolders: {len(loaded_folders)}\nFiles processed: {total_files}\n"
         
         print(f"✅ Vault loaded successfully: {len(folders)} folders, {total_files} files")
         print(f"📊 Total vault content: {len(vault_content)} characters")
