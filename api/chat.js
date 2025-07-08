@@ -65,13 +65,25 @@ export default async function handler(req, res) {
               kvData = kvWrapper;
             }
             
-            if (kvData.vault_content && kvData.vault_content.length > 1000) {
-              vaultContent = kvData.vault_content;
+            // DEBUG: Log actual KV data structure
+            console.log('📊 KV Data keys:', Object.keys(kvData));
+            console.log('📊 KV Data type:', typeof kvData);
+            
+            // Try multiple possible vault content locations
+            let actualVaultContent = kvData.vault_content || kvData.content || kvData.data || kvData;
+            
+            if (typeof actualVaultContent === 'string' && actualVaultContent.length > 1000) {
+              vaultContent = actualVaultContent;
               vaultTokens = kvData.tokens || Math.ceil(vaultContent.length / 4);
               vaultStatus = 'loaded';
-              console.log('Vault loaded from KV: ' + vaultTokens + ' tokens, ' + vaultContent.length + ' characters');
+              console.log('✅ Vault loaded from KV: ' + vaultTokens + ' tokens, ' + vaultContent.length + ' characters');
+            } else if (typeof actualVaultContent === 'object') {
+              console.log('📊 Vault content is object, keys:', Object.keys(actualVaultContent));
+              throw new Error('Vault content is object, not string - check structure');
             } else {
+              console.log('❌ Vault content type:', typeof actualVaultContent, 'length:', actualVaultContent?.length);
               throw new Error('Vault content missing or insufficient');
+            }
             }
           } else {
             throw new Error('KV returned empty data');
