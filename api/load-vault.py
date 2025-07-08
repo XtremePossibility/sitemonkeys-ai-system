@@ -231,9 +231,19 @@ def load_vault_content():
         
         vault_content += f"\n=== LIVE VAULT FOLDERS LOADED ({len(folders)} folders) ===\n"
         
+        # ZERO-FAILURE: Filter to only the 3 required folders
+        target_folders = ['00_EnforcementShell', '01_Core_Directives', 'VAULT_MEMORY_FILES']
+        
         for folder in folders:
-            loaded_folders.append(folder['name'])
-            vault_content += f"\n--- FOLDER: {folder['name']} ---\n"
+            folder_name = folder['name']
+            
+            # Skip folders not in our target list
+            if folder_name not in target_folders:
+                print(f"⏭️ Skipping folder: {folder_name} (not in target list)")
+                continue
+                
+            loaded_folders.append(folder_name)
+            vault_content += f"\n--- FOLDER: {folder_name} ---\n"
             
             # Get files in each folder
             file_query = f"'{folder['id']}' in parents"
