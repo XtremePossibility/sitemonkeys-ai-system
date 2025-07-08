@@ -860,6 +860,9 @@ headers: { 'Content-Type': 'application/json' }
 
 const data = await response.json();
 console.log('📊 Vault refresh result:', data);
+console.log('📁 Folders loaded:', data.folders_loaded);
+console.log('🔢 Token count:', data.tokens);
+console.log('📄 Vault content preview:', data.vault_content?.substring(0, 500));
 
 if (data.status === 'refreshed') {
 document.getElementById('vault-info').innerHTML = `
