@@ -380,7 +380,7 @@ async function performTopicResearch(params) { return { researchComplete: true };
 async function generateAIContent(params, tier) { return { contentGenerated: true }; }
 async function validateContentQuality(params, tier) { return { qualityValidated: true }; }
 
-module.exports = {
+export {
   SERVICE_AUTOMATION,
   executeWorkflow,
   executeWithRetry,
