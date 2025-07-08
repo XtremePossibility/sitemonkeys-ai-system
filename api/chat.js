@@ -1,4 +1,4 @@
-import { trackApiCall, formatSessionDataForUI } from './lib/tokenTracker.js';
+import { trackApiCall } from './lib/tokenTracker.js';
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -121,20 +121,14 @@ export default async function handler(req, res) {
     const trackingResult = trackApiCall(personality, promptTokens, completionTokens, vaultTokens);
     const enforcedResponse = applySystemEnforcement(apiResponse.response, mode, vaultContent, vaultStatus);
     
-    // ZERO-FAILURE FALLBACK: If formatSessionDataForUI fails, provide manual fallback
-    let sessionData;
-    try {
-      sessionData = formatSessionDataForUI();
-    } catch (sessionError) {
-      console.error('formatSessionDataForUI failed:', sessionError);
-      sessionData = {
-        cost_display: '$' + trackingResult.session_total.toFixed(4),
-        vault_display: vaultTokens + ' tokens',
-        efficiency_display: 'N/A',
-        calls_display: '1 call',
-        status: 'NORMAL'
-      };
-    }
+    // MANUAL SESSION DATA - NO IMPORT DEPENDENCY
+    const sessionData = {
+      cost_display: '$' + trackingResult.session_total.toFixed(4),
+      vault_display: vaultTokens + ' tokens',
+      efficiency_display: 'Normal',
+      calls_display: '1 call',
+      status: 'ACTIVE'
+    };
 
     res.status(200).json({
       response: enforcedResponse,
