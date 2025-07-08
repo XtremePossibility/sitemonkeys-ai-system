@@ -46,7 +46,7 @@ export default async function handler(req, res) {
         
         console.log('🔍 Checking KV for vault data...');
         
-        const kvResponse = await fetch(`${kv_url}/get/sitemonkeys_vault`, {
+        const kvResponse = await fetch(`${kv_url}/get/sitemonkeys_vault_v2`, {
           headers: { 
             'Authorization': `Bearer ${kv_token}`,
             'Content-Type': 'application/json'
