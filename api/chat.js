@@ -263,7 +263,12 @@ function buildFullPrompt(systemPrompt, message, conversationHistory) {
 function applySystemEnforcement(response, mode, vaultContent, vaultStatus) {
   let enforcedResponse = response;
   
-  if (!response.includes('CONFIDENCE:') && containsFactualClaims(response)) {
+  const hasValidConfidence = /CONFIDENCE:\s*(High|Medium|Low|Unknown)/i.test(response);
+  const hasMalformedConfidence = /CONFIDENCE:/i.test(response) && !hasValidConfidence;
+  
+  if (hasMalformedConfidence) {
+    enforcedResponse = enforcedResponse.replace(/CONFIDENCE:.*$/m, 'CONFIDENCE: Medium (corrected format)');
+  } else if (!hasValidConfidence && containsFactualClaims(response)) {
     enforcedResponse += '\n\nCONFIDENCE: Medium (AI processing)';
   }
   
@@ -324,4 +329,16 @@ function calculateAssumptionHealth(response) {
   if (!response.includes('I do not know') && response.length < 100) score -= 10;
   if (response.includes('INSUFFICIENT DATA')) score += 10;
   return Math.max(score, 0);
+}
+
+function validateVaultStructure(vaultContent) {
+  if (!vaultContent || typeof vaultContent !== 'string') {
+    return false;
+  }
+  
+  const hasMainHeader = vaultContent.includes('=== SITEMONKEYS BUSINESS VALIDATION VAULT ===');
+  const hasFolderMarkers = vaultContent.includes('--- FOLDER:');
+  const folderCount = (vaultContent.match(/--- FOLDER:/g) || []).length;
+  
+  return hasMainHeader && hasFolderMarkers && folderCount >= 2;
 }
