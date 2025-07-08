@@ -1,4 +1,4 @@
-// EMERGENCY CHAT.JS - SIMPLIFIED BUT WORKING VERSION
+// PRODUCTION CHAT SYSTEM - SMART VAULT MANAGEMENT
 export default async function handler(req, res) {
   // CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -15,6 +15,11 @@ export default async function handler(req, res) {
     return;
   }
 
+  // Initialize variables at function scope to prevent scope errors
+  let vaultContent = '';
+  let vaultTokens = 0;
+  let totalVaultTokens = 0;
+
   try {
     const { message, conversation_history = [], mode = 'site_monkeys' } = req.body;
 
@@ -25,15 +30,11 @@ export default async function handler(req, res) {
 
     console.log(`🤖 Processing chat request in ${mode} mode:`, message.substring(0, 100));
 
-    // ✅ STEP 1: Load vault if in site_monkeys mode
-    let vaultContent = '';
-    let vaultTokens = 0;
-    
+    // ✅ STEP 1: Load and intelligently chunk vault content
     if (mode === 'site_monkeys') {
       try {
         console.log('📖 Loading vault for Site Monkeys mode...');
         
-        // ✅ KV ACCESS with proper parsing
         const kv_url = process.env.KV_REST_API_URL;
         const kv_token = process.env.KV_REST_API_TOKEN;
         
@@ -54,37 +55,36 @@ export default async function handler(req, res) {
         if (kvResponse.ok) {
           const kvText = await kvResponse.text();
           console.log(`📥 KV response length: ${kvText.length}`);
-          console.log(`📥 KV response preview: ${kvText.substring(0, 200)}...`);
           
           if (kvText && kvText !== 'null' && kvText.trim() !== '') {
             try {
-              // ✅ CRITICAL FIX: Handle KV wrapper format
+              // ✅ Parse KV response with proper unwrapping
               let kvData;
-              
-              // First parse the outer KV response
               const kvWrapper = JSON.parse(kvText);
-              console.log(`📊 KV wrapper keys: ${Object.keys(kvWrapper).join(', ')}`);
               
-              // Check if it's wrapped in {"result": "..."} format
               if (kvWrapper.result) {
                 console.log('🔧 Unwrapping KV result field...');
-                // Parse the inner JSON string
                 kvData = JSON.parse(kvWrapper.result);
               } else {
-                // Direct format (no wrapper)
                 kvData = kvWrapper;
               }
               
               console.log(`📊 Vault data keys: ${Object.keys(kvData).join(', ')}`);
-              console.log(`📊 Vault content length: ${kvData.vault_content ? kvData.vault_content.length : 'undefined'}`);
               
               if (kvData.vault_content && kvData.vault_content.length > 200) {
-                vaultContent = kvData.vault_content;
-                vaultTokens = kvData.tokens || 0;
-                console.log(`✅ Vault loaded from KV: ${vaultTokens} tokens, ${vaultContent.length} characters`);
+                const fullVaultContent = kvData.vault_content;
+                totalVaultTokens = kvData.tokens || Math.ceil(fullVaultContent.length / 4);
+                
+                console.log(`📊 Full vault: ${totalVaultTokens} tokens, ${fullVaultContent.length} characters`);
+                
+                // ✅ INTELLIGENT VAULT CHUNKING based on user query
+                vaultContent = selectRelevantVaultContent(fullVaultContent, message);
+                vaultTokens = Math.ceil(vaultContent.length / 4);
+                
+                console.log(`✅ Smart vault selection: ${vaultTokens} tokens (from ${totalVaultTokens} total)`);
+                
               } else {
-                console.log(`❌ KV vault_content too small: ${kvData.vault_content ? kvData.vault_content.length : 'undefined'} characters`);
-                throw new Error(`KV data exists but vault_content is ${kvData.vault_content ? 'only ' + kvData.vault_content.length + ' characters' : 'missing'} - needs refresh`);
+                throw new Error('KV vault_content is missing or too small');
               }
               
             } catch (parseError) {
@@ -92,18 +92,19 @@ export default async function handler(req, res) {
               throw new Error(`KV data parse failed: ${parseError.message}`);
             }
           } else {
-            throw new Error('KV returned empty or null data - vault needs refresh');
+            throw new Error('KV returned empty data - vault needs refresh');
           }
         } else {
-          throw new Error(`KV API returned ${kvResponse.status} ${kvResponse.statusText}`);
+          throw new Error(`KV API returned ${kvResponse.status}`);
         }
         
       } catch (vaultError) {
         console.error('❌ Vault loading failed:', vaultError.message);
         
-        // Provide helpful error context
-        vaultContent = `[VAULT_STATUS: ${vaultError.message}]`;
-        vaultTokens = 0;
+        // Graceful degradation
+        vaultContent = `[VAULT_LIMITED: ${vaultError.message}]\n\nOperating with core Site Monkeys principles: Premium quality, transparent pricing starting at $697, and business validation focus.`;
+        vaultTokens = Math.ceil(vaultContent.length / 4);
+        totalVaultTokens = 0;
       }
     }
 
@@ -111,84 +112,207 @@ export default async function handler(req, res) {
     const personality = determinePersonality(message, mode);
     console.log(`🎭 Selected personality: ${personality}`);
 
-    // ✅ STEP 3: Build system prompt with vault integration
-    const systemPrompt = buildSystemPrompt(mode, personality, vaultContent);
-    const fullPrompt = buildFullPrompt(systemPrompt, message, conversation_history);
+    // ✅ STEP 3: Build context-aware prompt with token management
+    const { systemPrompt, fullPrompt, estimatedTokens } = buildOptimizedPrompt(
+      mode, 
+      personality, 
+      vaultContent, 
+      message, 
+      conversation_history
+    );
 
-    // ✅ STEP 4: Make REAL API call
+    console.log(`📏 Estimated prompt tokens: ${estimatedTokens}`);
+
+    // ✅ STEP 4: Context length safety check
+    const maxTokens = 15000; // Safety buffer under 16,385 limit
+    
+    if (estimatedTokens > maxTokens) {
+      console.log(`⚠️ Token limit reached: ${estimatedTokens} > ${maxTokens}`);
+      
+      // Aggressive vault reduction
+      const reducedVault = vaultContent.substring(0, Math.floor(vaultContent.length * 0.3));
+      const reducedPrompt = buildOptimizedPrompt(mode, personality, reducedVault, message, []);
+      
+      console.log(`🔄 Reduced to: ${reducedPrompt.estimatedTokens} tokens`);
+      
+      if (reducedPrompt.estimatedTokens > maxTokens) {
+        throw new Error('Query too complex even with minimal vault content');
+      }
+      
+      // Use reduced version
+      const apiResponse = await makeRealAPICall(reducedPrompt.fullPrompt, personality);
+      return sendSuccessResponse(res, apiResponse, mode, Math.ceil(reducedVault.length / 4), totalVaultTokens, personality);
+    }
+
+    // ✅ STEP 5: Make API call with optimized prompt
     console.log(`🚀 Making ${personality} API call...`);
     const apiResponse = await makeRealAPICall(fullPrompt, personality);
 
-    // ✅ STEP 5: Extract token usage
-    const promptTokens = apiResponse.usage?.prompt_tokens || Math.ceil(fullPrompt.length / 4);
-    const completionTokens = apiResponse.usage?.completion_tokens || Math.ceil(apiResponse.response.length / 4);
-    const totalTokens = promptTokens + completionTokens;
-
-    console.log(`📈 Real API usage: ${promptTokens} + ${completionTokens} = ${totalTokens} tokens`);
-
-    // ✅ STEP 6: Calculate costs
-    const callCost = personality === 'claude' ? (totalTokens * 0.015) / 1000 : (totalTokens * 0.002) / 1000;
-    console.log(`💰 Cost tracking: ${callCost.toFixed(4)} this call`);
-
-    // ✅ STEP 7: Return working response
-    res.status(200).json({
-      response: apiResponse.response,
-      mode_active: mode,
-      vault_status: {
-        loaded: mode === 'site_monkeys' && vaultContent.length > 200,
-        tokens: vaultTokens,
-        file_count: vaultTokens > 0 ? 3 : 0
-      },
-      enforcement_applied: [
-        'truth_enforcement_active',
-        mode === 'site_monkeys' && vaultTokens > 0 ? 'vault_business_logic' : 'standard_mode'
-      ],
-      security_pass: true,
-      performance: {
-        tokens_used: totalTokens,
-        call_cost: callCost,
-        vault_tokens: vaultTokens,
-        api_provider: personality === 'claude' ? 'anthropic' : 'openai'
-      },
-      personality_used: personality
-    });
+    // ✅ STEP 6: Send success response
+    return sendSuccessResponse(res, apiResponse, mode, vaultTokens, totalVaultTokens, personality);
 
   } catch (error) {
     console.error('❌ Chat processing error:', error);
     
-    // Emergency fallback
-    res.status(500).json({
+    // ✅ BULLETPROOF ERROR HANDLING with proper variable scope
+    return res.status(500).json({
       response: `**SYSTEM ERROR**: ${error.message}
 
-I can still help you! The vault system loaded ${vaultTokens || 0} tokens of Site Monkeys data.
+The Site Monkeys system encountered an error but remains operational with ${totalVaultTokens || 0} vault tokens available.
 
-Please try asking your question again, or try: "What are Site Monkeys pricing standards?"`,
+**TROUBLESHOOTING:**
+- If context length exceeded: Your query is very complex. Try asking about specific aspects.
+- If API error: The AI service may be temporarily busy. Try again in a moment.
+- If vault error: Data is being refreshed. Core Site Monkeys principles remain active.
+
+**CORE SITE MONKEYS STANDARDS:**
+- Premium quality web development starting at $697
+- Business validation and truth-first analysis
+- Professional service delivery
+
+What specific aspect of Site Monkeys services would you like to know about?`,
+      
       mode_active: req.body.mode || 'site_monkeys',
-      vault_status: { loaded: false, tokens: 0, file_count: 0 },
-      enforcement_applied: ['fallback_mode_active'],
+      vault_status: { 
+        loaded: totalVaultTokens > 0, 
+        tokens: totalVaultTokens || 0, 
+        file_count: totalVaultTokens > 0 ? 3 : 0 
+      },
+      enforcement_applied: ['fallback_mode_active', 'error_recovery_active'],
       security_pass: false,
       performance: {
         tokens_used: 0,
         call_cost: 0,
-        api_error: { fallback_used: true, error: error.message }
+        vault_tokens: totalVaultTokens || 0,
+        api_error: { 
+          fallback_used: true, 
+          error: error.message,
+          error_type: error.message.includes('context_length_exceeded') ? 'token_limit' : 'api_error'
+        }
       },
-      error: 'Chat processing failed - emergency fallback active'
+      personality_used: 'system',
+      error: 'Chat processing failed - recovery mode active'
     });
   }
 }
 
+function selectRelevantVaultContent(fullVaultContent, userMessage) {
+  // ✅ INTELLIGENT CONTENT SELECTION based on user query
+  const query = userMessage.toLowerCase();
+  
+  // Define content priorities based on keywords
+  const contentPriorities = {
+    pricing: ['pricing', 'cost', 'price', 'fee', 'dollar', '$', 'payment'],
+    services: ['service', 'development', 'website', 'design', 'build'],
+    business: ['business', 'validation', 'strategy', 'analysis'],
+    technical: ['technical', 'code', 'programming', 'development'],
+    legal: ['legal', 'terms', 'contract', 'agreement'],
+    process: ['process', 'workflow', 'step', 'how', 'procedure']
+  };
+  
+  // Score content sections based on relevance
+  let selectedSections = [];
+  let currentTokenCount = 0;
+  const maxVaultTokens = 8000; // Reserve space for system prompt and response
+  
+  // Split vault into logical sections
+  const sections = fullVaultContent.split('=== ').filter(section => section.trim().length > 100);
+  
+  // Score and sort sections by relevance
+  const scoredSections = sections.map(section => {
+    let score = 0;
+    const sectionLower = section.toLowerCase();
+    
+    // Score based on keyword matches
+    Object.entries(contentPriorities).forEach(([category, keywords]) => {
+      keywords.forEach(keyword => {
+        if (query.includes(keyword) && sectionLower.includes(keyword)) {
+          score += category === 'pricing' ? 3 : 2; // Pricing gets higher priority
+        }
+      });
+    });
+    
+    // Bonus for core directives and enforcement
+    if (sectionLower.includes('core') || sectionLower.includes('enforcement')) {
+      score += 1;
+    }
+    
+    return { section, score, tokens: Math.ceil(section.length / 4) };
+  });
+  
+  // Sort by score and select highest priority content within token limit
+  scoredSections
+    .sort((a, b) => b.score - a.score)
+    .forEach(({ section, tokens }) => {
+      if (currentTokenCount + tokens <= maxVaultTokens) {
+        selectedSections.push(section);
+        currentTokenCount += tokens;
+      }
+    });
+  
+  // Always include summary if we have space
+  const summary = `=== SITE MONKEYS BUSINESS VALIDATION VAULT ===
+
+Core Focus: Premium web development and business validation services
+Starting Price: $697 for professional quality assurance
+Approach: Truth-first analysis and transparent business practices
+
+`;
+  
+  const result = summary + selectedSections.join('=== ');
+  
+  console.log(`🎯 Vault selection: ${selectedSections.length} sections, ${Math.ceil(result.length / 4)} tokens`);
+  
+  return result;
+}
+
+function buildOptimizedPrompt(mode, personality, vaultContent, message, conversationHistory) {
+  // ✅ TOKEN-OPTIMIZED PROMPT CONSTRUCTION
+  
+  let systemPrompt = `You are ${personality === 'eli' ? 'Eli (analytical)' : 'Roxy (strategic)'}, Site Monkeys AI.
+
+CORE REQUIREMENTS:
+- Include confidence levels (High/Medium/Low)
+- Say "I don't know" when uncertain  
+- Label speculation clearly
+- Be direct and helpful
+
+`;
+
+  if (mode === 'site_monkeys' && vaultContent.length > 200) {
+    systemPrompt += `SITE MONKEYS CONTEXT:\n${vaultContent}\n\n`;
+  }
+
+  // Limit conversation history to prevent token overflow
+  let historyText = '';
+  if (conversationHistory.length > 0) {
+    const recentHistory = conversationHistory.slice(-2); // Only last exchange
+    historyText = 'RECENT:\n';
+    recentHistory.forEach(msg => {
+      historyText += `${msg.role === 'user' ? 'Human' : 'Assistant'}: ${msg.content.substring(0, 200)}\n`;
+    });
+    historyText += '\n';
+  }
+
+  const fullPrompt = `${systemPrompt}${historyText}Human: ${message}\n\nResponse:`;
+  
+  const estimatedTokens = Math.ceil(fullPrompt.length / 4) + 500; // +500 for response buffer
+  
+  return { systemPrompt, fullPrompt, estimatedTokens };
+}
+
 async function makeRealAPICall(prompt, personality) {
-  // ✅ OPENAI API CALL (Default for Eli/Roxy)
   const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
   
   if (!OPENAI_API_KEY) {
     throw new Error('OpenAI API key not configured');
   }
 
-  const model = 'gpt-3.5-turbo';
+  // ✅ USE GPT-4 for better handling of complex contexts
+  const model = 'gpt-4-turbo-preview'; // Higher context limit: 128k tokens
   const temperature = personality === 'eli' ? 0.3 : 0.7;
   
-  console.log(`🎯 Making ${personality} OpenAI call...`);
+  console.log(`🎯 Making ${personality} OpenAI call with ${model}...`);
   
   try {
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -213,7 +337,7 @@ async function makeRealAPICall(prompt, personality) {
     if (!response.ok) {
       const errorData = await response.text();
       console.error('❌ OpenAI API error response:', errorData);
-      throw new Error(`OpenAI API error: ${response.status} - ${errorData}`);
+      throw new Error(`OpenAI API error: ${response.status} - ${errorData.substring(0, 200)}`);
     }
 
     const data = await response.json();
@@ -237,60 +361,46 @@ async function makeRealAPICall(prompt, personality) {
   }
 }
 
-function buildSystemPrompt(mode, personality, vaultContent = '') {
-  let systemPrompt = `You are ${personality === 'eli' ? 'Eli' : 'Roxy'}, part of the Site Monkeys AI system.
-
-PERSONALITY: ${personality === 'eli' ? 'Analytical, direct, evidence-focused' : 'Strategic, creative, solution-oriented'}
-
-CORE REQUIREMENTS:
-- Every factual claim MUST include confidence level (High/Medium/Low/Unknown)
-- When uncertain, say "I don't know" rather than guess
-- Label speculation as "SPECULATION:" or "HYPOTHESIS:"
-- Include assumptions in your analysis when relevant
-
-`;
-
-  if (mode === 'site_monkeys') {
-    systemPrompt += `MODE: Site Monkeys Operational
-Focus on Site Monkeys business excellence and operational standards.
-
-`;
-    
-    if (vaultContent && vaultContent.length > 200 && !vaultContent.includes('VAULT_ERROR')) {
-      systemPrompt += `SITE MONKEYS BUSINESS INTELLIGENCE VAULT:
-${vaultContent}
-
-Use this vault intelligence to inform responses about Site Monkeys operations, pricing, protocols, and business standards.
-`;
-    } else {
-      systemPrompt += `VAULT STATUS: Limited business intelligence available. Operating with general Site Monkeys principles.
-`;
-    }
-  }
-
-  return systemPrompt;
-}
-
-function buildFullPrompt(systemPrompt, message, conversationHistory) {
-  let fullPrompt = systemPrompt + '\n\n';
+function sendSuccessResponse(res, apiResponse, mode, vaultTokens, totalVaultTokens, personality) {
+  const promptTokens = apiResponse.usage?.prompt_tokens || 0;
+  const completionTokens = apiResponse.usage?.completion_tokens || 0;
+  const totalTokens = promptTokens + completionTokens;
   
-  if (conversationHistory.length > 0) {
-    fullPrompt += 'RECENT CONVERSATION:\n';
-    const recentHistory = conversationHistory.slice(-4); // Last 2 exchanges
-    
-    recentHistory.forEach(msg => {
-      if (msg.role === 'user') {
-        fullPrompt += `Human: ${msg.content}\n`;
-      } else {
-        fullPrompt += `Assistant: ${msg.content}\n`;
-      }
-    });
-    fullPrompt += '\n';
-  }
+  // Calculate costs (GPT-4 pricing)
+  const inputCost = (promptTokens * 0.01) / 1000;  // $0.01 per 1K input tokens
+  const outputCost = (completionTokens * 0.03) / 1000; // $0.03 per 1K output tokens
+  const callCost = inputCost + outputCost;
   
-  fullPrompt += `CURRENT REQUEST:\nHuman: ${message}\n\nProvide a helpful, truth-first response:`;
-  
-  return fullPrompt;
+  console.log(`📈 API usage: ${promptTokens} + ${completionTokens} = ${totalTokens} tokens`);
+  console.log(`💰 Cost: $${callCost.toFixed(4)} (input: $${inputCost.toFixed(4)}, output: $${outputCost.toFixed(4)})`);
+
+  return res.status(200).json({
+    response: apiResponse.response,
+    mode_active: mode,
+    vault_status: {
+      loaded: mode === 'site_monkeys' && vaultTokens > 0,
+      tokens: vaultTokens,
+      total_tokens: totalVaultTokens,
+      file_count: totalVaultTokens > 0 ? 3 : 0
+    },
+    enforcement_applied: [
+      'truth_enforcement_active',
+      'smart_vault_chunking_applied',
+      mode === 'site_monkeys' && vaultTokens > 0 ? 'vault_business_logic' : 'standard_mode'
+    ],
+    security_pass: true,
+    performance: {
+      tokens_used: totalTokens,
+      prompt_tokens: promptTokens,
+      completion_tokens: completionTokens,
+      call_cost: callCost,
+      vault_tokens: vaultTokens,
+      total_vault_tokens: totalVaultTokens,
+      api_provider: 'openai',
+      model_used: 'gpt-4-turbo-preview'
+    },
+    personality_used: personality
+  });
 }
 
 function determinePersonality(message, mode) {
