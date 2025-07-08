@@ -1,4 +1,4 @@
-import { EMERGENCY_FALLBACKS, getVaultValue } from './lib/site-monkeys/emergency-fallbacks.js';
+const { EMERGENCY_FALLBACKS, getVaultValue } = require('./lib/site-monkeys/emergency-fallbacks.js');
 import { ENFORCEMENT_PROTOCOLS } from './lib/site-monkeys/enforcement-protocols.js';
 import { processAIRequest } from './lib/site-monkeys/ai-architecture.js';
 import { trackApiCall } from './lib/tokenTracker.js';
