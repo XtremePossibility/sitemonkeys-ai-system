@@ -264,7 +264,7 @@ function checkEscalationTriggers(metrics) {
   };
 }
 
-module.exports = {
+export {
   FOUNDER_PROTECTION,
   validateBusinessDecision,
   validateContractorAccess,
