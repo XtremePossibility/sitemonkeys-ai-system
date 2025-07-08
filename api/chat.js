@@ -120,7 +120,21 @@ export default async function handler(req, res) {
 
     const trackingResult = trackApiCall(personality, promptTokens, completionTokens, vaultTokens);
     const enforcedResponse = applySystemEnforcement(apiResponse.response, mode, vaultContent, vaultStatus);
-    const sessionData = formatSessionDataForUI();
+    
+    // ZERO-FAILURE FALLBACK: If formatSessionDataForUI fails, provide manual fallback
+    let sessionData;
+    try {
+      sessionData = formatSessionDataForUI();
+    } catch (sessionError) {
+      console.error('formatSessionDataForUI failed:', sessionError);
+      sessionData = {
+        cost_display: '$' + trackingResult.session_total.toFixed(4),
+        vault_display: vaultTokens + ' tokens',
+        efficiency_display: 'N/A',
+        calls_display: '1 call',
+        status: 'NORMAL'
+      };
+    }
 
     res.status(200).json({
       response: enforcedResponse,
