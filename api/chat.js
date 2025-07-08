@@ -116,17 +116,11 @@ Behavior enforcement, quality protocols, and system architecture standards.`;
               console.log('✅ Manual vault assembled: 3 files, ' + vaultTokens + ' tokens, ' + vaultContent.length + ' characters');
             }
           } else {
-              // Fallback to original parsing if no files array
-              let actualVaultContent = kvData.vault_content || kvData.content || kvData.data || kvData;
-              if (typeof actualVaultContent === 'string' && actualVaultContent.length > 1000) {
-                vaultContent = actualVaultContent;
-                vaultTokens = Math.ceil(vaultContent.length / 4);
-                vaultStatus = 'loaded';
-                console.log('✅ Fallback vault loaded: ' + vaultTokens + ' tokens, ' + vaultContent.length + ' characters');
-              } else {
-                throw new Error('No valid vault structure found');
-              }
-            }
+            throw new Error('KV returned empty data');
+          }
+        } else {
+          throw new Error('KV API error: ' + kvResponse.status);
+        }
           } else {
             throw new Error('KV returned empty data');
           }
