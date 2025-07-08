@@ -340,7 +340,7 @@ function triggerSecurityAlert(event) {
   console.error(`🚨 HIGH SEVERITY SECURITY ALERT: ${event.type}`, event);
 }
 
-module.exports = {
+export {
   SECURITY_PROTOCOLS,
   validateContractorAccess,
   calculateSystemExposure,
