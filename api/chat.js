@@ -243,9 +243,21 @@ async function makeRealAPICall(prompt, personality) {
   });
 
   const data = await response.json();
+  
+  // ZERO-FAILURE: Bulletproof response parsing
+  if (!data.choices || !Array.isArray(data.choices) || data.choices.length === 0) {
+    console.error('❌ OpenAI API unexpected response:', JSON.stringify(data));
+    throw new Error('OpenAI API returned unexpected response format');
+  }
+  
+  if (!data.choices[0].message || !data.choices[0].message.content) {
+    console.error('❌ OpenAI API missing message content:', JSON.stringify(data.choices[0]));
+    throw new Error('OpenAI API response missing message content');
+  }
+  
   return {
     response: data.choices[0].message.content,
-    usage: data.usage
+    usage: data.usage || {}
   };
 }
 
