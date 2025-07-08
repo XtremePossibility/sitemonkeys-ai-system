@@ -268,7 +268,13 @@ function buildSystemPrompt(mode, personality, vaultContent = '') {
 
   if (mode === 'site_monkeys') {
     if (vaultContent && vaultContent.length > 1000) {
-      systemPrompt += 'SITE MONKEYS BUSINESS INTELLIGENCE VAULT:\n' + vaultContent + '\n\nCRITICAL INSTRUCTION: Use this vault intelligence extensively to inform responses about Site Monkeys operations, pricing, protocols, and business standards. Begin responses with "Based on the Site Monkeys vault protocols" when referencing vault information.\n\n';
+      // ZERO-FAILURE: Limit vault content to prevent token overflow
+      const maxVaultChars = 40000; // ~10,000 tokens max
+      const limitedVaultContent = vaultContent.length > maxVaultChars 
+        ? vaultContent.substring(0, maxVaultChars) + '\n\n[VAULT CONTENT TRUNCATED TO PREVENT TOKEN OVERFLOW]'
+        : vaultContent;
+      
+      systemPrompt += 'SITE MONKEYS BUSINESS INTELLIGENCE VAULT:\n' + limitedVaultContent + '\n\nCRITICAL INSTRUCTION: Use this vault intelligence extensively to inform responses about Site Monkeys operations, pricing, protocols, and business standards. Begin responses with "Based on the Site Monkeys vault protocols" when referencing vault information.\n\n';
     } else {
       systemPrompt += 'FALLBACK MODE: Premium web development starting at $697, business validation and truth-first analysis focus.\n\n';
     }
