@@ -235,7 +235,7 @@ async function getEmergencyTemplate(contentType, customerTier) {
   return baseTemplate;
 }
 
-module.exports = {
+export {
   QUALITY_ENFORCEMENT,
   validateAIOutput,
   processWithFailover,
