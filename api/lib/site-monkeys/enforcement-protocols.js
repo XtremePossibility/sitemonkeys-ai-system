@@ -105,7 +105,7 @@ function containsGuessing(response) {
   return guessing_indicators.some(indicator => lowercaseResponse.includes(indicator));
 }
 
-module.exports = {
+export {
   ENFORCEMENT_PROTOCOLS,
   validateSystemCompliance,
   enforceZeroFailureResponse,
