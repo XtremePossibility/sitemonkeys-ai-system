@@ -84,7 +84,6 @@ export default async function handler(req, res) {
               console.log('❌ Vault content type:', typeof actualVaultContent, 'length:', actualVaultContent?.length);
               throw new Error('Vault content missing or insufficient');
             }
-            }
           } else {
             throw new Error('KV returned empty data');
           }
