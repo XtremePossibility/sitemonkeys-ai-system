@@ -121,12 +121,6 @@ Behavior enforcement, quality protocols, and system architecture standards.`;
         } else {
           throw new Error('KV API error: ' + kvResponse.status);
         }
-          } else {
-            throw new Error('KV returned empty data');
-          }
-        } else {
-          throw new Error('KV API error: ' + kvResponse.status);
-        }
         
       } catch (vaultError) {
         console.error('Vault loading failed:', vaultError.message);
