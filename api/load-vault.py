@@ -161,7 +161,7 @@ def store_vault_in_kv(vault_data):
         # ✅ STORE MAIN VAULT CONTENT
         print(f"📤 Storing main vault ({len(json.dumps(compressed_vault_data))} bytes)...")
         response = requests.post(
-            f'{kv_url}/set/sitemonkeys_vault',
+            f'{kv_url}/set/sitemonkeys_vault_v2',
             headers=headers,
             json=compressed_vault_data,
             timeout=30
@@ -195,7 +195,7 @@ def get_vault_from_kv():
         }
         
         response = requests.get(
-            f'{kv_url}/get/sitemonkeys_vault',
+            f'{kv_url}/get/sitemonkeys_vault_v2',
             headers=headers,
             timeout=30
         )
