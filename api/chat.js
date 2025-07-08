@@ -69,20 +69,45 @@ export default async function handler(req, res) {
             console.log('📊 KV Data keys:', Object.keys(kvData));
             console.log('📊 KV Data type:', typeof kvData);
             
-            // Try multiple possible vault content locations
-            let actualVaultContent = kvData.vault_content || kvData.content || kvData.data || kvData;
+            // ZERO-FAILURE: Filter vault to only required documents
+            console.log('📊 KV Data structure check...');
             
-            if (typeof actualVaultContent === 'string' && actualVaultContent.length > 1000) {
-              vaultContent = actualVaultContent;
-              vaultTokens = kvData.tokens || Math.ceil(vaultContent.length / 4);
-              vaultStatus = 'loaded';
-              console.log('✅ Vault loaded from KV: ' + vaultTokens + ' tokens, ' + vaultContent.length + ' characters');
-            } else if (typeof actualVaultContent === 'object') {
-              console.log('📊 Vault content is object, keys:', Object.keys(actualVaultContent));
-              throw new Error('Vault content is object, not string - check structure');
+            // Check if vault data has files array
+            const allFiles = kvData.files || [];
+            console.log('📁 Available files:', allFiles.length);
+            
+            if (allFiles.length > 0) {
+              // Filter to only the 3 required documents
+              const includedFilenames = [
+                '01_CoreDirectives.docx',
+                '01_ExecutionBlueprints.md', 
+                '01_OfferMatrix.txt'
+              ];
+              
+              const includedSections = allFiles
+                .filter(file => includedFilenames.includes(file.name))
+                .map(file => `--- FOLDER: ${file.name} ---\n${file.content}`)
+                .join('\n\n');
+              
+              if (includedSections.length > 100) {
+                vaultContent = '=== SITEMONKEYS BUSINESS VALIDATION VAULT ===\n\n' + includedSections;
+                vaultTokens = Math.ceil(vaultContent.length / 4);
+                vaultStatus = 'loaded';
+                console.log('✅ Filtered vault loaded: ' + includedFilenames.length + ' files, ' + vaultTokens + ' tokens, ' + vaultContent.length + ' characters');
+              } else {
+                throw new Error('Filtered vault content insufficient');
+              }
             } else {
-              console.log('❌ Vault content type:', typeof actualVaultContent, 'length:', actualVaultContent?.length);
-              throw new Error('Vault content missing or insufficient');
+              // Fallback to original parsing if no files array
+              let actualVaultContent = kvData.vault_content || kvData.content || kvData.data || kvData;
+              if (typeof actualVaultContent === 'string' && actualVaultContent.length > 1000) {
+                vaultContent = actualVaultContent;
+                vaultTokens = Math.ceil(vaultContent.length / 4);
+                vaultStatus = 'loaded';
+                console.log('✅ Fallback vault loaded: ' + vaultTokens + ' tokens, ' + vaultContent.length + ' characters');
+              } else {
+                throw new Error('No valid vault structure found');
+              }
             }
           } else {
             throw new Error('KV returned empty data');
