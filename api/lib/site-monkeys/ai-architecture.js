@@ -334,7 +334,7 @@ async function checkAIServicesHealth() {
   return healthStatus;
 }
 
-module.exports = {
+export {
   AI_ARCHITECTURE,
   processAIRequest,
   callClaudeAPI,
