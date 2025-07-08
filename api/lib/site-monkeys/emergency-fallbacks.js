@@ -118,7 +118,7 @@ function getNestedValue(obj, path) {
   }, obj);
 }
 
-module.exports = {
+export {
   EMERGENCY_FALLBACKS,
   validateVaultStructure,
   getVaultValue,
