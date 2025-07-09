@@ -1009,6 +1009,44 @@ box.scrollTop = box.scrollHeight;
 }
 }
 
+// Enhanced Chat functionality with clean responses and thinking indicator
+async function sendMessage() {
+const input = document.getElementById('user-input');
+const text = input.value.trim();
+if (!text || !systemActive) return;
+
+const box = document.getElementById('chat-box');
+
+// Add user message
+const userBubble = document.createElement('div');
+userBubble.className = 'bubble user';
+userBubble.innerHTML = `<div class="bubble-content"><strong>You:</strong> ${text}</div>`;
+box.appendChild(userBubble);
+box.scrollTop = box.scrollHeight;
+input.value = '';
+
+// Add thinking indicator
+const thinkingBubble = document.createElement('div');
+thinkingBubble.className = 'bubble ai thinking-bubble';
+thinkingBubble.innerHTML = `<img src="boy-mascot.png" class="avatar" alt="Thinking"><div class="bubble-content thinking-content"><span class="thinking-brain">🧠</span> Thinking...</div>`;
+box.appendChild(thinkingBubble);
+box.scrollTop = box.scrollHeight;
+
+try {
+// *** CRITICAL: Load vault content for backend injection ***
+let vaultContent = null;
+try {
+const vaultResponse = await fetch('/api/load-vault', {
+method: 'GET',
+headers: { 'Content-Type': 'application/json' }
+});
+const vaultData = await vaultResponse.json();
+vaultContent = vaultData.vault_content;
+console.log('🎯 Vault loaded for chat:', vaultContent ? 'SUCCESS (' + Math.ceil(vaultContent.length/4) + ' tokens)' : 'FAILED');
+} catch (vaultError) {
+console.warn('⚠️ Vault load failed, backend will use emergency fallbacks:', vaultError);
+}
+
 // Send message with vault content injection
 const response = await fetch('/api/chat', {
 method: 'POST',
