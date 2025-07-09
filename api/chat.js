@@ -1,7 +1,11 @@
-import { EMERGENCY_FALLBACKS, getVaultValue } from './lib/site-monkeys/emergency-fallbacks.js';
+// ZERO-FAILURE CHAT.JS - COMPLETE INTEGRATION
+// Frontend vault injection + Backend hardcoded logic + Emergency fallbacks
+import { trackApiCall, formatSessionDataForUI } from './lib/tokenTracker.js';
+import { EMERGENCY_FALLBACKS, validateVaultStructure, getVaultValue } from './lib/site-monkeys/emergency-fallbacks.js';
 import { ENFORCEMENT_PROTOCOLS } from './lib/site-monkeys/enforcement-protocols.js';
-import { processAIRequest } from './lib/site-monkeys/ai-architecture.js';
-import { trackApiCall } from './lib/tokenTracker.js';
+import { QUALITY_ENFORCEMENT } from './lib/site-monkeys/quality-enforcement.js';
+import { AI_ARCHITECTURE } from './lib/site-monkeys/ai-architecture.js';
+import { FOUNDER_PROTECTION } from './lib/site-monkeys/founder-protection.js';
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -21,9 +25,17 @@ export default async function handler(req, res) {
   let vaultContent = '';
   let vaultTokens = 0;
   let vaultStatus = 'not_loaded';
+  let vaultHealthy = false;
 
   try {
-    const { message, conversation_history = [], mode = 'site_monkeys', claude_requested = false } = req.body;
+    // *** CRITICAL: Accept vault_content from frontend ***
+    const { 
+      message, 
+      conversation_history = [], 
+      mode = 'site_monkeys', 
+      claude_requested = false,
+      vault_content = null  // NEW: Frontend can send vault content directly
+    } = req.body;
 
     if (!message || typeof message !== 'string') {
       res.status(400).json({ error: 'Message is required and must be a string' });
@@ -32,124 +44,99 @@ export default async function handler(req, res) {
 
     console.log('Processing chat request in ' + mode + ' mode:', message.substring(0, 100));
 
+    // *** VAULT LOADING WITH HARDCODED FALLBACKS ***
     if (mode === 'site_monkeys') {
-      try {
-        const kv_url = process.env.KV_REST_API_URL;
-        const kv_token = process.env.KV_REST_API_TOKEN;
-        
-        if (!kv_url || !kv_token) {
-          throw new Error('KV environment variables not configured');
-        }
-        
-        const kvResponse = await fetch(kv_url + '/get/sitemonkeys_vault_v2', {
-          headers: { 
-            'Authorization': 'Bearer ' + kv_token,
-            'Content-Type': 'application/json'
-          }
-        });
-        
-        if (kvResponse.ok) {
-          const kvText = await kvResponse.text();
+      // Try frontend-provided vault content first
+      if (vault_content && vault_content.length > 1000) {
+        vaultContent = vault_content;
+        vaultTokens = Math.ceil(vaultContent.length / 4);
+        vaultStatus = 'loaded_from_frontend';
+        vaultHealthy = validateVaultStructure(vaultContent);
+        console.log('🎯 Vault loaded from frontend:', vaultTokens + ' tokens, healthy:', vaultHealthy);
+      } else {
+        // Fallback to KV loading
+        try {
+          const kv_url = process.env.KV_REST_API_URL;
+          const kv_token = process.env.KV_REST_API_TOKEN;
           
-          if (kvText && kvText !== 'null' && kvText.trim() !== '') {
-            let kvData;
-            const kvWrapper = JSON.parse(kvText);
+          if (!kv_url || !kv_token) {
+            throw new Error('KV environment variables not configured');
+          }
+          
+          const kvResponse = await fetch(kv_url + '/get/sitemonkeys_vault_v2', {
+            headers: { 
+              'Authorization': 'Bearer ' + kv_token,
+              'Content-Type': 'application/json'
+            }
+          });
+          
+          if (kvResponse.ok) {
+            const kvText = await kvResponse.text();
             
-            if (kvWrapper.result) {
-              kvData = JSON.parse(kvWrapper.result);
-            } else if (kvWrapper.compressed) {
-              try {
-                const decompressed = atob(kvWrapper.data);
-                kvData = JSON.parse(decompressed);
-              } catch (decompError) {
+            if (kvText && kvText !== 'null' && kvText.trim() !== '') {
+              let kvData;
+              const kvWrapper = JSON.parse(kvText);
+              
+              if (kvWrapper.result) {
+                kvData = JSON.parse(kvWrapper.result);
+              } else if (kvWrapper.compressed) {
+                try {
+                  const decompressed = atob(kvWrapper.data);
+                  kvData = JSON.parse(decompressed);
+                } catch (decompError) {
+                  kvData = kvWrapper;
+                }
+              } else {
                 kvData = kvWrapper;
               }
-            } else {
-              kvData = kvWrapper;
-            }
-            
-            // DEBUG: Log actual KV data structure
-            console.log('📊 KV Data keys:', Object.keys(kvData));
-            console.log('📊 KV Data type:', typeof kvData);
-            
-            // ZERO-FAILURE: Filter to EXACT 3 memory vault documents
-            console.log('📊 KV Data structure check...');
-            
-            // Check if vault data has files array
-            const allFiles = kvData.files || [];
-            console.log('📁 Available files:', allFiles.length);
-            
-            if (allFiles.length > 0) {
-              // Filter to only the 3 ACTUAL memory vault documents
-              const includedFilenames = [
-                '00_EnforcementCore.docx',
-                '01_CoreDirectives.docx',
-                'VAULT_MEMORY_FILES.docx'
-              ];
               
-              const includedSections = allFiles
-                .filter(file => includedFilenames.includes(file.name))
-                .map(file => `--- FOLDER: ${file.name} ---\n${file.content}`)
-                .join('\n\n');
-              
-              if (includedSections.length > 100) {
-                vaultContent = '=== SITEMONKEYS BUSINESS VALIDATION VAULT ===\n\n' + includedSections;
-                vaultTokens = Math.ceil(vaultContent.length / 4);
-                vaultStatus = 'loaded';
-                console.log('✅ Filtered vault loaded: ' + includedFilenames.length + ' files, ' + vaultTokens + ' tokens, ' + vaultContent.length + ' characters');
+              if (kvData.vault_content && kvData.vault_content.length > 1000) {
+                vaultContent = kvData.vault_content;
+                vaultTokens = kvData.tokens || Math.ceil(vaultContent.length / 4);
+                vaultStatus = 'loaded_from_kv';
+                vaultHealthy = validateVaultStructure(vaultContent);
+                console.log('Vault loaded from KV: ' + vaultTokens + ' tokens, healthy:', vaultHealthy);
               } else {
-                throw new Error('Required vault files not found in KV');
+                throw new Error('Vault content missing or insufficient');
               }
             } else {
-              // Manual vault assembly from the 3 core documents
-              const coreVault = `--- FOLDER: 00_EnforcementCore.docx ---
-SITE MONKEYS ZERO-FAILURE ENFORCEMENT ACTIVE
-Core behavior directives and truth-first requirements enforced.
-
---- FOLDER: 01_CoreDirectives.docx ---  
-Site Monkeys Complete Services Matrix - Premium web development starting at $697
-Business validation and zero-compromise professional standards.
-
---- FOLDER: VAULT_MEMORY_FILES.docx ---
-Behavior enforcement, quality protocols, and system architecture standards.`;
-              
-              vaultContent = '=== SITEMONKEYS BUSINESS VALIDATION VAULT ===\n\n' + coreVault;
-              vaultTokens = Math.ceil(vaultContent.length / 4);
-              vaultStatus = 'loaded';
-              console.log('✅ Manual vault assembled: 3 files, ' + vaultTokens + ' tokens, ' + vaultContent.length + ' characters');
+              throw new Error('KV returned empty data');
             }
           } else {
-            throw new Error('KV returned empty data');
+            throw new Error('KV API error: ' + kvResponse.status);
           }
-        } else {
-          throw new Error('KV API error: ' + kvResponse.status);
+          
+        } catch (vaultError) {
+          console.error('⚠️ Vault loading failed, using emergency fallbacks:', vaultError.message);
+          vaultStatus = 'failed_using_fallbacks';
+          vaultContent = EMERGENCY_FALLBACKS.business_logic.pricing_structure + 
+                        EMERGENCY_FALLBACKS.business_logic.service_minimums + 
+                        EMERGENCY_FALLBACKS.enforcement.founder_protection;
+          vaultTokens = Math.ceil(vaultContent.length / 4);
+          vaultHealthy = false;
         }
-        
-      } catch (vaultError) {
-        console.error('Vault loading failed:', vaultError.message);
-        vaultStatus = 'failed';
-        vaultContent = 'VAULT_ERROR: ' + vaultError.message + '\n\nFALLBACK SITE MONKEYS BUSINESS LOGIC:\n- Premium web development services starting at $697\n- Business validation and truth-first analysis\n- Zero-compromise professional standards';
-        vaultTokens = Math.ceil(vaultContent.length / 4);
       }
     }
 
     let personality = claude_requested ? 'claude' : determinePersonality(message, mode);
     
+    // *** ENHANCED COST PROTECTION WITH HARDCODED LIMITS ***
     if (claude_requested) {
-      const estimatedTokens = Math.ceil((buildSystemPrompt(mode, personality, vaultContent).length + message.length) / 4) + 500;
+      const estimatedTokens = Math.ceil((buildSystemPrompt(mode, personality, vaultContent, vaultHealthy).length + message.length) / 4) + 500;
       const estimatedCost = (estimatedTokens * 0.015) / 1000;
       
       if (estimatedCost > 0.50) {
         return res.status(200).json({
-          response: 'CLAUDE COST LIMIT EXCEEDED: $' + estimatedCost.toFixed(4) + ' exceeds $0.50 limit. Use Eli or Roxy instead.',
+          response: FOUNDER_PROTECTION.cost_controls.claude_limit_message + ' $' + estimatedCost.toFixed(4) + ' exceeds $0.50 limit.',
           mode_active: mode,
-          vault_status: { loaded: vaultStatus === 'loaded', tokens: vaultTokens },
+          vault_status: { loaded: vaultStatus !== 'not_loaded', tokens: vaultTokens, healthy: vaultHealthy },
           claude_blocked: true
         });
       }
     }
 
-    const systemPrompt = buildSystemPrompt(mode, personality, vaultContent);
+    // *** ENHANCED SYSTEM PROMPT WITH HARDCODED LOGIC ***
+    const systemPrompt = buildSystemPrompt(mode, personality, vaultContent, vaultHealthy);
     const fullPrompt = buildFullPrompt(systemPrompt, message, conversation_history);
     const apiResponse = await makeRealAPICall(fullPrompt, personality);
 
@@ -164,31 +151,27 @@ Behavior enforcement, quality protocols, and system architecture standards.`;
     }
 
     const trackingResult = trackApiCall(personality, promptTokens, completionTokens, vaultTokens);
-    const enforcedResponse = applySystemEnforcement(apiResponse.response, mode, vaultContent, vaultStatus);
-    
-    // MANUAL SESSION DATA - NO IMPORT DEPENDENCY
-    const sessionData = {
-      cost_display: '$' + trackingResult.session_total.toFixed(4),
-      vault_display: vaultTokens + ' tokens',
-      efficiency_display: 'Normal',
-      calls_display: '1 call',
-      status: 'ACTIVE'
-    };
+    const enforcedResponse = applySystemEnforcement(apiResponse.response, mode, vaultContent, vaultStatus, vaultHealthy);
+    const sessionData = formatSessionDataForUI();
 
     res.status(200).json({
       response: enforcedResponse,
       mode_active: mode,
       vault_status: {
-        loaded: vaultStatus === 'loaded',
+        loaded: vaultStatus !== 'not_loaded',
         tokens: vaultTokens,
-        status: vaultStatus
+        status: vaultStatus,
+        healthy: vaultHealthy,
+        source: vaultStatus.includes('frontend') ? 'frontend' : vaultStatus.includes('kv') ? 'kv' : 'fallback'
       },
       enforcement_applied: [
         'truth_enforcement_active',
-        'confidence_scoring_applied',
+        'confidence_scoring_applied', 
         'political_neutrality_enforced',
-        mode === 'site_monkeys' && vaultStatus === 'loaded' ? 'vault_business_logic' : 'fallback_mode',
-        'assumption_analysis_active'
+        vaultHealthy ? 'vault_business_logic' : 'emergency_fallback_mode',
+        'assumption_analysis_active',
+        'founder_protection_active',
+        'zero_failure_protocols_active'
       ],
       assumption_analysis: {
         detected: extractAssumptions(enforcedResponse),
@@ -209,57 +192,70 @@ Behavior enforcement, quality protocols, and system architecture standards.`;
     });
 
   } catch (error) {
-    console.error('Chat processing error:', error);
+    console.error('❌ Chat processing error:', error);
     
     res.status(500).json({
-      response: 'SYSTEM ERROR: ' + error.message + '\n\nSite Monkeys truth-first enforcement remains active with ' + vaultTokens + ' tokens available.',
+      response: ENFORCEMENT_PROTOCOLS.error_handling.system_error_response + error.message + 
+               '\n\n' + FOUNDER_PROTECTION.system_continuity.error_recovery_message,
       mode_active: req.body.mode || 'site_monkeys',
-      vault_status: { loaded: vaultStatus === 'loaded', tokens: vaultTokens },
-      enforcement_applied: ['fallback_mode_active', 'truth_enforcement_active'],
-      error: 'Chat processing failed - recovery mode active'
+      vault_status: { loaded: vaultStatus !== 'not_loaded', tokens: vaultTokens, healthy: vaultHealthy },
+      enforcement_applied: ['emergency_fallback_active', 'truth_enforcement_active', 'founder_protection_active'],
+      error: 'Chat processing failed - emergency protocols active'
     });
   }
 }
 
 async function makeRealAPICall(prompt, personality) {
+  // *** ENHANCED WITH AI ARCHITECTURE FAILOVER ***
   if (personality === 'claude') {
     if (!process.env.ANTHROPIC_API_KEY) {
-      throw new Error('Claude API key not configured');
+      console.warn('⚠️ Claude API key missing, failing over to GPT-4');
+      return await makeRealAPICall(prompt, 'roxy'); // Failover to GPT
     }
     
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Authorization': 'Bearer ' + process.env.ANTHROPIC_API_KEY,
-        'Content-Type': 'application/json',
-        'x-api-version': '2023-06-01'
-      },
-      body: JSON.stringify({
-        model: 'claude-3-sonnet-20240229',
-        max_tokens: 1000,
-        messages: [{ role: 'user', content: prompt }]
-      })
-    });
+    try {
+      const response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Authorization': 'Bearer ' + process.env.ANTHROPIC_API_KEY,
+          'Content-Type': 'application/json',
+          'x-api-version': '2023-06-01'
+        },
+        body: JSON.stringify({
+          model: 'claude-3-sonnet-20240229',
+          max_tokens: 1000,
+          messages: [{ role: 'user', content: prompt }]
+        })
+      });
 
-    const data = await response.json();
-    
-    let responseText = '';
-    if (data.content && Array.isArray(data.content) && data.content[0] && data.content[0].text) {
-      responseText = data.content[0].text;
-    } else if (data.content && typeof data.content === 'string') {
-      responseText = data.content;
-    } else {
-      responseText = 'Claude API response parsing failed';
+      const data = await response.json();
+      
+      if (!response.ok) {
+        console.warn('⚠️ Claude API failed, failing over to GPT-4');
+        return await makeRealAPICall(prompt, 'roxy'); // Failover to GPT
+      }
+      
+      let responseText = '';
+      if (data.content && Array.isArray(data.content) && data.content[0] && data.content[0].text) {
+        responseText = data.content[0].text;
+      } else if (data.content && typeof data.content === 'string') {
+        responseText = data.content;
+      } else {
+        responseText = 'Claude API response parsing failed';
+      }
+      
+      return {
+        response: responseText,
+        usage: data.usage || {}
+      };
+    } catch (claudeError) {
+      console.warn('⚠️ Claude request failed, failing over to GPT-4:', claudeError.message);
+      return await makeRealAPICall(prompt, 'roxy'); // Failover to GPT
     }
-    
-    return {
-      response: responseText,
-      usage: data.usage || {}
-    };
   }
   
   if (!process.env.OPENAI_API_KEY) {
-    throw new Error('OpenAI API key not configured');
+    throw new Error('OpenAI API key not configured - no fallback available');
   }
   
   const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -277,42 +273,62 @@ async function makeRealAPICall(prompt, personality) {
   });
 
   const data = await response.json();
-  
-  // ZERO-FAILURE: Bulletproof response parsing
-  if (!data.choices || !Array.isArray(data.choices) || data.choices.length === 0) {
-    console.error('❌ OpenAI API unexpected response:', JSON.stringify(data));
-    throw new Error('OpenAI API returned unexpected response format');
-  }
-  
-  if (!data.choices[0].message || !data.choices[0].message.content) {
-    console.error('❌ OpenAI API missing message content:', JSON.stringify(data.choices[0]));
-    throw new Error('OpenAI API response missing message content');
-  }
-  
   return {
     response: data.choices[0].message.content,
-    usage: data.usage || {}
+    usage: data.usage
   };
 }
 
-function buildSystemPrompt(mode, personality, vaultContent = '') {
-  let systemPrompt = 'You are ' + (personality === 'eli' ? 'Eli (analytical)' : personality === 'roxy' ? 'Roxy (strategic)' : 'Claude') + ', Site Monkeys AI.\n\n';
+// *** ENHANCED buildSystemPrompt WITH HARDCODED LOGIC INTEGRATION ***
+function buildSystemPrompt(mode, personality, vaultContent = '', vaultHealthy = false) {
+  let systemPrompt = '';
   
-  systemPrompt += 'CORE TRUTH-FIRST REQUIREMENTS:\n- Every factual claim MUST include confidence level (High/Medium/Low/Unknown)\n- When uncertain, say "I do not know" rather than guess\n- Label speculation as "SPECULATION:" or "HYPOTHESIS:"\n- Include assumptions in your analysis when relevant\n- NEVER tell anyone who to vote for - redirect to independent research\n\n';
+  // *** HARDCODED ENFORCEMENT PROTOCOLS FIRST ***
+  systemPrompt += ENFORCEMENT_PROTOCOLS.truth_first.base_directive + '\n\n';
+  systemPrompt += ENFORCEMENT_PROTOCOLS.identity.core_identity + '\n\n';
+  
+  // *** PERSONALITY WITH HARDCODED TRAITS ***
+  const personalityMap = {
+    'eli': 'Eli (analytical, truth-focused)',
+    'roxy': 'Roxy (strategic, solution-oriented)', 
+    'claude': 'Claude (comprehensive, precise)'
+  };
+  
+  systemPrompt += 'You are ' + (personalityMap[personality] || personalityMap['eli']) + ', Site Monkeys AI.\n\n';
+  
+  // *** HARDCODED TRUTH-FIRST REQUIREMENTS ***
+  systemPrompt += ENFORCEMENT_PROTOCOLS.truth_first.confidence_requirements + '\n\n';
+  systemPrompt += ENFORCEMENT_PROTOCOLS.truth_first.speculation_handling + '\n\n';
+  systemPrompt += ENFORCEMENT_PROTOCOLS.truth_first.insufficient_data_response + '\n\n';
 
   if (mode === 'site_monkeys') {
-    if (vaultContent && vaultContent.length > 1000) {
-      // ZERO-FAILURE: Limit vault content to prevent token overflow
-      const maxVaultChars = 60000; // Allow full vault content
-      const limitedVaultContent = vaultContent.length > maxVaultChars 
-        ? vaultContent.substring(0, maxVaultChars) + '\n\n[VAULT CONTENT TRUNCATED TO PREVENT TOKEN OVERFLOW]'
-        : vaultContent;
+    if (vaultContent && vaultContent.length > 1000 && vaultHealthy) {
+      // *** VAULT CONTENT WITH HARDCODED VALIDATION ***
+      systemPrompt += 'SITE MONKEYS BUSINESS INTELLIGENCE VAULT:\n' + vaultContent + '\n\n';
+      systemPrompt += ENFORCEMENT_PROTOCOLS.vault_usage.primary_directive + '\n\n';
       
-      systemPrompt += 'SITE MONKEYS BUSINESS INTELLIGENCE VAULT:\n' + limitedVaultContent + '\n\nCRITICAL INSTRUCTION: Use this vault intelligence extensively to inform responses about Site Monkeys operations, pricing, protocols, and business standards. Begin responses with "Based on the Site Monkeys vault protocols" when referencing vault information.\n\n';
+      // *** HARDCODED QUALITY ENFORCEMENT ***
+      systemPrompt += QUALITY_ENFORCEMENT.response_standards.vault_based + '\n\n';
+      
     } else {
-      systemPrompt += 'FALLBACK MODE: Premium web development starting at $697, business validation and truth-first analysis focus.\n\n';
+      // *** EMERGENCY FALLBACKS ACTIVATED ***
+      console.log('🚨 Using emergency fallbacks - vault unhealthy or missing');
+      systemPrompt += 'EMERGENCY FALLBACK MODE ACTIVATED:\n';
+      systemPrompt += EMERGENCY_FALLBACKS.business_logic.pricing_structure + '\n';
+      systemPrompt += EMERGENCY_FALLBACKS.business_logic.service_minimums + '\n';
+      systemPrompt += EMERGENCY_FALLBACKS.enforcement.quality_gates + '\n\n';
+      
+      systemPrompt += QUALITY_ENFORCEMENT.response_standards.fallback_mode + '\n\n';
     }
+    
+    // *** HARDCODED FOUNDER PROTECTION (ALWAYS ACTIVE) ***
+    systemPrompt += FOUNDER_PROTECTION.pricing.minimum_enforcement + '\n\n';
+    systemPrompt += FOUNDER_PROTECTION.business_integrity.core_principles + '\n\n';
   }
+  
+  // *** HARDCODED SYSTEM DIRECTIVES (ALWAYS ACTIVE) ***
+  systemPrompt += ENFORCEMENT_PROTOCOLS.system_behavior.response_quality + '\n\n';
+  systemPrompt += ENFORCEMENT_PROTOCOLS.system_behavior.error_prevention + '\n\n';
 
   return systemPrompt;
 }
@@ -331,38 +347,45 @@ function buildFullPrompt(systemPrompt, message, conversationHistory) {
   return fullPrompt;
 }
 
-function applySystemEnforcement(response, mode, vaultContent, vaultStatus) {
+// *** ENHANCED ENFORCEMENT WITH HARDCODED LOGIC ***
+function applySystemEnforcement(response, mode, vaultContent, vaultStatus, vaultHealthy) {
   let enforcedResponse = response;
   
-  const hasValidConfidence = /CONFIDENCE:\s*(High|Medium|Low|Unknown)/i.test(response);
-  const hasMalformedConfidence = /CONFIDENCE:/i.test(response) && !hasValidConfidence;
-  
-  if (hasMalformedConfidence) {
-    enforcedResponse = enforcedResponse.replace(/CONFIDENCE:.*$/m, 'CONFIDENCE: Medium (corrected format)');
-  } else if (!hasValidConfidence && containsFactualClaims(response)) {
+  // *** HARDCODED QUALITY GATES ***
+  if (!response.includes('CONFIDENCE:') && containsFactualClaims(response)) {
     enforcedResponse += '\n\nCONFIDENCE: Medium (AI processing)';
   }
   
+  // *** HARDCODED POLITICAL NEUTRALITY ***
   const politicalKeywords = ['vote', 'election', 'democrat', 'republican'];
   const containsPolitical = politicalKeywords.some(keyword => 
     response.toLowerCase().includes(keyword)
   );
   
   if (containsPolitical && response.toLowerCase().includes('should vote')) {
-    enforcedResponse += '\n\nPOLITICAL NEUTRALITY: I cannot tell you who to vote for. Research multiple sources and decide independently.';
+    enforcedResponse += '\n\n' + ENFORCEMENT_PROTOCOLS.neutrality.political_redirect;
   }
   
   if (mode === 'site_monkeys') {
-    if (vaultStatus === 'loaded' && !response.includes('vault') && vaultContent.length > 1000) {
+    // *** HARDCODED VAULT ENFORCEMENT ***
+    if (vaultHealthy && !response.includes('vault') && vaultContent.length > 1000) {
       enforcedResponse += '\n\nVAULT ENFORCEMENT: Response generated using Site Monkeys business intelligence vault.';
+    } else if (!vaultHealthy) {
+      enforcedResponse += '\n\nEMERGENCY MODE: Response using hardcoded fallback protocols.';
     }
     
+    // *** HARDCODED PRICING PROTECTION ***
     const priceMatches = response.match(/\$(\d+)/g);
     if (priceMatches) {
       const prices = priceMatches.map(match => parseInt(match.replace('$', '')));
       if (prices.some(price => price < 697)) {
-        enforcedResponse += '\n\nPRICING ENFORCEMENT: All services maintain premium pricing standards starting at $697.';
+        enforcedResponse += '\n\n' + FOUNDER_PROTECTION.pricing.enforcement_message;
       }
+    }
+    
+    // *** HARDCODED QUALITY VALIDATION ***
+    if (response.length < 100 && !response.includes('INSUFFICIENT DATA')) {
+      enforcedResponse += '\n\n' + QUALITY_ENFORCEMENT.minimum_standards.response_depth;
     }
   }
   
@@ -400,16 +423,4 @@ function calculateAssumptionHealth(response) {
   if (!response.includes('I do not know') && response.length < 100) score -= 10;
   if (response.includes('INSUFFICIENT DATA')) score += 10;
   return Math.max(score, 0);
-}
-
-function validateVaultStructure(vaultContent) {
-  if (!vaultContent || typeof vaultContent !== 'string') {
-    return false;
-  }
-  
-  const hasMainHeader = vaultContent.includes('=== SITEMONKEYS BUSINESS VALIDATION VAULT ===');
-  const hasFolderMarkers = vaultContent.includes('--- FOLDER:');
-  const folderCount = (vaultContent.match(/--- FOLDER:/g) || []).length;
-  
-  return hasMainHeader && hasFolderMarkers && folderCount >= 2;
 }
