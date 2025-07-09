@@ -303,7 +303,7 @@ function buildSystemPrompt(mode, personality, vaultContent = '') {
   if (mode === 'site_monkeys') {
     if (vaultContent && vaultContent.length > 1000) {
       // ZERO-FAILURE: Limit vault content to prevent token overflow
-      const maxVaultChars = 40000; // ~10,000 tokens max
+      const maxVaultChars = 60000; // Allow full vault content
       const limitedVaultContent = vaultContent.length > maxVaultChars 
         ? vaultContent.substring(0, maxVaultChars) + '\n\n[VAULT CONTENT TRUNCATED TO PREVENT TOKEN OVERFLOW]'
         : vaultContent;
