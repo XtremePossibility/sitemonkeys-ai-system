@@ -885,7 +885,7 @@ setTimeout(() => { button.innerHTML = '🔄 Refresh Vault'; }, 3000);
 }
 }
 
-// Enhanced Chat functionality with clean responses and thinking indicator
+// COMPLETE FRONTEND INTEGRATION - sendMessage with vault injection
 async function sendMessage() {
 const input = document.getElementById('user-input');
 const text = input.value.trim();
@@ -909,7 +909,21 @@ box.appendChild(thinkingBubble);
 box.scrollTop = box.scrollHeight;
 
 try {
-// Send message with mode and vault status
+// *** CRITICAL: Load vault content for backend injection ***
+let vaultContent = null;
+try {
+const vaultResponse = await fetch('/api/load-vault', {
+method: 'GET',
+headers: { 'Content-Type': 'application/json' }
+});
+const vaultData = await vaultResponse.json();
+vaultContent = vaultData.vault_content;
+console.log('🎯 Vault loaded for chat:', vaultContent ? 'SUCCESS (' + Math.ceil(vaultContent.length/4) + ' tokens)' : 'FAILED');
+} catch (vaultError) {
+console.warn('⚠️ Vault load failed, backend will use emergency fallbacks:', vaultError);
+}
+
+// Send message with vault content injection
 const response = await fetch('/api/chat', {
 method: 'POST',
 headers: { 'Content-Type': 'application/json' },
@@ -917,7 +931,8 @@ body: JSON.stringify({
 message: text,
 conversation_history: conversationHistory,
 mode: getCurrentMode(),
-vault_loaded: isVaultMode()
+vault_loaded: isVaultMode(),
+vault_content: vaultContent  // *** CRITICAL: Inject vault content ***
 })
 });
 
@@ -945,7 +960,7 @@ let cleanReply = reply
   .replace(/\[FLOW:.*?\]/g, '') // Remove flow references
   .replace(/\[ASSUMPTIONS:.*?\]/g, '') // Remove assumption references
   .trim();
-        
+
 // Determine who speaks
 const isEli = aiToggle;
 const who = isEli ? 'Eli' : 'Roxy';
@@ -970,6 +985,12 @@ conversationHistory.push({ role: 'assistant', content: reply });
 
 // Toggle for next message
 aiToggle = !aiToggle;
+
+// *** ENHANCED: Log vault status for debugging ***
+if (data.vault_status) {
+console.log('📊 Vault Status:', data.vault_status);
+console.log('🔧 Enforcement Applied:', data.enforcement_applied);
+}
 
 } catch (error) {
 console.error('❌ Chat error:', error);
