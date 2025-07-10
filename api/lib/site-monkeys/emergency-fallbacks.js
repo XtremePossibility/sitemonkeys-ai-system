@@ -181,24 +181,30 @@ SYSTEM BEHAVIOR PROTOCOLS:
   }
 };
 
-// VAULT VALIDATION FUNCTION - CORRECTED FOR ACTUAL VAULT STRUCTURE
+// VAULT VALIDATION FUNCTION - FIXED FOR TEXT-BASED VAULT CONTENT
 function validateVaultStructure(vaultData) {  
   try {
-    // Convert to string for content analysis
-    const vaultContent = typeof vaultData === 'string' ? vaultData : JSON.stringify(vaultData);
+    // Your vault is TEXT-BASED, not JSON - don't try to parse it
+    const vaultContent = typeof vaultData === 'string' ? vaultData : String(vaultData);
     
-    // Check minimum content length
-    if (!vaultContent || vaultContent.length < 1000) {
+    // Check minimum content length (you have 13,499 tokens = ~53,996 characters)
+    if (!vaultContent || vaultContent.length < 5000) {
       console.warn('⚠️ Vault content too short:', vaultContent.length);
       return false;
     }
     
-    // Check for actual business content that exists in your vault
+    // Check for actual business content that exists in your text-based vault
     const requiredBusinessContent = [
-      'pricing', 'boost', 'climb', 'lead',  // Pricing tiers
-      '697', '1497', '2997',                // Actual pricing values
-      'services', 'onboarding',             // Service content
-      'automation', 'quality'               // Business processes
+      'site monkeys',     // Your company name
+      '697',              // Boost pricing
+      '1497',             // Climb pricing  
+      '2997',             // Lead pricing
+      'boost',            // Service tiers
+      'climb',
+      'lead',
+      'pricing',          // Business concepts
+      'services',
+      'automation'
     ];
     
     const contentLower = vaultContent.toLowerCase();
@@ -206,13 +212,13 @@ function validateVaultStructure(vaultData) {
       contentLower.includes(term)
     );
     
-    // Must find at least 6 of 8 core business terms
-    if (foundContent.length >= 6) {
-      console.log('✅ Vault validation passed. Found business content:', foundContent);
+    // Must find at least 7 of 10 core business terms
+    if (foundContent.length >= 7) {
+      console.log('✅ Vault validation passed. Found business content:', foundContent.length + '/10 terms');
       return true;
     }
     
-    console.warn('⚠️ Vault missing essential business content. Found only:', foundContent);
+    console.warn('⚠️ Vault missing essential business content. Found only:', foundContent.length + '/10 terms:', foundContent);
     return false;
     
   } catch (e) {
