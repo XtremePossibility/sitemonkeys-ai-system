@@ -101,6 +101,33 @@ export default async function handler(req, res) {
 
     console.log('Processing chat request in ' + mode + ' mode:', message.substring(0, 100));
 
+    // *** CODE GENERATION DETECTION ***
+const codeKeywords = ['write code', 'create function', 'build module', 'function that'];
+const isCodeRequest = codeKeywords.some(keyword => message.toLowerCase().includes(keyword));
+
+if (isCodeRequest) {
+  console.log('🔧 Code request detected - using code generation system');
+  
+  const codeResult = await routeCodeGeneration(message, 'helper_code', 'site_monkeys');
+  
+  if (codeResult.success) {
+    const codeResponse = `Here's your generated code:
+
+\`\`\`javascript
+${codeResult.validated_output}
+\`\`\`
+
+Quality Grade: ${codeResult.enforcement_grade}`;
+
+    return res.status(200).json({
+      response: codeResponse,
+      mode_active: mode,
+      vault_status: { loaded: true, healthy: true },
+      enforcement_applied: ['code_generation_active']
+    });
+  }
+}
+
     // *** VAULT LOADING WITH HARDCODED FALLBACKS ***  
     if (mode === 'site_monkeys') {  
       // Try frontend-provided vault content first  
