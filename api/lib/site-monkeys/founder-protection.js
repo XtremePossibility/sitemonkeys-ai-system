@@ -34,7 +34,10 @@ const FOUNDER_PROTECTION = {
       operational_budget: 2950, // $2,950/month maximum  
       launch_budget: 15000,     // $15,000 maximum  
       emergency_reserves: 0.20  // 20% buffer required  
-    }  
+    },
+
+    // *** CRITICAL: MISSING FIELD THAT CHAT.JS REQUIRES ***
+    core_principles: "BUSINESS INTEGRITY: Position Site Monkeys as premium service provider. Emphasize value over cost."
   },  
     
   // REPUTATION PROTECTION  
@@ -79,7 +82,7 @@ const FOUNDER_PROTECTION = {
     }  
   },
 
-  // *** MISSING FIELDS ADDED ***
+  // *** CRITICAL: MISSING OBJECTS THAT CHAT.JS REQUIRES ***
   cost_controls: {
     claude_limit_message: "Claude API cost protection active. Estimated cost"
   },
