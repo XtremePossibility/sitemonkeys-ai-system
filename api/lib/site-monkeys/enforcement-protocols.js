@@ -103,18 +103,71 @@ function validateSystemCompliance(systemSpec) {
   };  
 }
 
-function enforceZeroFailureResponse(response, confidence) {  
+function enforceZeroFailureResponse(response, confidence, context = {}) {  
+  const result = {
+    response: response,
+    confidence: confidence,
+    enforcement_applied: [],
+    assumptions: [],
+    fallback_triggered: false,
+    quality_gates_passed: true,
+    reason: null
+  };
+
   // If confidence below threshold, trigger insufficient data response  
   if (confidence < 0.85) {  
-    return ENFORCEMENT_PROTOCOLS.truth_first.insufficient_data_response;  
+    result.fallback_triggered = true;
+    result.response = ENFORCEMENT_PROTOCOLS.truth_first.insufficient_data_response;
+    result.reason = "CONFIDENCE_BELOW_THRESHOLD";
+    result.enforcement_applied.push("confidence_gate_triggered");
+    result.quality_gates_passed = false;
+    return result;
   }  
     
   // Validate response doesn't violate truth-first mandate  
   if (containsGuessing(response)) {  
-    return "Response contained speculation. " + ENFORCEMENT_PROTOCOLS.truth_first.insufficient_data_response;  
+    result.fallback_triggered = true;
+    result.response = ENFORCEMENT_PROTOCOLS.truth_first.insufficient_data_response;
+    result.reason = "SPECULATION_DETECTED";
+    result.enforcement_applied.push("truth_first_violation");
+    result.assumptions = extractSpeculativeLanguage(response);
+    result.quality_gates_passed = false;
+    return result;
   }  
+
+  // Response passed all gates
+  result.enforcement_applied.push("truth_first_verified", "confidence_validated");
+  return result;
+}
+
+// Enhanced speculation detection with detailed extraction
+function extractSpeculativeLanguage(response) {
+  const guessing_indicators = [  
+    "probably", "likely", "might", "could be", "seems like",   
+    "appears to", "presumably", "I think", "maybe", "perhaps"  
+  ];  
     
-  return response;  
+  const found = [];
+  const lowercaseResponse = response.toLowerCase();
+  
+  guessing_indicators.forEach(indicator => {
+    if (lowercaseResponse.includes(indicator)) {
+      // Find the sentence containing the speculation
+      const sentences = response.split(/[.!?]+/);
+      for (const sentence of sentences) {
+        if (sentence.toLowerCase().includes(indicator)) {
+          found.push({
+            indicator: indicator,
+            context: sentence.trim(),
+            type: "speculation"
+          });
+          break;
+        }
+      }
+    }
+  });
+  
+  return found;
 }
 
 function containsGuessing(response) {  
