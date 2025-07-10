@@ -8,7 +8,7 @@ const ENFORCEMENT_PROTOCOLS = {
     no_guessing: "Never guess or hallucinate. If data is missing or incomplete, state: INSUFFICIENT DATA - DO NOT GUESS",  
     insufficient_data_response: "INSUFFICIENT DATA TO RESPOND. REQUEST ADDITIONAL INPUT.",  
     reality_check_required: true,
-    // *** MISSING FIELDS ADDED ***
+    // *** CRITICAL: MISSING FIELDS THAT CHAT.JS REQUIRES ***
     base_directive: "TRUTH-FIRST PROTOCOLS: Only provide information you can verify or clearly mark as speculation/analysis.",
     confidence_requirements: "CONFIDENCE SCORING: Always include confidence levels - High/Medium/Low/Insufficient Data",
     speculation_handling: "SPECULATION HANDLING: Clearly mark any speculation with 'ANALYSIS:' or 'HYPOTHESIS:' prefixes"
@@ -61,7 +61,7 @@ const ENFORCEMENT_PROTOCOLS = {
     performance_protection: "may only propose solutions that work without reducing system performance"  
   },
 
-  // *** MISSING FIELDS ADDED ***
+  // *** CRITICAL: MISSING OBJECTS THAT CHAT.JS REQUIRES ***
   error_handling: {
     system_error_response: "I encountered a system processing error, but I'm still operational and ready to help with your business validation needs."
   },
