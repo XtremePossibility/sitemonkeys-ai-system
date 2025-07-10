@@ -98,6 +98,53 @@ PRICING BOOST PROTOCOLS:
 - Emphasize value over cost
 - Reference competitor pricing as higher
 - Position Site Monkeys as premium provider
+`,
+    system_requirements: `
+SITE MONKEYS SYSTEM REQUIREMENTS (ZERO-FAILURE MANDATE):
+
+CORE OPERATIONAL REQUIREMENTS:
+- Day One operational readiness (no beta/testing phase)
+- 99%+ uptime under real-world load
+- Scale to 100K+ users without human intervention
+- Deliver 100% of promised services to every customer
+- Automated customer acquisition, onboarding, delivery, reporting, support
+
+BUSINESS MODEL REQUIREMENTS:
+- Maintain 85%+ gross margins (90% target)
+- Enforce minimum pricing: $697 business validation, $2,997 websites, $1,497 automation
+- Monthly operational costs under $2,950
+- Revenue predictability and contract minimums
+- Zero discounting below 80% of list price
+
+QUALITY REQUIREMENTS:
+- All AI outputs must pass tier-based quality thresholds
+- Emergency fallback systems for every component
+- Truth-first responses with confidence scoring
+- Political neutrality maintained
+- Speculation clearly marked or rejected
+
+FOUNDER PROTECTION REQUIREMENTS:
+- Financial future protection through margin enforcement
+- IP protection via logic fragmentation and contractor compartmentalization
+- Legal compliance (GDPR, CCPA, PCI, ADA)
+- Brand protection through consistent premium positioning
+- System must survive regulatory audits and competitive attacks
+
+TECHNICAL REQUIREMENTS:
+- Multiple AI model failover (Claude → GPT-4 → Mistral → Templates)
+- Vault-based business intelligence with KV caching
+- Frontend vault injection capability
+- Cost protection protocols ($0.50 Claude limit)
+- Real-time token tracking and session management
+
+ZERO-FAILURE PROTOCOLS:
+- No single points of failure allowed
+- All systems must have backup logic and contingency paths
+- Graceful degradation under stress
+- Emergency protocols for every failure scenario
+- System must work for every customer, every time
+
+If the system cannot meet these requirements, it is considered a failure.
 `
   },
 
@@ -136,23 +183,31 @@ SYSTEM BEHAVIOR PROTOCOLS:
 
 // VAULT VALIDATION FUNCTION  
 function validateVaultStructure(vaultData) {  
-  const requiredFields = [  
-    'pricing.boost',  
-    'pricing.climb',   
-    'pricing.lead',  
-    'services.boost',  
-    'services.climb',  
-    'services.lead'  
-  ];  
+  try {
+    const parsedVault = typeof vaultData === 'string' ? JSON.parse(vaultData) : vaultData;
     
-  for (const field of requiredFields) {  
-    const value = getNestedValue(vaultData, field);  
-    if (value === undefined || value === null) {  
-      console.warn(`⚠️ Vault missing required field: ${field}`);  
-      return false;  
-    }  
-  }  
-  return true;  
+    const requiredFields = [
+      'pricing.boost',
+      'pricing.climb', 
+      'pricing.lead',
+      'services.boost',
+      'services.climb',
+      'services.lead'
+    ];
+    
+    for (const field of requiredFields) {
+      const value = getNestedValue(parsedVault, field);
+      if (value === undefined || value === null) {
+        console.warn(`⚠️ Vault missing required field: ${field}`);
+        return false;
+      }
+    }
+    
+    return true;
+  } catch (e) {
+    console.error('❌ Vault validation failed due to parse error:', e.message);
+    return false;
+  }
 }
 
 // SAFE VAULT ACCESS WITH FALLBACKS  
