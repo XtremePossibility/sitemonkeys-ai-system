@@ -75,7 +75,7 @@ const EMERGENCY_FALLBACKS = {
     founder_escalation_threshold: 0.05  
   },
 
-  // *** CRITICAL FIX: ADD MISSING KEYS THAT CHAT.JS EXPECTS ***
+  // *** CRITICAL: MISSING OBJECTS THAT CHAT.JS REQUIRES ***
   business_logic: {
     pricing_structure: `
 SITE MONKEYS PRICING ENFORCEMENT:
