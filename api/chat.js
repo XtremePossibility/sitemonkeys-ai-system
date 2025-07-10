@@ -1,12 +1,30 @@
 // ZERO-FAILURE CHAT.JS - COMPLETE INTEGRATION  
-// Frontend vault injection + Backend hardcoded logic + Emergency fallbacks  
+// Frontend vault injection + Backend hardcoded logic + Emergency fallbacks + VALIDATION MODULES
 import { trackApiCall, formatSessionDataForUI } from './lib/tokenTracker.js';  
 import { EMERGENCY_FALLBACKS, validateVaultStructure, getVaultValue } from './lib/site-monkeys/emergency-fallbacks.js';  
 import { ENFORCEMENT_PROTOCOLS } from './lib/site-monkeys/enforcement-protocols.js';  
 import { QUALITY_ENFORCEMENT } from './lib/site-monkeys/quality-enforcement.js';  
 import { AI_ARCHITECTURE } from './lib/site-monkeys/ai-architecture.js';  
 import { FOUNDER_PROTECTION } from './lib/site-monkeys/founder-protection.js';
-import zlib from 'zlib'; // *** CRITICAL FIX: Import zlib for gzip decompression ***
+import zlib from 'zlib';
+
+// *** CRITICAL: VALIDATION MODULES INTEGRATION ***
+import { 
+  validateSystemIntegrity, 
+  emergencyDiagnostic, 
+  createDriftMonitor 
+} from './lib/validators/drift-watcher.js';
+
+import { 
+  enforceInitiative, 
+  validateInitiative, 
+  scoreInitiativeQuality,
+  createInitiativeMonitor 
+} from './lib/validators/initiative-enforcer.js';
+
+// *** INITIALIZE VALIDATION MONITORS ***
+let driftMonitor = null;
+let initiativeMonitor = null;
 
 export default async function handler(req, res) {  
   res.setHeader('Access-Control-Allow-Origin', '*');  
@@ -27,15 +45,53 @@ export default async function handler(req, res) {
   let vaultTokens = 0;  
   let vaultStatus = 'not_loaded';  
   let vaultHealthy = false;
+  let systemIntegrityReport = null;
 
   try {  
-    // *** CRITICAL: Accept vault_content from frontend ***  
+    // *** STEP 1: SYSTEM INTEGRITY VALIDATION ***
+    console.log('🔍 Running system integrity validation...');
+    
+    const currentProtocols = {
+      ENFORCEMENT_PROTOCOLS,
+      QUALITY_ENFORCEMENT, 
+      FOUNDER_PROTECTION,
+      AI_ARCHITECTURE,
+      EMERGENCY_FALLBACKS
+    };
+
+    systemIntegrityReport = validateSystemIntegrity(currentProtocols);
+    
+    if (!systemIntegrityReport.systemHealthy) {
+      console.error('🚨 SYSTEM INTEGRITY FAILURE:', systemIntegrityReport.summary);
+      
+      // Emergency diagnostic if critical failure
+      if (systemIntegrityReport.criticalFailure) {
+        emergencyDiagnostic(currentProtocols);
+      }
+    } else {
+      console.log('✅ System integrity validated - all protocols intact');
+    }
+
+    // Initialize monitors if not already created
+    if (!driftMonitor) {
+      driftMonitor = createDriftMonitor(currentProtocols, (alert) => {
+        console.error('🚨 DRIFT ALERT:', alert);
+      });
+    }
+    
+    if (!initiativeMonitor) {
+      initiativeMonitor = createInitiativeMonitor((alert) => {
+        console.warn('⚠️ INITIATIVE ALERT:', alert);
+      });
+    }
+
+    // *** STEP 2: REGULAR CHAT PROCESSING ***
     const {   
       message,   
       conversation_history = [],   
       mode = 'site_monkeys',   
       claude_requested = false,  
-      vault_content = null  // NEW: Frontend can send vault content directly  
+      vault_content = null
     } = req.body;
 
     if (!message || typeof message !== 'string') {  
@@ -155,9 +211,27 @@ export default async function handler(req, res) {
     }
 
     const trackingResult = trackApiCall(personality, promptTokens, completionTokens, vaultTokens);  
-    const enforcedResponse = applySystemEnforcement(apiResponse.response, mode, vaultContent, vaultStatus, vaultHealthy);  
+    
+    // *** STEP 3: INITIATIVE VALIDATION & ENFORCEMENT ***
+    console.log('🎯 Running initiative validation on AI response...');
+    
+    const initiativeResults = enforceInitiative(apiResponse.response, mode, personality);
+    const initiativeQuality = scoreInitiativeQuality(apiResponse.response, mode, personality);
+    
+    // Track initiative in monitor
+    const monitoringResults = initiativeMonitor.trackResponse(apiResponse.response, mode, personality);
+    
+    console.log('📊 Initiative Quality Score:', initiativeQuality.overall_score, 'Grade:', initiativeQuality.quality_grade);
+    
+    if (initiativeResults.enforced) {
+      console.log('⚠️ Initiative enforcement applied:', initiativeResults.enforcement_actions);
+    }
+
+    // *** STEP 4: SYSTEM ENFORCEMENT (EXISTING LOGIC) ***
+    const enforcedResponse = applySystemEnforcement(initiativeResults.response, mode, vaultContent, vaultStatus, vaultHealthy);  
     const sessionData = formatSessionDataForUI();
 
+    // *** STEP 5: COMPREHENSIVE RESPONSE WITH VALIDATION DATA ***
     res.status(200).json({  
       response: enforcedResponse,  
       mode_active: mode,  
@@ -175,8 +249,28 @@ export default async function handler(req, res) {
         vaultHealthy ? 'vault_business_logic' : 'emergency_fallback_mode',  
         'assumption_analysis_active',  
         'founder_protection_active',  
-        'zero_failure_protocols_active'  
+        'zero_failure_protocols_active',
+        'system_integrity_validated',
+        'initiative_enforcement_active'
       ],  
+      
+      // *** NEW: VALIDATION REPORTING ***
+      validation_status: {
+        system_integrity: {
+          healthy: systemIntegrityReport?.systemHealthy || false,
+          drift_detected: systemIntegrityReport?.driftDetected || false,
+          critical_failure: systemIntegrityReport?.criticalFailure || false,
+          summary: systemIntegrityReport?.summary || {}
+        },
+        initiative_quality: {
+          score: initiativeQuality.overall_score,
+          grade: initiativeQuality.quality_grade,
+          shows_initiative: initiativeQuality.shows_initiative,
+          enforcement_applied: initiativeResults.enforced,
+          enforcement_actions: initiativeResults.enforcement_actions || []
+        }
+      },
+      
       assumption_analysis: {  
         detected: extractAssumptions(enforcedResponse),  
         health_score: calculateAssumptionHealth(enforcedResponse)  
@@ -204,11 +298,16 @@ export default async function handler(req, res) {
       mode_active: req.body.mode || 'site_monkeys',  
       vault_status: { loaded: vaultStatus !== 'not_loaded', tokens: vaultTokens, healthy: vaultHealthy },  
       enforcement_applied: ['emergency_fallback_active', 'truth_enforcement_active', 'founder_protection_active'],  
+      validation_status: {
+        system_integrity: { healthy: false, error: error.message },
+        initiative_quality: { score: 0, grade: 'F', error: 'Processing failed' }
+      },
       error: 'Chat processing failed - emergency protocols active'  
     });  
   }  
 }
 
+// *** VALIDATION-AWARE API CALL FUNCTION ***
 async function makeRealAPICall(prompt, personality) {  
   // *** ENHANCED WITH AI ARCHITECTURE FAILOVER ***  
   if (personality === 'claude') {  
