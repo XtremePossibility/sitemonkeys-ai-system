@@ -35,7 +35,7 @@ const QUALITY_ENFORCEMENT = {
     social_content: "Brand-aligned social media templates"  
   },
 
-  // *** MISSING FIELDS ADDED ***
+  // *** CRITICAL: MISSING OBJECTS THAT CHAT.JS REQUIRES ***
   response_standards: {
     vault_based: "QUALITY ENFORCEMENT: Response generated using Site Monkeys business intelligence vault.",
     fallback_mode: "EMERGENCY MODE: Response using hardcoded fallback protocols."
@@ -250,4 +250,4 @@ export {
   validateAIOutput,  
   processWithFailover,  
   getEmergencyTemplate  
-};Okay. Okay. 
+};
