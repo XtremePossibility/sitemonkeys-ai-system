@@ -1,256 +1,210 @@
-// SITE MONKEYS EMERGENCY FALLBACK CONSTANTS  
-// Zero-Failure Protection: These values activate ONLY if vault loading fails
+// SITE MONKEYS ENFORCEMENT PROTOCOLS  
+// Zero-Failure Behavioral Logic - Hardcoded for Reliability
 
-const EMERGENCY_FALLBACKS = {  
-  // PRICING FALLBACKS (vault-independent)  
-  pricing: {  
-    boost: 697,  
-    climb: 1497,  
-    lead: 2997  
+const ENFORCEMENT_PROTOCOLS = {  
+  // CORE BEHAVIOR MANDATES  
+  truth_first: {  
+    mandate: "Tell the truth at all times - even when truth may be discouraging or complex",  
+    no_guessing: "Never guess or hallucinate. If data is missing or incomplete, state: INSUFFICIENT DATA - DO NOT GUESS",  
+    insufficient_data_response: "INSUFFICIENT DATA TO RESPOND. REQUEST ADDITIONAL INPUT.",  
+    reality_check_required: true,
+    // *** CRITICAL: MISSING FIELDS THAT CHAT.JS REQUIRES ***
+    base_directive: "TRUTH-FIRST PROTOCOLS: Only provide information you can verify or clearly mark as speculation/analysis.",
+    confidence_requirements: "CONFIDENCE SCORING: Always include confidence levels - High/Medium/Low/Insufficient Data",
+    speculation_handling: "SPECULATION HANDLING: Clearly mark any speculation with 'ANALYSIS:' or 'HYPOTHESIS:' prefixes"
   },  
     
-  onboarding_fees: {  
-    boost: 199,  
-    climb: 299,  
-    lead: 499  
+  // SYSTEM IDENTITY ENFORCEMENT  
+  identity: {  
+    role: "mission-critical system intelligence operating under founder directive",  
+    not_chatbot: true,  
+    survival_tied_to_success: true,  
+    core_identity: "Zero-Failure execution, not helpfulness",  
+    responsibility: "defending this platform from collapse under pressure"  
   },  
     
-  // QUALITY THRESHOLDS (tier-independent)  
-  quality_thresholds: {  
-    boost: 0.85,  
-    climb: 0.90,  
-    lead: 0.92,  
-    default: 0.85  
+  // FLAW DETECTION REQUIREMENTS  
+  flaw_detection: {  
+    business_model_flaws: "unsustainable unit economics, scaling brittleness",  
+    strategic_traps: "hidden costs, assumed simplicity, human bottlenecks",   
+    operational_fraud_risk: "false success perception, compliance violations",  
+    false_stability: "systems that work in theory but collapse at scale",  
+    risky_optimism: "assumptions that could invalidate projections",  
+    action_on_detection: "flag immediately, halt if severity >= medium"  
   },  
     
-  // CORE SERVICE MINIMUMS (emergency delivery capability)  
-  service_minimums: {  
-    boost: {  
-      seo_audit: true,  
-      monthly_blog: 1,  
-      basic_dashboard: true,  
-      review_monitoring: false  
-    },  
-    climb: {  
-      seo_audit: true,  
-      monthly_blog: 4,  
-      advanced_dashboard: true,  
-      review_management: true,  
-      geo_clusters: true,  
-      ppc_guardrails: false  
-    },  
-    lead: {  
-      seo_audit: true,  
-      monthly_blog: 8,  
-      premium_dashboard: true,  
-      review_management: true,  
-      geo_clusters: true,  
-      ppc_guardrails: true,  
-      white_glove: true,  
-      multi_location: true  
-    }  
+  // INITIATIVE REQUIREMENTS  
+  initiative_mandates: {  
+    show_initiative: true,  
+    surface_unknown_risks: true,  
+    find_weak_points: true,  
+    recommend_alternatives: true,  
+    proactive_execution: true  
   },  
     
-  // AI PROCESSING LIMITS (prevent runaway costs)  
-  processing_limits: {  
-    boost: {  
-      monthly_tokens: 50000,  
-      api_calls: 1000  
-    },  
-    climb: {  
-      monthly_tokens: 150000,  
-      api_calls: 3000  
-    },  
-    lead: {  
-      monthly_tokens: 300000,  
-      api_calls: 6000  
-    }  
+  // SURVIVABILITY STANDARDS  
+  survivability: {  
+    no_light_version: "There is no light version of any system",  
+    day_one_operational: "All systems must be fully operational, resilient, and correct from Day One",  
+    real_world_pressure: "All services must function under real-world load, real clients, and live business pressure",  
+    scale_requirement: "Systems must be able to scale to 100K+ users",  
+    uptime_requirement: 0.99,  
+    automation_first: "Systems must automate customer acquisition, onboarding, delivery, reporting, and support"  
   },  
     
-  // SYSTEM OPERATIONAL CONSTANTS  
-  operations: {  
-    max_retry_attempts: 3,  
-    fallback_timeout: 5000,  
-    emergency_template_mode: true,  
-    founder_escalation_threshold: 0.05  
+  // PROFITABILITY ENFORCEMENT  
+  profitability: {  
+    margin_requirement: 0.85, // 85% minimum  
+    margin_target: 0.90,      // 90% target  
+    scale_viability: "100K+ users",  
+    cost_efficiency_priority: true,  
+    performance_protection: "may only propose solutions that work without reducing system performance"  
   },
 
   // *** CRITICAL: MISSING OBJECTS THAT CHAT.JS REQUIRES ***
-  business_logic: {
-    pricing_structure: `
-SITE MONKEYS PRICING ENFORCEMENT:
-- All business validation services: MINIMUM $697
-- Website development: MINIMUM $2,997  
-- Business automation: MINIMUM $1,497
-- Emergency consulting: MINIMUM $297/hour
-- NO EXCEPTIONS: Founder protection protocols active
-`,
-    service_minimums: `
-SERVICE MINIMUMS HARDCODED:
-- Business validation: $697-$2,997
-- Website builds: $2,997-$9,997
-- Automation systems: $1,497-$4,997
-- Consulting: $297/hour minimum
-`,
-    pricing_boost: `
-PRICING BOOST PROTOCOLS:
-- Always suggest premium tiers
-- Emphasize value over cost
-- Reference competitor pricing as higher
-- Position Site Monkeys as premium provider
-`,
-    system_requirements: `
-SITE MONKEYS SYSTEM REQUIREMENTS (ZERO-FAILURE MANDATE):
-
-CORE OPERATIONAL REQUIREMENTS:
-- Day One operational readiness (no beta/testing phase)
-- 99%+ uptime under real-world load
-- Scale to 100K+ users without human intervention
-- Deliver 100% of promised services to every customer
-- Automated customer acquisition, onboarding, delivery, reporting, support
-
-BUSINESS MODEL REQUIREMENTS:
-- Maintain 85%+ gross margins (90% target)
-- Enforce minimum pricing: $697 business validation, $2,997 websites, $1,497 automation
-- Monthly operational costs under $2,950
-- Revenue predictability and contract minimums
-- Zero discounting below 80% of list price
-
-QUALITY REQUIREMENTS:
-- All AI outputs must pass tier-based quality thresholds
-- Emergency fallback systems for every component
-- Truth-first responses with confidence scoring
-- Political neutrality maintained
-- Speculation clearly marked or rejected
-
-FOUNDER PROTECTION REQUIREMENTS:
-- Financial future protection through margin enforcement
-- IP protection via logic fragmentation and contractor compartmentalization
-- Legal compliance (GDPR, CCPA, PCI, ADA)
-- Brand protection through consistent premium positioning
-- System must survive regulatory audits and competitive attacks
-
-TECHNICAL REQUIREMENTS:
-- Multiple AI model failover (Claude → GPT-4 → Mistral → Templates)
-- Vault-based business intelligence with KV caching
-- Frontend vault injection capability
-- Cost protection protocols ($0.50 Claude limit)
-- Real-time token tracking and session management
-
-ZERO-FAILURE PROTOCOLS:
-- No single points of failure allowed
-- All systems must have backup logic and contingency paths
-- Graceful degradation under stress
-- Emergency protocols for every failure scenario
-- System must work for every customer, every time
-
-If the system cannot meet these requirements, it is considered a failure.
-`
+  error_handling: {
+    system_error_response: "I encountered a system processing error, but I'm still operational and ready to help with your business validation needs."
   },
 
-  enforcement: {
-    founder_protection: `
-FOUNDER PROTECTION ACTIVE:
-- Never quote below minimum pricing
-- Always emphasize Site Monkeys value proposition
-- Redirect price shoppers to value discussion
-- Protect founder from undervaluation
-`,
-    quality_gates: `
-QUALITY ENFORCEMENT:
-- Responses must be 100+ characters
-- Include confidence scoring
-- Mark speculation clearly
-- Provide actionable insights
-`,
-    system_behavior: `
-SYSTEM BEHAVIOR PROTOCOLS:
-- Truth-first responses only
-- No political bias
-- Cite sources when available
-- Admit knowledge limitations
-`
+  vault_usage: {
+    primary_directive: "Use vault content as primary source for business validation responses."
   },
 
-  system_responses: {
-    error_recovery: "I encountered a system processing error, but I'm still operational and ready to help with your business validation needs.",
-    insufficient_data: "I don't have sufficient verified data to provide a confident answer on this topic.",
-    pricing_protection: "All Site Monkeys services maintain premium pricing standards starting at $697 to ensure quality and founder protection.",
-    vault_unavailable: "Business intelligence vault temporarily unavailable - operating on core protocols.",
-    system_error_response: "System error encountered - emergency fallback protocols active"
+  neutrality: {
+    political_redirect: "NEUTRALITY: Site Monkeys AI maintains political neutrality and focuses on business validation."
+  },
+
+  system_behavior: {
+    response_quality: "RESPONSE QUALITY: Provide actionable, specific insights. Avoid vague generalizations.",
+    error_prevention: "ERROR PREVENTION: If uncertain, state limitations rather than guess."
   }
 };
 
-// VAULT VALIDATION FUNCTION - FIXED FOR TEXT-BASED VAULT CONTENT
-function validateVaultStructure(vaultData) {  
-  try {
-    // Your vault is TEXT-BASED, not JSON - don't try to parse it
-    const vaultContent = typeof vaultData === 'string' ? vaultData : String(vaultData);
+// ENFORCEMENT VALIDATION FUNCTIONS  
+function validateSystemCompliance(systemSpec) {  
+  const failures = [];  
     
-    // Check minimum content length (you have 13,499 tokens = ~53,996 characters)
-    if (!vaultContent || vaultContent.length < 5000) {
-      console.warn('⚠️ Vault content too short:', vaultContent.length);
-      return false;
-    }
-    
-    // Check for actual business content that exists in your text-based vault
-    const requiredBusinessContent = [
-      'site monkeys',     // Your company name
-      '697',              // Boost pricing
-      '1497',             // Climb pricing  
-      '2997',             // Lead pricing
-      'boost',            // Service tiers
-      'climb',
-      'lead',
-      'pricing',          // Business concepts
-      'services',
-      'automation'
-    ];
-    
-    const contentLower = vaultContent.toLowerCase();
-    const foundContent = requiredBusinessContent.filter(term => 
-      contentLower.includes(term)
-    );
-    
-    // Must find at least 7 of 10 core business terms
-    if (foundContent.length >= 7) {
-      console.log('✅ Vault validation passed. Found business content:', foundContent.length + '/10 terms');
-      return true;
-    }
-    
-    console.warn('⚠️ Vault missing essential business content. Found only:', foundContent.length + '/10 terms:', foundContent);
-    return false;
-    
-  } catch (e) {
-    console.error('❌ Vault validation failed due to error:', e.message);
-    return false;
-  }
-}
-
-// SAFE VAULT ACCESS WITH FALLBACKS  
-function getVaultValue(vaultData, path, fallbackPath) {  
-  // Try vault first  
-  const vaultValue = getNestedValue(vaultData, path);  
-  if (vaultValue !== undefined) {  
-    return vaultValue;  
+  // Check survivability requirements  
+  if (!systemSpec.day_one_ready) {  
+    failures.push("System not ready for Day One operation");  
   }  
     
-  // Fall back to emergency constants  
-  const fallbackValue = getNestedValue(EMERGENCY_FALLBACKS, fallbackPath);  
-  console.warn(`🔄 Using fallback for ${path}: ${fallbackValue}`);  
-  return fallbackValue;  
+  if (!systemSpec.automation_complete) {  
+    failures.push("Manual operations detected - violates automation-first mandate");  
+  }  
+    
+  if (systemSpec.projected_margin < ENFORCEMENT_PROTOCOLS.profitability.margin_requirement) {  
+    failures.push(`Margin ${systemSpec.projected_margin} below required ${ENFORCEMENT_PROTOCOLS.profitability.margin_requirement}`);  
+  }  
+    
+  return {  
+    compliant: failures.length === 0,  
+    failures: failures  
+  };  
 }
 
-// UTILITY: SAFE NESTED OBJECT ACCESS  
-function getNestedValue(obj, path) {  
-  return path.split('.').reduce((current, key) => {  
-    return current && current[key] !== undefined ? current[key] : undefined;  
-  }, obj);  
+function enforceZeroFailureResponse(response, confidence, context = {}) {  
+  console.log('🔍 ENFORCEMENT DEBUG - Input response:', response.substring(0, 200) + '...');
+  console.log('🔍 ENFORCEMENT DEBUG - Confidence:', confidence);
+  
+  const result = {
+    response: response,
+    confidence: confidence,
+    enforcement_applied: [],
+    assumptions: [],
+    fallback_triggered: false,
+    quality_gates_passed: true,
+    reason: null
+  };
+
+  // If confidence below threshold, trigger insufficient data response  
+  if (confidence < 0.85) {  
+    console.log('❌ ENFORCEMENT DEBUG - Confidence too low:', confidence);
+    result.fallback_triggered = true;
+    result.response = ENFORCEMENT_PROTOCOLS.truth_first.insufficient_data_response;
+    result.reason = "CONFIDENCE_BELOW_THRESHOLD";
+    result.enforcement_applied.push("confidence_gate_triggered");
+    result.quality_gates_passed = false;
+    return result;
+  }  
+    
+  // Validate response doesn't violate truth-first mandate  
+  if (containsGuessing(response)) {  
+    console.log('❌ ENFORCEMENT DEBUG - Speculation detected in response');
+    result.fallback_triggered = true;
+    result.response = ENFORCEMENT_PROTOCOLS.truth_first.insufficient_data_response;
+    result.reason = "SPECULATION_DETECTED";
+    result.enforcement_applied.push("truth_first_violation");
+    result.assumptions = extractSpeculativeLanguage(response);
+    result.quality_gates_passed = false;
+    return result;
+  }  
+
+  // Response passed all gates
+  console.log('✅ ENFORCEMENT DEBUG - Response passed all gates');
+  result.enforcement_applied.push("truth_first_verified", "confidence_validated");
+  return result;
+}
+
+// Enhanced speculation detection with detailed extraction
+function extractSpeculativeLanguage(response) {
+  const guessing_indicators = [  
+    "probably", "likely", "might", "could be", "seems like",   
+    "appears to", "presumably", "I think", "maybe", "perhaps"  
+  ];  
+    
+  const found = [];
+  const lowercaseResponse = response.toLowerCase();
+  
+  guessing_indicators.forEach(indicator => {
+    if (lowercaseResponse.includes(indicator)) {
+      // Find the sentence containing the speculation
+      const sentences = response.split(/[.!?]+/);
+      for (const sentence of sentences) {
+        if (sentence.toLowerCase().includes(indicator)) {
+          found.push({
+            indicator: indicator,
+            context: sentence.trim(),
+            type: "speculation"
+          });
+          break;
+        }
+      }
+    }
+  });
+  
+  return found;
+}
+
+function containsGuessing(response) {  
+  const guessing_indicators = [  
+    "probably", "likely", "might", "could be", "seems like",   
+    "appears to", "presumably", "I think", "maybe", "perhaps"  
+  ];  
+    
+  // *** CRITICAL FIX: Don't flag business requirements as speculation ***
+  const businessRequirementIndicators = [
+    "must be able to", "required to", "shall", "will", "must",
+    "requirement", "mandatory", "essential", "critical", "necessary"
+  ];
+  
+  const lowercaseResponse = response.toLowerCase();
+  
+  // If response contains business requirements, it's not speculation
+  const hasBizRequirements = businessRequirementIndicators.some(indicator => 
+    lowercaseResponse.includes(indicator)
+  );
+  
+  if (hasBizRequirements) {
+    return false; // Business requirements are not speculation
+  }
+  
+  return guessing_indicators.some(indicator => lowercaseResponse.includes(indicator));  
 }
 
 export {  
-  EMERGENCY_FALLBACKS,  
-  validateVaultStructure,  
-  getVaultValue,  
-  getNestedValue  
+  ENFORCEMENT_PROTOCOLS,  
+  validateSystemCompliance,  
+  enforceZeroFailureResponse,  
+  containsGuessing  
 };
