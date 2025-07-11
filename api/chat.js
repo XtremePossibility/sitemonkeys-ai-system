@@ -24,6 +24,8 @@ import {
 
 import { routeCodeGeneration } from './lib/validators/codeRouter.js';
 
+const codeResult = await routeCodeGeneration(message, 'helper_code', 'site_monkeys');
+
 // *** INITIALIZE VALIDATION MONITORS ***
 let driftMonitor = null;
 let initiativeMonitor = null;
