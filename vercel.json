@@ -1,28 +1,16 @@
 {
   "functions": {
     "api/functions/**/*.js": {
-      "runtime": "nodejs18.x"
+      "runtime": "@vercel/node@3.0.4"
     },
     "api/functions/**/*.py": {
-      "runtime": "python3.9"
+      "runtime": "@vercel/python@4.0.0"
     }
   },
   "rewrites": [
-    {
-      "source": "/api/chat",
-      "destination": "/api/functions/chat"
-    },
-    {
-      "source": "/api/code-generation", 
-      "destination": "/api/functions/code-generation"
-    },
-    {
-      "source": "/api/(.*)",
-      "destination": "/api/functions/$1"
-    },
-    {
-      "source": "/(.*)",
-      "destination": "/index.html"
-    }
+    { "source": "/api/chat", "destination": "/api/functions/chat" },
+    { "source": "/api/code-generation", "destination": "/api/functions/code-generation" },
+    { "source": "/api/(.*)", "destination": "/api/functions/$1" },
+    { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
