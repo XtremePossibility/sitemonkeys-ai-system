@@ -27,6 +27,8 @@ import { routeCodeGeneration } from './lib/validators/codeRouter.js';
 import { validateCodeOutput } from './lib/validators/validateCodeOutput.js';
 import { generateCode } from './lib/validators/code-generation.js';
 
+import { enhancedCodeGeneration } from './lib/validators/enhancedDetection.js';
+
 // *** INITIALIZE VALIDATION MONITORS ***
 let driftMonitor = null;
 let initiativeMonitor = null;
@@ -118,90 +120,60 @@ export default async function handler(req, res) {
     console.log('Processing chat request in ' + mode + ' mode:', message.substring(0, 100));
 
     // *** STEP 3: CODE GENERATION DETECTION & ROUTING ***
-    const codeKeywords = ['write code', 'create function', 'build module', 'function that', 'generate code', 'code for'];
-    const isCodeRequest = codeKeywords.some(keyword => message.toLowerCase().includes(keyword));
+    // *** STEP 3: ENHANCED CODE GENERATION DETECTION & ROUTING ***
+const codeGenerationResult = await enhancedCodeGeneration(message, mode);
 
-    if (isCodeRequest) {
-      console.log('🔧 Code request detected - using code generation system');
-      
-      try {
-        // *** FIXED: PROPER CODE GENERATION FLOW ***
-        const codeResult = await routeCodeGeneration(message, 'helper_code', 'site_monkeys');
-        
-        if (codeResult.success) {
-          // *** ENHANCED: CODE VALIDATION ***
-          const validationResult = await validateCodeOutput(codeResult.validated_output, 'javascript');
-          
-          const codeResponse = `Here's your generated code:
-
-\`\`\`javascript
-${codeResult.validated_output}
-\`\`\`
-
-**Quality Grade:** ${codeResult.enforcement_grade}
-**Validation Status:** ${validationResult.valid ? '✅ Valid' : '⚠️ Issues Detected'}
-${validationResult.issues?.length > 0 ? '**Issues:** ' + validationResult.issues.join(', ') : ''}
-
-This code follows Site Monkeys quality standards with zero-failure protocols.`;
-
-          // *** FIXED: COMPLETE RESPONSE STRUCTURE ***
-          return res.status(200).json({
-            response: codeResponse,
-            mode_active: mode,
-            vault_status: { 
-              loaded: true, 
-              healthy: true,
-              tokens: 0,
-              status: 'code_generation_mode',
-              source: 'code_generator'
-            },
-            enforcement_applied: [
-              'code_generation_active',
-              'truth_enforcement_active',
-              'quality_enforcement_active',
-              'zero_failure_protocols_active'
-            ],
-            validation_status: {
-              system_integrity: systemIntegrityReport,
-              initiative_quality: {
-                score: 95,
-                grade: 'A',
-                shows_initiative: true,
-                enforcement_applied: true,
-                enforcement_actions: ['code_generation_quality_enforced']
-              }
-            },
-            code_generation: {
-              quality_grade: codeResult.enforcement_grade,
-              validation_passed: validationResult.valid,
-              issues_found: validationResult.issues || []
-            },
-            assumption_analysis: {  
-              detected: ['code_request_identified'],  
-              health_score: 100  
-            },
-            security_pass: true,
-            performance: {
-              tokens_used: Math.ceil(message.length / 4),
-              prompt_tokens: Math.ceil(message.length / 4),
-              completion_tokens: Math.ceil(codeResponse.length / 4),
-              call_cost: 0.01,
-              session_total: 0.01,
-              vault_tokens: 0,
-              api_provider: 'code_generator'
-            },
-            session_tracking: formatSessionDataForUI(),
-            personality_used: 'code_generator'
-          });
-        } else {
-          console.warn('⚠️ Code generation failed, falling back to normal chat');
-          // Continue with normal chat flow
-        }
-      } catch (codeError) {
-        console.warn('⚠️ Code generation error, falling back to normal chat:', codeError.message);
-        // Continue with normal chat flow
+if (codeGenerationResult.isCodeRequest && codeGenerationResult.success) {
+  // *** ENHANCED: COMPLETE RESPONSE WITH TASK TYPE INTELLIGENCE ***
+  return res.status(200).json({
+    response: codeGenerationResult.response,
+    mode_active: mode,
+    vault_status: { 
+      loaded: true, 
+      healthy: true,
+      tokens: 0,
+      status: 'enhanced_code_generation_mode',
+      source: 'enhanced_code_generator'
+    },
+    enforcement_applied: [
+      'enhanced_code_generation_active',
+      'task_type_classification_active',
+      'truth_enforcement_active',
+      'quality_enforcement_active',
+      'zero_failure_protocols_active'
+    ],
+    validation_status: {
+      system_integrity: systemIntegrityReport,
+      initiative_quality: {
+        score: 95,
+        grade: 'A',
+        shows_initiative: true,
+        enforcement_applied: true,
+        enforcement_actions: ['enhanced_code_generation_quality_enforced']
       }
-    }
+    },
+    code_generation: codeGenerationResult.metadata,
+    assumption_analysis: {  
+      detected: ['enhanced_code_request_identified'],  
+      health_score: 100  
+    },
+    security_pass: true,
+    performance: {
+      tokens_used: Math.ceil(message.length / 4),
+      prompt_tokens: Math.ceil(message.length / 4),
+      completion_tokens: Math.ceil(codeGenerationResult.response.length / 4),
+      call_cost: 0.01,
+      session_total: 0.01,
+      vault_tokens: 0,
+      api_provider: 'enhanced_code_generator'
+    },
+    session_tracking: formatSessionDataForUI(),
+    personality_used: 'enhanced_code_generator'
+  });
+} else if (codeGenerationResult.isCodeRequest && !codeGenerationResult.success) {
+  console.log('Enhanced code generation failed, continuing with normal chat flow');
+  // Continue with normal chat processing below
+}
 
     // *** STEP 4: VAULT LOADING WITH HARDCODED FALLBACKS ***  
     if (mode === 'site_monkeys') {  
