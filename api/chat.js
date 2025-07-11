@@ -25,7 +25,7 @@ import {
 // *** FIXED: CODE GENERATION IMPORTS ***
 import { routeCodeGeneration } from './lib/validators/codeRouter.js';
 import { validateCodeOutput } from './lib/validators/validateCodeOutput.js';
-import { generateCode } from './lib/validators/code-generation.js';
+import { generateCode } from './code-generation.js';
 
 import { enhancedCodeGeneration } from './lib/validators/enhancedDetection.js';
 
