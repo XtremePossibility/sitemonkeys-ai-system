@@ -1,10 +1,10 @@
 {
   "functions": {
     "api/**/*.js": {
-      "runtime": "nodejs18.x"    // ✅ Valid Vercel runtime
+      "runtime": "nodejs18.x"
     },
     "api/**/*.py": {
-      "runtime": "python3.9"     // ✅ Valid Vercel runtime  
+      "runtime": "python3.9"
     }
   },
   "rewrites": [
