@@ -1,24 +1,39 @@
-name: Claude Integration
+name: Claude PR Assistant
 
 on:
-  issues:
-    types: [opened, edited, labeled]
   issue_comment:
     types: [created]
-  pull_request:
-    types: [opened, synchronize]
+  pull_request_review_comment:
+    types: [created]
+  issues:
+    types: [opened, assigned]
+  pull_request_review:
+    types: [submitted]
 
 jobs:
-  claude-integration:
+  claude-code-action:
+    if: |
+      (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude')) ||
+      (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '@claude')) ||
+      (github.event_name == 'pull_request_review' && contains(github.event.review.body, '@claude')) ||
+      (github.event_name == 'issues' && contains(github.event.issue.body, '@claude'))
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+      issues: read
+      id-token: write
     steps:
-      - name: Claude Code Integration
-        uses: fractureinc/claude-code-github-action/.github/workflows/claude-full.yml@v0.5.6
+      - name: Checkout repository
+        uses: actions/checkout@v4
         with:
-          # All parameters are optional with sensible defaults
-          issue-label: 'claude-fix'  # Label that triggers issue fixes
-          branch-prefix: 'fix'       # Prefix for branches created by fixes
-          debug-mode: false          # Enable verbose logging
-          strict-mode: true          # When false, allows Claude to add improvements
-        env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          fetch-depth: 1
+
+      - name: Run Claude PR Action
+        uses: grll/claude-code-action@beta
+        with:
+          use_oauth: true
+          claude_access_token: ${{ secrets.CLAUDE_ACCESS_TOKEN }}
+          claude_refresh_token: ${{ secrets.CLAUDE_REFRESH_TOKEN }}
+          claude_expires_at: ${{ secrets.CLAUDE_EXPIRES_AT }}
+          timeout_minutes: "60"
