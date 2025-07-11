@@ -151,8 +151,40 @@ function mapCategoryToTaskType(category) {
 }
 
 /**
+ * SIMPLE CODE VALIDATION (NO BABEL DEPENDENCY)
+ */
+function simpleValidateCode(code) {
+  const validation = {
+    valid: true,
+    issues: []
+  };
+
+  // Basic validation checks
+  if (!code || code.trim().length === 0) {
+    validation.valid = false;
+    validation.issues.push('Code cannot be empty');
+    return validation;
+  }
+
+  // Check for obvious syntax issues
+  const openBraces = (code.match(/{/g) || []).length;
+  const closeBraces = (code.match(/}/g) || []).length;
+  if (openBraces !== closeBraces) {
+    validation.issues.push('Mismatched braces detected');
+  }
+
+  const openParens = (code.match(/\(/g) || []).length;
+  const closeParens = (code.match(/\)/g) || []).length;
+  if (openParens !== closeParens) {
+    validation.issues.push('Mismatched parentheses detected');
+  }
+
+  return validation;
+}
+
+/**
  * ENHANCED CODE GENERATION INTEGRATION
- * Integrates with existing codeRouter.js and validateCodeOutput.js
+ * SIMPLIFIED - NO EXTERNAL DEPENDENCIES
  */
 async function enhancedCodeGeneration(message, mode = 'site_monkeys') {
   console.log('🔍 Analyzing code request...');
@@ -175,7 +207,6 @@ async function enhancedCodeGeneration(message, mode = 'site_monkeys') {
   try {
     // Import existing code generation system
     const { routeCodeGeneration } = await import('./codeRouter.js');
-    const { validateCodeOutput } = await import('./validateCodeOutput.js');
     
     // *** ENHANCED: USE CLASSIFIED TASK TYPE ***
     const codeResult = await routeCodeGeneration(
@@ -185,11 +216,8 @@ async function enhancedCodeGeneration(message, mode = 'site_monkeys') {
     );
     
     if (codeResult.success) {
-      // *** ENHANCED: TASK-TYPE-AWARE VALIDATION ***
-      const validationResult = await validateCodeOutput(
-        codeResult.validated_output, 
-        'javascript'
-      );
+      // *** SIMPLIFIED: BASIC VALIDATION WITHOUT BABEL ***
+      const validationResult = simpleValidateCode(codeResult.validated_output);
       
       // *** ENHANCED: SECURITY WARNINGS FOR CRITICAL CODE ***
       let securityNotice = '';
