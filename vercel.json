@@ -1,8 +1,24 @@
 {
+  "functions": {
+    "api/functions/**/*.js": {
+      "runtime": "@vercel/node@3.0.4"
+    },
+    "api/functions/**/*.py": {
+      "runtime": "@vercel/python@4.0.0"
+    }
+  },
   "rewrites": [
     {
+      "source": "/api/chat",
+      "destination": "/api/functions/chat"
+    },
+    {
+      "source": "/api/code-generation", 
+      "destination": "/api/functions/code-generation"
+    },
+    {
       "source": "/api/(.*)",
-      "destination": "/api/$1"
+      "destination": "/api/functions/$1"
     },
     {
       "source": "/(.*)",
