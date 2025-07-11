@@ -22,6 +22,8 @@ import {
   createInitiativeMonitor 
 } from './lib/validators/initiative-enforcer.js';
 
+import { routeCodeGeneration } from './lib/validators/codeRouter.js';
+
 // *** INITIALIZE VALIDATION MONITORS ***
 let driftMonitor = null;
 let initiativeMonitor = null;
