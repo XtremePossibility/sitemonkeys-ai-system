@@ -1,4 +1,4 @@
-// SITE MONKEYS AI - ZERO-FAILURE CODE OUTPUT VALIDATOR
+// SITE MONKEYS AI - ZERO-FAILURE CODE OUTPUT VALIDATOR & ROUTER
 // Mission: Comprehensive enforcement validation for AI-generated code
 // Used across Claude, GPT-4, and GPT-3.5 routing pipeline
 
@@ -20,6 +20,431 @@ const ESLINT_VIOLATIONS = {
 
 const REQUIRED_METADATA_FIELDS = ['intent', 'assumptions', 'dependencies'];
 const GENERIC_PLACEHOLDERS = ['TODO', 'placeholder', 'example', 'sample', 'test123', 'dummy'];
+
+// *** TASK TYPE DEFINITIONS - REQUIRED BY CODE-GENERATION.JS ***
+const TASK_TYPES = {
+  'critical_enforcement': {
+    description: 'Critical system enforcement code',
+    validation_threshold: 0.9,
+    max_tokens: 2000,
+    requires_review: true
+  },
+  'refactor_component': {
+    description: 'Refactoring existing components',
+    validation_threshold: 0.8,
+    max_tokens: 1500,
+    requires_review: false
+  },
+  'helper_code': {
+    description: 'Utility and helper functions',
+    validation_threshold: 0.7,
+    max_tokens: 1000,
+    requires_review: false
+  },
+  'test_stub': {
+    description: 'Test stubs and testing code',
+    validation_threshold: 0.6,
+    max_tokens: 800,
+    requires_review: false
+  },
+  'boilerplate': {
+    description: 'Boilerplate and template code',
+    validation_threshold: 0.5,
+    max_tokens: 500,
+    requires_review: false
+  }
+};
+
+// *** MAIN ROUTING FUNCTION - REQUIRED BY code-generation.js ***
+export async function routeCodeGeneration(prompt, taskType, mode = 'site_monkeys') {
+  console.log(`🎯 Routing code generation - Task: ${taskType}, Mode: ${mode}`);
+  
+  try {
+    // Validate task type
+    if (!TASK_TYPES[taskType]) {
+      return {
+        success: false,
+        error: `Invalid task type: ${taskType}`,
+        available_types: Object.keys(TASK_TYPES)
+      };
+    }
+
+    const taskConfig = TASK_TYPES[taskType];
+    console.log(`📋 Task config loaded - Threshold: ${taskConfig.validation_threshold}`);
+
+    // Generate code based on task type
+    const generatedCode = await generateCodeForTask(prompt, taskType, taskConfig);
+    
+    if (!generatedCode.success) {
+      return {
+        success: false,
+        error: generatedCode.error,
+        source_model: 'none'
+      };
+    }
+
+    // Validate the generated code
+    const validationResult = await validateCodeOutput(generatedCode.code, 'enhanced_router');
+    
+    console.log(`📊 Validation result - Score: ${validationResult.confidence_score}, Grade: ${validationResult.grade}`);
+
+    // Check if meets validation threshold
+    const meetsThreshold = validationResult.confidence_score >= taskConfig.validation_threshold;
+    
+    if (!meetsThreshold) {
+      console.warn(`⚠️ Code generation failed validation threshold: ${validationResult.confidence_score} < ${taskConfig.validation_threshold}`);
+      return {
+        success: false,
+        error: 'Generated code failed validation threshold',
+        confidence_score: validationResult.confidence_score,
+        enforcement_grade: validationResult.grade,
+        violations: validationResult.violations,
+        source_model: generatedCode.source_model
+      };
+    }
+
+    // Return successful result
+    return {
+      success: true,
+      validated_output: validationResult.cleaned_output,
+      confidence_score: validationResult.confidence_score,
+      enforcement_grade: validationResult.grade,
+      violations: validationResult.violations,
+      source_model: generatedCode.source_model,
+      metadata: {
+        task_type: taskType,
+        validation_threshold: taskConfig.validation_threshold,
+        model_metadata: generatedCode.metadata || {},
+        execution_log: [
+          `Task type: ${taskType}`,
+          `Validation score: ${validationResult.confidence_score}`,
+          `Grade: ${validationResult.grade}`,
+          `Violations: ${validationResult.violations.length}`
+        ]
+      }
+    };
+
+  } catch (error) {
+    console.error('❌ Code generation routing error:', error);
+    return {
+      success: false,
+      error: `Routing error: ${error.message}`,
+      source_model: 'error'
+    };
+  }
+}
+
+// *** GET AVAILABLE TASK TYPES - REQUIRED BY code-generation.js ***
+export function getAvailableTaskTypes() {
+  return Object.keys(TASK_TYPES).map(key => ({
+    type: key,
+    description: TASK_TYPES[key].description,
+    validation_threshold: TASK_TYPES[key].validation_threshold,
+    max_tokens: TASK_TYPES[key].max_tokens,
+    requires_review: TASK_TYPES[key].requires_review
+  }));
+}
+
+// *** GET VALIDATION THRESHOLD - REQUIRED BY code-generation.js ***
+export function getValidationThreshold(taskType) {
+  return TASK_TYPES[taskType]?.validation_threshold || 0.7;
+}
+
+// *** CODE GENERATION ENGINE ***
+async function generateCodeForTask(prompt, taskType, taskConfig) {
+  console.log(`🔧 Generating code for task: ${taskType}`);
+  
+  try {
+    // Enhanced prompt with task-specific context
+    const enhancedPrompt = buildTaskSpecificPrompt(prompt, taskType, taskConfig);
+    
+    // Determine best model for task
+    const modelChoice = selectModelForTask(taskType, taskConfig);
+    
+    // Generate code using selected approach
+    let generatedCode;
+    if (modelChoice === 'template') {
+      generatedCode = generateFromTemplate(prompt, taskType);
+    } else if (modelChoice === 'hardcoded') {
+      generatedCode = generateHardcodedResponse(prompt, taskType);
+    } else {
+      // Could integrate with AI models here in the future
+      generatedCode = generateHardcodedResponse(prompt, taskType);
+    }
+
+    return {
+      success: true,
+      code: generatedCode,
+      source_model: modelChoice,
+      metadata: {
+        task_type: taskType,
+        generation_method: modelChoice,
+        prompt_length: prompt.length,
+        generated_at: new Date().toISOString()
+      }
+    };
+
+  } catch (error) {
+    console.error('❌ Code generation failed:', error);
+    return {
+      success: false,
+      error: error.message
+    };
+  }
+}
+
+// *** TASK-SPECIFIC PROMPT BUILDER ***
+function buildTaskSpecificPrompt(prompt, taskType, taskConfig) {
+  let enhancedPrompt = `Task Type: ${taskType}\n`;
+  enhancedPrompt += `Description: ${taskConfig.description}\n`;
+  enhancedPrompt += `Validation Threshold: ${taskConfig.validation_threshold}\n`;
+  enhancedPrompt += `Max Tokens: ${taskConfig.max_tokens}\n\n`;
+  enhancedPrompt += `Requirements:\n`;
+  enhancedPrompt += `- Code must be production-ready\n`;
+  enhancedPrompt += `- Include proper error handling\n`;
+  enhancedPrompt += `- Add comprehensive comments\n`;
+  enhancedPrompt += `- Follow best practices\n\n`;
+  enhancedPrompt += `Original Request: ${prompt}`;
+  
+  return enhancedPrompt;
+}
+
+// *** MODEL SELECTION ***
+function selectModelForTask(taskType, taskConfig) {
+  // For now, use hardcoded/template approach
+  // In the future, this could route to different AI models
+  if (taskType === 'boilerplate' || taskType === 'test_stub') {
+    return 'template';
+  }
+  return 'hardcoded';
+}
+
+// *** TEMPLATE-BASED GENERATION ***
+function generateFromTemplate(prompt, taskType) {
+  const templates = {
+    'test_stub': `
+// Test stub for: ${prompt}
+describe('${extractFunctionName(prompt)}', () => {
+  test('should handle valid input', () => {
+    // TODO: Implement test logic
+    expect(true).toBe(true);
+  });
+
+  test('should handle edge cases', () => {
+    // TODO: Implement edge case tests
+    expect(true).toBe(true);
+  });
+
+  test('should handle error conditions', () => {
+    // TODO: Implement error handling tests
+    expect(true).toBe(true);
+  });
+});
+`,
+    'boilerplate': `
+// Boilerplate for: ${prompt}
+/**
+ * ${extractFunctionName(prompt)}
+ * @description TODO: Add description
+ * @param {any} input - TODO: Define input parameters
+ * @returns {any} TODO: Define return type
+ */
+function ${extractFunctionName(prompt)}(input) {
+  try {
+    // TODO: Implement function logic
+    return input;
+  } catch (error) {
+    console.error('Error in ${extractFunctionName(prompt)}:', error);
+    throw error;
+  }
+}
+
+export default ${extractFunctionName(prompt)};
+`
+  };
+
+  return templates[taskType] || templates['boilerplate'];
+}
+
+// *** HARDCODED RESPONSE GENERATION ***
+function generateHardcodedResponse(prompt, taskType) {
+  const lowerPrompt = prompt.toLowerCase();
+  
+  // API endpoint patterns
+  if (lowerPrompt.includes('api') && lowerPrompt.includes('endpoint')) {
+    return `
+// API Endpoint for: ${prompt}
+export default async function handler(req, res) {
+  // Set CORS headers
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+  if (req.method === 'OPTIONS') {
+    res.status(200).end();
+    return;
+  }
+
+  try {
+    // TODO: Implement endpoint logic based on: ${prompt}
+    const result = { message: 'Endpoint implementation needed' };
+    
+    res.status(200).json({
+      success: true,
+      data: result,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('API Error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+}
+`;
+  }
+
+  // Function patterns
+  if (lowerPrompt.includes('function') || lowerPrompt.includes('method')) {
+    const functionName = extractFunctionName(prompt);
+    return `
+/**
+ * ${functionName}
+ * @description Implementation for: ${prompt}
+ * @param {any} input - Input parameter
+ * @returns {any} Function result
+ */
+function ${functionName}(input) {
+  try {
+    // TODO: Implement logic for: ${prompt}
+    console.log('Processing:', input);
+    
+    // Validation
+    if (!input) {
+      throw new Error('Input is required');
+    }
+    
+    // Main logic
+    const result = processInput(input);
+    
+    return result;
+  } catch (error) {
+    console.error('Error in ${functionName}:', error);
+    throw error;
+  }
+}
+
+function processInput(input) {
+  // TODO: Implement actual processing logic
+  return input;
+}
+
+export default ${functionName};
+`;
+  }
+
+  // Component patterns  
+  if (lowerPrompt.includes('component') || lowerPrompt.includes('react')) {
+    const componentName = extractComponentName(prompt);
+    return `
+import React, { useState, useEffect } from 'react';
+
+/**
+ * ${componentName}
+ * @description React component for: ${prompt}
+ */
+const ${componentName} = ({ ...props }) => {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    // TODO: Implement component logic for: ${prompt}
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      // TODO: Implement data loading
+      setData({ message: 'Data loaded' });
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error}</div>;
+
+  return (
+    <div className="${componentName.toLowerCase()}">
+      <h2>${componentName}</h2>
+      {/* TODO: Implement component UI for: ${prompt} */}
+      <p>Component implementation needed</p>
+    </div>
+  );
+};
+
+export default ${componentName};
+`;
+  }
+
+  // Default response
+  return `
+// Generated code for: ${prompt}
+/**
+ * Implementation for user request: ${prompt}
+ * Task Type: ${taskType}
+ * Generated at: ${new Date().toISOString()}
+ */
+
+console.log('TODO: Implement code for:', '${prompt}');
+
+// TODO: Add your implementation here
+// This is a placeholder that needs to be completed
+
+export default function implementation() {
+  // TODO: Implement based on request: ${prompt}
+  return {
+    status: 'pending_implementation',
+    request: '${prompt}',
+    taskType: '${taskType}'
+  };
+}
+`;
+}
+
+// *** UTILITY FUNCTIONS ***
+function extractFunctionName(prompt) {
+  // Extract function name from prompt
+  const match = prompt.match(/function\s+(\w+)|(\w+)\s+function|create\s+(\w+)|(\w+)\s*\(/);
+  if (match) {
+    return match[1] || match[2] || match[3] || match[4];
+  }
+  
+  // Generate from keywords
+  const words = prompt.split(/\s+/).filter(word => /^[a-zA-Z]+$/.test(word));
+  const name = words.slice(0, 2).join('');
+  return name.charAt(0).toLowerCase() + name.slice(1) || 'generatedFunction';
+}
+
+function extractComponentName(prompt) {
+  // Extract component name from prompt
+  const match = prompt.match(/component\s+(\w+)|(\w+)\s+component|create\s+(\w+)|(\w+)\s*component/i);
+  if (match) {
+    const name = match[1] || match[2] || match[3] || match[4];
+    return name.charAt(0).toUpperCase() + name.slice(1);
+  }
+  
+  // Generate from keywords
+  const words = prompt.split(/\s+/).filter(word => /^[a-zA-Z]+$/.test(word));
+  const name = words.slice(0, 2).join('');
+  return (name.charAt(0).toUpperCase() + name.slice(1)) || 'GeneratedComponent';
+}
 
 // *** CORE VALIDATION ENGINE ***
 export async function validateCodeOutput(rawOutput, sourceModel = 'unknown') {
