@@ -9,14 +9,6 @@
   },
   "rewrites": [
     {
-      "source": "/api/chat",
-      "destination": "/api/functions/chat"
-    },
-    {
-      "source": "/api/code-generation", 
-      "destination": "/api/functions/code-generation"
-    },
-    {
       "source": "/api/(.*)",
       "destination": "/api/functions/$1"
     },
