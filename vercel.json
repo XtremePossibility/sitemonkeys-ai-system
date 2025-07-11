@@ -1,4 +1,5 @@
 {
+  "version": 2,
   "functions": {
     "api/functions/**/*.js": {
       "runtime": "nodejs"
@@ -7,34 +8,40 @@
       "runtime": "python"
     }
   },
-  "rewrites": [
+  "routes": [
     {
-      "source": "/api/chat",
-      "destination": "/api/functions/chat"
+      "src": "/api/chat",
+      "dest": "/api/functions/chat/index.js"
     },
     {
-      "source": "/api/code-generation", 
-      "destination": "/api/functions/code-generation"
+      "src": "/api/code-generation", 
+      "dest": "/api/functions/code-generation/index.js"
     },
     {
-      "source": "/api/migrate-vault-run",
-      "destination": "/api/functions/migrate-vault-run"
+      "src": "/api/migrate-vault-run",
+      "dest": "/api/functions/migrate-vault-run/index.py"
     },
     {
-      "source": "/api/migrate-vault",
-      "destination": "/api/functions/migrate-vault"
+      "src": "/api/migrate-vault",
+      "dest": "/api/functions/migrate-vault/index.py"
     },
     {
-      "source": "/api/upload-file",
-      "destination": "/api/functions/upload-file"
+      "src": "/api/upload-file",
+      "dest": "/api/functions/upload-file/index.py"
     },
     {
-      "source": "/api/(.*)",
-      "destination": "/api/functions/$1"
+      "src": "/api/(.*)",
+      "dest": "/api/functions/$1"
     },
     {
-      "source": "/(.*)",
-      "destination": "/index.html"
+      "src": "/(.*)",
+      "dest": "/index.html"
     }
-  ]
+  ],
+  "env": {
+    "NODE_ENV": "production"
+  },
+  "regions": ["iad1"],
+  "cleanUrls": true,
+  "trailingSlash": false
 }
