@@ -1,9 +1,4 @@
 {
-  "functions": {
-    "api/functions/**/*.js": {
-      "runtime": "nodejs18.x"
-    }
-  },
   "rewrites": [
     {
       "source": "/api/chat",
@@ -12,18 +7,6 @@
     {
       "source": "/api/code-generation", 
       "destination": "/api/functions/code-generation"
-    },
-    {
-      "source": "/api/migrate-vault-run",
-      "destination": "/api/functions/migrate-vault-run"
-    },
-    {
-      "source": "/api/migrate-vault",
-      "destination": "/api/functions/migrate-vault"
-    },
-    {
-      "source": "/api/upload-file",
-      "destination": "/api/functions/upload-file"
     },
     {
       "source": "/api/(.*)",
