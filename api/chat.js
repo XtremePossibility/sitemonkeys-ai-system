@@ -22,10 +22,8 @@ import {
   createInitiativeMonitor 
 } from './lib/validators/initiative-enforcer.js';
 
-// *** FIXED: CODE GENERATION IMPORTS ***
+// *** CORRECTED: CODE GENERATION IMPORTS ***
 import { validateCodeOutput } from './lib/validators/validateCodeOutput.js';
-import { generateCode } from './code-generation.js';
-
 import { enhancedCodeGeneration } from './lib/validators/enhancedDetection.js';
 
 // *** INITIALIZE VALIDATION MONITORS ***
@@ -118,61 +116,60 @@ export default async function handler(req, res) {
 
     console.log('Processing chat request in ' + mode + ' mode:', message.substring(0, 100));
 
-    // *** STEP 3: CODE GENERATION DETECTION & ROUTING ***
     // *** STEP 3: ENHANCED CODE GENERATION DETECTION & ROUTING ***
-const codeGenerationResult = await enhancedCodeGeneration(message, mode);
+    const codeGenerationResult = await enhancedCodeGeneration(message, mode);
 
-if (codeGenerationResult.isCodeRequest && codeGenerationResult.success) {
-  // *** ENHANCED: COMPLETE RESPONSE WITH TASK TYPE INTELLIGENCE ***
-  return res.status(200).json({
-    response: codeGenerationResult.response,
-    mode_active: mode,
-    vault_status: { 
-      loaded: true, 
-      healthy: true,
-      tokens: 0,
-      status: 'enhanced_code_generation_mode',
-      source: 'enhanced_code_generator'
-    },
-    enforcement_applied: [
-      'enhanced_code_generation_active',
-      'task_type_classification_active',
-      'truth_enforcement_active',
-      'quality_enforcement_active',
-      'zero_failure_protocols_active'
-    ],
-    validation_status: {
-      system_integrity: systemIntegrityReport,
-      initiative_quality: {
-        score: 95,
-        grade: 'A',
-        shows_initiative: true,
-        enforcement_applied: true,
-        enforcement_actions: ['enhanced_code_generation_quality_enforced']
-      }
-    },
-    code_generation: codeGenerationResult.metadata,
-    assumption_analysis: {  
-      detected: ['enhanced_code_request_identified'],  
-      health_score: 100  
-    },
-    security_pass: true,
-    performance: {
-      tokens_used: Math.ceil(message.length / 4),
-      prompt_tokens: Math.ceil(message.length / 4),
-      completion_tokens: Math.ceil(codeGenerationResult.response.length / 4),
-      call_cost: 0.01,
-      session_total: 0.01,
-      vault_tokens: 0,
-      api_provider: 'enhanced_code_generator'
-    },
-    session_tracking: formatSessionDataForUI(),
-    personality_used: 'enhanced_code_generator'
-  });
-} else if (codeGenerationResult.isCodeRequest && !codeGenerationResult.success) {
-  console.log('Enhanced code generation failed, continuing with normal chat flow');
-  // Continue with normal chat processing below
-}
+    if (codeGenerationResult.isCodeRequest && codeGenerationResult.success) {
+      // *** ENHANCED: COMPLETE RESPONSE WITH TASK TYPE INTELLIGENCE ***
+      return res.status(200).json({
+        response: codeGenerationResult.response,
+        mode_active: mode,
+        vault_status: { 
+          loaded: true, 
+          healthy: true,
+          tokens: 0,
+          status: 'enhanced_code_generation_mode',
+          source: 'enhanced_code_generator'
+        },
+        enforcement_applied: [
+          'enhanced_code_generation_active',
+          'task_type_classification_active',
+          'truth_enforcement_active',
+          'quality_enforcement_active',
+          'zero_failure_protocols_active'
+        ],
+        validation_status: {
+          system_integrity: systemIntegrityReport,
+          initiative_quality: {
+            score: 95,
+            grade: 'A',
+            shows_initiative: true,
+            enforcement_applied: true,
+            enforcement_actions: ['enhanced_code_generation_quality_enforced']
+          }
+        },
+        code_generation: codeGenerationResult.metadata,
+        assumption_analysis: {  
+          detected: ['enhanced_code_request_identified'],  
+          health_score: 100  
+        },
+        security_pass: true,
+        performance: {
+          tokens_used: Math.ceil(message.length / 4),
+          prompt_tokens: Math.ceil(message.length / 4),
+          completion_tokens: Math.ceil(codeGenerationResult.response.length / 4),
+          call_cost: 0.01,
+          session_total: 0.01,
+          vault_tokens: 0,
+          api_provider: 'enhanced_code_generator'
+        },
+        session_tracking: formatSessionDataForUI(),
+        personality_used: 'enhanced_code_generator'
+      });
+    } else if (codeGenerationResult.isCodeRequest && !codeGenerationResult.success) {
+      console.log('Enhanced code generation failed, continuing with normal chat flow');
+      // Continue with normal chat processing below
+    }
 
     // *** STEP 4: VAULT LOADING WITH HARDCODED FALLBACKS ***  
     if (mode === 'site_monkeys') {  
