@@ -1,16 +1,13 @@
 {
-  "name": "sitemonkeys-ai-system",
-  "version": "1.0.0",
-  "type": "module",
-  "dependencies": {
-    "googleapis": "^118.0.0",
-    "openai": "^4.0.0",
-    "mammoth": "^1.6.0",
-    "@babel/parser": "^7.23.0",
-    "@babel/traverse": "^7.23.0"
+  "functions": {
+    "api/**/*.js": {
+      "runtime": "nodejs18.x"
+    }
   },
-  "imports": {
-    "#config/*": "./config/*",
-    "#lib/*": "./lib/*"
-  }
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
 }
