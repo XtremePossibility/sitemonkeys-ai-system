@@ -2,6 +2,9 @@
   "name": "sitemonkeys-ai-system",
   "version": "1.0.0",
   "type": "module",
+  "engines": {
+    "node": "22.x"
+  },
   "dependencies": {
     "googleapis": "^118.0.0",
     "openai": "^4.0.0",
