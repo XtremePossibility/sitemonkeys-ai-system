@@ -2,7 +2,7 @@
 // Validates generated code for quality, security, and compliance
 
 import { parse } from '@babel/parser';
-import traverse from '@babel/traverse';
+import { default as traverse } from '@babel/traverse';
 
 /**
  * VALIDATE CODE OUTPUT FOR QUALITY AND SECURITY
@@ -134,7 +134,7 @@ function analyzeSecurityVulnerabilities(code, ast) {
   });
 
   // *** AST TRAVERSAL FOR DEEP ANALYSIS ***
-  if (ast) {
+  if (ast && traverse) {
     traverse(ast, {
       CallExpression(path) {
         // Check for dangerous function calls
