@@ -206,7 +206,7 @@ async function enhancedCodeGeneration(message, mode = 'site_monkeys') {
     
   try {  
     // ✅ FIXED: CORRECT IMPORT PATH  
-    const { routeCodeGeneration } = await import('./CodeRouters.js');  
+    const { routeCodeGeneration } = await import('./CodeRouters.js');
       
     // *** ENHANCED: USE CLASSIFIED TASK TYPE ***  
     const codeResult = await routeCodeGeneration(  
