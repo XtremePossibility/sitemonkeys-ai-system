@@ -18,6 +18,10 @@
       "dest": "/api/functions/code-generation/index.js"
     },
     {
+      "src": "/api/load-vault",
+      "dest": "/api/functions/load-vault/index.py"
+    },
+    {
       "src": "/api/migrate-vault-run",
       "dest": "/api/functions/migrate-vault-run/index.py"
     },
