@@ -1,51 +1,47 @@
 {
-  "version": 2,
   "functions": {
-    "api/functions/**/*.js": {
-      "runtime": "nodejs"
+    "api/functions/*/index.js": {
+      "runtime": "nodejs18.x"
     },
-    "api/functions/**/*.py": {
-      "runtime": "python"
+    "api/functions/*/index.py": {
+      "runtime": "python3.9"
     }
   },
-  "routes": [
+  "rewrites": [
     {
-      "src": "/api/chat",
-      "dest": "/api/functions/chat/index.js"
+      "source": "/api/chat",
+      "destination": "/api/functions/chat/index.js"
     },
     {
-      "src": "/api/code-generation", 
-      "dest": "/api/functions/code-generation/index.js"
+      "source": "/api/load-vault",
+      "destination": "/api/functions/load-vault/index.py"
     },
     {
-      "src": "/api/load-vault",
-      "dest": "/api/functions/load-vault/index.py"
+      "source": "/api/upload-file",
+      "destination": "/api/functions/upload-file/index.py"
     },
     {
-      "src": "/api/migrate-vault-run",
-      "dest": "/api/functions/migrate-vault-run/index.py"
-    },
-    {
-      "src": "/api/migrate-vault",
-      "dest": "/api/functions/migrate-vault/index.py"
-    },
-    {
-      "src": "/api/upload-file",
-      "dest": "/api/functions/upload-file/index.py"
-    },
-    {
-      "src": "/api/(.*)",
-      "dest": "/api/functions/$1"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
+      "source": "/api/migrate-vault",
+      "destination": "/api/functions/migrate-vault/index.py"
     }
   ],
-  "env": {
-    "NODE_ENV": "production"
-  },
-  "regions": ["iad1"],
-  "cleanUrls": true,
-  "trailingSlash": false
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        },
+        {
+          "key": "Access-Control-Allow-Methods",
+          "value": "GET, POST, PUT, DELETE, OPTIONS"
+        },
+        {
+          "key": "Access-Control-Allow-Headers",
+          "value": "Content-Type, Authorization"
+        }
+      ]
+    }
+  ]
 }
