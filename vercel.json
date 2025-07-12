@@ -1,12 +1,4 @@
 {
-  "functions": {
-    "api/functions/*/index.js": {
-      "runtime": "nodejs20.x"
-    },
-    "api/functions/*/index.py": {
-      "runtime": "python3.11"
-    }
-  },
   "rewrites": [
     {
       "source": "/api/chat",
