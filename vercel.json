@@ -13,6 +13,10 @@
       "destination": "/api/functions/chat/index.js"
     },
     {
+      "source": "/api/code-generation",
+      "destination": "/api/functions/code-generation/index.js"
+    },
+    {
       "source": "/api/load-vault",
       "destination": "/api/functions/load-vault/index.py"
     },
