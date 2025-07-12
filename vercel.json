@@ -1,15 +1,4 @@
 {
-  "functions": {
-    "api/functions/*/index.js": {
-      "runtime": "nodejs18.x@latest"
-    },
-    "api/functions/*/index.py": {
-      "runtime": "python3.9@latest"
-    },
-    "api/utils/*.py": {
-      "runtime": "python3.9@latest"
-    }
-  },
   "rewrites": [
     {
       "source": "/api/chat",
