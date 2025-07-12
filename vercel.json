@@ -21,7 +21,7 @@
     },
     {
       "source": "/api/load-vault",
-      "destination": "/api/load-vault.py"
+  "destination": "/api/utils/load-vault"
     },
     {
       "source": "/api/upload-file",
