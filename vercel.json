@@ -10,7 +10,7 @@
     },
     {
       "source": "/api/load-vault",
-      "destination": "/api/utils/load-vault"
+      "destination": "/api/utils/load-vault.py"
     },
     {
       "source": "/api/upload-file",
@@ -19,6 +19,10 @@
     {
       "source": "/api/migrate-vault",
       "destination": "/api/functions/migrate-vault/index.py"
+    },
+    {
+      "source": "/api/migrate-vault-run",
+      "destination": "/api/functions/migrate-vault-run/index.py"
     }
   ],
   "headers": [
