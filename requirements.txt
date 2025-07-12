@@ -1,4 +1,19 @@
-google-api-python-client==2.108.0
+# Python dependencies for Site Monkeys AI
+# Required for Google Drive integration and advanced vault functionality
+
 google-auth==2.23.4
 google-auth-oauthlib==1.1.0
 google-auth-httplib2==0.1.1
+google-api-python-client==2.108.0
+requests==2.31.0
+urllib3==1.26.18
+six==1.16.0
+httplib2==0.22.0
+certifi==2023.7.22
+charset-normalizer==3.3.2
+idna==3.4
+pyparsing==3.1.1
+pyasn1==0.5.0
+pyasn1-modules==0.3.0
+rsa==4.9
+cachetools==5.3.2
