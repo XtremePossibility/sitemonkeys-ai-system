@@ -885,7 +885,7 @@ setTimeout(() => { button.innerHTML = '🔄 Refresh Vault'; }, 3000);
 }
 }
 
-// COMPLETE FRONTEND INTEGRATION - sendMessage with vault injection
+// SINGLE UNIFIED sendMessage function - FIXED DUPLICATE ISSUE
 async function sendMessage() {
 const input = document.getElementById('user-input');
 const text = input.value.trim();
@@ -987,130 +987,6 @@ conversationHistory.push({ role: 'assistant', content: reply });
 aiToggle = !aiToggle;
 
 // Enhanced: Log vault status for debugging
-if (data.vault_status) {
-console.log('📊 Vault Status:', data.vault_status);
-console.log('🔧 Enforcement Applied:', data.enforcement_applied);
-}
-
-} catch (error) {
-console.error('❌ Chat error:', error);
-
-// Remove thinking indicator on error
-const thinkingElement = document.querySelector('.thinking-bubble');
-if (thinkingElement) {
-  thinkingElement.remove();
-}
-
-const errorBubble = document.createElement('div');
-errorBubble.className = 'bubble ai';
-errorBubble.innerHTML = `<img src="boy-mascot.png" class="avatar" alt="System"><div class="bubble-content"><strong>System:</strong> ${error.message}</div>`;
-box.appendChild(errorBubble);
-box.scrollTop = box.scrollHeight;
-}
-}
-
-// Enhanced Chat functionality with clean responses and thinking indicator
-async function sendMessage() {
-const input = document.getElementById('user-input');
-const text = input.value.trim();
-if (!text || !systemActive) return;
-
-const box = document.getElementById('chat-box');
-
-// Add user message
-const userBubble = document.createElement('div');
-userBubble.className = 'bubble user';
-userBubble.innerHTML = `<div class="bubble-content"><strong>You:</strong> ${text}</div>`;
-box.appendChild(userBubble);
-box.scrollTop = box.scrollHeight;
-input.value = '';
-
-// Add thinking indicator
-const thinkingBubble = document.createElement('div');
-thinkingBubble.className = 'bubble ai thinking-bubble';
-thinkingBubble.innerHTML = `<img src="boy-mascot.png" class="avatar" alt="Thinking"><div class="bubble-content thinking-content"><span class="thinking-brain">🧠</span> Thinking...</div>`;
-box.appendChild(thinkingBubble);
-box.scrollTop = box.scrollHeight;
-
-try {
-// *** CRITICAL: Load vault content for backend injection ***
-let vaultContent = null;
-try {
-const vaultResponse = await fetch('/api/load-vault', {
-method: 'GET',
-headers: { 'Content-Type': 'application/json' }
-});
-const vaultData = await vaultResponse.json();
-vaultContent = vaultData.vault_content;
-console.log('🎯 Vault loaded for chat:', vaultContent ? 'SUCCESS (' + Math.ceil(vaultContent.length/4) + ' tokens)' : 'FAILED');
-} catch (vaultError) {
-console.warn('⚠️ Vault load failed, backend will use emergency fallbacks:', vaultError);
-}
-
-// Send message with vault content injection
-const response = await fetch('/api/chat', {
-method: 'POST',
-headers: { 'Content-Type': 'application/json' },
-body: JSON.stringify({
-message: text,
-conversation_history: conversationHistory,
-mode: getCurrentMode(),
-vault_loaded: isVaultMode(),
-vault_content: vaultContent  // *** CRITICAL: Inject vault content ***
-})
-});
-
-if (!response.ok) {
-const errorData = await response.json();
-if (errorData.needs_refresh) {
-throw new Error('Vault needs refreshing. Click the Refresh Vault button first.');
-} else {
-throw new Error(`Chat API error: ${response.status}`);
-}
-}
-
-const data = await response.json();
-const reply = data.response || 'No response received';
-
-// Clean the AI response - remove ALL system fingerprints
-let cleanReply = reply
-  .replace(/^\*?\*?(Eli|Roxy):\*?\*?\s*/i, '') // Remove "**Eli:**" or "**Roxy:**" from start
-  .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // Convert **text** to <strong>text</strong>
-  .replace(/\*\[MODE:.*?\]/g, '') // Remove *[MODE: fingerprints]*
-  .replace(/\[MODE:.*?\]/g, '') // Remove [MODE: fingerprints]
-  .replace(/\|\s*\[VAULT:.*?\]\s*\|\s*\[TRIGGERED:.*?\]\s*\|\s*\[FLOW:.*?\]\s*\|\s*\[ASSUMPTIONS:.*?\]\*/g, '') // Remove vault status fingerprints
-  .replace(/\[VAULT:.*?\]/g, '') // Remove any remaining vault references
-  .replace(/\[TRIGGERED:.*?\]/g, '') // Remove triggered references
-  .replace(/\[FLOW:.*?\]/g, '') // Remove flow references
-  .replace(/\[ASSUMPTIONS:.*?\]/g, '') // Remove assumption references
-  .trim();
-
-// Determine who speaks
-const isEli = aiToggle;
-const who = isEli ? 'Eli' : 'Roxy';
-const avatar = isEli ? "boy-mascot.png" : "girl-mascot.png";
-
-// Remove thinking indicator
-const thinkingElement = document.querySelector('.thinking-bubble');
-if (thinkingElement) {
-  thinkingElement.remove();
-}
-
-// Add clean assistant response
-const responseBubble = document.createElement('div');
-responseBubble.className = 'bubble ai';
-responseBubble.innerHTML = `<img src="${avatar}" class="avatar" alt="${who}"><div class="bubble-content"><strong>${who}:</strong> ${cleanReply}</div>`;
-box.appendChild(responseBubble);
-box.scrollTop = box.scrollHeight;
-
-// Update conversation history
-conversationHistory.push({ role: 'user', content: text });
-conversationHistory.push({ role: 'assistant', content: reply });
-
-// Toggle for next message
-aiToggle = !aiToggle;
-
-// *** ENHANCED: Log vault status for debugging ***
 if (data.vault_status) {
 console.log('📊 Vault Status:', data.vault_status);
 console.log('🔧 Enforcement Applied:', data.enforcement_applied);
@@ -1237,3 +1113,5 @@ this.style.display = 'none';
 });
 });
 </script>
+</body>
+</html>
