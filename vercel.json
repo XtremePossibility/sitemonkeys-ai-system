@@ -2,27 +2,27 @@
   "rewrites": [
     {
       "source": "/api/chat",
-      "destination": "/api/functions/chat/index.js"
+      "destination": "/api/functions/chat/index"
     },
     {
       "source": "/api/code-generation", 
-      "destination": "/api/functions/code-generation/index.js"
+      "destination": "/api/functions/code-generation/index"
     },
     {
       "source": "/api/load-vault",
-      "destination": "/api/utils/load-vault.py"
+      "destination": "/api/utils/load-vault"
     },
     {
       "source": "/api/upload-file",
-      "destination": "/api/functions/upload-file/index.py"
+      "destination": "/api/functions/upload-file/index"
     },
     {
       "source": "/api/migrate-vault",
-      "destination": "/api/functions/migrate-vault/index.py"
+      "destination": "/api/functions/migrate-vault/index"
     },
     {
       "source": "/api/migrate-vault-run",
-      "destination": "/api/functions/migrate-vault-run/index.py"
+      "destination": "/api/functions/migrate-vault-run/index"
     }
   ],
   "headers": [
