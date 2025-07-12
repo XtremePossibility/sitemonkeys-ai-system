@@ -1,4 +1,15 @@
 {
+  "functions": {
+    "api/functions/*/index.js": {
+      "runtime": "nodejs18.x@latest"
+    },
+    "api/functions/*/index.py": {
+      "runtime": "python3.9@latest"
+    },
+    "api/utils/*.py": {
+      "runtime": "python3.9@latest"
+    }
+  },
   "rewrites": [
     {
       "source": "/api/chat",
@@ -10,7 +21,7 @@
     },
     {
       "source": "/api/load-vault",
-      "destination": "/api/load-vault.py"
+      "destination": "/api/utils/load-vault.py"
     },
     {
       "source": "/api/upload-file",
