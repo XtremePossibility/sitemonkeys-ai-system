@@ -1,18 +1,12 @@
 {
   "functions": {
-    "api/load-vault.py": {
+    "api/*.py": {
       "runtime": "python3.9"
     },
-    "api/functions/chat/index.js": {
+    "api/functions/*/index.js": {
       "runtime": "nodejs18.x"
     },
-    "api/functions/code-generation/index.js": {
-      "runtime": "nodejs18.x"
-    },
-    "api/functions/upload-file/index.py": {
-      "runtime": "python3.9"
-    },
-    "api/functions/migrate-vault/index.py": {
+    "api/functions/*/index.py": {
       "runtime": "python3.9"
     }
   },
