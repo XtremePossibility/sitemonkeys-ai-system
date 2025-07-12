@@ -10,7 +10,7 @@
     },
     {
       "source": "/api/load-vault",
-      "destination": "/api/utils/load-vault.py"
+      "destination": "/api/load-vault.py"
     },
     {
       "source": "/api/upload-file",
