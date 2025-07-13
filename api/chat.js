@@ -1,4 +1,4 @@
-// UNIVERSAL EXPERT COGNITIVE ARCHITECTURE - SITE MONKEYS CHAT.JS
+Alright alright// UNIVERSAL EXPERT COGNITIVE ARCHITECTURE - SITE MONKEYS CHAT.JS
 // Complete Professional Intelligence + Genuine Caring + Truth-First Delivery
 // Preserves ALL existing functionality while adding universal expert intelligence
 
@@ -264,7 +264,7 @@ function performUniversalDomainAnalysis(message, conversationHistory) {
   analysis.primary_domain = identifyPrimaryDomain(message);
   analysis.secondary_domains = identifySecondaryDomains(message);
   analysis.complexity_level = assessComplexityLevel(message, analysis);
-  analysis.expertise_required = determineExpertiseLevel(message, analysis);
+  analysis.expertise_required = assessExpertiseRequired(message, analysis);
   analysis.confidence = calculateDomainConfidence(message, analysis);
 
   return analysis;
