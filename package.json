@@ -1,0 +1,14 @@
+{
+  "name": "sitemonkeys-ai-system",
+  "version": "1.0.0",
+  "type": "module",
+  "dependencies": {
+    "googleapis": "^118.0.0",
+    "openai": "^4.0.0",
+    "mammoth": "^1.6.0"
+  },
+  "imports": {
+    "#config/*": "./config/*",
+    "#lib/*": "./lib/*"
+  }
+}

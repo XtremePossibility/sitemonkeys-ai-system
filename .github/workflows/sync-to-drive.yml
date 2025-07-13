@@ -1,0 +1,34 @@
+name: Sync Code to Google Drive
+
+on:
+  push:
+    branches: [ main, master ]
+    paths:
+      - '**'
+  workflow_dispatch:
+
+jobs:
+  sync-to-drive:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.x'
+
+    - name: Install dependencies
+      run: |
+        pip install google-api-python-client google-auth-httplib2 google-auth-oauthlib
+
+    - name: Sync to Google Drive
+      working-directory: ${{ github.workspace }}
+      env:
+        GOOGLE_DRIVE_CREDENTIALS: ${{ secrets.GOOGLE_DRIVE_TOKEN }}
+      run: |
+        echo "🧭 Running from: $(pwd)"
+        ls -al
+        python sync_to_drive.py
