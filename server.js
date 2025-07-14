@@ -1036,5 +1036,3 @@ app.listen(PORT, () => {
   console.log(`💙 ${FAMILY_PHILOSOPHY.core_mission}`);
   console.log(`✨ ${FAMILY_PHILOSOPHY.one_and_done_philosophy}`);
 });
-
-module.exports = app;
