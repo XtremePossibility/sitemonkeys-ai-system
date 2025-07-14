@@ -2,8 +2,8 @@
 // Preserves all breakthrough insights from this conversation
 // Ready for immediate Railway deployment
 
-const express = require('express');
-const cors = require('cors');
+import express from 'express';
+import cors from 'cors';
 const app = express();
 
 // Enable CORS and JSON parsing
