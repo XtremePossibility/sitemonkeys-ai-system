@@ -1,3 +1,5 @@
+const express = require('express');
+const cors = require('cors');
 const { google } = require('googleapis');
 const axios = require('axios');
 const JSZip = require('jszip');
@@ -404,20 +406,19 @@ async function loadVaultContent() {
     return { vaultContent, loadedFolders, totalFiles };
 }
 
-// Main handler function for Railway
-module.exports = async (req, res) => {
-    // Set CORS headers
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-    res.setHeader('Content-Type', 'application/json');
-    
-    // Handle preflight requests
-    if (req.method === 'OPTIONS') {
-        res.status(200).end();
-        return;
-    }
-    
+// Express app setup
+const app = express();
+
+// Middleware
+app.use(cors({
+    origin: '*',
+    methods: ['GET', 'POST', 'OPTIONS'],
+    allowedHeaders: ['Content-Type']
+}));
+app.use(express.json());
+
+// Main vault endpoint - handles both GET and POST
+app.all('/api/load-vault', async (req, res) => {
     try {
         const isRefresh = req.query.refresh === 'true';
         
@@ -455,7 +456,7 @@ module.exports = async (req, res) => {
                 vault_status: "operational"
             };
             
-            res.status(200).json(response);
+            res.json(response);
             
         } else {
             console.log("📖 Checking for cached vault data...");
@@ -474,7 +475,7 @@ module.exports = async (req, res) => {
                     vault_status: cachedVault.vault_status || "operational",
                     message: "Using cached vault data from KV"
                 };
-                res.status(200).json(response);
+                res.json(response);
             } else {
                 console.log("⚠️ No valid cached vault data found");
                 const response = {
@@ -488,7 +489,7 @@ module.exports = async (req, res) => {
                     vault_status: "needs_refresh",
                     message: "No vault data found - please refresh"
                 };
-                res.status(200).json(response);
+                res.json(response);
             }
         }
         
@@ -500,6 +501,27 @@ module.exports = async (req, res) => {
             vault_status: "error",
             message: "Vault operation failed - check configuration"
         };
-        res.status(500).json(errorResponse);
+        res.json(errorResponse);
     }
-};
+});
+
+// Health check endpoint
+app.get('/', (req, res) => {
+    res.json({ 
+        status: 'ok', 
+        service: 'sitemonkeys-vault-loader',
+        message: 'Vault loader service is running',
+        endpoints: ['/api/load-vault', '/health']
+    });
+});
+
+app.get('/health', (req, res) => {
+    res.json({ status: 'ok', service: 'vault-loader' });
+});
+
+// Start server
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log(`🚀 SiteMonkeys Vault loader service running on port ${PORT}`);
+    console.log(`📍 Vault endpoint: http://localhost:${PORT}/api/load-vault`);
+});
