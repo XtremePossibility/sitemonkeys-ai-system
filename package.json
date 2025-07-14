@@ -10,5 +10,8 @@
   "imports": {
     "#config/*": "./config/*",
     "#lib/*": "./lib/*"
+  },
+  "scripts": {
+    "start": "node api/chat.js"
   }
 }
