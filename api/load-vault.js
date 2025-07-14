@@ -1,6 +1,4 @@
 const { google } = require('googleapis');
-const express = require('express');
-const cors = require('cors');
 const axios = require('axios');
 const JSZip = require('jszip');
 const xml2js = require('xml2js');
@@ -406,19 +404,20 @@ async function loadVaultContent() {
     return { vaultContent, loadedFolders, totalFiles };
 }
 
-// Express app setup
-const app = express();
-
-// Middleware
-app.use(cors({
-    origin: '*',
-    methods: ['GET', 'POST', 'OPTIONS'],
-    allowedHeaders: ['Content-Type']
-}));
-app.use(express.json());
-
-// Main endpoint
-app.all('/api/load-vault', async (req, res) => {
+// Main handler function for Railway
+module.exports = async (req, res) => {
+    // Set CORS headers
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    res.setHeader('Content-Type', 'application/json');
+    
+    // Handle preflight requests
+    if (req.method === 'OPTIONS') {
+        res.status(200).end();
+        return;
+    }
+    
     try {
         const isRefresh = req.query.refresh === 'true';
         
@@ -456,7 +455,7 @@ app.all('/api/load-vault', async (req, res) => {
                 vault_status: "operational"
             };
             
-            res.json(response);
+            res.status(200).json(response);
             
         } else {
             console.log("📖 Checking for cached vault data...");
@@ -475,7 +474,7 @@ app.all('/api/load-vault', async (req, res) => {
                     vault_status: cachedVault.vault_status || "operational",
                     message: "Using cached vault data from KV"
                 };
-                res.json(response);
+                res.status(200).json(response);
             } else {
                 console.log("⚠️ No valid cached vault data found");
                 const response = {
@@ -489,7 +488,7 @@ app.all('/api/load-vault', async (req, res) => {
                     vault_status: "needs_refresh",
                     message: "No vault data found - please refresh"
                 };
-                res.json(response);
+                res.status(200).json(response);
             }
         }
         
@@ -501,19 +500,6 @@ app.all('/api/load-vault', async (req, res) => {
             vault_status: "error",
             message: "Vault operation failed - check configuration"
         };
-        res.json(errorResponse);
+        res.status(500).json(errorResponse);
     }
-});
-
-// Health check endpoint
-app.get('/health', (req, res) => {
-    res.json({ status: 'ok', service: 'vault-loader' });
-});
-
-// Start server
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`🚀 Vault loader service running on port ${PORT}`);
-});
-
-module.exports = app;
+};
