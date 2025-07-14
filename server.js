@@ -10,6 +10,17 @@ const app = express();
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+// Required for ESM to get __dirname
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+// Serve frontend files from /public
+app.use(express.static(path.join(__dirname, 'public')));
+
 // CORE INTELLIGENCE MODULES (Embedded for performance)
 
 // CARING FAMILY PHILOSOPHY - The heart of everything
