@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', loadVaultOnce);
 // ALSO TRY ON WINDOW LOAD
 window.addEventListener('load', loadVaultOnce);
 // REFRESH VAULT BUTTON HANDLER
-async function refreshVault() {
+async function improvedRefreshVault() {
   console.log('🔄 Refresh vault button clicked...');
   try {
     const response = await fetch('/api/load-vault?refresh=true');
@@ -53,6 +53,10 @@ async function refreshVault() {
     console.error('❌ Vault refresh failed:', error);
   }
 }
+}
+
+// Override the global function
+window.refreshVault = improvedRefreshVault;
 async function sendMessage() {
   const input = document.getElementById('user-input');
   const text = input.value.trim();
