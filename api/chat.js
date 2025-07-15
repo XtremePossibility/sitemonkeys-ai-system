@@ -140,7 +140,7 @@ export default async function handler(req, res) {
 // *** QUANTITATIVE REASONING FIX - Forces calculations in AI prompt ***
 const needsQuantitative = requiresQuantitativeReasoning(message);
 if (needsQuantitative && vaultContent) {
-    enhancedPrompt += `\n\nQUANTITATIVE ANALYSIS REQUIRED: You MUST provide actual numerical calculations using Site Monkeys pricing: Boost ($697), Climb ($1,497), Lead ($2,997). Do NOT give generic business advice. Provide step-by-step math with real numbers, margins, and projections. Show confidence levels and assumptions.`;
+    fullPrompt += `\n\n🎯 QUANTITATIVE ANALYSIS REQUIRED: You MUST provide actual numerical calculations using Site Monkeys pricing: Boost ($697), Climb ($1,497), Lead ($2,997). Do NOT give generic business advice. Provide step-by-step math with real numbers, margins, and projections. Show confidence levels and assumptions.`;
 }
     
     // 2. CARING FAMILY ANALYSIS
