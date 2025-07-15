@@ -66,6 +66,16 @@ async function sendMessage() {
       message_preview: text.substring(0, 50) + '...'
     });
 
+    if (requestPayload.vault_requested) {
+  const vaultResponse = await fetch('/api/load-vault');
+  const vaultData = await vaultResponse.json();
+  if (vaultData && vaultData.vault_content) {
+    requestPayload.vault_content = vaultData.vault_content;
+  } else {
+    console.warn("⚠️ Vault content missing or empty during injection.");
+  }
+}
+
     const response = await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
