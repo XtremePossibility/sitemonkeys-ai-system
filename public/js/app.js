@@ -24,12 +24,19 @@ async function sendMessage() {
 
   try {
     // FIXED REQUEST PAYLOAD - MATCHES BACKEND EXPECTATIONS
-   const vaultStatus = await fetch('/api/load-vault');
-const vaultData = await vaultStatus.json();
-
-const vaultResponse = await fetch('/api/load-vault');
+   const vaultResponse = await fetch('/api/load-vault');
 const vaultData = await vaultResponse.json();
 const vaultContent = vaultData.vault_content || '';
+
+console.log('🔍 Vault content length:', vaultContent.length); // DEBUG LINE
+
+const requestPayload = {
+  message: text,
+  conversation_history: conversationHistory,
+  mode: getCurrentMode(),
+  vault_content: vaultContent,  // Should now have 13k+ characters
+  session_id: `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+};
 
 const requestPayload = {
   message: text,
