@@ -335,11 +335,20 @@ function buildMasterPrompt(mode, personality, vaultContent, vaultHealthy, expert
   // 1. CARING FAMILY FOUNDATION
   masterPrompt += buildCaringExpertPrompt(expertDomain, careNeeds, calculatePrideMotivation(expertDomain, careNeeds, protectiveAlerts, solutionOpportunities), personality);
   
-  // 2. QUANTITATIVE REASONING REQUIREMENTS
-  masterPrompt += '\nQUANTITATIVE REASONING FRAMEWORK:\n';
-  masterPrompt += 'When numerical analysis is requested, you MUST provide actual calculations with step-by-step math.\n';
-  masterPrompt += 'Use real pricing data: Site Monkeys Boost ($697), Climb ($1,497), Lead ($2,997).\n';
-  masterPrompt += 'Include confidence levels and assumption documentation for all numbers.\n\n';
+// 2. QUANTITATIVE REASONING REQUIREMENTS  
+const needsQuantitative = requiresQuantitativeReasoning(message);
+if (needsQuantitative) {
+  masterPrompt += '\n🎯 QUANTITATIVE ANALYSIS REQUIRED FOR THIS REQUEST:\n';  
+  masterPrompt += 'THIS REQUEST REQUIRES ACTUAL CALCULATIONS - DO NOT GIVE GENERIC ADVICE.\n';
+  masterPrompt += 'MANDATORY: Use Site Monkeys pricing: Boost ($697), Climb ($1,497), Lead ($2,997).\n';  
+  masterPrompt += 'MANDATORY: Provide step-by-step math with real numbers and projections.\n';
+  masterPrompt += 'MANDATORY: Include confidence levels and assumptions.\n\n';
+} else {
+  masterPrompt += '\nQUANTITATIVE REASONING FRAMEWORK:\n';  
+  masterPrompt += 'When numerical analysis is requested, you MUST provide actual calculations with step-by-step math.\n';  
+  masterPrompt += 'Use real pricing data: Site Monkeys Boost ($697), Climb ($1,497), Lead ($2,997).\n';  
+  masterPrompt += 'Include confidence levels and assumption documentation for all numbers.\n\n';  
+}
   
   // 3. BUSINESS SURVIVAL PROTECTION
   if (mode === 'site_monkeys') {
