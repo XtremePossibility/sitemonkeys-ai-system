@@ -33,6 +33,26 @@ document.addEventListener('DOMContentLoaded', loadVaultOnce);
 
 // ALSO TRY ON WINDOW LOAD
 window.addEventListener('load', loadVaultOnce);
+// REFRESH VAULT BUTTON HANDLER
+async function refreshVault() {
+  console.log('🔄 Refresh vault button clicked...');
+  try {
+    const response = await fetch('/api/load-vault?refresh=true');
+    const data = await response.json();
+    
+    // CACHE THE VAULT CONTENT FOR CHAT
+    window.currentVaultContent = data.vault_content || '';
+    window.vaultStatus = {
+      loaded: true,
+      healthy: data.vault_status === 'operational',
+      tokens: data.tokens || 0
+    };
+    
+    console.log('✅ Vault refreshed and cached:', window.currentVaultContent.length);
+  } catch (error) {
+    console.error('❌ Vault refresh failed:', error);
+  }
+}
 async function sendMessage() {
   const input = document.getElementById('user-input');
   const text = input.value.trim();
