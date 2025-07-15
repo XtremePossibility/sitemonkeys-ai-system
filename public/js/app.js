@@ -28,15 +28,22 @@ async function sendMessage() {
     const vaultData = await vaultResponse.json();
     const vaultContent = vaultData.vault_content || '';
 
+    window.currentVaultContent = vaultContent;
+window.vaultStatus = {
+  loaded: vaultContent.length > 1000,
+  healthy: vaultData.vault_status === 'operational',
+  tokens: vaultData.tokens || 0
+};
+
     console.log('🔍 Vault content length:', vaultContent.length); // DEBUG LINE
 
     const requestPayload = {
-      message: text,
-      conversation_history: conversationHistory,
-      mode: getCurrentMode(),
-      vault_content: vaultContent,  // ✅ PASS THE ACTUAL CONTENT
-      session_id: `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-    };
+  message: text,
+  conversation_history: conversationHistory,
+  mode: getCurrentMode(),
+  vault_content: window.currentVaultContent || '',  // Use cached vault
+  session_id: `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+};
 
     console.log('🚀 Sending request:', {
       mode: requestPayload.mode,
