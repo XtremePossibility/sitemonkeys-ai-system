@@ -80,17 +80,10 @@ async function sendMessage() {
   box.scrollTop = box.scrollHeight;
 
   try {
-    // LOAD VAULT CONTENT FRESH FOR EACH MESSAGE
-    // USE CACHED VAULT CONTENT (EFFICIENT)
+    
 // ENSURE VAULT IS LOADED
-let vaultContent = window.currentVaultContent || '';
-if (!vaultContent || vaultContent.length < 1000) {
-  console.log('🔄 Vault not cached, loading fresh...');
-  const vaultResponse = await fetch('/api/load-vault?refresh=true');
-  const vaultData = await vaultResponse.json();
-  vaultContent = vaultData.vault_content || '';
-  window.currentVaultContent = vaultContent;
-}
+const vaultContent = window.currentVaultContent || '';
+console.log('🔍 Using cached vault with length:', vaultContent.length);
 
 const requestPayload = {
   message: text,
