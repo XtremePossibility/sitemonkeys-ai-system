@@ -53,7 +53,6 @@ async function improvedRefreshVault() {
     console.error('❌ Vault refresh failed:', error);
   }
 }
-}
 
 // Override the global function
 window.refreshVault = improvedRefreshVault;
