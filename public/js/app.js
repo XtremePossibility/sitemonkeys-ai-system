@@ -56,7 +56,7 @@ async function sendMessage() {
   message: text,
   conversation_history: conversationHistory,
   mode: getCurrentMode(),
-  vault_content: window.currentVaultContent || '',  // Use cached vault
+  vault_content: "USE_INTERNAL_VAULT",  // Use cached vault
   session_id: `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
 };
 
