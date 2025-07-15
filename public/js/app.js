@@ -1,3 +1,30 @@
+// LOAD VAULT ONCE WHEN PAGE LOADS
+let vaultLoaded = false;
+
+async function loadVaultOnce() {
+  if (vaultLoaded) return;
+  
+  try {
+    const vaultResponse = await fetch('/api/load-vault?refresh=true');
+    const vaultData = await vaultResponse.json();
+    const vaultContent = vaultData.vault_content || '';
+    
+    window.currentVaultContent = vaultContent;
+    window.vaultStatus = {
+      loaded: vaultContent.length > 1000,
+      healthy: vaultData.vault_status === 'operational',
+      tokens: vaultData.tokens || 0
+    };
+    
+    vaultLoaded = true;
+    console.log('🔍 Vault loaded once with length:', vaultContent.length);
+  } catch (error) {
+    console.error('Failed to load vault:', error);
+  }
+}
+
+// Load vault when page loads
+document.addEventListener('DOMContentLoaded', loadVaultOnce);
 // COMPLETE FRONTEND FIX - REPLACE YOUR ENTIRE sendMessage() FUNCTION
 
 async function sendMessage() {
@@ -24,19 +51,7 @@ async function sendMessage() {
 
   try {
     // FIXED REQUEST PAYLOAD - SINGLE VAULT FETCH
-    const vaultResponse = await fetch('/api/load-vault?refresh=true');
-    const vaultData = await vaultResponse.json();
-    const vaultContent = vaultData.vault_content || '';
-
-    window.currentVaultContent = vaultContent;
-window.vaultStatus = {
-  loaded: vaultContent.length > 1000,
-  healthy: vaultData.vault_status === 'operational',
-  tokens: vaultData.tokens || 0
-};
-
-    console.log('🔍 Vault content length:', vaultContent.length); // DEBUG LINE
-
+    
     const requestPayload = {
   message: text,
   conversation_history: conversationHistory,
