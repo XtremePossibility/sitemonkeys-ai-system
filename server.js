@@ -22,9 +22,9 @@ const __dirname = dirname(__filename);
 app.use(express.static(path.join(__dirname, 'public')));
 
 // ==================== VAULT LOADER INTEGRATION ====================
-// Adding vault functionality to existing server
+// Adding vault functionality to existing server with ES module imports
 
-// Vault imports and setup
+// Vault imports - all converted to ES modules
 import { google } from 'googleapis';
 import axios from 'axios';
 import JSZip from 'jszip';
@@ -780,7 +780,7 @@ Quality-first approach with caring delivery`;
   }
 });
 
-// CORE INTELLIGENCE FUNCTIONS
+// CORE INTELLIGENCE FUNCTIONS (keeping all your existing functions exactly the same)
 
 function identifyExpertDomain(message) {
   const messageLower = message.toLowerCase();
@@ -1229,7 +1229,7 @@ async function makeIntelligentAPICall(prompt, personality, prideMotivation) {
   }
 }
 
-// RESPONSE ENHANCEMENT FUNCTIONS
+// RESPONSE ENHANCEMENT FUNCTIONS (keeping all your existing functions)
 
 function containsActualCalculations(response) {
   const calculationPatterns = [
@@ -1420,7 +1420,7 @@ function applyCaringFamilyTouch(response, careNeeds, prideMotivation, expertDoma
   return enhancement;
 }
 
-// UTILITY FUNCTIONS
+// UTILITY FUNCTIONS (keeping all your existing functions)
 
 function updateFamilyMemory(expertDomain, careNeeds, protectiveAlerts, solutionOpportunities) {
   // Track patterns for future use
