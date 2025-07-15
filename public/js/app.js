@@ -24,13 +24,16 @@ async function sendMessage() {
 
   try {
     // FIXED REQUEST PAYLOAD - MATCHES BACKEND EXPECTATIONS
-    const requestPayload = {
-      message: text,
-      conversation_history: conversationHistory,
-      mode: getCurrentMode(),
-      vault_requested: isVaultMode(),  // FIXED: vault_requested not vault_loaded
-      session_id: `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-    };
+   const vaultStatus = await fetch('/api/load-vault');
+const vaultData = await vaultStatus.json();
+
+const requestPayload = {
+  message: text,
+  conversation_history: conversationHistory,
+  mode: getCurrentMode(),
+  vault_content: vaultData.vault_content || '',  // ✅ Real vault content injected
+  session_id: ...
+};
 
     console.log('🚀 Sending request:', {
       mode: requestPayload.mode,
