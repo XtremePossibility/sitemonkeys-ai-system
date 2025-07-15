@@ -24,7 +24,7 @@ async function sendMessage() {
 
   try {
     // FIXED REQUEST PAYLOAD - SINGLE VAULT FETCH
-    const vaultResponse = await fetch('/api/load-vault');
+    const vaultResponse = await fetch('/api/load-vault?refresh=true');
     const vaultData = await vaultResponse.json();
     const vaultContent = vaultData.vault_content || '';
 
