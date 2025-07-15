@@ -23,15 +23,25 @@ async function sendMessage() {
   try {
     // LOAD VAULT CONTENT FRESH FOR EACH MESSAGE
     // USE CACHED VAULT CONTENT (EFFICIENT)
+// ENSURE VAULT IS LOADED
+let vaultContent = window.currentVaultContent || '';
+if (!vaultContent || vaultContent.length < 1000) {
+  console.log('🔄 Vault not cached, loading fresh...');
+  const vaultResponse = await fetch('/api/load-vault?refresh=true');
+  const vaultData = await vaultResponse.json();
+  vaultContent = vaultData.vault_content || '';
+  window.currentVaultContent = vaultContent;
+}
+
 const requestPayload = {
   message: text,
   conversation_history: conversationHistory,
   mode: getCurrentMode(),
-  vault_content: window.currentVaultContent || '',  // Use cached vault
+  vault_content: vaultContent,
   session_id: `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
 };
 
-console.log('🔍 Using cached vault with length:', (window.currentVaultContent || '').length);
+console.log('🔍 Using vault with length:', vaultContent.length);
 
     console.log('🚀 Sending request:', {
       mode: requestPayload.mode,
