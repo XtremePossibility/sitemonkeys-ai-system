@@ -27,12 +27,16 @@ async function sendMessage() {
    const vaultStatus = await fetch('/api/load-vault');
 const vaultData = await vaultStatus.json();
 
+const vaultResponse = await fetch('/api/load-vault');
+const vaultData = await vaultResponse.json();
+const vaultContent = vaultData.vault_content || '';
+
 const requestPayload = {
   message: text,
   conversation_history: conversationHistory,
   mode: getCurrentMode(),
-  vault_content: vaultData.vault_content || '',  // ✅ Real vault content injected
-  session_id: ...
+  vault_content: vaultContent,  // ✅ PASS THE ACTUAL CONTENT
+  session_id: `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
 };
 
     console.log('🚀 Sending request:', {
