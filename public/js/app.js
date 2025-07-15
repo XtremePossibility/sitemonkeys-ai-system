@@ -1,3 +1,38 @@
+// FORCE VAULT LOADING ON PAGE LOAD
+let vaultLoaded = false;
+
+async function loadVaultOnce() {
+  if (vaultLoaded) return;
+  
+  console.log('🔄 Loading vault on page startup...');
+  
+  try {
+    const vaultResponse = await fetch('/api/load-vault?refresh=true');
+    const vaultData = await vaultResponse.json();
+    const vaultContent = vaultData.vault_content || '';
+    
+    window.currentVaultContent = vaultContent;
+    window.vaultStatus = {
+      loaded: vaultContent.length > 1000,
+      healthy: vaultData.vault_status === 'operational',
+      tokens: vaultData.tokens || 0
+    };
+    
+    vaultLoaded = true;
+    console.log('✅ Vault loaded on startup with length:', vaultContent.length);
+  } catch (error) {
+    console.error('❌ Failed to load vault on startup:', error);
+  }
+}
+
+// FORCE LOAD IMMEDIATELY
+loadVaultOnce();
+
+// ALSO TRY ON DOM READY
+document.addEventListener('DOMContentLoaded', loadVaultOnce);
+
+// ALSO TRY ON WINDOW LOAD
+window.addEventListener('load', loadVaultOnce);
 async function sendMessage() {
   const input = document.getElementById('user-input');
   const text = input.value.trim();
