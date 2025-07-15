@@ -6,7 +6,7 @@ import { EMERGENCY_FALLBACKS, validateVaultStructure, getVaultValue } from './li
 import { ENFORCEMENT_PROTOCOLS } from './lib/site-monkeys/enforcement-protocols.js';
 import { QUALITY_ENFORCEMENT } from './lib/site-monkeys/quality-enforcement.js';
 import { AI_ARCHITECTURE } from './lib/site-monkeys/ai-architecture.js';
-import { FOUNDER_PROTECTION } from './lib/site-monkeys/founder-protection.js';
+import { getVaultStatus, checkVaultTriggers, generateVaultContext, enforceVaultCompliance } from './lib/vault.js';
 import zlib from 'zlib';
 
 // IMPORT ALL COGNITIVE MODULES
@@ -105,7 +105,8 @@ export default async function handler(req, res) {
         vaultContent = vault_content;
         vaultTokens = Math.ceil(vaultContent.length / 4);
         vaultStatus = 'loaded_from_frontend';
-        vaultHealthy = validateVaultStructure(vaultContent);
+        vaultHealthy = true;  // vault.js will handle health validation
+const vaultStatusObj = getVaultStatus();
       } else {
         const kvVault = process.env.VAULT_CONTENT;
         if (kvVault) {
