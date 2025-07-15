@@ -23,32 +23,24 @@ async function sendMessage() {
   box.scrollTop = box.scrollHeight;
 
   try {
-    // FIXED REQUEST PAYLOAD - MATCHES BACKEND EXPECTATIONS
-   const vaultResponse = await fetch('/api/load-vault');
-const vaultData = await vaultResponse.json();
-const vaultContent = vaultData.vault_content || '';
+    // FIXED REQUEST PAYLOAD - SINGLE VAULT FETCH
+    const vaultResponse = await fetch('/api/load-vault');
+    const vaultData = await vaultResponse.json();
+    const vaultContent = vaultData.vault_content || '';
 
-console.log('🔍 Vault content length:', vaultContent.length); // DEBUG LINE
+    console.log('🔍 Vault content length:', vaultContent.length); // DEBUG LINE
 
-const requestPayload = {
-  message: text,
-  conversation_history: conversationHistory,
-  mode: getCurrentMode(),
-  vault_content: vaultContent,  // Should now have 13k+ characters
-  session_id: `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-};
-
-const requestPayload = {
-  message: text,
-  conversation_history: conversationHistory,
-  mode: getCurrentMode(),
-  vault_content: vaultContent,  // ✅ PASS THE ACTUAL CONTENT
-  session_id: `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-};
+    const requestPayload = {
+      message: text,
+      conversation_history: conversationHistory,
+      mode: getCurrentMode(),
+      vault_content: vaultContent,  // ✅ PASS THE ACTUAL CONTENT
+      session_id: `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+    };
 
     console.log('🚀 Sending request:', {
       mode: requestPayload.mode,
-      vault_requested: requestPayload.vault_requested,
+      vault_content_length: vaultContent.length,
       message_preview: text.substring(0, 50) + '...'
     });
 
