@@ -1,32 +1,3 @@
-// LOAD VAULT ONCE WHEN PAGE LOADS
-let vaultLoaded = false;
-
-async function loadVaultOnce() {
-  if (vaultLoaded) return;
-  
-  try {
-    const vaultResponse = await fetch('/api/load-vault?refresh=true');
-    const vaultData = await vaultResponse.json();
-    const vaultContent = vaultData.vault_content || '';
-    
-    window.currentVaultContent = vaultContent;
-    window.vaultStatus = {
-      loaded: vaultContent.length > 1000,
-      healthy: vaultData.vault_status === 'operational',
-      tokens: vaultData.tokens || 0
-    };
-    
-    vaultLoaded = true;
-    console.log('🔍 Vault loaded once with length:', vaultContent.length);
-  } catch (error) {
-    console.error('Failed to load vault:', error);
-  }
-}
-
-// Load vault when page loads
-document.addEventListener('DOMContentLoaded', loadVaultOnce);
-// COMPLETE FRONTEND FIX - REPLACE YOUR ENTIRE sendMessage() FUNCTION
-
 async function sendMessage() {
   const input = document.getElementById('user-input');
   const text = input.value.trim();
@@ -50,31 +21,26 @@ async function sendMessage() {
   box.scrollTop = box.scrollHeight;
 
   try {
-    // FIXED REQUEST PAYLOAD - SINGLE VAULT FETCH
-    
+    // LOAD VAULT CONTENT FRESH FOR EACH MESSAGE
+    const vaultResponse = await fetch('/api/load-vault?refresh=true');
+    const vaultData = await vaultResponse.json();
+    const vaultContent = vaultData.vault_content || '';
+
+    console.log('🔍 Vault content loaded with length:', vaultContent.length);
+
     const requestPayload = {
-  message: text,
-  conversation_history: conversationHistory,
-  mode: getCurrentMode(),
-  vault_content: "USE_INTERNAL_VAULT",  // Use cached vault
-  session_id: `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-};
+      message: text,
+      conversation_history: conversationHistory,
+      mode: getCurrentMode(),
+      vault_content: vaultContent,  // ✅ ACTUAL VAULT CONTENT
+      session_id: `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+    };
 
     console.log('🚀 Sending request:', {
       mode: requestPayload.mode,
       vault_content_length: vaultContent.length,
       message_preview: text.substring(0, 50) + '...'
     });
-
-    if (requestPayload.vault_requested) {
-  const vaultResponse = await fetch('/api/load-vault');
-  const vaultData = await vaultResponse.json();
-  if (vaultData && vaultData.vault_content) {
-    requestPayload.vault_content = vaultData.vault_content;
-  } else {
-    console.warn("⚠️ Vault content missing or empty during injection.");
-  }
-}
 
     const response = await fetch('/api/chat', {
       method: 'POST',
