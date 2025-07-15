@@ -7,6 +7,7 @@ import { ENFORCEMENT_PROTOCOLS } from './lib/site-monkeys/enforcement-protocols.
 import { QUALITY_ENFORCEMENT } from './lib/site-monkeys/quality-enforcement.js';
 import { AI_ARCHITECTURE } from './lib/site-monkeys/ai-architecture.js';
 import { getVaultStatus, checkVaultTriggers, generateVaultContext, enforceVaultCompliance } from './lib/vault.js';
+import { integrateSystemIntelligence, enhancePromptWithIntelligence, getSystemIntelligenceStatus } from './lib/system-intelligence.js';
 import zlib from 'zlib';
 
 // IMPORT ALL COGNITIVE MODULES
@@ -203,7 +204,11 @@ if (needsQuantitative && vaultContent) {
 
     // *** MASTER SYSTEM PROMPT CONSTRUCTION ***
     const masterPrompt = buildMasterPrompt(mode, optimalPersonality, vaultContent, vaultHealthy, expertDomain, careNeeds, protectiveAlerts, solutionOpportunities);
-    let fullPrompt = buildFullConversationPrompt(masterPrompt, message, conversation_history, expertDomain, careNeeds);
+    const basePrompt = buildFullConversationPrompt(masterPrompt, message, conversation_history, expertDomain, careNeeds);
+    
+    // *** SYSTEM INTELLIGENCE INTEGRATION ***
+    const intelligence = integrateSystemIntelligence(message, vaultContent, vaultHealthy);
+    const fullPrompt = enhancePromptWithIntelligence(basePrompt, intelligence, message);
 
 // *** QUANTITATIVE ANALYSIS FIX - Force calculations before AI response ***
 if (detectQuantitativeNeeds && detectQuantitativeNeeds(message) && vaultContent) {
@@ -314,6 +319,7 @@ if (detectQuantitativeNeeds && detectQuantitativeNeeds(message) && vaultContent)
         healthy: vaultHealthy,
         source: vaultStatus.includes('frontend') ? 'frontend' : vaultStatus.includes('kv') ? 'kv' : 'fallback'
       },
+      system_intelligence: getSystemIntelligenceStatus(intelligence),
       session_data: sessionData
     });
 
