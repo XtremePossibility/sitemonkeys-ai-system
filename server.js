@@ -624,7 +624,7 @@ app.post('/api/chat', async (req, res) => {
     let vaultHealthy = false;
 
     try {
-      if (vault_content && vault_content.length > 0) {
+      if (vault_content && typeof vault_content === 'string' && vault_content.trim().length > 100) {
         vaultContent = vault_content;
         vaultStatus = 'loaded_from_frontend';
         vaultHealthy = true;
