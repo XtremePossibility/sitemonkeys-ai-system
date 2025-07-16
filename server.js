@@ -613,6 +613,8 @@ app.post('/api/chat', async (req, res) => {
       vault_content = null
     } = req.body;
 
+    console.log('🔍 DEBUG - vault_content received:', vault_content ? `${vault_content.length} characters` : 'NULL/EMPTY');
+
     if (!message || typeof message !== 'string') {
       return res.status(400).json({ error: 'Message is required and must be a string' });
     }
