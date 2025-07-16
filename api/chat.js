@@ -116,12 +116,12 @@ const vaultStatusObj = getVaultStatus();
             vaultContent = decompressed;
             vaultTokens = Math.ceil(vaultContent.length / 4);
             vaultStatus = 'loaded_from_kv';
-            vaultHealthy = true; // TEMPORARY TEST
+            vaultHealthy = validateVaultStructure(vaultContent);
           } catch (decompError) {
             vaultContent = kvVault;
             vaultTokens = Math.ceil(vaultContent.length / 4);
             vaultStatus = 'loaded_from_kv_uncompressed';
-            vaultHealthy = true; // TEMPORARY TEST
+            vaultHealthy = validateVaultStructure(vaultContent);
           }
         } else {
           vaultStatus = 'fallback_mode';
