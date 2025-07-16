@@ -61,6 +61,14 @@ import {
   integrateVaultLogic
 } from './lib/site-monkeys-enforcement.js';
 
+function validateVaultStructure(content) {
+  if (!content || typeof content !== 'string') return false;
+  if (content.length < 1000) return false;
+  if (!content.includes('SITE MONKEYS')) return false;
+  if (!content.includes('Boost') || !content.includes('Climb') || !content.includes('Lead')) return false;
+  return true;
+}
+
 // SYSTEM GLOBALS
 let lastPersonality = 'roxy';
 let conversationCount = 0;
