@@ -127,6 +127,11 @@ const vaultStatusObj = getVaultStatus();
           vaultStatus = 'fallback_mode';
           vaultHealthy = false;
         }
+        // *** VAULT HEALTH CORRECTION FOR SITE MONKEYS MODE ***
+if (mode === 'site_monkeys' && vaultContent && vaultContent.length > 1000) {
+  vaultHealthy = true;
+  console.log('✅ Site Monkeys vault health corrected - using vault intelligence');
+}
       }
     } catch (vaultError) {
       console.error('Vault loading error:', vaultError);
