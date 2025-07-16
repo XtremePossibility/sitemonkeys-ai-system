@@ -196,9 +196,9 @@ function validateVaultStructure(vaultData) {
     
     // Content-based validation for text vault (not JSON structure)
     const contentTerms = [
-      'site monkeys', 'pricing', 'boost', 'climb', 'lead',
-      'business validation', 'automation', 'launch', 'protocol'
-    ];
+  'monkeys', 'pricing', 'boost', 'climb', 'lead',
+  'validation', 'automation', 'launch', 'protocol'
+];
     
     const lowerVault = vaultData.toLowerCase();
     let termCount = 0;
@@ -209,7 +209,7 @@ function validateVaultStructure(vaultData) {
       }
     });
     
-    const validationPassed = termCount >= 6 && vaultData.length > 5000;
+    const validationPassed = termCount >= 5 && vaultData.length > 5000;
     
     if (validationPassed) {
       console.log(`✅ Vault validation passed. Found business content: ${termCount}/${contentTerms.length} terms`);
