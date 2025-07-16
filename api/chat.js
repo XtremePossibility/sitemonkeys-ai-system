@@ -211,8 +211,8 @@ if (needsQuantitative && vaultContent) {
     const fullPrompt = enhancePromptWithIntelligence(basePrompt, intelligence, message);
 
 // *** QUANTITATIVE ANALYSIS FIX - Force calculations before AI response ***
-if (detectQuantitativeNeeds && detectQuantitativeNeeds(message) && vaultContent) {
-  fullPrompt += `\n\n🎯 CRITICAL: This request requires ACTUAL CALCULATIONS using Site Monkeys pricing: Boost ($697), Climb ($1,497), Lead ($2,997). Do NOT give generic business advice. Provide step-by-step math with real numbers and projections.`;
+if (requiresQuantitativeReasoning(message) && vaultContent) {
+  fullPrompt += `\n\n🎯 CRITICAL: This request requires ACTUAL CALCULATIONS using Site Monkeys pricing: Boost ($697), Climb ($1,497), Lead ($2,997). Do NOT give generic business advice. Provide step-by-step math with real numbers and projections. Show confidence levels and assumptions.`;
 }
     
     // *** ENHANCED API CALL ***
