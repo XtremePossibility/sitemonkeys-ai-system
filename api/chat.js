@@ -127,17 +127,19 @@ const vaultStatusObj = getVaultStatus();
           vaultStatus = 'fallback_mode';
           vaultHealthy = false;
         }
-        // *** VAULT HEALTH CORRECTION FOR SITE MONKEYS MODE ***
+      }
+   } catch (vaultError) {
+  console.error('Vault loading error:', vaultError);
+  vaultStatus = 'error_fallback';
+  vaultHealthy = false;
+}
+
+// *** FINAL VAULT HEALTH CORRECTION FOR SITE MONKEYS MODE ***
 if (mode === 'site_monkeys' && vaultContent && vaultContent.length > 1000) {
   vaultHealthy = true;
-  console.log('✅ Site Monkeys vault health corrected - using vault intelligence');
+  vaultStatus = 'healthy_override_applied';
+  console.log('✅ Site Monkeys vault health FINAL correction - vault intelligence active');
 }
-      }
-    } catch (vaultError) {
-      console.error('Vault loading error:', vaultError);
-      vaultStatus = 'error_fallback';
-      vaultHealthy = false;
-    }
 
     // *** COMPREHENSIVE COGNITIVE ANALYSIS ***
     
