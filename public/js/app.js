@@ -82,14 +82,13 @@ async function sendMessage() {
     
 // ENSURE VAULT IS LOADED
 const vaultContent = window.currentVaultContent || '';
-console.log('🔍 Using cached vault with length:', vaultContent.length);
+console.log('🎯 Using cached vault with length:', vaultContent.length);
 
 const requestPayload = {
   message: text,
   conversation_history: conversationHistory,
   mode: getCurrentMode(),
-  vault_content: vaultContent,
-  session_id: `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+  vault_content: vaultContent  // *** THIS IS THE FIX ***
 };
 
 console.log('🔍 Using vault with length:', vaultContent.length);
