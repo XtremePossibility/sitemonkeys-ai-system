@@ -553,295 +553,81 @@ I'm maintaining professional standards and genuine care for your success, even i
 
 💙 Family looks out for family, especially when things get challenging.`;
 
-  // *** COMPREHENSIVE VAULT DIAGNOSTIC SUITE ***
-// Tests EVERYTHING related to vault functionality
-// Place this function in your chat.js file, then call it from console
+// *** CORRECTED VAULT DIAGNOSTIC - PLACE AT VERY END OF chat.js ***
+// Add this BEFORE the final closing brace of your chat.js file
 
 function comprehensiveVaultDiagnostic(message = "test business question", vaultContent = "") {
   console.log("🔍 === VAULT DIAGNOSTIC SUITE STARTING ===");
-  console.log("Testing ALL aspects of vault functionality...\n");
-
-  const results = {
-    vault_loading: {},
-    vault_content: {},
-    vault_usage: {},
-    prompt_construction: {},
-    ai_integration: {},
-    response_generation: {},
-    summary: {}
-  };
-
-  // === PHASE 1: VAULT LOADING DIAGNOSTICS ===
-  console.log("📖 PHASE 1: VAULT LOADING DIAGNOSTICS");
   
-  try {
-    // Test 1.1: Frontend Vault Content
-    if (window.currentVaultContent) {
-      results.vault_loading.frontend_vault = {
-        status: "✅ PASS",
-        length: window.currentVaultContent.length,
-        preview: window.currentVaultContent.substring(0, 100) + "..."
-      };
-      console.log("✅ Frontend vault content found:", window.currentVaultContent.length, "characters");
-    } else {
-      results.vault_loading.frontend_vault = {
-        status: "❌ FAIL",
-        error: "window.currentVaultContent not found"
-      };
-      console.log("❌ Frontend vault content missing");
-    }
-
-    // Test 1.2: Vault Status
-    if (window.vaultStatus) {
-      results.vault_loading.vault_status = {
-        status: "✅ PASS",
-        details: window.vaultStatus
-      };
-      console.log("✅ Vault status:", window.vaultStatus);
-    } else {
-      results.vault_loading.vault_status = {
-        status: "❌ FAIL",
-        error: "window.vaultStatus not found"
-      };
-      console.log("❌ Vault status missing");
-    }
-
-    // Test 1.3: Use provided vault content or fallback
-    const testVaultContent = vaultContent || window.currentVaultContent || "NO VAULT CONTENT AVAILABLE";
-    
-    results.vault_content.source = vaultContent ? "parameter" : "window.currentVaultContent";
-    results.vault_content.length = testVaultContent.length;
-    results.vault_content.is_valid = testVaultContent.length > 1000;
-    
-    console.log("📊 Using vault content:", results.vault_content.source, "- Length:", testVaultContent.length);
-
-  } catch (error) {
-    results.vault_loading.error = error.message;
-    console.log("❌ Vault loading error:", error.message);
-  }
-
-  // === PHASE 2: VAULT CONTENT ANALYSIS ===
-  console.log("\n📋 PHASE 2: VAULT CONTENT ANALYSIS");
+  const results = {};
   
-  try {
-    const vaultToTest = vaultContent || window.currentVaultContent || "";
-    
-    // Test 2.1: Content Structure
-    const hasBusinessLogic = vaultToTest.includes("business") || vaultToTest.includes("strategy");
-    const hasOperationalData = vaultToTest.includes("operational") || vaultToTest.includes("process");
-    const hasFiles = vaultToTest.includes("===") && vaultToTest.includes("VAULT SUMMARY");
-    
-    results.vault_content.structure = {
-      has_business_logic: hasBusinessLogic,
-      has_operational_data: hasOperationalData,
-      has_file_markers: hasFiles,
-      total_sections: (vaultToTest.match(/===/g) || []).length
-    };
-    
-    console.log("📋 Vault structure analysis:");
-    console.log("  - Business logic:", hasBusinessLogic);
-    console.log("  - Operational data:", hasOperationalData);
-    console.log("  - File sections:", (vaultToTest.match(/===/g) || []).length);
-
-    // Test 2.2: Content Quality
-    const tokenCount = Math.ceil(vaultToTest.length / 4);
-    const hasSubstantialContent = vaultToTest.length > 5000;
-    
-    results.vault_content.quality = {
-      token_count: tokenCount,
-      substantial_content: hasSubstantialContent,
-      readability_score: vaultToTest.length > 0 ? "readable" : "empty"
-    };
-    
-    console.log("📊 Content quality - Tokens:", tokenCount, "Substantial:", hasSubstantialContent);
-
-  } catch (error) {
-    results.vault_content.error = error.message;
-    console.log("❌ Vault content analysis error:", error.message);
-  }
-
-  // === PHASE 3: PROMPT CONSTRUCTION TEST ===
-  console.log("\n🧠 PHASE 3: PROMPT CONSTRUCTION TEST");
+  // PHASE 1: VAULT LOADING TEST
+  console.log("📖 PHASE 1: Testing vault loading...");
   
-  try {
-    const vaultToTest = vaultContent || window.currentVaultContent || "";
-    
-    // Test 3.1: Build prompt WITH vault content
-    const promptWithVault = `You are a Site Monkeys business validation expert with access to complete business intelligence.
-
-BUSINESS INTELLIGENCE VAULT:
-${vaultToTest}
-
-CURRENT REQUEST: ${message}
-
-Using the business intelligence above, provide expert analysis that references specific information from the vault.`;
-
-    // Test 3.2: Build prompt WITHOUT vault content  
-    const promptWithoutVault = `You are a Site Monkeys business validation expert.
-
-CURRENT REQUEST: ${message}
-
-Provide expert business analysis.`;
-
-    results.prompt_construction.with_vault = {
-      length: promptWithVault.length,
-      includes_vault: promptWithVault.includes(vaultToTest.substring(0, 50)),
-      token_estimate: Math.ceil(promptWithVault.length / 4)
-    };
-    
-    results.prompt_construction.without_vault = {
-      length: promptWithoutVault.length,
-      token_estimate: Math.ceil(promptWithoutVault.length / 4)
-    };
-    
-    console.log("🧠 Prompt with vault:", promptWithVault.length, "chars,", Math.ceil(promptWithVault.length / 4), "tokens");
-    console.log("🧠 Prompt without vault:", promptWithoutVault.length, "chars,", Math.ceil(promptWithoutVault.length / 4), "tokens");
-    console.log("🔍 Vault properly included:", promptWithVault.includes(vaultToTest.substring(0, 50)));
-
-  } catch (error) {
-    results.prompt_construction.error = error.message;
-    console.log("❌ Prompt construction error:", error.message);
-  }
-
-  // === PHASE 4: AI INTEGRATION SIMULATION ===
-  console.log("\n🤖 PHASE 4: AI INTEGRATION SIMULATION");
-  
-  try {
-    // Test 4.1: Simulate what chat.js should be doing
-    const simulatedChatRequest = {
-      message: message,
-      vault_content: vaultContent || window.currentVaultContent,
-      mode: "site_monkeys"
-    };
-    
-    // Test 4.2: Check if vault content would be passed
-    const vaultWouldBePassedToBackend = simulatedChatRequest.vault_content && simulatedChatRequest.vault_content.length > 0;
-    
-    results.ai_integration.request_simulation = {
-      vault_passed_to_backend: vaultWouldBePassedToBackend,
-      vault_size_passed: simulatedChatRequest.vault_content ? simulatedChatRequest.vault_content.length : 0,
-      request_structure: "valid"
-    };
-    
-    console.log("🤖 Would vault be passed to backend?", vaultWouldBePassedToBackend);
-    console.log("📊 Vault size that would be passed:", simulatedChatRequest.vault_content ? simulatedChatRequest.vault_content.length : 0);
-
-  } catch (error) {
-    results.ai_integration.error = error.message;
-    console.log("❌ AI integration simulation error:", error.message);
-  }
-
-  // === PHASE 5: BACKEND VAULT USAGE TEST ===
-  console.log("\n⚙️ PHASE 5: BACKEND VAULT USAGE TEST");
-  
-  try {
-    // Simulate what the backend SHOULD do with vault content
-    const vaultToTest = vaultContent || window.currentVaultContent || "";
-    
-    // Test 5.1: Vault processing
-    const vaultTokens = Math.ceil(vaultToTest.length / 4);
-    const vaultHealthy = vaultToTest.length > 1000 && vaultToTest.includes("===");
-    
-    // Test 5.2: Prompt building (what backend should do)
-    const backendShouldBuildPrompt = `SITE MONKEYS BUSINESS INTELLIGENCE SYSTEM
-
-You are analyzing business questions using our complete business intelligence vault.
-
-=== BUSINESS INTELLIGENCE VAULT ===
-${vaultToTest}
-
-=== USER QUESTION ===
-${message}
-
-=== INSTRUCTIONS ===
-1. Reference specific information from the business vault above
-2. Apply Site Monkeys business logic and principles
-3. Provide expert analysis based on vault intelligence
-4. Quote specific sections when relevant
-
-Your response:`;
-
-    results.response_generation.backend_processing = {
-      vault_tokens: vaultTokens,
-      vault_healthy: vaultHealthy,
-      prompt_would_include_vault: backendShouldBuildPrompt.includes(vaultToTest.substring(0, 100)),
-      full_prompt_size: backendShouldBuildPrompt.length
-    };
-    
-    console.log("⚙️ Backend would process vault tokens:", vaultTokens);
-    console.log("⚙️ Vault healthy for backend:", vaultHealthy);
-    console.log("⚙️ Backend prompt would include vault:", backendShouldBuildPrompt.includes(vaultToTest.substring(0, 100)));
-
-  } catch (error) {
-    results.response_generation.error = error.message;
-    console.log("❌ Backend simulation error:", error.message);
-  }
-
-  // === PHASE 6: CRITICAL PROBLEM IDENTIFICATION ===
-  console.log("\n🚨 PHASE 6: CRITICAL PROBLEM IDENTIFICATION");
-  
-  const criticalIssues = [];
-  const workingComponents = [];
-  
-  // Check each component
-  if (results.vault_loading.frontend_vault?.status === "✅ PASS") {
-    workingComponents.push("Vault loading from frontend");
+  if (typeof window !== 'undefined' && window.currentVaultContent) {
+    console.log("✅ Frontend vault found:", window.currentVaultContent.length, "characters");
+    results.frontend_vault = "WORKING";
   } else {
-    criticalIssues.push("CRITICAL: Frontend vault loading failed");
+    console.log("❌ Frontend vault missing");
+    results.frontend_vault = "FAILED";
   }
   
-  if (results.vault_content.is_valid) {
-    workingComponents.push("Vault content validation");
+  if (typeof window !== 'undefined' && window.vaultStatus) {
+    console.log("✅ Vault status:", window.vaultStatus);
+    results.vault_status = "WORKING";
   } else {
-    criticalIssues.push("CRITICAL: Vault content invalid or too small");
+    console.log("❌ Vault status missing");
+    results.vault_status = "FAILED";
   }
   
-  if (results.prompt_construction.with_vault?.includes_vault) {
-    workingComponents.push("Vault content can be included in prompts");
+  // PHASE 2: VAULT CONTENT TEST
+  console.log("📋 PHASE 2: Testing vault content...");
+  
+  const testVault = vaultContent || (typeof window !== 'undefined' ? window.currentVaultContent : '') || '';
+  console.log("📊 Vault content length:", testVault.length);
+  
+  if (testVault.length > 1000) {
+    console.log("✅ Vault has substantial content");
+    results.vault_content = "WORKING";
   } else {
-    criticalIssues.push("CRITICAL: Vault content not being included in AI prompts");
+    console.log("❌ Vault content too small or empty");
+    results.vault_content = "FAILED";
   }
   
-  if (results.ai_integration.request_simulation?.vault_passed_to_backend) {
-    workingComponents.push("Vault would be passed to backend");
+  // PHASE 3: PROMPT CONSTRUCTION TEST
+  console.log("🧠 PHASE 3: Testing prompt construction...");
+  
+  const promptWithVault = `BUSINESS INTELLIGENCE VAULT:\n${testVault}\n\nQUESTION: ${message}`;
+  const includesVault = testVault.length > 0 && promptWithVault.includes(testVault.substring(0, Math.min(50, testVault.length)));
+  
+  console.log("🧠 Prompt length with vault:", promptWithVault.length);
+  console.log("🔍 Vault properly included in prompt:", includesVault);
+  
+  if (includesVault) {
+    console.log("✅ Vault would be included in AI prompts");
+    results.prompt_construction = "WORKING";
   } else {
-    criticalIssues.push("CRITICAL: Vault not being passed to backend for AI processing");
+    console.log("❌ Vault NOT being included in AI prompts");
+    results.prompt_construction = "FAILED";
   }
-
-  // === FINAL SUMMARY ===
-  console.log("\n📊 === DIAGNOSTIC SUMMARY ===");
-  console.log("🟢 WORKING COMPONENTS:");
-  workingComponents.forEach(item => console.log("  ✅", item));
   
-  console.log("\n🔴 CRITICAL ISSUES:");
-  criticalIssues.forEach(item => console.log("  ❌", item));
+  // PHASE 4: SUMMARY
+  console.log("📊 === DIAGNOSTIC SUMMARY ===");
+  const failures = Object.values(results).filter(r => r === "FAILED").length;
   
-  results.summary = {
-    working_components: workingComponents,
-    critical_issues: criticalIssues,
-    diagnosis: criticalIssues.length === 0 ? "SYSTEM_HEALTHY" : "VAULT_NOT_USED_IN_PROMPTS",
-    recommendation: criticalIssues.length === 0 ? "No issues found" : "Fix vault injection into AI prompts"
-  };
+  if (failures === 0) {
+    console.log("🟢 ALL SYSTEMS WORKING - Vault should be functional");
+  } else {
+    console.log("🔴 ISSUES FOUND:", failures, "components failed");
+    console.log("🔍 Failed components:", Object.entries(results).filter(([k,v]) => v === "FAILED").map(([k,v]) => k));
+  }
   
-  console.log("\n🎯 PRIMARY DIAGNOSIS:", results.summary.diagnosis);
-  console.log("🛠️ RECOMMENDATION:", results.summary.recommendation);
-  
-  console.log("\n🔍 === DIAGNOSTIC COMPLETE ===");
+  console.log("🔍 === DIAGNOSTIC COMPLETE ===");
   return results;
 }
 
-// === HOW TO USE THIS DIAGNOSTIC ===
-console.log(`
-🔧 USAGE INSTRUCTIONS:
-
-1. Add this function to your chat.js file
-2. Open browser console on your site
-3. Run: comprehensiveVaultDiagnostic("test business question")
-4. Review the detailed output to see exactly what's broken
-
-This will test EVERY aspect of vault functionality and tell you exactly where the problem is.
-`);
-
-// Export for use
-window.comprehensiveVaultDiagnostic = comprehensiveVaultDiagnostic;
+// Make it available globally
+if (typeof window !== 'undefined') {
+  window.comprehensiveVaultDiagnostic = comprehensiveVaultDiagnostic;
+}
 }
