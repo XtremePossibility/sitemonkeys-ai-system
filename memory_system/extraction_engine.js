@@ -151,3 +151,5 @@ class ExtractionEngine {
         return 'token_limit_reached';
     }
 }
+
+export { ExtractionEngine };
