@@ -1,3 +1,4 @@
+import { SiteMonkeysMemoryCore } from './memory_core.js';
 class MemoryAPI {
     constructor() {
         this.memoryCore = new SiteMonkeysMemoryCore();
