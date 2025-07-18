@@ -216,7 +216,7 @@ if (mode === 'site_monkeys' && vaultContent && vaultContent.length > 1000) {
     // *** MASTER SYSTEM PROMPT CONSTRUCTION ***
     // *** MEMORY SYSTEM INTEGRATION ***
     // *** MEMORY SYSTEM INTEGRATION ***
-    //const relevantMemories = await getRelevantContext(user_id, message, 2500);
+    const relevantMemories = await getRelevantContext(user_id, message, 2500);
     const masterPrompt = buildMasterPrompt(mode, optimalPersonality, vaultContent, vaultHealthy, expertDomain, careNeeds, protectiveAlerts, solutionOpportunities);
     const basePrompt = buildFullConversationPrompt(masterPrompt, message, conversation_history, expertDomain, careNeeds, relevantMemories);
     
@@ -286,7 +286,7 @@ if (mode === 'site_monkeys' && vaultContent && vaultContent.length > 1000) {
     const sessionData = formatSessionDataForUI();
 
     // Store conversation in memory system
-//await storeMemory(user_id, `User: ${message}\nAssistant: ${finalResponse}`, {
+await storeMemory(user_id, `User: ${message}\nAssistant: ${finalResponse}`, {
   mode: mode,
   expert_domain: expertDomain.domain,
   session_id: Date.now()
