@@ -1,3 +1,7 @@
+import { DatabaseManager } from './database_manager.js';
+import { RoutingIntelligence } from './routing_intelligence.js';
+import { ExtractionEngine } from './extraction_engine.js';
+import { CategoryManager } from './category_manager.js';
 class SiteMonkeysMemoryCore {
     constructor() {
         this.databaseManager = new DatabaseManager();
