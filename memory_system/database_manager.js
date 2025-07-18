@@ -361,4 +361,4 @@ class DatabaseManager {
     }
 }
 
-export default DatabaseManager;
+export { DatabaseManager };
