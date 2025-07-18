@@ -149,3 +149,5 @@ class SiteMonkeysMemoryCore {
         );
     }
 }
+
+export { SiteMonkeysMemoryCore };
