@@ -604,12 +604,7 @@ let familyMemory = {
 app.post('/api/chat', async (req, res) => {
   try {
     const startTime = Date.now();
-
-// MEMORY SYSTEM TEST ENDPOINT
-import('./api/test-memory.js').then(module => {
-  const testMemoryHandler = module.default;
-  app.get('/api/test-memory', testMemoryHandler);
-});      
+     
     const {
       message,
       conversation_history = [],
