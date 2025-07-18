@@ -84,13 +84,13 @@ class MemoryAPI {
 // Single integration point for existing system
 const memoryAPI = new MemoryAPI();
 
-module.exports = {
-    MemoryAPI: memoryAPI,
-    getRelevantContext: (userId, query, maxTokens) => memoryAPI.getRelevantContext(userId, query, maxTokens),
-    storeMemory: (userId, content, metadata) => memoryAPI.storeConversationMemory(userId, content, metadata),
-    initializeUser: (userId) => memoryAPI.initializeUserMemory(userId),
-    healthCheck: () => memoryAPI.healthCheck()
-};
+// Export for ES6 import syntax
+export const getRelevantContext = (userId, query, maxTokens = 2500) => memoryAPI.getRelevantContext(userId, query, maxTokens);
+export const storeMemory = (userId, content, metadata = {}) => memoryAPI.storeConversationMemory(userId, content, metadata);
+export const initializeUser = (userId) => memoryAPI.initializeUserMemory(userId);
+export const healthCheck = () => memoryAPI.healthCheck();
+
+export default memoryAPI;
 
 // ================================================================
 // INTEGRATION EXAMPLE
