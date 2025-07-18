@@ -156,3 +156,5 @@ class CategoryManager {
         return Math.ceil(words * 0.75);
     }
 }
+
+export { CategoryManager };
