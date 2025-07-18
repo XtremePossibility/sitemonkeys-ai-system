@@ -1,6 +1,15 @@
 import { getRelevantContext, storeMemory, initializeUser } from './memory_system/memory_api.js';
 
-export default async (req, res) => {
+export default async function handler(req, res) {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+  if (req.method === 'OPTIONS') {
+    res.status(200).end();
+    return;
+  }
+
   try {
     await initializeUser('user_test_001');
     
@@ -27,4 +36,4 @@ export default async (req, res) => {
       stack: error.stack
     });
   }
-};
+}
