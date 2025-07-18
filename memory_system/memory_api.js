@@ -76,3 +76,49 @@ class MemoryAPI {
         };
     }
 }
+
+// ================================================================
+// EXPORT FOR INTEGRATION
+// ================================================================
+
+// Single integration point for existing system
+const memoryAPI = new MemoryAPI();
+
+module.exports = {
+    MemoryAPI: memoryAPI,
+    getRelevantContext: (userId, query, maxTokens) => memoryAPI.getRelevantContext(userId, query, maxTokens),
+    storeMemory: (userId, content, metadata) => memoryAPI.storeConversationMemory(userId, content, metadata),
+    initializeUser: (userId) => memoryAPI.initializeUserMemory(userId),
+    healthCheck: () => memoryAPI.healthCheck()
+};
+
+// ================================================================
+// INTEGRATION EXAMPLE
+// ================================================================
+
+/*
+// How to integrate with existing system:
+
+// 1. Add to your existing chat handler:
+const memorySystem = require('./memory_system/memory_api.js');
+
+// 2. Before generating response:
+const relevantMemories = await memorySystem.getRelevantContext(userId, userQuery, 2500);
+
+// 3. Include memories in your AI prompt:
+if (relevantMemories.contextFound) {
+    const enhancedPrompt = `
+        Context from user's memory:
+        ${relevantMemories.memories}
+        
+        User query: ${userQuery}
+    `;
+}
+
+// 4. After generating response, store the conversation:
+await memorySystem.storeMemory(userId, `User: ${userQuery}\nAssistant: ${response}`, {
+    session_id: sessionId,
+    response_type: 'business_validation'
+});
+
+*/
