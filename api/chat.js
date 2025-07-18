@@ -1,6 +1,7 @@
 // COMPLETE MODULAR CARING FAMILY INTELLIGENCE SYSTEM
 // Orchestrates all cognitive modules for universal expert intelligence
 
+import { getRelevantContext, storeMemory, initializeUser } from '../memory_system/memory_api.js';
 import { trackApiCall, formatSessionDataForUI } from './lib/tokenTracker.js';
 import { EMERGENCY_FALLBACKS, validateVaultStructure, getVaultValue } from './lib/site-monkeys/emergency-fallbacks.js';
 import { ENFORCEMENT_PROTOCOLS } from './lib/site-monkeys/enforcement-protocols.js';
@@ -96,12 +97,13 @@ export default async function handler(req, res) {
 
   try {
     const {
-      message,
-      conversation_history = [],
-      mode = 'site_monkeys',
-      claude_requested = false,
-      vault_content = null
-    } = req.body;
+  message,
+  conversation_history = [],
+  mode = 'site_monkeys',
+  claude_requested = false,
+  vault_content = null,
+  user_id = 'default_user'  // Add this line
+} = req.body;
 
     if (!message || typeof message !== 'string') {
       res.status(400).json({ error: 'Message is required and must be a string' });
@@ -212,8 +214,11 @@ if (mode === 'site_monkeys' && vaultContent && vaultContent.length > 1000) {
     }
 
     // *** MASTER SYSTEM PROMPT CONSTRUCTION ***
+    // *** MEMORY SYSTEM INTEGRATION ***
+    // *** MEMORY SYSTEM INTEGRATION ***
+    const relevantMemories = await getRelevantContext(user_id, message, 2500);
     const masterPrompt = buildMasterPrompt(mode, optimalPersonality, vaultContent, vaultHealthy, expertDomain, careNeeds, protectiveAlerts, solutionOpportunities);
-    const basePrompt = buildFullConversationPrompt(masterPrompt, message, conversation_history, expertDomain, careNeeds);
+    const basePrompt = buildFullConversationPrompt(masterPrompt, message, conversation_history, expertDomain, careNeeds, relevantMemories);
     
     // *** SYSTEM INTELLIGENCE INTEGRATION ***
     const intelligence = integrateSystemIntelligence(message, vaultContent, vaultHealthy);
@@ -279,6 +284,13 @@ if (mode === 'site_monkeys' && vaultContent && vaultContent.length > 1000) {
     lastPersonality = optimalPersonality;
 
     const sessionData = formatSessionDataForUI();
+
+    // Store conversation in memory system
+await storeMemory(user_id, `User: ${message}\nAssistant: ${finalResponse}`, {
+  mode: mode,
+  expert_domain: expertDomain.domain,
+  session_id: Date.now()
+});
 
     res.status(200).json({
       response: finalResponse,
@@ -422,8 +434,14 @@ masterPrompt += 'NO GENERIC BUSINESS ADVICE - ONLY REAL CALCULATIONS.\n\n';
   return masterPrompt;
 }
 
-function buildFullConversationPrompt(masterPrompt, message, conversationHistory, expertDomain, careNeeds) {
+function buildFullConversationPrompt(masterPrompt, message, conversationHistory, expertDomain, careNeeds, relevantMemories) {
   let fullPrompt = masterPrompt;
+
+  // Add relevant memories if available
+  if (relevantMemories && relevantMemories.contextFound) {
+    fullPrompt += 'RELEVANT MEMORIES FROM PAST CONVERSATIONS:\n';
+    fullPrompt += relevantMemories.memories + '\n\n';
+  }
 
   if (conversationHistory.length > 0) {
     fullPrompt += 'FAMILY CONVERSATION CONTEXT:\n';
