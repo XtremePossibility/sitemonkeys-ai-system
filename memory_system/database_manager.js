@@ -1,364 +1,315 @@
-// ================================================================
-// BROWSER-COMPATIBLE DATABASE MANAGER 
-// Works exactly like your vault system using window.currentMemoryContent
-// ================================================================
+const { Pool } = require('pg');
 
 class DatabaseManager {
     constructor() {
-        this.initializeMemoryStorage();
+        this.pool = new Pool({
+            connectionString: process.env.DATABASE_URL || process.env.POSTGRES_URL,
+            ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+            max: 20,
+            idleTimeoutMillis: 30000,
+            connectionTimeoutMillis: 2000,
+        });
+
+        this.connectionHealthy = false;
+        this.lastHealthCheck = 0;
+        this.healthCheckInterval = 30000; // 30 seconds
+        
+        this.initializeConnection();
     }
 
-    initializeMemoryStorage() {
-        // Initialize memory storage like your vault system
-        if (typeof window !== 'undefined') {
-            // Browser environment - use window storage like vault
-            if (!window.currentMemoryContent) {
-                window.currentMemoryContent = {};
-            }
-            console.log("Memory storage initialized in browser");
-        } else {
-            // Server environment fallback
-            this.memoryStorage = {};
-            console.log("Memory storage initialized in server fallback mode");
-        }
-    }
-
-    getMemoryStorage() {
-        if (typeof window !== 'undefined') {
-            return window.currentMemoryContent || {};
-        } else {
-            return this.memoryStorage || {};
-        }
-    }
-
-    setMemoryStorage(data) {
-        if (typeof window !== 'undefined') {
-            window.currentMemoryContent = data;
-        } else {
-            this.memoryStorage = data;
-        }
-    }
-
-    async createUserSpace(userId) {
+    async initializeConnection() {
         try {
-            const memory = this.getMemoryStorage();
-            
-            if (!memory[userId]) {
-                memory[userId] = {
-                    metadata: {
-                        created_at: new Date().toISOString(),
-                        last_accessed: new Date().toISOString(),
-                        total_memories: 0,
-                        total_tokens: 0
-                    },
-                    categories: {}
-                };
-                this.setMemoryStorage(memory);
-            }
-
-            return { success: true };
+            const client = await this.pool.connect();
+            await client.query('SELECT NOW()');
+            client.release();
+            this.connectionHealthy = true;
+            memoryLogger.log('✅ Database connection established');
         } catch (error) {
-            console.error("User space creation failed:", error);
-            return { success: false, error: error.message };
+            this.connectionHealthy = false;
+            memoryLogger.error('❌ Database connection failed:', error);
         }
-    }
-
-    async createCategoryTable(userId, categoryName) {
-        try {
-            const memory = this.getMemoryStorage();
-            
-            if (!memory[userId]) {
-                await this.createUserSpace(userId);
-            }
-
-            if (!memory[userId].categories[categoryName]) {
-                memory[userId].categories[categoryName] = {
-                    created_at: new Date().toISOString(),
-                    memories: [],
-                    total_tokens: 0
-                };
-                this.setMemoryStorage(memory);
-            }
-
-            return { success: true, table: `user_${userId}_${categoryName}` };
-        } catch (error) {
-            console.error(`Failed to create category ${categoryName}:`, error);
-            return { success: false, error: error.message };
-        }
-    }
-
-    async insertMemory(userId, category, subcategory, memoryEntry) {
-        try {
-            const memory = this.getMemoryStorage();
-            const tokenCount = this.calculateTokenCount(memoryEntry.content);
-            
-            // Ensure user and category exist
-            if (!memory[userId]) {
-                await this.createUserSpace(userId);
-            }
-            if (!memory[userId].categories[category]) {
-                await this.createCategoryTable(userId, category);
-            }
-
-            // Create memory entry
-            const newMemory = {
-                id: `memory_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-                subcategory: subcategory,
-                content: memoryEntry.content,
-                keywords: memoryEntry.keywords || [],
-                emotional_markers: memoryEntry.emotional_markers || [],
-                priority: memoryEntry.priority || 50,
-                timestamp: new Date().toISOString(),
-                last_accessed: new Date().toISOString(),
-                access_count: 0,
-                token_count: tokenCount,
-                metadata: memoryEntry.metadata || {}
-            };
-
-            // Add to category
-            memory[userId].categories[category].memories.push(newMemory);
-            memory[userId].categories[category].total_tokens += tokenCount;
-
-            // Update user metadata
-            memory[userId].metadata.total_memories++;
-            memory[userId].metadata.total_tokens += tokenCount;
-            memory[userId].metadata.last_accessed = new Date().toISOString();
-
-            // Save changes
-            this.setMemoryStorage(memory);
-
-            return { success: true, memoryId: newMemory.id, tokensStored: tokenCount };
-        } catch (error) {
-            console.error("Memory insertion failed:", error);
-            return { success: false, error: error.message };
-        }
-    }
-
-    async getCategoryMemories(userId, category, limit = 100) {
-        try {
-            const memory = this.getMemoryStorage();
-            
-            if (!memory[userId] || !memory[userId].categories[category]) {
-                return [];
-            }
-
-            const categoryMemories = memory[userId].categories[category].memories || [];
-            
-            // Sort by priority (highest first) and timestamp (newest first)
-            const sortedMemories = categoryMemories
-                .sort((a, b) => {
-                    const priorityDiff = (b.priority || 50) - (a.priority || 50);
-                    if (priorityDiff !== 0) return priorityDiff;
-                    return new Date(b.timestamp) - new Date(a.timestamp);
-                })
-                .slice(0, limit);
-
-            // Update access tracking
-            if (memory[userId].metadata) {
-                memory[userId].metadata.last_accessed = new Date().toISOString();
-                this.setMemoryStorage(memory);
-            }
-
-            return sortedMemories;
-        } catch (error) {
-            console.error(`Failed to get memories from category ${category}:`, error);
-            return [];
-        }
-    }
-
-    async getCategoryTokenCount(userId, category) {
-        try {
-            const memory = this.getMemoryStorage();
-            
-            if (!memory[userId] || !memory[userId].categories[category]) {
-                return 0;
-            }
-
-            return memory[userId].categories[category].total_tokens || 0;
-        } catch (error) {
-            console.error(`Failed to get token count for category ${category}:`, error);
-            return 0;
-        }
-    }
-
-    async removeMemories(userId, category, memoryIds) {
-        try {
-            const memory = this.getMemoryStorage();
-            
-            if (!memory[userId] || !memory[userId].categories[category]) {
-                return { success: true, removedCount: 0, tokensFreed: 0 };
-            }
-
-            const categoryMemories = memory[userId].categories[category].memories;
-            let tokensFreed = 0;
-            let removedCount = 0;
-
-            // Remove memories and calculate freed tokens
-            memory[userId].categories[category].memories = categoryMemories.filter(mem => {
-                if (memoryIds.includes(mem.id)) {
-                    tokensFreed += mem.token_count || 0;
-                    removedCount++;
-                    return false;
-                }
-                return true;
-            });
-
-            // Update counters
-            memory[userId].categories[category].total_tokens -= tokensFreed;
-            memory[userId].metadata.total_memories -= removedCount;
-            memory[userId].metadata.total_tokens -= tokensFreed;
-
-            // Save changes
-            this.setMemoryStorage(memory);
-
-            return { success: true, removedCount: removedCount, tokensFreed: tokensFreed };
-        } catch (error) {
-            console.error("Memory removal failed:", error);
-            return { success: false, error: error.message };
-        }
-    }
-
-    async createDynamicCategoryTracker(userId) {
-        try {
-            const memory = this.getMemoryStorage();
-            
-            if (!memory[userId]) {
-                await this.createUserSpace(userId);
-            }
-
-            if (!memory[userId].dynamic_categories) {
-                memory[userId].dynamic_categories = {
-                    initialized: new Date().toISOString(),
-                    active_categories: []
-                };
-                this.setMemoryStorage(memory);
-            }
-
-            return { success: true };
-        } catch (error) {
-            console.error("Dynamic category tracker creation failed:", error);
-            return { success: false, error: error.message };
-        }
-    }
-
-    async trackDynamicCategory(userId, categoryName) {
-        try {
-            const memory = this.getMemoryStorage();
-            
-            if (!memory[userId]) {
-                await this.createUserSpace(userId);
-            }
-            if (!memory[userId].dynamic_categories) {
-                await this.createDynamicCategoryTracker(userId);
-            }
-
-            const dynamicCategory = {
-                category_name: categoryName,
-                created_at: new Date().toISOString(),
-                last_accessed: new Date().toISOString(),
-                access_count: 0,
-                is_active: true
-            };
-
-            // Add or update dynamic category
-            const existingIndex = memory[userId].dynamic_categories.active_categories
-                .findIndex(cat => cat.category_name === categoryName);
-            
-            if (existingIndex >= 0) {
-                memory[userId].dynamic_categories.active_categories[existingIndex] = dynamicCategory;
-            } else {
-                memory[userId].dynamic_categories.active_categories.push(dynamicCategory);
-            }
-
-            this.setMemoryStorage(memory);
-            return { success: true };
-        } catch (error) {
-            console.error("Dynamic category tracking failed:", error);
-            return { success: false, error: error.message };
-        }
-    }
-
-    async getDynamicCategories(userId) {
-        try {
-            const memory = this.getMemoryStorage();
-            
-            if (!memory[userId] || !memory[userId].dynamic_categories) {
-                return [];
-            }
-
-            return memory[userId].dynamic_categories.active_categories
-                .filter(cat => cat.is_active)
-                .map(cat => cat.category_name);
-        } catch (error) {
-            console.error("Failed to get dynamic categories:", error);
-            return [];
-        }
-    }
-
-    async getDynamicCategoriesWithUsage(userId) {
-        try {
-            const memory = this.getMemoryStorage();
-            
-            if (!memory[userId] || !memory[userId].dynamic_categories) {
-                return [];
-            }
-
-            return memory[userId].dynamic_categories.active_categories
-                .filter(cat => cat.is_active)
-                .map(cat => ({
-                    name: cat.category_name,
-                    lastAccessed: cat.last_accessed,
-                    accessCount: cat.access_count
-                }))
-                .sort((a, b) => new Date(a.lastAccessed) - new Date(b.lastAccessed));
-        } catch (error) {
-            console.error("Failed to get dynamic categories with usage:", error);
-            return [];
-        }
-    }
-
-    async archiveDynamicCategory(userId, categoryName) {
-        try {
-            const memory = this.getMemoryStorage();
-            
-            if (!memory[userId] || !memory[userId].dynamic_categories) {
-                return { success: true };
-            }
-
-            const categoryIndex = memory[userId].dynamic_categories.active_categories
-                .findIndex(cat => cat.category_name === categoryName);
-            
-            if (categoryIndex >= 0) {
-                memory[userId].dynamic_categories.active_categories[categoryIndex].is_active = false;
-                this.setMemoryStorage(memory);
-            }
-
-            return { success: true };
-        } catch (error) {
-            console.error("Dynamic category archiving failed:", error);
-            return { success: false, error: error.message };
-        }
-    }
-
-    calculateTokenCount(content) {
-        const words = content.split(/\s+/).length;
-        return Math.ceil(words * 0.75);
     }
 
     async healthCheck() {
+        const now = Date.now();
+        if (now - this.lastHealthCheck < this.healthCheckInterval && this.connectionHealthy) {
+            return { healthy: true, cached: true };
+        }
+
         try {
-            const memory = this.getMemoryStorage();
-            const userCount = Object.keys(memory).length;
+            const client = await this.pool.connect();
+            const result = await client.query('SELECT NOW() as current_time, pg_database_size(current_database()) as db_size');
+            client.release();
             
-            return { 
-                status: 'healthy', 
-                message: `Browser memory storage active with ${userCount} users`,
-                storage_type: typeof window !== 'undefined' ? 'browser' : 'server_fallback'
+            this.connectionHealthy = true;
+            this.lastHealthCheck = now;
+            
+            return {
+                healthy: true,
+                timestamp: result.rows[0].current_time,
+                databaseSize: result.rows[0].db_size,
+                poolTotal: this.pool.totalCount,
+                poolIdle: this.pool.idleCount,
+                poolWaiting: this.pool.waitingCount
             };
         } catch (error) {
-            return { status: 'error', message: error.message };
+            this.connectionHealthy = false;
+            return {
+                healthy: false,
+                error: error.message,
+                lastHealthy: new Date(this.lastHealthCheck)
+            };
+        }
+    }
+
+    async storeMemory(userId, categoryName, subcategoryName, content, metadata = {}) {
+        if (!this.connectionHealthy) {
+            await this.initializeConnection();
+            if (!this.connectionHealthy) {
+                throw new Error('Database unavailable');
+            }
+        }
+
+        const client = await this.pool.connect();
+        try {
+            await client.query('BEGIN');
+
+            // Calculate token count
+            const tokenCount = Math.ceil(content.length / 4);
+
+            // Check category capacity
+            const capacityCheck = await client.query(`
+                SELECT current_tokens, max_tokens 
+                FROM memory_categories 
+                WHERE user_id = $1 AND category_name = $2 AND subcategory_name = $3
+            `, [userId, categoryName, subcategoryName]);
+
+            if (capacityCheck.rows.length === 0) {
+                // Create category if doesn't exist
+                await this.createCategoryIfNotExists(userId, categoryName, subcategoryName, client);
+            } else {
+                const { current_tokens, max_tokens } = capacityCheck.rows[0];
+                if (current_tokens + tokenCount > max_tokens) {
+                    // Trigger cleanup before storing
+                    await this.makeSpace(userId, categoryName, subcategoryName, tokenCount, client);
+                }
+            }
+
+            // Calculate relevance score
+            const relevanceScore = this.calculateInitialRelevance(content, metadata);
+
+            // Store memory
+            const insertResult = await client.query(`
+                INSERT INTO memory_entries 
+                (user_id, category_name, subcategory_name, content, token_count, relevance_score, metadata)
+                VALUES ($1, $2, $3, $4, $5, $6, $7)
+                RETURNING id
+            `, [userId, categoryName, subcategoryName, content, tokenCount, relevanceScore, metadata]);
+
+            // Update category token count
+            await client.query(`
+                UPDATE memory_categories 
+                SET current_tokens = current_tokens + $1, updated_at = CURRENT_TIMESTAMP
+                WHERE user_id = $2 AND category_name = $3 AND subcategory_name = $4
+            `, [tokenCount, userId, categoryName, subcategoryName]);
+
+            await client.query('COMMIT');
+
+            memoryLogger.log(`✅ Memory stored: ${insertResult.rows[0].id} (${tokenCount} tokens)`);
+            
+            return {
+                success: true,
+                memoryId: insertResult.rows[0].id,
+                tokenCount: tokenCount,
+                relevanceScore: relevanceScore
+            };
+
+        } catch (error) {
+            await client.query('ROLLBACK');
+            throw error;
+        } finally {
+            client.release();
+        }
+    }
+
+    async createCategoryIfNotExists(userId, categoryName, subcategoryName, client) {
+        const maxTokens = 50000; // Standard category size
+        const isDynamic = categoryName.startsWith('dynamic_category_');
+        
+        await client.query(`
+            INSERT INTO memory_categories 
+            (user_id, category_name, subcategory_name, max_tokens, is_dynamic)
+            VALUES ($1, $2, $3, $4, $5)
+            ON CONFLICT (user_id, category_name, subcategory_name) DO NOTHING
+        `, [userId, categoryName, subcategoryName, maxTokens, isDynamic]);
+    }
+
+    async makeSpace(userId, categoryName, subcategoryName, neededTokens, client) {
+        // Strategy: Remove lowest relevance memories until we have space
+        const spaceNeeded = neededTokens + 1000; // Buffer space
+
+        const deletedTokens = await client.query(`
+            WITH deleted_memories AS (
+                DELETE FROM memory_entries 
+                WHERE user_id = $1 AND category_name = $2 AND subcategory_name = $3
+                AND id IN (
+                    SELECT id FROM memory_entries 
+                    WHERE user_id = $1 AND category_name = $2 AND subcategory_name = $3
+                    ORDER BY relevance_score ASC, usage_frequency ASC, created_at ASC
+                    LIMIT (
+                        SELECT COUNT(*) FROM memory_entries 
+                        WHERE user_id = $1 AND category_name = $2 AND subcategory_name = $3
+                        ORDER BY relevance_score ASC
+                        LIMIT 20
+                    )
+                )
+                RETURNING token_count
+            )
+            SELECT COALESCE(SUM(token_count), 0) as freed_tokens FROM deleted_memories
+        `, [userId, categoryName, subcategoryName]);
+
+        const freedTokens = parseInt(deletedTokens.rows[0].freed_tokens);
+
+        // Update category token count
+        await client.query(`
+            UPDATE memory_categories 
+            SET current_tokens = current_tokens - $1
+            WHERE user_id = $2 AND category_name = $3 AND subcategory_name = $4
+        `, [freedTokens, userId, categoryName, subcategoryName]);
+
+        memoryLogger.log(`🧹 Made space in ${categoryName}/${subcategoryName}: freed ${freedTokens} tokens`);
+    }
+
+    calculateInitialRelevance(content, metadata) {
+        let relevance = 0.5; // Base relevance
+
+        // Boost for emotional content
+        const emotionalWords = ['excited', 'worried', 'happy', 'stressed', 'important', 'urgent', 'critical'];
+        const emotionalMatches = emotionalWords.filter(word => 
+            content.toLowerCase().includes(word)
+        ).length;
+        relevance += emotionalMatches * 0.05;
+
+        // Boost for questions (likely important for future reference)
+        if (content.includes('?')) {
+            relevance += 0.1;
+        }
+
+        // Boost for specific numbers/dates (concrete information)
+        const numberMatches = content.match(/\d+/g);
+        if (numberMatches && numberMatches.length > 0) {
+            relevance += Math.min(numberMatches.length * 0.02, 0.1);
+        }
+
+        // Metadata-based boosts
+        if (metadata.userMarkedImportant) {
+            relevance += 0.2;
+        }
+        
+        if (metadata.followUpRequired) {
+            relevance += 0.15;
+        }
+
+        return Math.min(relevance, 1.0);
+    }
+
+    async getMemoriesByCategory(userId, categoryName, subcategoryName = null, limit = 50) {
+        const client = await this.pool.connect();
+        try {
+            let query = `
+                SELECT id, content, token_count, relevance_score, usage_frequency,
+                       created_at, last_accessed, metadata
+                FROM memory_entries 
+                WHERE user_id = $1 AND category_name = $2
+            `;
+            const params = [userId, categoryName];
+
+            if (subcategoryName) {
+                query += ` AND subcategory_name = $3`;
+                params.push(subcategoryName);
+            }
+
+            query += ` ORDER BY relevance_score DESC, created_at DESC LIMIT $${params.length + 1}`;
+            params.push(limit);
+
+            const result = await client.query(query, params);
+            return result.rows;
+        } finally {
+            client.release();
+        }
+    }
+
+    async searchMemories(userId, searchTerm, categoryFilter = null) {
+        const client = await this.pool.connect();
+        try {
+            let query = `
+                SELECT id, category_name, subcategory_name, content, token_count, 
+                       relevance_score, created_at,
+                       ts_rank(to_tsvector('english', content), plainto_tsquery('english', $2)) as search_rank
+                FROM memory_entries 
+                WHERE user_id = $1 
+                AND to_tsvector('english', content) @@ plainto_tsquery('english', $2)
+            `;
+            const params = [userId, searchTerm];
+
+            if (categoryFilter) {
+                query += ` AND category_name = $3`;
+                params.push(categoryFilter);
+            }
+
+            query += ` ORDER BY search_rank DESC, relevance_score DESC LIMIT 20`;
+
+            const result = await client.query(query, params);
+            return result.rows;
+        } finally {
+            client.release();
+        }
+    }
+
+    async getUserStats(userId) {
+        const client = await this.pool.connect();
+        try {
+            const stats = await client.query(`
+                SELECT 
+                    COUNT(*) as total_memories,
+                    SUM(token_count) as total_tokens,
+                    AVG(relevance_score) as avg_relevance,
+                    COUNT(DISTINCT category_name) as categories_used,
+                    MAX(created_at) as last_memory,
+                    MIN(created_at) as first_memory
+                FROM memory_entries 
+                WHERE user_id = $1
+            `, [userId]);
+
+            const categoryBreakdown = await client.query(`
+                SELECT 
+                    category_name,
+                    COUNT(*) as memory_count,
+                    SUM(token_count) as token_count,
+                    AVG(relevance_score) as avg_relevance
+                FROM memory_entries 
+                WHERE user_id = $1
+                GROUP BY category_name
+                ORDER BY token_count DESC
+            `, [userId]);
+
+            return {
+                overall: stats.rows[0],
+                byCategory: categoryBreakdown.rows
+            };
+        } finally {
+            client.release();
+        }
+    }
+
+    async cleanup() {
+        try {
+            await this.pool.end();
+            memoryLogger.log('✅ Database connections closed');
+        } catch (error) {
+            memoryLogger.error('❌ Error closing database connections:', error);
         }
     }
 }
 
-export { DatabaseManager };
+module.exports = DatabaseManager;
