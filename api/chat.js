@@ -291,6 +291,7 @@ await storeMemory(user_id, `User: ${message}\nAssistant: ${finalResponse}`, {
   expert_domain: expertDomain.domain,
   session_id: Date.now()
 });
+console.log("🧠 MEMORY STORAGE ATTEMPTED");
 
     res.status(200).json({
       response: finalResponse,
