@@ -1,155 +1,228 @@
 class ExtractionEngine {
     constructor() {
-        this.databaseManager = new DatabaseManager();
+        this.maxExtractionTokens = 2400;
+        this.minRelevanceThreshold = 0.3;
+        this.recentBias = 0.7; // Weight recent memories higher
     }
 
-    async extractRelevantContent(userId, categories, query, maxTokens = 2500) {
-        let extractedContent = [];
-        let totalTokens = 0;
-
+    async extractRelevantMemories(userId, query, categoryRouting, dbClient) {
         try {
-            // Sort categories by priority (high priority first)
-            const sortedCategories = categories.sort((a, b) => {
-                const priorityOrder = { high: 3, medium: 2, low: 1 };
-                return priorityOrder[b.priority] - priorityOrder[a.priority];
-            });
-
-            for (const categoryInfo of sortedCategories) {
-                if (totalTokens >= maxTokens) break;
-
-                const remainingTokens = maxTokens - totalTokens;
-                const categoryContent = await this.extractFromCategory(
-                    userId, 
-                    categoryInfo.category, 
-                    query, 
-                    remainingTokens
-                );
-
-                if (categoryContent.length > 0) {
-                    extractedContent.push({
-                        category: categoryInfo.category,
-                        content: categoryContent,
-                        tokenCount: this.calculateTokenCount(categoryContent.join(' '))
-                    });
-                    
-                    totalTokens += this.calculateTokenCount(categoryContent.join(' '));
-                }
-            }
-
-            return {
-                extractedMemories: extractedContent,
-                totalTokens: totalTokens,
-                categoriesSearched: categories.length,
-                extractionStrategy: this.determineExtractionStrategy(totalTokens, maxTokens)
-            };
-
-        } catch (error) {
-            console.error("Content extraction failed:", error);
-            return { extractedMemories: [], totalTokens: 0, error: error.message };
-        }
-    }
-
-    async extractFromCategory(userId, category, query, maxTokens) {
-        try {
-            // Get all memories from category
-            const memories = await this.databaseManager.getCategoryMemories(userId, category);
+            const extractionPlan = this.planExtraction(query, categoryRouting);
+            const extractedMemories = await this.executeExtraction(userId, extractionPlan, dbClient);
+            const optimizedMemories = this.optimizeExtraction(extractedMemories, query);
             
-            // Score memories for relevance to query
-            const scoredMemories = memories.map(memory => ({
-                ...memory,
-                relevanceScore: this.calculateRelevanceScore(memory, query)
-            }));
-
-            // Sort by relevance and recency
-            scoredMemories.sort((a, b) => {
-                const relevanceDiff = b.relevanceScore - a.relevanceScore;
-                if (relevanceDiff !== 0) return relevanceDiff;
-                
-                // If relevance is equal, prefer more recent
-                return new Date(b.timestamp) - new Date(a.timestamp);
-            });
-
-            // Extract memories up to token limit
-            const extractedMemories = [];
-            let tokenCount = 0;
-
-            for (const memory of scoredMemories) {
-                const memoryTokens = this.calculateTokenCount(memory.content);
-                if (tokenCount + memoryTokens <= maxTokens) {
-                    extractedMemories.push(memory.content);
-                    tokenCount += memoryTokens;
-                } else {
-                    // Try to fit a partial memory if there's space
-                    const remainingTokens = maxTokens - tokenCount;
-                    if (remainingTokens > 50) { // Only if meaningful space left
-                        const partialContent = this.truncateToTokenLimit(memory.content, remainingTokens);
-                        extractedMemories.push(partialContent);
-                    }
-                    break;
-                }
-            }
-
-            return extractedMemories;
-
+            return {
+                success: true,
+                memories: optimizedMemories,
+                tokenCount: this.calculateTokens(optimizedMemories),
+                categoriesSearched: extractionPlan.categories,
+                extractionTime: Date.now()
+            };
         } catch (error) {
-            console.error(`Extraction from category ${category} failed:`, error);
-            return [];
+            return {
+                success: false,
+                error: error.message,
+                memories: [],
+                tokenCount: 0
+            };
         }
     }
 
-    calculateRelevanceScore(memory, query) {
-        let score = 0;
-        const queryLower = query.toLowerCase();
-        const contentLower = memory.content.toLowerCase();
+    planExtraction(query, categoryRouting) {
+        const plan = {
+            primary: {
+                category: categoryRouting.primaryCategory,
+                subcategory: categoryRouting.subcategory,
+                tokenAllocation: Math.floor(this.maxExtractionTokens * 0.7) // 70% to primary
+            },
+            secondary: [],
+            fallback: []
+        };
 
-        // Keyword matching
-        const queryWords = queryLower.split(/\s+/);
-        queryWords.forEach(word => {
-            if (word.length > 3 && contentLower.includes(word)) {
-                score += 10;
-            }
-        });
+        // If confidence is low, include secondary categories
+        if (categoryRouting.confidence < 0.8) {
+            const sortedCategories = Object.entries(categoryRouting.allScores)
+                .sort(([,a], [,b]) => b - a)
+                .slice(1, 3); // Take next 2 best categories
 
-        // Boost for keywords in memory keywords array
-        if (memory.keywords) {
-            memory.keywords.forEach(keyword => {
-                if (queryLower.includes(keyword)) {
-                    score += 15;
-                }
+            plan.secondary = sortedCategories.map(([category, score]) => ({
+                category,
+                tokenAllocation: Math.floor(this.maxExtractionTokens * 0.15),
+                reason: 'low_confidence_backup'
+            }));
+        }
+
+        // Dynamic category inclusion
+        if (categoryRouting.dynamicCategory) {
+            plan.secondary.push({
+                category: 'dynamic_category_1', // Simplified for now
+                tokenAllocation: Math.floor(this.maxExtractionTokens * 0.15),
+                reason: 'dynamic_relevance'
             });
         }
 
-        // Boost for recent memories
-        const daysSinceCreated = (Date.now() - new Date(memory.timestamp)) / (1000 * 60 * 60 * 24);
-        if (daysSinceCreated < 7) score += 20;
-        else if (daysSinceCreated < 30) score += 10;
-
-        // Boost for high priority memories
-        score += (memory.priority || 50) * 0.5;
-
-        return score;
+        return plan;
     }
 
-    calculateTokenCount(content) {
-        // Rough token estimation
-        const words = content.split(/\s+/).length;
-        return Math.ceil(words * 0.75);
+    async executeExtraction(userId, plan, dbClient) {
+        const allMemories = [];
+
+        // Extract from primary category
+        const primaryMemories = await this.extractFromCategory(
+            userId, 
+            plan.primary.category, 
+            plan.primary.subcategory,
+            plan.primary.tokenAllocation,
+            dbClient
+        );
+        allMemories.push(...primaryMemories);
+
+        // Extract from secondary categories if needed
+        const currentTokens = this.calculateTokens(allMemories);
+        if (currentTokens < this.maxExtractionTokens && plan.secondary.length > 0) {
+            for (const secondary of plan.secondary) {
+                const remainingTokens = this.maxExtractionTokens - this.calculateTokens(allMemories);
+                if (remainingTokens > 100) { // Only continue if meaningful space left
+                    const secondaryMemories = await this.extractFromCategory(
+                        userId,
+                        secondary.category,
+                        null,
+                        Math.min(secondary.tokenAllocation, remainingTokens),
+                        dbClient
+                    );
+                    allMemories.push(...secondaryMemories);
+                }
+            }
+        }
+
+        return allMemories;
     }
 
-    truncateToTokenLimit(content, tokenLimit) {
-        const words = content.split(/\s+/);
-        const wordLimit = Math.floor(tokenLimit / 0.75);
-        return words.slice(0, wordLimit).join(' ') + '...';
-    }
+    async extractFromCategory(userId, categoryName, subcategoryName, maxTokens, dbClient) {
+        let query = `
+            SELECT id, content, token_count, relevance_score, usage_frequency, 
+                   last_accessed, created_at, metadata
+            FROM memory_entries 
+            WHERE user_id = $1 AND category_name = $2
+        `;
+        const params = [userId, categoryName];
 
-    determineExtractionStrategy(extractedTokens, maxTokens) {
-        const utilizationRate = extractedTokens / maxTokens;
+        if (subcategoryName) {
+            query += ` AND subcategory_name = $3`;
+            params.push(subcategoryName);
+        }
+
+        query += ` 
+            ORDER BY 
+                relevance_score DESC, 
+                usage_frequency DESC, 
+                created_at DESC 
+            LIMIT 50
+        `;
+
+        const result = await dbClient.query(query, params);
         
-        if (utilizationRate < 0.3) return 'sparse_memories';
-        if (utilizationRate < 0.7) return 'selective_extraction';
-        if (utilizationRate < 0.95) return 'comprehensive_extraction';
-        return 'token_limit_reached';
+        // Smart token-aware selection
+        const selectedMemories = [];
+        let currentTokens = 0;
+
+        for (const memory of result.rows) {
+            if (currentTokens + memory.token_count <= maxTokens) {
+                // Update usage statistics
+                await this.updateMemoryUsage(memory.id, dbClient);
+                
+                selectedMemories.push({
+                    ...memory,
+                    extractionReason: subcategoryName ? 'subcategory_match' : 'category_match',
+                    relevanceBoost: this.calculateRelevanceBoost(memory)
+                });
+                
+                currentTokens += memory.token_count;
+            }
+        }
+
+        return selectedMemories;
+    }
+
+    calculateRelevanceBoost(memory) {
+        const daysSinceCreated = (Date.now() - new Date(memory.created_at)) / (1000 * 60 * 60 * 24);
+        const daysSinceAccessed = (Date.now() - new Date(memory.last_accessed)) / (1000 * 60 * 60 * 24);
+        
+        // Recent memories get boost, frequently accessed memories get boost
+        const recencyBoost = Math.max(0, (30 - daysSinceCreated) / 30 * 0.3);
+        const accessBoost = Math.min(memory.usage_frequency / 10 * 0.2, 0.2);
+        
+        return recencyBoost + accessBoost;
+    }
+
+    optimizeExtraction(memories, query) {
+        // Final optimization pass
+        const queryWords = query.toLowerCase().split(' ');
+        
+        return memories
+            .map(memory => ({
+                ...memory,
+                finalRelevance: this.calculateFinalRelevance(memory, queryWords)
+            }))
+            .sort((a, b) => b.finalRelevance - a.finalRelevance)
+            .slice(0, Math.floor(this.maxExtractionTokens / 150)); // Ensure we don't exceed token limit
+    }
+
+    calculateFinalRelevance(memory, queryWords) {
+        const content = memory.content.toLowerCase();
+        let relevance = memory.relevance_score;
+        
+        // Boost for query word matches
+        const wordMatches = queryWords.filter(word => content.includes(word)).length;
+        relevance += (wordMatches / queryWords.length) * 0.3;
+        
+        // Apply relevance boost
+        relevance += memory.relevanceBoost || 0;
+        
+        return Math.min(relevance, 1.0);
+    }
+
+    async updateMemoryUsage(memoryId, dbClient) {
+        await dbClient.query(`
+            UPDATE memory_entries 
+            SET usage_frequency = usage_frequency + 1,
+                last_accessed = CURRENT_TIMESTAMP
+            WHERE id = $1
+        `, [memoryId]);
+    }
+
+    calculateTokens(memories) {
+        return memories.reduce((total, memory) => total + memory.token_count, 0);
+    }
+
+    formatForAI(memories) {
+        if (!memories || memories.length === 0) {
+            return { contextFound: false, memories: '' };
+        }
+
+        const formattedMemories = memories
+            .map(memory => {
+                const timeAgo = this.formatTimeAgo(memory.created_at);
+                return `[${timeAgo}] ${memory.content}`;
+            })
+            .join('\n\n');
+
+        return {
+            contextFound: true,
+            memories: formattedMemories,
+            totalTokens: this.calculateTokens(memories),
+            categoriesUsed: [...new Set(memories.map(m => m.category_name))]
+        };
+    }
+
+    formatTimeAgo(timestamp) {
+        const days = Math.floor((Date.now() - new Date(timestamp)) / (1000 * 60 * 60 * 24));
+        if (days === 0) return 'today';
+        if (days === 1) return 'yesterday';
+        if (days < 7) return `${days} days ago`;
+        if (days < 30) return `${Math.floor(days/7)} weeks ago`;
+        return `${Math.floor(days/30)} months ago`;
     }
 }
 
-export { ExtractionEngine };
+module.exports = ExtractionEngine;
