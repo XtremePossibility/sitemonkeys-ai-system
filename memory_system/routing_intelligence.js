@@ -1,157 +1,211 @@
 class RoutingIntelligence {
     constructor() {
-        this.categoryPatterns = this.initializeCategoryPatterns();
-    }
+        this.routingPatterns = {
+            // HEALTH & WELLNESS ROUTING
+            health_wellness: {
+                keywords: ['health', 'medical', 'doctor', 'symptom', 'pain', 'illness', 'medication', 'fitness', 'exercise', 'diet', 'nutrition', 'mental health', 'therapy', 'anxiety', 'depression', 'wellness', 'sleep', 'energy'],
+                contextPatterns: ['feeling sick', 'health issue', 'medical appointment', 'workout routine', 'eating habits', 'stress levels'],
+                subcategoryRouting: {
+                    physical_health: ['symptom', 'pain', 'injury', 'physical'],
+                    mental_health: ['anxiety', 'depression', 'stress', 'therapy', 'emotional'],
+                    medical_history: ['doctor', 'appointment', 'diagnosis', 'treatment'],
+                    fitness_nutrition: ['exercise', 'workout', 'diet', 'nutrition', 'fitness'],
+                    wellness_practices: ['wellness', 'meditation', 'sleep', 'relaxation']
+                }
+            },
 
-    initializeCategoryPatterns() {
-        return {
-            mental_emotional: {
-                keywords: ['stressed', 'anxious', 'feel', 'emotion', 'think', 'believe', 'confidence', 'self'],
-                patterns: [/i feel/i, /i think/i, /i believe/i, /stressed about/i, /anxious/i]
-            },
-            health_wellbeing: {
-                keywords: ['health', 'doctor', 'medication', 'pain', 'exercise', 'diet', 'sleep', 'energy'],
-                patterns: [/health/i, /medical/i, /doctor/i, /pain/i, /exercise/i, /sleep/i]
-            },
+            // RELATIONSHIPS & SOCIAL ROUTING
             relationships_social: {
-                keywords: ['family', 'friend', 'relationship', 'spouse', 'partner', 'conflict', 'social'],
-                patterns: [/my wife/i, /my husband/i, /my family/i, /friend/i, /relationship/i]
+                keywords: ['family', 'spouse', 'partner', 'boyfriend', 'girlfriend', 'marriage', 'relationship', 'friend', 'social', 'colleague', 'coworker', 'conflict', 'communication', 'love', 'dating', 'children', 'parents'],
+                contextPatterns: ['relationship issue', 'family problem', 'social situation', 'communication breakdown'],
+                subcategoryRouting: {
+                    family_dynamics: ['family', 'parents', 'children', 'siblings', 'relatives'],
+                    romantic_relationships: ['spouse', 'partner', 'boyfriend', 'girlfriend', 'dating', 'marriage'],
+                    friendships: ['friend', 'social', 'friendship', 'social circle'],
+                    professional_relationships: ['colleague', 'coworker', 'boss', 'team', 'workplace relationship'],
+                    social_interactions: ['social', 'communication', 'conflict', 'interaction']
+                }
             },
-            work_career: {
-                keywords: ['work', 'job', 'career', 'boss', 'colleague', 'promotion', 'office', 'professional'],
-                patterns: [/at work/i, /my job/i, /my boss/i, /career/i, /promotion/i]
+
+            // BUSINESS & CAREER ROUTING
+            business_career: {
+                keywords: ['work', 'job', 'career', 'business', 'company', 'project', 'meeting', 'boss', 'employee', 'salary', 'promotion', 'performance', 'deadline', 'client', 'customer', 'revenue', 'profit', 'strategy'],
+                contextPatterns: ['work issue', 'business problem', 'career decision', 'project deadline'],
+                subcategoryRouting: {
+                    work_performance: ['performance', 'productivity', 'deadline', 'task', 'efficiency'],
+                    career_planning: ['career', 'promotion', 'job search', 'professional development'],
+                    business_strategy: ['business', 'strategy', 'revenue', 'profit', 'growth'],
+                    professional_development: ['skills', 'training', 'learning', 'certification'],
+                    workplace_dynamics: ['team', 'boss', 'colleague', 'workplace culture']
+                }
             },
-            money_income_debt: {
-                keywords: ['salary', 'income', 'debt', 'loan', 'credit', 'broke', 'paycheck'],
-                patterns: [/debt/i, /loan/i, /credit card/i, /income/i, /salary/i, /broke/i]
+
+            // FINANCIAL MANAGEMENT ROUTING
+            financial_management: {
+                keywords: ['money', 'budget', 'expense', 'income', 'salary', 'cost', 'price', 'investment', 'savings', 'debt', 'loan', 'credit', 'financial', 'bank', 'tax', 'insurance'],
+                contextPatterns: ['financial issue', 'money problem', 'budget concern', 'investment decision'],
+                subcategoryRouting: {
+                    income_planning: ['salary', 'income', 'earnings', 'revenue', 'paycheck'],
+                    expense_tracking: ['expense', 'cost', 'spending', 'budget', 'bills'],
+                    investment_strategy: ['investment', 'stocks', 'portfolio', 'retirement', 'savings'],
+                    debt_management: ['debt', 'loan', 'credit', 'mortgage', 'payment'],
+                    financial_goals: ['financial goal', 'money goal', 'savings goal', 'financial planning']
+                }
             },
-            money_spending_goals: {
-                keywords: ['budget', 'spending', 'save', 'savings', 'purchase', 'buy', 'financial goal'],
-                patterns: [/budget/i, /spending/i, /save money/i, /financial goal/i, /want to buy/i]
-            },
-            goals_active_current: {
-                keywords: ['goal', 'plan', 'project', 'deadline', 'working on', 'trying to'],
-                patterns: [/my goal/i, /working on/i, /trying to/i, /this week/i, /current project/i]
-            },
-            goals_future_dreams: {
-                keywords: ['dream', 'someday', 'future', 'vision', 'hope', 'long term'],
-                patterns: [/someday/i, /in the future/i, /my dream/i, /long term/i, /vision/i]
-            },
-            tools_tech_workflow: {
-                keywords: ['app', 'software', 'tool', 'system', 'technology', 'automation', 'platform'],
-                patterns: [/app/i, /software/i, /system/i, /technology/i, /platform/i]
-            },
-            daily_routines_habits: {
-                keywords: ['routine', 'habit', 'daily', 'morning', 'evening', 'schedule', 'consistency'],
-                patterns: [/routine/i, /habit/i, /every day/i, /morning/i, /evening/i, /schedule/i]
-            },
-            personal_life_interests: {
-                keywords: ['hobby', 'interest', 'fun', 'enjoy', 'passion', 'creative', 'home'],
-                patterns: [/hobby/i, /interest/i, /enjoy/i, /passion/i, /creative/i, /at home/i]
+
+            // TECHNOLOGY & TOOLS ROUTING
+            technology_tools: {
+                keywords: ['software', 'app', 'tool', 'system', 'computer', 'phone', 'technology', 'digital', 'online', 'website', 'program', 'automation', 'workflow', 'productivity'],
+                contextPatterns: ['tech issue', 'software problem', 'system error', 'app not working'],
+                subcategoryRouting: {
+                    software_systems: ['software', 'program', 'system', 'application'],
+                    productivity_tools: ['productivity', 'tool', 'workflow', 'efficiency'],
+                    tech_troubleshooting: ['error', 'bug', 'problem', 'not working', 'broken'],
+                    automation_workflows: ['automation', 'workflow', 'process', 'streamline'],
+                    digital_organization: ['organization', 'digital', 'file', 'folder', 'storage']
+                }
             }
         };
+
+        this.fallbackChain = [
+            'health_wellness',
+            'relationships_social', 
+            'business_career',
+            'financial_management',
+            'technology_tools',
+            'personal_development',
+            'home_lifestyle'
+        ];
     }
 
-    async routeContent(content, metadata = {}) {
-        const scores = {};
-        
-        // Score each category based on content match
-        for (const [category, patterns] of Object.entries(this.categoryPatterns)) {
-            scores[category] = this.calculateCategoryScore(content, patterns);
+    routeToCategory(query, userId = null) {
+        const normalizedQuery = query.toLowerCase();
+        const routingScores = {};
+
+        // Score each category
+        for (const [categoryName, patterns] of Object.entries(this.routingPatterns)) {
+            let score = 0;
+
+            // Keyword matching
+            for (const keyword of patterns.keywords) {
+                if (normalizedQuery.includes(keyword)) {
+                    score += 2; // High weight for direct keyword matches
+                }
+            }
+
+            // Context pattern matching
+            for (const pattern of patterns.contextPatterns) {
+                if (normalizedQuery.includes(pattern)) {
+                    score += 3; // Higher weight for context patterns
+                }
+            }
+
+            // Semantic similarity (basic implementation)
+            score += this.calculateSemanticSimilarity(normalizedQuery, patterns.keywords);
+
+            routingScores[categoryName] = score;
         }
 
-        // Get highest scoring category
-        const primaryCategory = this.getPrimaryCategory(scores);
-        const subcategory = this.selectSubcategory(primaryCategory, content);
+        // Find best category
+        const bestCategory = Object.keys(routingScores).reduce((a, b) => 
+            routingScores[a] > routingScores[b] ? a : b
+        );
 
-        // Check for cross-category scenarios
-        const crossCategories = this.detectCrossCategoryScenarios(scores);
+        // Route to subcategory
+        const subcategory = this.routeToSubcategory(normalizedQuery, bestCategory);
+
+        // Check for dynamic category opportunities
+        const dynamicCategory = this.checkDynamicCategoryNeeds(normalizedQuery, userId);
 
         return {
-            category: primaryCategory,
+            primaryCategory: bestCategory,
             subcategory: subcategory,
-            confidence: scores[primaryCategory],
-            alternativeCategories: crossCategories,
-            routingStrategy: crossCategories.length > 0 ? 'multi_category' : 'single_category'
+            dynamicCategory: dynamicCategory,
+            confidence: Math.max(...Object.values(routingScores)) / 10, // Normalize to 0-1
+            allScores: routingScores
         };
     }
 
-    calculateCategoryScore(content, patterns) {
-        let score = 0;
-        const contentLower = content.toLowerCase();
+    routeToSubcategory(query, categoryName) {
+        const patterns = this.routingPatterns[categoryName];
+        if (!patterns || !patterns.subcategoryRouting) return null;
 
-        // Keyword matching
-        patterns.keywords.forEach(keyword => {
-            if (contentLower.includes(keyword)) {
-                score += 10;
-            }
-        });
-
-        // Pattern matching
-        patterns.patterns.forEach(pattern => {
-            if (pattern.test(content)) {
-                score += 15;
-            }
-        });
-
-        return score;
-    }
-
-    getPrimaryCategory(scores) {
-        return Object.keys(scores).reduce((a, b) => scores[a] > scores[b] ? a : b);
-    }
-
-    selectSubcategory(category, content) {
-        // Map categories to their subcategories and select most relevant
-        const subcategoryMaps = {
-            mental_emotional: ['self_talk_patterns', 'emotional_triggers', 'coping_mechanisms', 'psychological_progress', 'identity_statements'],
-            health_wellbeing: ['symptom_patterns', 'nutrition_logs', 'fitness_activity', 'sleep_energy', 'medical_flags'],
-            relationships_social: ['family_context', 'friendship_loops', 'conflict_history', 'support_sources', 'boundaries_enforced'],
-            work_career: ['job_roles_tasks', 'manager_team_dynamics', 'career_doubts', 'advancement_goals', 'performance_validation'],
-            money_income_debt: ['income_sources', 'income_stability', 'debt_issues', 'financial_crises', 'money_pressure_statements'],
-            money_spending_goals: ['spending_behavior', 'savings_goals', 'budgeting_attempts', 'financial_slipups', 'wealth_mindset'],
-            goals_active_current: ['current_objectives', 'week_priorities', 'blocked_tasks', 'urgent_goals', 'goal_reframes'],
-            goals_future_dreams: ['life_dreams', 'career_ambitions', 'bucket_list', 'deferred_goals', 'vision_quotes'],
-            tools_tech_workflow: ['work_tech_stack', 'life_automation', 'tool_conflicts', 'system_resets', 'experiment_logs'],
-            daily_routines_habits: ['morning_evening_patterns', 'habit_tracking', 'habit_drift', 'time_sinks', 'consistency_milestones'],
-            personal_life_interests: ['home_environment', 'passions_hobbies', 'media_preferences', 'creative_expression', 'joy_rituals']
-        };
-
-        const subcategories = subcategoryMaps[category] || ['general'];
+        const subcategoryScores = {};
         
-        // Simple subcategory selection - could be enhanced with more intelligence
-        return subcategories[0]; // Default to first subcategory for now
-    }
-
-    detectCrossCategoryScenarios(scores) {
-        // Return categories with scores above threshold for multi-category scenarios
-        const threshold = 20;
-        return Object.entries(scores)
-            .filter(([category, score]) => score >= threshold)
-            .sort((a, b) => b[1] - a[1])
-            .slice(1, 3) // Get top 2 alternative categories
-            .map(([category, score]) => ({ category, score }));
-    }
-
-    async selectRetrievalCategories(query) {
-        // Determine which categories to search for retrieval
-        const scores = {};
-        
-        for (const [category, patterns] of Object.entries(this.categoryPatterns)) {
-            scores[category] = this.calculateCategoryScore(query, patterns);
+        for (const [subcategory, keywords] of Object.entries(patterns.subcategoryRouting)) {
+            let score = 0;
+            for (const keyword of keywords) {
+                if (query.includes(keyword)) {
+                    score += 1;
+                }
+            }
+            subcategoryScores[subcategory] = score;
         }
 
-        // Return top scoring categories for search
-        return Object.entries(scores)
-            .filter(([category, score]) => score >= 10)
-            .sort((a, b) => b[1] - a[1])
-            .slice(0, 3) // Search top 3 relevant categories
-            .map(([category, score]) => ({ 
-                category, 
-                score, 
-                priority: score >= 30 ? 'high' : score >= 20 ? 'medium' : 'low' 
-            }));
+        const bestSubcategory = Object.keys(subcategoryScores).reduce((a, b) => 
+            subcategoryScores[a] > subcategoryScores[b] ? a : b
+        );
+
+        return subcategoryScores[bestSubcategory] > 0 ? bestSubcategory : Object.keys(patterns.subcategoryRouting)[0];
+    }
+
+    calculateSemanticSimilarity(query, keywords) {
+        // Basic semantic similarity - can be enhanced with more sophisticated NLP
+        const queryWords = query.split(' ');
+        const keywordSet = new Set(keywords.map(k => k.toLowerCase()));
+        
+        let matches = 0;
+        for (const word of queryWords) {
+            if (keywordSet.has(word)) matches++;
+        }
+        
+        return matches * 0.5; // Lower weight than direct matches
+    }
+
+    checkDynamicCategoryNeeds(query, userId) {
+        // AI determines if this query suggests need for a dynamic category
+        const intensityMarkers = ['crisis', 'emergency', 'urgent', 'major', 'life-changing', 'critical'];
+        const frequencyMarkers = ['again', 'still', 'continue', 'ongoing', 'persistent'];
+        
+        const hasIntensity = intensityMarkers.some(marker => query.includes(marker));
+        const hasFrequency = frequencyMarkers.some(marker => query.includes(marker));
+        
+        if (hasIntensity || hasFrequency) {
+            // Suggest creating/updating dynamic category
+            return this.suggestDynamicCategoryFocus(query);
+        }
+        
+        return null;
+    }
+
+    suggestDynamicCategoryFocus(query) {
+        // Extract potential focus area from query
+        const focusPatterns = {
+            'health_crisis': ['hospital', 'surgery', 'diagnosis', 'treatment', 'medical emergency'],
+            'relationship_transition': ['divorce', 'breakup', 'marriage', 'moving in', 'separation'],
+            'career_transition': ['job search', 'career change', 'new job', 'promotion', 'layoff'],
+            'financial_crisis': ['bankruptcy', 'debt crisis', 'financial emergency', 'money problems'],
+            'family_situation': ['pregnancy', 'new baby', 'elderly parent', 'family crisis'],
+            'major_project': ['renovation', 'move', 'startup', 'big project', 'major change']
+        };
+
+        for (const [focus, patterns] of Object.entries(focusPatterns)) {
+            if (patterns.some(pattern => query.includes(pattern))) {
+                return {
+                    suggestedFocus: focus,
+                    confidence: 0.8,
+                    reason: `Detected patterns suggesting ${focus.replace('_', ' ')}`
+                };
+            }
+        }
+
+        return null;
+    }
+
+    getFallbackCategories(primaryCategory) {
+        // Return fallback chain excluding primary
+        return this.fallbackChain.filter(cat => cat !== primaryCategory);
     }
 }
 
-export { RoutingIntelligence };
+module.exports = RoutingIntelligence;
