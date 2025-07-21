@@ -1,153 +1,204 @@
-import { DatabaseManager } from './database_manager.js';
-import { RoutingIntelligence } from './routing_intelligence.js';
-import { ExtractionEngine } from './extraction_engine.js';
-import { CategoryManager } from './category_manager.js';
-class SiteMonkeysMemoryCore {
+const { Pool } = require('pg');
+const memoryLogger = require('./memory_logger');
+
+class MemoryCore {
     constructor() {
-        this.databaseManager = new DatabaseManager();
-        this.routingIntelligence = new RoutingIntelligence();
-        this.extractionEngine = new ExtractionEngine();
-        this.categoryManager = new CategoryManager();
-        this.initialized = false;
-    }
-
-    async initialize(userId) {
-        try {
-            // Self-provisioning: Create user's memory infrastructure
-            await this.databaseManager.createUserSpace(userId);
-            await this.categoryManager.initializeStaticCategories(userId);
-            
-            this.initialized = true;
-            console.log(`Memory system initialized for user: ${userId}`);
-            return { success: true, message: "Memory system ready" };
-        } catch (error) {
-            console.error("Memory system initialization failed:", error);
-            return { success: false, fallback: true };
-        }
-    }
-
-    async storeMemory(userId, content, metadata = {}) {
-        if (!this.initialized) {
-            await this.initialize(userId);
-        }
-
-        try {
-            // Smart routing to determine category
-            const routing = await this.routingIntelligence.routeContent(content, metadata);
-            
-            // Condense content to memory entry format
-            const memoryEntry = await this.condenseToMemoryEntry(content, metadata);
-            
-            // Store in appropriate category with overwrite logic
-            const result = await this.categoryManager.storeInCategory(
-                userId, 
-                routing.category, 
-                routing.subcategory, 
-                memoryEntry
-            );
-
-            return result;
-        } catch (error) {
-            console.error("Memory storage failed:", error);
-            return { success: false, error: error.message };
-        }
-    }
-
-    async retrieveRelevantMemories(userId, query, maxTokens = 2500) {
-        if (!this.initialized) {
-            await this.initialize(userId);
-        }
-
-        try {
-            // Intelligent category selection
-            const relevantCategories = await this.routingIntelligence.selectRetrievalCategories(query);
-            
-            // Extract up to maxTokens of relevant memories
-            const memories = await this.extractionEngine.extractRelevantContent(
-                userId, 
-                relevantCategories, 
-                query, 
-                maxTokens
-            );
-
-            return {
-                success: true,
-                memories: memories,
-                tokenCount: this.calculateTokenCount(memories),
-                categoriesSearched: relevantCategories.map(c => c.category)
-            };
-        } catch (error) {
-            console.error("Memory retrieval failed:", error);
-            return { success: false, fallback: [], error: error.message };
-        }
-    }
-
-    async condenseToMemoryEntry(content, metadata) {
-        // Condense content to ~150-200 token memory entry
-        const condensed = await this.intelligentCondensation(content);
+        this.pool = new Pool({
+            connectionString: process.env.DATABASE_URL || process.env.POSTGRES_URL,
+            ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+            max: 20,
+            idleTimeoutMillis: 30000,
+            connectionTimeoutMillis: 2000,
+        });
         
-        return {
-            content: condensed,
-            timestamp: new Date().toISOString(),
-            priority: this.calculatePriority(content, metadata),
-            keywords: this.extractKeywords(content),
-            emotional_markers: this.detectEmotionalMarkers(content),
-            metadata: metadata
+        this.categories = {
+            // 11 MAIN PREDETERMINED CATEGORIES (50K each)
+            health_wellness: { maxTokens: 50000, subcategories: ['physical_health', 'mental_health', 'medical_history', 'fitness_nutrition', 'wellness_practices'] },
+            relationships_social: { maxTokens: 50000, subcategories: ['family_dynamics', 'romantic_relationships', 'friendships', 'professional_relationships', 'social_interactions'] },
+            business_career: { maxTokens: 50000, subcategories: ['work_performance', 'career_planning', 'business_strategy', 'professional_development', 'workplace_dynamics'] },
+            financial_management: { maxTokens: 50000, subcategories: ['income_planning', 'expense_tracking', 'investment_strategy', 'debt_management', 'financial_goals'] },
+            personal_development: { maxTokens: 50000, subcategories: ['skill_building', 'goal_setting', 'habit_formation', 'learning_projects', 'self_improvement'] },
+            home_lifestyle: { maxTokens: 50000, subcategories: ['living_environment', 'daily_routines', 'household_management', 'lifestyle_choices', 'personal_interests'] },
+            technology_tools: { maxTokens: 50000, subcategories: ['software_systems', 'productivity_tools', 'tech_troubleshooting', 'automation_workflows', 'digital_organization'] },
+            legal_administrative: { maxTokens: 50000, subcategories: ['documents_compliance', 'legal_matters', 'administrative_tasks', 'official_procedures', 'regulatory_requirements'] },
+            travel_experiences: { maxTokens: 50000, subcategories: ['trip_planning', 'travel_experiences', 'location_insights', 'cultural_exploration', 'adventure_activities'] },
+            creative_projects: { maxTokens: 50000, subcategories: ['artistic_endeavors', 'creative_writing', 'design_projects', 'musical_activities', 'innovative_ideas'] },
+            emergency_contingency: { maxTokens: 50000, subcategories: ['crisis_management', 'emergency_planning', 'backup_systems', 'contingency_protocols', 'recovery_strategies'] },
+            
+            // 5 AI-MANAGED DYNAMIC CATEGORIES (50K each)
+            dynamic_category_1: { maxTokens: 50000, aiManaged: true, currentFocus: null },
+            dynamic_category_2: { maxTokens: 50000, aiManaged: true, currentFocus: null },
+            dynamic_category_3: { maxTokens: 50000, aiManaged: true, currentFocus: null },
+            dynamic_category_4: { maxTokens: 50000, aiManaged: true, currentFocus: null },
+            dynamic_category_5: { maxTokens: 50000, aiManaged: true, currentFocus: null }
         };
+        
+        this.initialized = false;
+        this.initializeSystem();
     }
 
-    calculateTokenCount(content) {
-        // Rough token estimation (1 token ≈ 0.75 words)
-        const words = content.split(/\s+/).length;
-        return Math.ceil(words * 0.75);
+    async initializeSystem() {
+        try {
+            await this.createDatabaseSchema();
+            await this.createUserMemorySpaces();
+            await this.setupPerformanceIndexes();
+            this.initialized = true;
+            memoryLogger.log('✅ Memory Core initialized successfully');
+        } catch (error) {
+            memoryLogger.error('❌ Memory Core initialization failed:', error);
+            // Graceful degradation - system continues without memory
+        }
     }
 
-    async intelligentCondensation(content) {
-        // Smart summarization preserving key insights
-        // This would integrate with your AI API to condense content
-        if (content.length <= 600) return content; // Already condensed
-        
-        // Use AI to condense while preserving key information
-        // Implementation would call your AI service
-        return content.substring(0, 600) + "..."; // Fallback
+    async createDatabaseSchema() {
+        const client = await this.pool.connect();
+        try {
+            // Create main categories table
+            await client.query(`
+                CREATE TABLE IF NOT EXISTS memory_categories (
+                    id SERIAL PRIMARY KEY,
+                    user_id VARCHAR(255) NOT NULL,
+                    category_name VARCHAR(100) NOT NULL,
+                    subcategory_name VARCHAR(100),
+                    current_tokens INTEGER DEFAULT 0,
+                    max_tokens INTEGER DEFAULT 50000,
+                    is_dynamic BOOLEAN DEFAULT FALSE,
+                    dynamic_focus VARCHAR(255),
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    UNIQUE(user_id, category_name, subcategory_name)
+                )
+            `);
+
+            // Create memories table
+            await client.query(`
+                CREATE TABLE IF NOT EXISTS memory_entries (
+                    id SERIAL PRIMARY KEY,
+                    user_id VARCHAR(255) NOT NULL,
+                    category_name VARCHAR(100) NOT NULL,
+                    subcategory_name VARCHAR(100),
+                    content TEXT NOT NULL,
+                    token_count INTEGER NOT NULL,
+                    relevance_score DECIMAL(3,2) DEFAULT 0.50,
+                    usage_frequency INTEGER DEFAULT 0,
+                    last_accessed TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    metadata JSONB,
+                    INDEX(user_id, category_name, relevance_score DESC),
+                    INDEX(user_id, created_at DESC),
+                    INDEX(user_id, last_accessed DESC)
+                )
+            `);
+
+            // Create user memory profiles
+            await client.query(`
+                CREATE TABLE IF NOT EXISTS user_memory_profiles (
+                    user_id VARCHAR(255) PRIMARY KEY,
+                    total_memories INTEGER DEFAULT 0,
+                    total_tokens INTEGER DEFAULT 0,
+                    active_categories TEXT[],
+                    memory_patterns JSONB,
+                    last_optimization TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            `);
+            
+        } finally {
+            client.release();
+        }
     }
 
-    calculatePriority(content, metadata) {
-        let priority = 50; // Base priority
-        
-        // Boost for emotional content
-        if (this.detectEmotionalMarkers(content).length > 0) priority += 20;
-        
-        // Boost for decision/goal content
-        if (content.match(/\b(decide|goal|plan|want|need)\b/i)) priority += 15;
-        
-        // Boost for problem/solution content
-        if (content.match(/\b(problem|solution|fix|issue)\b/i)) priority += 10;
-        
-        return Math.min(priority, 100);
+    async createUserMemorySpaces() {
+        // AI-driven user memory space creation
+        const client = await this.pool.connect();
+        try {
+            // This will be called when a new user interacts with the system
+            // for now, we set up the framework
+            memoryLogger.log('User memory space framework ready');
+        } finally {
+            client.release();
+        }
     }
 
-    extractKeywords(content) {
-        // Extract relevant keywords for faster searching
-        const commonWords = new Set(['the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'is', 'am', 'are', 'was', 'were', 'be', 'been', 'being', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'could', 'should', 'may', 'might', 'must', 'can', 'i', 'you', 'he', 'she', 'it', 'we', 'they', 'my', 'your', 'his', 'her', 'its', 'our', 'their']);
-        
-        return content.toLowerCase()
-            .split(/\W+/)
-            .filter(word => word.length > 3 && !commonWords.has(word))
-            .slice(0, 10); // Top 10 keywords
+    async setupPerformanceIndexes() {
+        const client = await this.pool.connect();
+        try {
+            // Critical performance indexes for fast extraction
+            await client.query(`
+                CREATE INDEX IF NOT EXISTS idx_memory_relevance 
+                ON memory_entries(user_id, category_name, relevance_score DESC, created_at DESC)
+            `);
+            
+            await client.query(`
+                CREATE INDEX IF NOT EXISTS idx_memory_frequency 
+                ON memory_entries(user_id, usage_frequency DESC, last_accessed DESC)
+            `);
+            
+            await client.query(`
+                CREATE INDEX IF NOT EXISTS idx_memory_content_search 
+                ON memory_entries USING GIN(to_tsvector('english', content))
+            `);
+            
+        } finally {
+            client.release();
+        }
     }
 
-    detectEmotionalMarkers(content) {
-        const emotionalWords = [
-            'stressed', 'anxious', 'worried', 'excited', 'frustrated', 'angry',
-            'sad', 'happy', 'overwhelmed', 'confident', 'scared', 'proud',
-            'disappointed', 'hopeful', 'grateful', 'exhausted'
-        ];
-        
-        return emotionalWords.filter(word => 
-            content.toLowerCase().includes(word)
-        );
+    async provisionUserMemory(userId) {
+        if (!this.initialized) {
+            memoryLogger.warn('Memory system not initialized, provisioning skipped');
+            return false;
+        }
+
+        const client = await this.pool.connect();
+        try {
+            // Create user profile
+            await client.query(`
+                INSERT INTO user_memory_profiles (user_id, active_categories)
+                VALUES ($1, $2)
+                ON CONFLICT (user_id) DO NOTHING
+            `, [userId, Object.keys(this.categories)]);
+
+            // Initialize all categories for user
+            for (const [categoryName, categoryConfig] of Object.entries(this.categories)) {
+                if (categoryConfig.subcategories) {
+                    for (const subcategory of categoryConfig.subcategories) {
+                        await client.query(`
+                            INSERT INTO memory_categories (user_id, category_name, subcategory_name, max_tokens, is_dynamic)
+                            VALUES ($1, $2, $3, $4, $5)
+                            ON CONFLICT (user_id, category_name, subcategory_name) DO NOTHING
+                        `, [userId, categoryName, subcategory, categoryConfig.maxTokens, !!categoryConfig.aiManaged]);
+                    }
+                } else {
+                    // Dynamic category
+                    await client.query(`
+                        INSERT INTO memory_categories (user_id, category_name, max_tokens, is_dynamic)
+                        VALUES ($1, $2, $3, $4)
+                        ON CONFLICT (user_id, category_name, subcategory_name) DO NOTHING
+                    `, [userId, categoryName, categoryConfig.maxTokens, true]);
+                }
+            }
+
+            memoryLogger.log(`✅ User memory space provisioned for ${userId}`);
+            return true;
+        } catch (error) {
+            memoryLogger.error(`❌ Failed to provision memory for ${userId}:`, error);
+            return false;
+        } finally {
+            client.release();
+        }
+    }
+
+    async healthCheck() {
+        try {
+            const client = await this.pool.connect();
+            await client.query('SELECT 1');
+            client.release();
+            return { healthy: true, initialized: this.initialized };
+        } catch (error) {
+            return { healthy: false, error: error.message };
+        }
     }
 }
 
-export { SiteMonkeysMemoryCore };
+module.exports = MemoryCore;
