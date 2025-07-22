@@ -1,3 +1,10 @@
+// Simple logger for memory system (reused here)
+const memoryLogger = {
+    log: (message) => console.log(`[MEMORY] ${new Date().toISOString()} ${message}`),
+    error: (message, error) => console.error(`[MEMORY ERROR] ${new Date().toISOString()} ${message}`, error),
+    warn: (message) => console.warn(`[MEMORY WARN] ${new Date().toISOString()} ${message}`)
+};
+
 class CategoryManager {
     constructor(dbPool) {
         this.dbPool = dbPool;
@@ -277,7 +284,7 @@ class CategoryManager {
             )
         `, [userId, categoryName]);
 
-        memoryLogger.log(`Cleaned up overfull category ${categoryName} for user ${userId}`);
+        memoryLogger.log(`🧹 Cleaned up overfull category ${categoryName} for user ${userId}`);
     }
 
     async getCategoryHealth(userId) {
@@ -331,4 +338,4 @@ class CategoryManager {
     }
 }
 
-module.exports = CategoryManager;
+export default CategoryManager;
