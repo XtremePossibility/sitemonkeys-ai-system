@@ -1,8 +1,15 @@
-const MemoryCore = require('./memory_core');
-const RoutingIntelligence = require('./routing_intelligence');
-const ExtractionEngine = require('./extraction_engine');
-const CategoryManager = require('./category_manager');
-const DatabaseManager = require('./database_manager');
+import MemoryCore from './memory_core.js';
+import RoutingIntelligence from './routing_intelligence.js';
+import ExtractionEngine from './extraction_engine.js';
+import CategoryManager from './category_manager.js';
+import DatabaseManager from './database_manager.js';
+
+// Simple logger for memory system
+const memoryLogger = {
+    log: (message) => console.log(`[MEMORY] ${new Date().toISOString()} ${message}`),
+    error: (message, error) => console.error(`[MEMORY ERROR] ${new Date().toISOString()} ${message}`, error),
+    warn: (message) => console.warn(`[MEMORY WARN] ${new Date().toISOString()} ${message}`)
+};
 
 class MemoryAPI {
     constructor() {
@@ -229,75 +236,6 @@ class MemoryAPI {
     }
 }
 
-// Simple logger for memory system
-const memoryLogger = {
-    log: (message) => console.log(`[MEMORY] ${new Date().toISOString()} ${message}`),
-    error: (message, error) => console.error(`[MEMORY ERROR] ${new Date().toISOString()} ${message}`, error),
-    warn: (message) => console.warn(`[MEMORY WARN] ${new Date().toISOString()} ${message}`)
-};
-
 // Export singleton instance
-module.exports = new MemoryAPI();
-
-// ================================================================
-// INTEGRATION INSTRUCTIONS
-// ================================================================
-
-/*
-INSTALLATION:
-
-1. Create the memory_system directory in your project root:
-   mkdir memory_system
-
-2. Save each section above as separate files:
-   - memory_system/memory_core.js
-   - memory_system/routing_intelligence.js
-   - memory_system/extraction_engine.js
-   - memory_system/category_manager.js
-   - memory_system/database_manager.js
-   - memory_system/memory_api.js
-
-3. Install required dependency:
-   npm install pg
-
-4. Set up Railway PostgreSQL database (if not already done):
-   - Add PostgreSQL service in Railway dashboard
-   - Copy DATABASE_URL to your environment variables
-
-5. INTEGRATION WITH EXISTING SYSTEM:
-   In your existing api/chat.js, add ONE LINE at the top:
-   
-   const memorySystem = require('../memory_system/memory_api');
-
-   Then, in your chat processing function, add:
-
-   // Get relevant memories (before generating response)
-   const relevantMemories = await memorySystem.getRelevantContext(userId, message, 2400);
-   
-   // Include memories in your prompt if found
-   if (relevantMemories.contextFound) {
-       // Add relevantMemories.memories to your AI prompt
-   }
-   
-   // Store conversation memory (after generating response)
-   await memorySystem.storeMemory(userId, `User: ${message}\nAssistant: ${response}`, {
-       mode: currentMode,
-       timestamp: new Date().toISOString()
-   });
-
-FEATURES:
-✅ 11 predetermined categories + 5 AI-managed dynamic categories
-✅ 50,000 tokens per category with surgical 2,400 token extraction
-✅ Smart routing with 99%+ accuracy for distinct categories
-✅ Self-provisioning database - creates tables and indexes automatically
-✅ Bulletproof error handling with graceful degradation
-✅ Real-world performance optimization with connection pooling
-✅ Dynamic category management based on life phase detection
-✅ Memory consolidation and cleanup to prevent bloat
-✅ Complete isolation - zero modification to existing files
-✅ Production-ready with monitoring and maintenance
-
-ZERO MODIFICATIONS TO EXISTING SYSTEM REQUIRED
-COMPLETE SELF-CONTAINED OPERATION
-TRUE PERSISTENCE ACROSS SESSIONS
-*/
+const memorySystemInstance = new MemoryAPI();
+export default memorySystemInstance;
