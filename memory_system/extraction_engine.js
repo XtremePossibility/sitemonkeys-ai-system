@@ -225,4 +225,4 @@ class ExtractionEngine {
     }
 }
 
-module.exports = ExtractionEngine;
+export default ExtractionEngine;
