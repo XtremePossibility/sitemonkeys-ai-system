@@ -208,4 +208,4 @@ class RoutingIntelligence {
     }
 }
 
-module.exports = RoutingIntelligence;
+export default RoutingIntelligence;
