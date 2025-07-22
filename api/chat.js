@@ -266,6 +266,13 @@ if (mode === 'site_monkeys' && vaultContent && vaultContent.length > 1000) {
     
     // 7. SURVIVAL PROTECTION APPLICATION
     const finalResponse = applySurvivalProtection(enhancedResponse, mode, vaultContent);
+    // ✅ Store memory after final response is built
+await memorySystem.storeMemory(user_id, `User: ${message}\nAssistant: ${finalResponse}`, {
+  mode: mode,
+  expert_domain: expertDomain.domain,
+  timestamp: new Date().toISOString()
+});
+console.log("🧠 MEMORY STORAGE ATTEMPTED");
     
     // *** SYSTEM QUALITY ASSESSMENT ***
     const responseQuality = validateExpertQuality(finalResponse, expertDomain.domain, message);
@@ -285,12 +292,6 @@ if (mode === 'site_monkeys' && vaultContent && vaultContent.length > 1000) {
 
     const sessionData = formatSessionDataForUI();
 
-    // Store conversation in memory system
-await memorySystem.storeMemory(user_id, `User: ${message}\nAssistant: ${finalResponse}`, {
-  mode: mode,
-  expert_domain: expertDomain.domain,
-  session_id: Date.now()
-});
 console.log("🧠 MEMORY STORAGE ATTEMPTED");
 
     res.status(200).json({
