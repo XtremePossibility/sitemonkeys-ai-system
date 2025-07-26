@@ -1,12 +1,11 @@
 // ================================================================
-// COMPLETE SITE MONKEYS LEGACY MEMORY SYSTEM - ES6 VERSION
+// COMPLETE SITE MONKEYS LEGACY MEMORY SYSTEM - COMMONJS VERSION
 // Revolutionary persistent memory with 11+5 categories, smart routing,
 // surgical extraction, and self-provisioning infrastructure.
 // ================================================================
 
 // Import PostgreSQL for database operations
-import pkg from 'pg';
-const { Pool } = pkg;
+const { Pool } = require('pg');
 
 // Memory system logger
 const memoryLogger = {
@@ -228,7 +227,7 @@ class ExtractionEngine {
         query += ` 
             ORDER BY 
                 relevance_score DESC, 
-                usage_frequency DESC, 
+                usage_frequency DESC,
                 created_at DESC 
             LIMIT 20
         `;
@@ -755,7 +754,7 @@ class MemoryAPI {
             // Database health check
             const health = await this.getSystemHealth();
             if (!health.overall) {
-                memoryLogger.warn('⚠️  Database health check failed during maintenance');
+                memoryLogger.warn('⚠️ Database health check failed during maintenance');
             }
             
             memoryLogger.log('✅ Scheduled maintenance completed');
@@ -777,6 +776,6 @@ class MemoryAPI {
     }
 }
 
-// Export singleton instance
+// Export singleton instance using CommonJS
 const memorySystemInstance = new MemoryAPI();
-export default memorySystemInstance;
+module.exports = memorySystemInstance;
