@@ -6,7 +6,7 @@ console.log('[CHAT] Starting memory system load...');
 let memorySystem;
 try {
     // First try diagnostic
-    const diagnostic = require('../memory_system/memory_diagnostic');
+    const memorySystem = require('../memory_system/memory_core_v3');
     memorySystem = diagnostic.runMemoryDiagnostic();
     
     if (!memorySystem) {
