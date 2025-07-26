@@ -1,3 +1,4 @@
+// FORCE REBUILD - DELETE THIS LINE AFTER DEPLOY - 2025-07-26-1909
 // ================================================================
 // COMPLETE SITE MONKEYS LEGACY MEMORY SYSTEM - COMMONJS VERSION
 // Revolutionary persistent memory with 11+5 categories, smart routing,
