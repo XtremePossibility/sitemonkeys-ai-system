@@ -6,12 +6,12 @@ console.log('[CHAT] Starting memory system load...');
 let memorySystem;
 try {
     // First try diagnostic
-    const memorySystem = require('../memory_system/memory_core_v3');
+    const diagnostic = require('../memory_system/memory_diagnostic');  // ✅ CORRECT
     memorySystem = diagnostic.runMemoryDiagnostic();
     
     if (!memorySystem) {
         console.log('[CHAT] ❌ Diagnostic failed, trying direct load...');
-        memorySystem = require('../memory_system/memory_api');
+        memorySystem = require('../memory_system/memory_core_v3');  // ✅ FALLBACK TO V3
     }
     
     console.log('[CHAT] ✅ Memory system loaded:', typeof memorySystem);
