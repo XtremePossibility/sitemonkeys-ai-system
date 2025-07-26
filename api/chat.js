@@ -1,6 +1,29 @@
 // COMPLETE MODULAR CARING FAMILY INTELLIGENCE SYSTEM
 // Orchestrates all cognitive modules for universal expert intelligence
-const memorySystem = require('../memory_system/memory_api');
+// ENHANCED MEMORY SYSTEM LOADING WITH DIAGNOSTICS
+console.log('[CHAT] Starting memory system load...');
+
+let memorySystem;
+try {
+    // First try diagnostic
+    const diagnostic = require('../memory_system/memory_diagnostic');
+    memorySystem = diagnostic.runMemoryDiagnostic();
+    
+    if (!memorySystem) {
+        console.log('[CHAT] ❌ Diagnostic failed, trying direct load...');
+        memorySystem = require('../memory_system/memory_api');
+    }
+    
+    console.log('[CHAT] ✅ Memory system loaded:', typeof memorySystem);
+    console.log('[CHAT] Available functions:', Object.keys(memorySystem || {}));
+    
+} catch (error) {
+    console.log('[CHAT] ❌ CRITICAL: Memory system load failed:', error.message);
+    console.log('[CHAT] Stack trace:', error.stack);
+    memorySystem = null;
+}
+
+console.log('[DEBUG] Memory loaded:', typeof (memorySystem && memorySystem.getRelevantContext));
 console.log('[DEBUG] Memory loaded:', typeof memorySystem.getRelevantContext);
 
 import { trackApiCall, formatSessionDataForUI } from './lib/tokenTracker.js';
