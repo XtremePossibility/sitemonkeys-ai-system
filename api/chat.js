@@ -1,6 +1,7 @@
 // COMPLETE MODULAR CARING FAMILY INTELLIGENCE SYSTEM
 // Orchestrates all cognitive modules for universal expert intelligence
-import memorySystem from '../memory_system/memory_api.js';
+const memorySystem = require('../memory_system/memory_api');
+console.log('[DEBUG] Memory loaded:', typeof memorySystem.getRelevantContext);
 
 import { trackApiCall, formatSessionDataForUI } from './lib/tokenTracker.js';
 import { EMERGENCY_FALLBACKS, validateVaultStructure, getVaultValue } from './lib/site-monkeys/emergency-fallbacks.js';
