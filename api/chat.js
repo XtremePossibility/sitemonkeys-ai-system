@@ -63,6 +63,9 @@ import {
   integrateVaultLogic
 } from './lib/site-monkeys-enforcement.js';
 
+console.log('[DEBUG] Memory system type:', typeof memorySystem);
+console.log('[DEBUG] Available functions:', Object.keys(memorySystem));
+
 console.log('[DEBUG] Memory interface loaded:', typeof memorySystem.getRelevantContext);
 
 function validateVaultStructure(content) {
