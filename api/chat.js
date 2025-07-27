@@ -177,9 +177,9 @@ export default async function handler(req, res) {
   user_id = 'default_user'
 } = req.body;
 
-// Initialize memory systems for current mode
-const memoryStatus = await initializeMemorySystems(mode);
-console.log('[CHAT] 📊 Memory status:', memoryStatus);
+// After successful import
+const memoryStatus = await initializeMemorySystems(mode || 'site_monkeys');
+console.log('[CHAT] 📊 Memory initialization status:', memoryStatus);
 
     if (!message || typeof message !== 'string') {
       res.status(400).json({ error: 'Message is required and must be a string' });
