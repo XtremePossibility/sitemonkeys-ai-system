@@ -7,6 +7,11 @@ console.log('[CHAT] 🚀 Initializing separated memory systems...');
 // Import separated memory systems
 let vaultMemory, persistentMemory;
 
+// MEMORY SYSTEM VARIABLES
+let persistentMemory = null;
+let vaultMemory = null;
+
+// Top-level async imports (NOT inside a block)
 try {
   console.log('[CHAT] 🔍 Attempting memory imports...');
   vaultMemory = (await import('../memory_system/vault_loader.js')).default;
@@ -30,8 +35,7 @@ let vaultInitialized = false;
 let memorySystem = null; // Backward compatibility
 
 async function initializeMemorySystems(currentMode) {
-    let memoryInitialized = false;
-    let vaultInitialized = false;
+    console.log('[CHAT] 🧪 initializeMemorySystems CALLED with mode:', currentMode);
     
     try {
         // Initialize persistent memory (all modes)
