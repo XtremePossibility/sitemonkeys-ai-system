@@ -1,30 +1,55 @@
 // COMPLETE MODULAR CARING FAMILY INTELLIGENCE SYSTEM
 // Orchestrates all cognitive modules for universal expert intelligence
-// ENHANCED MEMORY SYSTEM LOADING WITH DIAGNOSTICS
-console.log('[CHAT] Starting memory system load...');
+// SEPARATED MEMORY SYSTEMS - VAULT & PERSISTENT
+console.log('[CHAT] 🚀 Initializing separated memory systems...');
 
-let memorySystem;
-try {
-    // First try diagnostic
-    const diagnostic = require('../memory_system/memory_diagnostic');  // ✅ CORRECT
-    memorySystem = diagnostic.runMemoryDiagnostic();
-    
-    if (!memorySystem) {
-        console.log('[CHAT] ❌ Diagnostic failed, trying direct load...');
-        memorySystem = require('../memory_system/memory_core_v3');  // ✅ FALLBACK TO V3
+// Import separated memory systems
+import vaultMemory from '../memory_system/vault_loader.js';        // Site Monkeys vault only
+import persistentMemory from '../memory_system/persistent_memory.js'; // Universal conversations
+
+let memoryInitialized = false;
+let vaultInitialized = false;
+let memorySystem = null; // Backward compatibility
+
+async function initializeMemorySystems(currentMode) {
+    try {
+        // Initialize persistent memory (all modes)
+        if (!memoryInitialized) {
+            console.log('[CHAT] 📋 Initializing universal persistent memory...');
+            const persistentHealth = await persistentMemory.getSystemHealth();
+            if (persistentHealth.overall) {
+                memoryInitialized = true;
+                memorySystem = persistentMemory; // Backward compatibility
+                console.log('[CHAT] ✅ Persistent memory system ready');
+            } else {
+                console.log('[CHAT] ⚠️ Persistent memory system not available');
+            }
+        }
+
+        // Initialize vault memory (Site Monkeys mode only)
+        if (currentMode === 'site_monkeys' && !vaultInitialized) {
+            console.log('[CHAT] 🏛️ Initializing Site Monkeys vault...');
+            const vaultResult = await vaultMemory.initialize('site_monkeys');
+            if (vaultResult.success) {
+                vaultInitialized = true;
+                console.log('[CHAT] ✅ Site Monkeys vault ready');
+            } else {
+                console.log('[CHAT] ⚠️ Site Monkeys vault not available:', vaultResult.error);
+            }
+        }
+
+        return {
+            persistent: memoryInitialized,
+            vault: (currentMode === 'site_monkeys') ? vaultInitialized : 'not_needed'
+        };
+
+    } catch (error) {
+        console.log('[CHAT] ❌ Memory system initialization failed:', error.message);
+        return { persistent: false, vault: false, error: error.message };
     }
-    
-    console.log('[CHAT] ✅ Memory system loaded:', typeof memorySystem);
-    console.log('[CHAT] Available functions:', Object.keys(memorySystem || {}));
-    
-} catch (error) {
-    console.log('[CHAT] ❌ CRITICAL: Memory system load failed:', error.message);
-    console.log('[CHAT] Stack trace:', error.stack);
-    memorySystem = null;
 }
 
-console.log('[DEBUG] Memory loaded:', typeof (memorySystem && memorySystem.getRelevantContext));
-console.log('[DEBUG] Memory loaded:', typeof memorySystem.getRelevantContext);
+console.log('[DEBUG] Memory systems imported successfully');
 
 import { trackApiCall, formatSessionDataForUI } from './lib/tokenTracker.js';
 import { EMERGENCY_FALLBACKS, validateVaultStructure, getVaultValue } from './lib/site-monkeys/emergency-fallbacks.js';
@@ -131,8 +156,12 @@ export default async function handler(req, res) {
   mode = 'site_monkeys',
   claude_requested = false,
   vault_content = null,
-  user_id = 'default_user'  // Add this line
+  user_id = 'default_user'
 } = req.body;
+
+// Initialize memory systems for current mode
+const memoryStatus = await initializeMemorySystems(mode);
+console.log('[CHAT] 📊 Memory status:', memoryStatus);
 
     if (!message || typeof message !== 'string') {
       res.status(400).json({ error: 'Message is required and must be a string' });
@@ -243,9 +272,15 @@ if (mode === 'site_monkeys' && vaultContent && vaultContent.length > 1000) {
     }
 
     // *** MASTER SYSTEM PROMPT CONSTRUCTION ***
-    // *** MEMORY SYSTEM INTEGRATION ***
-    // *** MEMORY SYSTEM INTEGRATION ***
-    const relevantMemories = await memorySystem.getRelevantContext(user_id, message, 2500);
+    // *** SEPARATED MEMORY SYSTEM INTEGRATION ***
+let relevantMemories = { contextFound: false, memories: '' };
+if (memoryInitialized && memorySystem) {
+    console.log('[CHAT] 📋 Retrieving persistent memory context...');
+    relevantMemories = await persistentMemory.getRelevantContext(user_id, message, 2400);
+    if (relevantMemories.contextFound) {
+        console.log('[CHAT] ✅ Retrieved persistent context:', relevantMemories.totalTokens, 'tokens');
+    }
+}
     const masterPrompt = buildMasterPrompt(mode, optimalPersonality, vaultContent, vaultHealthy, expertDomain, careNeeds, protectiveAlerts, solutionOpportunities);
     const basePrompt = buildFullConversationPrompt(masterPrompt, message, conversation_history, expertDomain, careNeeds, relevantMemories);
     
@@ -296,12 +331,20 @@ if (mode === 'site_monkeys' && vaultContent && vaultContent.length > 1000) {
     // 7. SURVIVAL PROTECTION APPLICATION
     const finalResponse = applySurvivalProtection(enhancedResponse, mode, vaultContent);
     // ✅ Store memory after final response is built
-await memorySystem.storeMemory(user_id, `User: ${message}\nAssistant: ${finalResponse}`, {
-  mode: mode,
-  expert_domain: expertDomain.domain,
-  timestamp: new Date().toISOString()
-});
-console.log("🧠 MEMORY STORAGE ATTEMPTED");
+// ✅ Store conversation in persistent memory
+if (memoryInitialized && persistentMemory) {
+    console.log('[CHAT] 💾 Storing conversation in persistent memory...');
+    const storeResult = await persistentMemory.storeMemory(user_id, `User: ${message}\nAssistant: ${finalResponse}`, {
+        mode: mode,
+        expert_domain: expertDomain.domain,
+        timestamp: new Date().toISOString()
+    });
+    if (storeResult.success) {
+        console.log('[CHAT] ✅ Conversation stored successfully:', storeResult.memoryId);
+    } else {
+        console.log('[CHAT] ❌ Failed to store conversation:', storeResult.error);
+    }
+}
     
     // *** SYSTEM QUALITY ASSESSMENT ***
     const responseQuality = validateExpertQuality(finalResponse, expertDomain.domain, message);
