@@ -5,8 +5,16 @@
 console.log('[CHAT] 🚀 Initializing separated memory systems...');
 
 // Import separated memory systems
-import vaultMemory from '../memory_system/vault_loader.js';        // Site Monkeys vault only
-import persistentMemory from '../memory_system/persistent_memory.js'; // Universal conversations
+let vaultMemory, persistentMemory;
+
+try {
+  console.log('[CHAT] 🔍 Attempting memory imports...');
+  vaultMemory = (await import('../memory_system/vault_loader.js')).default;
+  persistentMemory = (await import('../memory_system/persistent_memory.js')).default;
+  console.log('[CHAT] ✅ Memory systems imported successfully');
+} catch (error) {
+  console.error('[CHAT] ❌ Memory system import failed:', error.message);
+}
 
 // MEMORY SYSTEM DIAGNOSTIC - ADD AFTER LINE 10
 console.log('🔍 Testing memory system imports...');
