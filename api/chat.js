@@ -302,6 +302,15 @@ if (memoryInitialized && memorySystem) {
         console.log('[CHAT] ✅ Retrieved persistent context:', relevantMemories.totalTokens, 'tokens');
     }
 }
+    let relevantMemories = { contextFound: false, memories: '' };
+if (memoryInitialized && persistentMemory) {
+  console.log('[CHAT] 📋 Retrieving persistent memory context...');
+  relevantMemories = await persistentMemory.getRelevantContext(user_id, message, 2400);
+  if (relevantMemories.contextFound) {
+    console.log('[CHAT] ✅ Retrieved persistent context:', relevantMemories.totalTokens, 'tokens');
+  }
+}
+
     const masterPrompt = buildMasterPrompt(mode, optimalPersonality, vaultContent, vaultHealthy, expertDomain, careNeeds, protectiveAlerts, solutionOpportunities);
     const basePrompt = buildFullConversationPrompt(masterPrompt, message, conversation_history, expertDomain, careNeeds, relevantMemories);
     
@@ -351,6 +360,20 @@ if (memoryInitialized && memorySystem) {
     
     // 7. SURVIVAL PROTECTION APPLICATION
     const finalResponse = applySurvivalProtection(enhancedResponse, mode, vaultContent);
+    if (memoryInitialized && persistentMemory) {
+  console.log('[CHAT] 💾 Storing conversation in persistent memory...');
+  const storeResult = await persistentMemory.storeMemory(user_id, `User: ${message}\nAssistant: ${finalResponse}`, {
+    mode: mode,
+    expert_domain: expertDomain.domain,
+    timestamp: new Date().toISOString()
+  });
+  if (storeResult.success) {
+    console.log('[CHAT] ✅ Conversation stored successfully:', storeResult.memoryId);
+  } else {
+    console.log('[CHAT] ❌ Failed to store conversation:', storeResult.error);
+  }
+}
+
     // ✅ Store memory after final response is built
 // ✅ Store conversation in persistent memory
 if (memoryInitialized && persistentMemory) {
