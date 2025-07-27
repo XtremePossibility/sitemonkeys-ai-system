@@ -5,11 +5,11 @@
 console.log('[CHAT] 🚀 Initializing separated memory systems...');
 
 // Import separated memory systems
-let vaultMemory, persistentMemory;
-
-// MEMORY SYSTEM VARIABLES
-let persistentMemory = null;
 let vaultMemory = null;
+let persistentMemory = null;
+let memoryInitialized = false;
+let vaultInitialized = false;
+let memorySystem = null;
 
 // Top-level async imports (NOT inside a block)
 try {
