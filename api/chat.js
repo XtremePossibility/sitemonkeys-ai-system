@@ -30,6 +30,9 @@ let vaultInitialized = false;
 let memorySystem = null; // Backward compatibility
 
 async function initializeMemorySystems(currentMode) {
+    let memoryInitialized = false;
+    let vaultInitialized = false;
+    
     try {
         // Initialize persistent memory (all modes)
         if (!memoryInitialized) {
