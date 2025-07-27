@@ -8,6 +8,15 @@ console.log('[CHAT] 🚀 Initializing separated memory systems...');
 import vaultMemory from '../memory_system/vault_loader.js';        // Site Monkeys vault only
 import persistentMemory from '../memory_system/persistent_memory.js'; // Universal conversations
 
+// MEMORY SYSTEM DIAGNOSTIC - ADD AFTER LINE 10
+console.log('🔍 Testing memory system imports...');
+try {
+    console.log('📁 vault_loader exists:', typeof vaultMemory);
+    console.log('📁 persistent_memory exists:', typeof persistentMemory);
+} catch (error) {
+    console.log('❌ Memory import error:', error.message);
+}
+
 let memoryInitialized = false;
 let vaultInitialized = false;
 let memorySystem = null; // Backward compatibility
