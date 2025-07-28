@@ -9,7 +9,6 @@ let persistentMemory = null;
 let vaultMemory = null;
 let memoryInitialized = false;
 let vaultInitialized = false;
-let memorySystem = null; // Backward compatibility
 
 console.log('[DEBUG] About to attempt persistent memory import');
 
@@ -21,40 +20,6 @@ try {
 } catch (error) {
     console.log('❌ Memory import error:', error.message);
 }
-
-async function initializeMemorySystems(currentMode) {
-  console.log('[CHAT] 🧪 initializeMemorySystems CALLED with mode:', currentMode);
-
-  try {
-    if (!memoryInitialized) {
-      console.log('[CHAT] 🔍 Attempting memory imports...');
-      const vaultModule = await import('./memory_system/vault_loader.js');
-      const persistentModule = await import('./memory_system/persistent_memory.js');
-
-      vaultMemory = vaultModule.default || vaultModule;
-      persistentMemory = persistentModule.default || persistentModule;
-
-      console.log('[CHAT] 📋 Initializing universal persistent memory...');
-      const persistentHealth = await persistentMemory.getSystemHealth();
-      if (persistentHealth.overall) {
-        memoryInitialized = true;
-        memorySystem = persistentMemory;
-        console.log('[CHAT] ✅ Persistent memory system ready');
-      } else {
-        console.warn('[CHAT] ⚠️ Persistent memory system reported unhealthy');
-      }
-    }
-
-    if (currentMode === 'site_monkeys' && !vaultInitialized) {
-      console.log('[CHAT] 🏛️ Initializing Site Monkeys vault...');
-      const vaultResult = await vaultMemory.initialize('site_monkeys');
-      if (vaultResult.success) {
-        vaultInitialized = true;
-        console.log('[CHAT] ✅ Site Monkeys vault ready');
-      } else {
-        console.log('[CHAT] ⚠️ Site Monkeys vault not available:', vaultResult.error);
-      }
-    }
 
     return {
       persistent: memoryInitialized,
@@ -176,10 +141,6 @@ export default async function handler(req, res) {
   vault_content = null,
   user_id = 'default_user'
 } = req.body;
-
-// After successful import
-const memoryStatus = await initializeMemorySystems(mode || 'site_monkeys');
-console.log('[CHAT] 📊 Memory initialization status:', memoryStatus);
 
     if (!message || typeof message !== 'string') {
       res.status(400).json({ error: 'Message is required and must be a string' });
