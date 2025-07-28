@@ -23,43 +23,48 @@ try {
 }
 
 async function initializeMemorySystems(currentMode) {
-    console.log('[CHAT] 🧪 initializeMemorySystems CALLED with mode:', currentMode);
-    
-    try {
-        // Initialize persistent memory (all modes)
-        if (!memoryInitialized) {
-            console.log('[CHAT] 📋 Initializing universal persistent memory...');
-            const persistentHealth = await persistentMemory.getSystemHealth();
-            if (persistentHealth.overall) {
-                memoryInitialized = true;
-                memorySystem = persistentMemory; // Backward compatibility
-                console.log('[CHAT] ✅ Persistent memory system ready');
-            } else {
-                console.log('[CHAT] ⚠️ Persistent memory system not available');
-            }
-        }
+  console.log('[CHAT] 🧪 initializeMemorySystems CALLED with mode:', currentMode);
 
-        // Initialize vault memory (Site Monkeys mode only)
-        if (currentMode === 'site_monkeys' && !vaultInitialized) {
-            console.log('[CHAT] 🏛️ Initializing Site Monkeys vault...');
-            const vaultResult = await vaultMemory.initialize('site_monkeys');
-            if (vaultResult.success) {
-                vaultInitialized = true;
-                console.log('[CHAT] ✅ Site Monkeys vault ready');
-            } else {
-                console.log('[CHAT] ⚠️ Site Monkeys vault not available:', vaultResult.error);
-            }
-        }
+  try {
+    if (!memoryInitialized) {
+      console.log('[CHAT] 🔍 Attempting memory imports...');
+      const vaultModule = await import('./memory_system/vault_loader.js');
+      const persistentModule = await import('./memory_system/persistent_memory.js');
 
-        return {
-            persistent: memoryInitialized,
-            vault: (currentMode === 'site_monkeys') ? vaultInitialized : 'not_needed'
-        };
+      vaultMemory = vaultModule.default || vaultModule;
+      persistentMemory = persistentModule.default || persistentModule;
 
-    } catch (error) {
-        console.log('[CHAT] ❌ Memory system initialization failed:', error.message);
-        return { persistent: false, vault: false, error: error.message };
+      console.log('[CHAT] 📋 Initializing universal persistent memory...');
+      const persistentHealth = await persistentMemory.getSystemHealth();
+      if (persistentHealth.overall) {
+        memoryInitialized = true;
+        memorySystem = persistentMemory;
+        console.log('[CHAT] ✅ Persistent memory system ready');
+      } else {
+        console.warn('[CHAT] ⚠️ Persistent memory system reported unhealthy');
+      }
     }
+
+    if (currentMode === 'site_monkeys' && !vaultInitialized) {
+      console.log('[CHAT] 🏛️ Initializing Site Monkeys vault...');
+      const vaultResult = await vaultMemory.initialize('site_monkeys');
+      if (vaultResult.success) {
+        vaultInitialized = true;
+        console.log('[CHAT] ✅ Site Monkeys vault ready');
+      } else {
+        console.log('[CHAT] ⚠️ Site Monkeys vault not available:', vaultResult.error);
+      }
+    }
+
+    return {
+      persistent: memoryInitialized,
+      vault: (currentMode === 'site_monkeys') ? vaultInitialized : 'not_needed'
+    };
+
+  } catch (error) {
+    console.log('[CHAT] ❌ Memory system initialization failed:', error.message);
+    return { persistent: false, vault: false, error: error.message };
+  }
 }
 
 console.log('[DEBUG] Memory systems imported successfully');
