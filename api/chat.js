@@ -95,6 +95,8 @@ import { getVaultStatus, checkVaultTriggers, generateVaultContext, enforceVaultC
 import { integrateSystemIntelligence, enhancePromptWithIntelligence, getSystemIntelligenceStatus } from './lib/system-intelligence.js';
 import zlib from 'zlib';
 
+let persistentMemory = null;
+
 try {
   const module = await import('./memory_system/persistent_memory.js');
   persistentMemory = module.default || module;
