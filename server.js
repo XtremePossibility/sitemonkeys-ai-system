@@ -5,6 +5,15 @@
 import express from 'express';
 import cors from 'cors';
 const app = express();
+import memoryBootstrap from './memory_bootstrap.js';
+
+// ===== APPLICATION STARTUP MEMORY INITIALIZATION =====
+console.log('[SERVER] 🚀 Initializing memory systems at application startup...');
+
+// Initialize memory systems once at application startup
+await memoryBootstrap.initializeOnce();
+
+console.log('[SERVER] 📊 Memory bootstrap status:', memoryBootstrap.getStatus());
 
 // Enable CORS and JSON parsing
 app.use(cors());
@@ -601,9 +610,12 @@ let familyMemory = {
 };
 
 // MAIN CHAT ENDPOINT
-app.post('/api/chat', async (req, res) => {
-  try {
+app.post('/api/chat', upload.none(), async (req, res) => {
     const startTime = Date.now();
+    let totalCost = 0;
+    
+    try {
+        console.log('\n🚀 [CHAT] New conversation request received');
      
     const {
       message,
@@ -647,7 +659,39 @@ Quality-first approach with caring delivery`;
       vaultHealthy = false;
     }
 
-    // COMPREHENSIVE INTELLIGENCE ANALYSIS
+    // ===== MEMORY SYSTEM RETRIEVAL (NEW) =====
+const memorySystem = memoryBootstrap.getMemorySystem();
+const vaultLoader = memoryBootstrap.getVaultLoader();
+
+if (!memoryBootstrap.isReady()) {
+  console.error('[CHAT] ❌ Memory systems not ready');
+  return res.status(500).json({ 
+    error: 'Memory systems not initialized',
+    details: memoryBootstrap.getStatus()
+  });
+}
+
+console.log('[CHAT] ✅ Memory systems retrieved from bootstrap');
+let memoryContext = '';
+
+if (memorySystem && typeof memorySystem.getRelevantContext === 'function') {
+  try {
+    console.log('[CHAT] 📋 Retrieving memory context...');
+    memoryContext = await memorySystem.getRelevantContext(message, {
+      maxTokens: 2400,
+      includeRecent: true,
+      mode: mode
+    });
+    console.log('[CHAT] ✅ Memory context retrieved:', memoryContext.length, 'characters');
+  } catch (error) {
+    console.error('[CHAT] ⚠️ Memory context retrieval failed:', error);
+    memoryContext = '';
+  }
+} else {
+  console.log('[CHAT] ⚠️ Memory system not available or getRelevantContext missing');
+}
+
+    // COMPREHENSIVE INTELLIGENCE ANALYSIS    
     const expertDomain = identifyExpertDomain(message);
     const careNeeds = analyzeCareNeeds(message, conversation_history);
     const protectiveAlerts = scanForRisks(message, expertDomain);
@@ -726,6 +770,26 @@ Quality-first approach with caring delivery`;
     updateFamilyMemory(expertDomain, careNeeds, protectiveAlerts, solutionOpportunities);
     lastPersonality = personality;
 
+    // ===== MEMORY STORAGE =====
+if (memorySystem && typeof memorySystem.storeMemory === 'function') {
+  try {
+    console.log('[CHAT] 💾 Storing conversation in memory...');
+    await memorySystem.storeMemory({
+      message: message,
+      response: finalResponse,
+      mode: mode,
+      userId: 'user',
+      timestamp: new Date().toISOString(),
+      cost: totalCost,
+      model: 'gpt-4o'
+    });
+    console.log('[CHAT] ✅ Conversation stored successfully');
+  } catch (error) {
+    console.error('[CHAT] ⚠️ Memory storage failed:', error);
+  }
+} else {
+  console.log('[CHAT] ⚠️ Memory system not available or storeMemory missing');
+}
     // RESPONSE WITH FULL INTELLIGENCE METADATA
     res.json({
       response: finalResponse,
@@ -1549,4 +1613,17 @@ app.listen(PORT, () => {
   console.log(`💙 ${FAMILY_PHILOSOPHY.core_mission}`);
   console.log(`✨ ${FAMILY_PHILOSOPHY.one_and_done_philosophy}`);
   console.log(`📁 Vault endpoint: /api/load-vault`);
+});
+// ===== MEMORY SYSTEM HEALTH CHECK =====
+app.get('/api/memory-status', (req, res) => {
+    const status = memoryBootstrap.getStatus();
+    const memorySystem = memoryBootstrap.getMemorySystem();
+    
+    res.json({
+        bootstrap: status,
+        memoryMethods: memorySystem ? Object.keys(memorySystem) : [],
+        memorySystemType: memorySystem ? (memorySystem.getSystemHealth ? 'persistent' : 'fallback') : 'none',
+        timestamp: new Date().toISOString(),
+        ready: memoryBootstrap.isReady()
+    });
 });
