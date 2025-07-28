@@ -45,8 +45,6 @@ try {
     console.log('❌ Memory import error:', error.message);
 }
 
-let memorySystem = null; // Backward compatibility
-
 async function initializeMemorySystems(currentMode) {
     console.log('[CHAT] 🧪 initializeMemorySystems CALLED with mode:', currentMode);
     
