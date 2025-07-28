@@ -1,4 +1,4 @@
-console.log('[DEBUG] process.cwd()', process.cwd());
+console.error('[💣 SYSTEM TEST] chat.js loaded at all');
 // FORCE CACHE REFRESH - 2025-07-27-1559 - DELETE AFTER DEPLOY
 // COMPLETE MODULAR CARING FAMILY INTELLIGENCE SYSTEM
 // Orchestrates all cognitive modules for universal expert intelligence
@@ -17,8 +17,8 @@ console.log('[DEBUG] About to attempt persistent memory import');
 // DYNAMIC IMPORT SECTION
 try {
   console.log('[CHAT] 🔍 Attempting memory imports...');
-  const vaultModule = await import('../memory_system/vault_loader.js');
-  const persistentModule = await import('../memory_system/persistent_memory.js');
+  const vaultModule = await import('./memory_system/vault_loader.js');
+  const persistentModule = await import('./memory_system/persistent_memory.js');
 
   vaultMemory = vaultModule.default || vaultModule;
   persistentMemory = persistentModule.default || persistentModule;
