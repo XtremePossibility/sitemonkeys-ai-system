@@ -30,8 +30,6 @@ try {
     console.log('❌ Memory import error:', error.message);
 }
 
-let memoryInitialized = false;
-let vaultInitialized = false;
 let memorySystem = null; // Backward compatibility
 
 async function initializeMemorySystems(currentMode) {
