@@ -1,38 +1,10 @@
 // FORCE CACHE REFRESH - 2025-07-27-1559 - DELETE AFTER DEPLOY
 // COMPLETE MODULAR CARING FAMILY INTELLIGENCE SYSTEM
 // Orchestrates all cognitive modules for universal expert intelligence
-// SEPARATED MEMORY SYSTEMS - VAULT & PERSISTENT
-console.log('[CHAT] 🚀 Initializing separated memory systems...');
+// MEMORY SYSTEMS NOW HANDLED BY SERVER.JS BOOTSTRAP
 
-// SEPARATED MEMORY SYSTEM VARIABLES
-let persistentMemory = null;
-let vaultMemory = null;
-let memoryInitialized = false;
-let vaultInitialized = false;
-
-console.log('[DEBUG] About to attempt persistent memory import');
-
-// MEMORY SYSTEM DIAGNOSTIC - ADD AFTER LINE 10
-console.log('🔍 Testing memory system imports...');
-try {
-    console.log('📁 vault_loader exists:', typeof vaultMemory);
-    console.log('📁 persistent_memory exists:', typeof persistentMemory);
-} catch (error) {
-    console.log('❌ Memory import error:', error.message);
-}
-
-    return {
-      persistent: memoryInitialized,
-      vault: (currentMode === 'site_monkeys') ? vaultInitialized : 'not_needed'
-    };
-
-  } catch (error) {
-    console.log('[CHAT] ❌ Memory system initialization failed:', error.message);
-    return { persistent: false, vault: false, error: error.message };
-  }
-}
-
-console.log('[DEBUG] Memory systems imported successfully');
+console.log('[CHAT] 🚀 Chat system initializing...');
+console.log('[DEBUG] Chat imports starting...');
 
 import { trackApiCall, formatSessionDataForUI } from './lib/tokenTracker.js';
 import { EMERGENCY_FALLBACKS, validateVaultStructure, getVaultValue } from './lib/site-monkeys/emergency-fallbacks.js';
@@ -94,10 +66,7 @@ import {
   integrateVaultLogic
 } from './lib/site-monkeys-enforcement.js';
 
-console.log('[DEBUG] Memory system type:', typeof memorySystem);
-console.log('[DEBUG] Available functions:', Object.keys(memorySystem));
-
-console.log('[DEBUG] Memory interface loaded:', typeof memorySystem.getRelevantContext);
+console.log('[DEBUG] All cognitive modules loaded successfully');
 
 function validateVaultStructure(content) {
   if (!content || typeof content !== 'string') return false;
@@ -134,13 +103,13 @@ export default async function handler(req, res) {
 
   try {
     const {
-  message,
-  conversation_history = [],
-  mode = 'site_monkeys',
-  claude_requested = false,
-  vault_content = null,
-  user_id = 'default_user'
-} = req.body;
+      message,
+      conversation_history = [],
+      mode = 'site_monkeys',
+      claude_requested = false,
+      vault_content = null,
+      user_id = 'default_user'
+    } = req.body;
 
     if (!message || typeof message !== 'string') {
       res.status(400).json({ error: 'Message is required and must be a string' });
@@ -154,7 +123,7 @@ export default async function handler(req, res) {
         vaultTokens = Math.ceil(vaultContent.length / 4);
         vaultStatus = 'loaded_from_frontend';
         vaultHealthy = true;  // vault.js will handle health validation
-const vaultStatusObj = getVaultStatus();
+        const vaultStatusObj = getVaultStatus();
       } else {
         const kvVault = process.env.VAULT_CONTENT;
         if (kvVault) {
@@ -175,18 +144,18 @@ const vaultStatusObj = getVaultStatus();
           vaultHealthy = false;
         }
       }
-   } catch (vaultError) {
-  console.error('Vault loading error:', vaultError);
-  vaultStatus = 'error_fallback';
-  vaultHealthy = false;
-}
+    } catch (vaultError) {
+      console.error('Vault loading error:', vaultError);
+      vaultStatus = 'error_fallback';
+      vaultHealthy = false;
+    }
 
-// *** FINAL VAULT HEALTH CORRECTION FOR SITE MONKEYS MODE ***
-if (mode === 'site_monkeys' && vaultContent && vaultContent.length > 1000) {
-  vaultHealthy = true;
-  vaultStatus = 'healthy_override_applied';
-  console.log('✅ Site Monkeys vault health FINAL correction - vault intelligence active');
-}
+    // *** FINAL VAULT HEALTH CORRECTION FOR SITE MONKEYS MODE ***
+    if (mode === 'site_monkeys' && vaultContent && vaultContent.length > 1000) {
+      vaultHealthy = true;
+      vaultStatus = 'healthy_override_applied';
+      console.log('✅ Site Monkeys vault health FINAL correction - vault intelligence active');
+    }
 
     // *** COMPREHENSIVE COGNITIVE ANALYSIS ***
     
@@ -251,26 +220,8 @@ if (mode === 'site_monkeys' && vaultContent && vaultContent.length > 1000) {
     }
 
     // *** MASTER SYSTEM PROMPT CONSTRUCTION ***
-    // *** SEPARATED MEMORY SYSTEM INTEGRATION ***
-let relevantMemories = { contextFound: false, memories: '' };
-if (memoryInitialized && memorySystem) {
-    console.log('[CHAT] 📋 Retrieving persistent memory context...');
-    relevantMemories = await persistentMemory.getRelevantContext(user_id, message, 2400);
-    if (relevantMemories.contextFound) {
-        console.log('[CHAT] ✅ Retrieved persistent context:', relevantMemories.totalTokens, 'tokens');
-    }
-}
-    let relevantMemories = { contextFound: false, memories: '' };
-if (memoryInitialized && persistentMemory) {
-  console.log('[CHAT] 📋 Retrieving persistent memory context...');
-  relevantMemories = await persistentMemory.getRelevantContext(user_id, message, 2400);
-  if (relevantMemories.contextFound) {
-    console.log('[CHAT] ✅ Retrieved persistent context:', relevantMemories.totalTokens, 'tokens');
-  }
-}
-
     const masterPrompt = buildMasterPrompt(mode, optimalPersonality, vaultContent, vaultHealthy, expertDomain, careNeeds, protectiveAlerts, solutionOpportunities);
-    const basePrompt = buildFullConversationPrompt(masterPrompt, message, conversation_history, expertDomain, careNeeds, relevantMemories);
+    const basePrompt = buildFullConversationPrompt(masterPrompt, message, conversation_history, expertDomain, careNeeds);
     
     // *** SYSTEM INTELLIGENCE INTEGRATION ***
     const intelligence = integrateSystemIntelligence(message, vaultContent, vaultHealthy);
@@ -318,35 +269,6 @@ if (memoryInitialized && persistentMemory) {
     
     // 7. SURVIVAL PROTECTION APPLICATION
     const finalResponse = applySurvivalProtection(enhancedResponse, mode, vaultContent);
-    if (memoryInitialized && persistentMemory) {
-  console.log('[CHAT] 💾 Storing conversation in persistent memory...');
-  const storeResult = await persistentMemory.storeMemory(user_id, `User: ${message}\nAssistant: ${finalResponse}`, {
-    mode: mode,
-    expert_domain: expertDomain.domain,
-    timestamp: new Date().toISOString()
-  });
-  if (storeResult.success) {
-    console.log('[CHAT] ✅ Conversation stored successfully:', storeResult.memoryId);
-  } else {
-    console.log('[CHAT] ❌ Failed to store conversation:', storeResult.error);
-  }
-}
-
-    // ✅ Store memory after final response is built
-// ✅ Store conversation in persistent memory
-if (memoryInitialized && persistentMemory) {
-    console.log('[CHAT] 💾 Storing conversation in persistent memory...');
-    const storeResult = await persistentMemory.storeMemory(user_id, `User: ${message}\nAssistant: ${finalResponse}`, {
-        mode: mode,
-        expert_domain: expertDomain.domain,
-        timestamp: new Date().toISOString()
-    });
-    if (storeResult.success) {
-        console.log('[CHAT] ✅ Conversation stored successfully:', storeResult.memoryId);
-    } else {
-        console.log('[CHAT] ❌ Failed to store conversation:', storeResult.error);
-    }
-}
     
     // *** SYSTEM QUALITY ASSESSMENT ***
     const responseQuality = validateExpertQuality(finalResponse, expertDomain.domain, message);
@@ -365,8 +287,6 @@ if (memoryInitialized && persistentMemory) {
     lastPersonality = optimalPersonality;
 
     const sessionData = formatSessionDataForUI();
-
-console.log("🧠 MEMORY STORAGE ATTEMPTED");
 
     res.status(200).json({
       response: finalResponse,
@@ -439,13 +359,13 @@ function buildMasterPrompt(mode, personality, vaultContent, vaultHealthy, expert
   // 1. CARING FAMILY FOUNDATION
   masterPrompt += buildCaringExpertPrompt(expertDomain, careNeeds, calculatePrideMotivation(expertDomain, careNeeds, protectiveAlerts, solutionOpportunities), personality);
   
-// 2. QUANTITATIVE REASONING REQUIREMENTS  
-masterPrompt += '\n🎯 QUANTITATIVE ANALYSIS ENFORCEMENT:\n';  
-masterPrompt += 'When ANY numerical/financial analysis is requested, you MUST provide actual calculations.\n';
-masterPrompt += 'MANDATORY: Use Site Monkeys pricing: Boost ($697), Climb ($1,497), Lead ($2,997).\n';  
-masterPrompt += 'MANDATORY: Show step-by-step math with real numbers and projections.\n';
-masterPrompt += 'MANDATORY: Include confidence levels and assumptions.\n';
-masterPrompt += 'NO GENERIC BUSINESS ADVICE - ONLY REAL CALCULATIONS.\n\n';
+  // 2. QUANTITATIVE REASONING REQUIREMENTS  
+  masterPrompt += '\n🎯 QUANTITATIVE ANALYSIS ENFORCEMENT:\n';  
+  masterPrompt += 'When ANY numerical/financial analysis is requested, you MUST provide actual calculations.\n';
+  masterPrompt += 'MANDATORY: Use Site Monkeys pricing: Boost ($697), Climb ($1,497), Lead ($2,997).\n';  
+  masterPrompt += 'MANDATORY: Show step-by-step math with real numbers and projections.\n';
+  masterPrompt += 'MANDATORY: Include confidence levels and assumptions.\n';
+  masterPrompt += 'NO GENERIC BUSINESS ADVICE - ONLY REAL CALCULATIONS.\n\n';
   
   // 3. BUSINESS SURVIVAL PROTECTION
   if (mode === 'site_monkeys') {
@@ -510,14 +430,10 @@ masterPrompt += 'NO GENERIC BUSINESS ADVICE - ONLY REAL CALCULATIONS.\n\n';
   return masterPrompt;
 }
 
-function buildFullConversationPrompt(masterPrompt, message, conversationHistory, expertDomain, careNeeds, relevantMemories) {
+function buildFullConversationPrompt(masterPrompt, message, conversationHistory, expertDomain, careNeeds) {
   let fullPrompt = masterPrompt;
 
-  // Add relevant memories if available
-  if (relevantMemories && relevantMemories.contextFound) {
-    fullPrompt += 'RELEVANT MEMORIES FROM PAST CONVERSATIONS:\n';
-    fullPrompt += relevantMemories.memories + '\n\n';
-  }
+  // NO MEMORY INTEGRATION - Memory handled by server.js bootstrap
 
   if (conversationHistory.length > 0) {
     fullPrompt += 'FAMILY CONVERSATION CONTEXT:\n';
@@ -646,10 +562,9 @@ The technical issue was: ${error.message}
 I'm maintaining professional standards and genuine care for your success, even in emergency mode. How can I help you move forward while we resolve this?
 
 💙 Family looks out for family, especially when things get challenging.`;
+}
 
-// *** CORRECTED VAULT DIAGNOSTIC - PLACE AT VERY END OF chat.js ***
-// Add this BEFORE the final closing brace of your chat.js file
-
+// *** VAULT DIAGNOSTIC FUNCTION (PRESERVED) ***
 function comprehensiveVaultDiagnostic(message = "test business question", vaultContent = "") {
   console.log("🔍 === VAULT DIAGNOSTIC SUITE STARTING ===");
   
@@ -723,5 +638,4 @@ function comprehensiveVaultDiagnostic(message = "test business question", vaultC
 // Make it available globally
 if (typeof window !== 'undefined') {
   window.comprehensiveVaultDiagnostic = comprehensiveVaultDiagnostic;
-}
 }
