@@ -4,19 +4,31 @@
 // SEPARATED MEMORY SYSTEMS - VAULT & PERSISTENT
 console.log('[CHAT] 🚀 Initializing separated memory systems...');
 
-// Import separated memory systems
-let vaultMemory = null;
+// SEPARATED MEMORY SYSTEM VARIABLES
 let persistentMemory = null;
+let vaultMemory = null;
 let memoryInitialized = false;
 let vaultInitialized = false;
-let memorySystem = null;
+let memorySystem = null; // Backward compatibility
 
-// Top-level async imports (NOT inside a block)
+// DYNAMIC IMPORT SECTION
 try {
   console.log('[CHAT] 🔍 Attempting memory imports...');
-  vaultMemory = (await import('../memory_system/vault_loader.js')).default;
-  persistentMemory = (await import('../memory_system/persistent_memory.js')).default;
-  console.log('[CHAT] ✅ Memory systems imported successfully');
+  const vaultModule = await import('../memory_system/vault_loader.js');
+  const persistentModule = await import('../memory_system/persistent_memory.js');
+
+  vaultMemory = vaultModule.default || vaultModule;
+  persistentMemory = persistentModule.default || persistentModule;
+
+  console.log('[CHAT] 📋 Initializing universal persistent memory...');
+  const persistentHealth = await persistentMemory.getSystemHealth();
+  if (persistentHealth.overall) {
+    memoryInitialized = true;
+    memorySystem = persistentMemory;
+    console.log('[CHAT] ✅ Persistent memory system ready');
+  } else {
+    console.warn('[CHAT] ⚠️ Persistent memory system reported unhealthy');
+  }
 } catch (error) {
   console.error('[CHAT] ❌ Memory system import failed:', error.message);
 }
