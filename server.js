@@ -22,8 +22,6 @@ app.use(express.json({ limit: '50mb' }));
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
-import multer from 'multer';
-const upload = multer();
 
 // Required for ESM to get __dirname
 const __filename = fileURLToPath(import.meta.url);
@@ -612,7 +610,7 @@ let familyMemory = {
 };
 
 // MAIN CHAT ENDPOINT
-app.post('/api/chat', upload.none(), async (req, res) => {
+app.post('/api/chat', async (req, res) => {
     const startTime = Date.now();
     let totalCost = 0;
     
