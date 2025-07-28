@@ -95,6 +95,7 @@ import { getVaultStatus, checkVaultTriggers, generateVaultContext, enforceVaultC
 import { integrateSystemIntelligence, enhancePromptWithIntelligence, getSystemIntelligenceStatus } from './lib/system-intelligence.js';
 import zlib from 'zlib';
 
+// FORCE INIT OF PERSISTENT MEMORY - NO CONDITIONAL BLOCK
 try {
   const module = await import('./memory_system/persistent_memory.js');
   persistentMemory = module.default || module;
