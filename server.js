@@ -1,4 +1,3 @@
-import './chat.js';
 // COMPLETE CARING FAMILY INTELLIGENCE SYSTEM
 // Preserves all breakthrough insights from this conversation
 // Ready for immediate Railway deployment
