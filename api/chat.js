@@ -95,6 +95,16 @@ import { getVaultStatus, checkVaultTriggers, generateVaultContext, enforceVaultC
 import { integrateSystemIntelligence, enhancePromptWithIntelligence, getSystemIntelligenceStatus } from './lib/system-intelligence.js';
 import zlib from 'zlib';
 
+try {
+  const module = await import('./memory_system/persistent_memory.js');
+  persistentMemory = module.default || module;
+  console.log('[CHAT] 📋 Initializing universal persistent memory...');
+  await persistentMemory.getSystemHealth();
+  console.log('[CHAT] ✅ Persistent memory system ready');
+} catch (error) {
+  console.error('[CHAT] ❌ Persistent memory failed to load:', error.message);
+}
+
 // IMPORT ALL COGNITIVE MODULES
 import { 
   FAMILY_PHILOSOPHY, 
