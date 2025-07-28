@@ -1,3 +1,4 @@
+console.log('[DEBUG] process.cwd()', process.cwd());
 // FORCE CACHE REFRESH - 2025-07-27-1559 - DELETE AFTER DEPLOY
 // COMPLETE MODULAR CARING FAMILY INTELLIGENCE SYSTEM
 // Orchestrates all cognitive modules for universal expert intelligence
@@ -10,6 +11,8 @@ let vaultMemory = null;
 let memoryInitialized = false;
 let vaultInitialized = false;
 let memorySystem = null; // Backward compatibility
+
+console.log('[DEBUG] About to attempt persistent memory import');
 
 // DYNAMIC IMPORT SECTION
 try {
