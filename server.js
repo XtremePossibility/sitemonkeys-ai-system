@@ -5,7 +5,7 @@
 import express from 'express';
 import cors from 'cors';
 const app = express();
-import memoryBootstrap from './memory_bootstrap.js';
+const memoryBootstrap = require('./memory_bootstrap.js');
 
 // ===== APPLICATION STARTUP MEMORY INITIALIZATION =====
 console.log('[SERVER] 🚀 Initializing memory systems at application startup...');
