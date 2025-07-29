@@ -338,24 +338,29 @@ class ExtractionEngine {
     }
 
     formatForAI(memories) {
-        if (!memories || memories.length === 0) {
-            return { contextFound: false, memories: '' };
-        }
-
-        const formattedMemories = memories
-            .map(memory => {
-                const timeAgo = this.formatTimeAgo(memory.created_at);
-                return `[${timeAgo}] ${memory.content}`;
-            })
-            .join('\n\n');
-
-        return {
-            contextFound: true,
-            memories: formattedMemories,
-            totalTokens: this.calculateTokens(memories),
-            categoriesUsed: [...new Set(memories.map(m => m.category_name))]
-        };
+    if (!memories || memories.length === 0) {
+        return { contextFound: false, memories: '' };
     }
+
+    console.log(`[MEMORY FORMAT] 📝 Formatting ${memories.length} memories for AI`);
+    
+    const formattedMemories = memories
+        .map((memory, index) => {
+            const timeAgo = this.formatTimeAgo(memory.created_at);
+            console.log(`[MEMORY FORMAT] Memory ${index + 1}: "${memory.content.substring(0, 100)}..."`);
+            return `[${timeAgo}] ${memory.content}`;
+        })
+        .join('\n\n');
+
+    console.log(`[MEMORY FORMAT] ✅ Final formatted memory length: ${formattedMemories.length} characters`);
+
+    return {
+        contextFound: true,
+        memories: formattedMemories,
+        totalTokens: this.calculateTokens(memories),
+        categoriesUsed: [...new Set(memories.map(m => m.category_name))]
+    };
+}
 
     formatTimeAgo(timestamp) {
         const days = Math.floor((Date.now() - new Date(timestamp)) / (1000 * 60 * 60 * 24));
