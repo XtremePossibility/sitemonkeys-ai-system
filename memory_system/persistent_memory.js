@@ -93,7 +93,27 @@ class RoutingIntelligence {
     }
 
     routeToCategory(query, userId = null) {
-        const normalizedQuery = query.toLowerCase();
+        // Fix: Handle cases where query might not be a string
+let queryString;
+if (typeof query === 'string') {
+    queryString = query;
+} else if (query && query.message) {
+    queryString = query.message;
+} else {
+    queryString = String(query || '');
+}
+
+if (!queryString) {
+    console.log('[ROUTING ERROR] Empty query, using default category');
+    return {
+        primaryCategory: 'personal_development',
+        subcategory: 'general',
+        confidence: 0.1,
+        allScores: {}
+    };
+}
+
+const normalizedQuery = queryString.toLowerCase();
         const routingScores = {};
 
         // Score each category
