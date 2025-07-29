@@ -1626,6 +1626,34 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+// ===== MEMORY SYSTEM HEALTH CHECK =====
+app.get('/api/memory-status', async (req, res) => {
+    try {
+        const memorySystem = memoryBootstrap.getMemorySystem();
+        if (memorySystem && typeof memorySystem.getSystemHealth === 'function') {
+            const health = memorySystem.getSystemHealth();
+            res.json({
+                timestamp: new Date().toISOString(),
+                memory_system: health
+            });
+        } else {
+            res.json({
+                timestamp: new Date().toISOString(),
+                memory_system: {
+                    status: 'not_initialized',
+                    error: 'Memory bootstrap not available'
+                }
+            });
+        }
+    } catch (error) {
+        res.status(500).json({
+            timestamp: new Date().toISOString(),
+            error: error.message,
+            memory_system: { status: 'error' }
+        });
+    }
+});
+
 // START SERVER
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
@@ -1635,11 +1663,3 @@ app.listen(PORT, () => {
   console.log(`📁 Vault endpoint: /api/load-vault`);
 });
 
-    res.json({
-        bootstrap: status,
-        memoryMethods: memorySystem ? Object.keys(memorySystem) : [],
-        memorySystemType: memorySystem ? (memorySystem.getSystemHealth ? 'persistent' : 'fallback') : 'none',
-        timestamp: new Date().toISOString(),
-        ready: memoryBootstrap.isReady()
-    });
-});
