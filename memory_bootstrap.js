@@ -1,4 +1,5 @@
-import pg from 'pg';
+// memory_bootstrap.js - CORRECTED PURE COMMONJS VERSION
+const pg = require('pg');
 const { Pool } = pg;
 
 class MemoryBootstrap {
@@ -33,8 +34,8 @@ class MemoryBootstrap {
             console.log('[MEMORY_BOOTSTRAP] 📊 Connecting to PostgreSQL...');
             
             try {
-                // Import the sophisticated persistent memory system
-                const { default: PersistentMemoryAPI } = await import('./memory_system/persistent_memory.js');
+                // Try to import the sophisticated persistent memory system
+                const PersistentMemoryAPI = require('./memory_system/persistent_memory.js');
                 this.persistentMemory = new PersistentMemoryAPI();
                 await this.persistentMemory.initialize();
                 console.log('[MEMORY_BOOTSTRAP] ✅ PostgreSQL persistent memory initialized');
@@ -42,11 +43,16 @@ class MemoryBootstrap {
             } catch (error) {
                 console.log('[MEMORY_BOOTSTRAP] ⚠️ PostgreSQL failed, trying database manager...');
                 
-                // Fallback to database manager
-                const { default: DatabaseManager } = await import('./memory_system/database_manager.js');
-                this.persistentMemory = new DatabaseManager();
-                await this.persistentMemory.initialize();
-                console.log('[MEMORY_BOOTSTRAP] ✅ Database manager initialized');
+                try {
+                    // Fallback to database manager
+                    const DatabaseManager = require('./memory_system/database_manager.js');
+                    this.persistentMemory = new DatabaseManager();
+                    await this.persistentMemory.initialize();
+                    console.log('[MEMORY_BOOTSTRAP] ✅ Database manager initialized');
+                } catch (dbError) {
+                    console.log('[MEMORY_BOOTSTRAP] ⚠️ Database manager also failed:', dbError.message);
+                    throw new Error('All memory systems failed');
+                }
             }
         } else {
             throw new Error('No DATABASE_URL found');
@@ -55,7 +61,7 @@ class MemoryBootstrap {
 
     async initializeVaultSystem() {
         try {
-            const { default: VaultLoader } = await import('./memory_system/vault_loader.js');
+            const VaultLoader = require('./memory_system/vault_loader.js');
             this.vaultMemory = new VaultLoader();
             await this.vaultMemory.initialize();
             console.log('[MEMORY_BOOTSTRAP] 🗄️ Vault system initialized');
@@ -126,6 +132,5 @@ class MemoryBootstrap {
     }
 }
 
-// CRITICAL: Use CommonJS export instead of ES6
 const memoryBootstrap = new MemoryBootstrap();
 module.exports = memoryBootstrap;
