@@ -171,4 +171,4 @@ class MemoryBootstrap {
 // Export singleton instance
 const memoryBootstrap = new MemoryBootstrap();
 
-export default memoryBootstrap; the intelligence of the cause is excellent
+export default memoryBootstrap;
