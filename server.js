@@ -5,15 +5,15 @@
 import express from 'express';
 import cors from 'cors';
 const app = express();
-const memoryBootstrap = require('./memory_bootstrap.js');
+import memoryBootstrap from './memory_bootstrap.js';
 
 // ===== APPLICATION STARTUP MEMORY INITIALIZATION =====
 console.log('[SERVER] 🚀 Initializing memory systems at application startup...');
 
 // Initialize memory systems once at application startup
-await memoryBootstrap.initializeOnce();
+await memoryBootstrap.initialize();
 
-console.log('[SERVER] 📊 Memory bootstrap status:', memoryBootstrap.getStatus());
+console.log('[SERVER] 📊 Memory bootstrap initialized');
 
 // Enable CORS and JSON parsing
 app.use(cors());
