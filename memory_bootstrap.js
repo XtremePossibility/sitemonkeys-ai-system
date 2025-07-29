@@ -133,4 +133,4 @@ class MemoryBootstrap {
 }
 
 const memoryBootstrap = new MemoryBootstrap();
-module.exports = memoryBootstrap;
+export default memoryBootstrap;
