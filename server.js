@@ -14,7 +14,7 @@ console.log('[SERVER] 🚀 Initializing memory systems at application startup...
 await memoryBootstrap.initialize();
 
 console.log('[SERVER] 📊 Memory bootstrap initialized');
-
+TEST-Open AI Wants To Gain Claudes Knowledge
 // Enable CORS and JSON parsing
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
