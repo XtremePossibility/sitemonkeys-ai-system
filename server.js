@@ -660,7 +660,7 @@ Quality-first approach with caring delivery`;
     }
 
     // ===== MEMORY SYSTEM RETRIEVAL (NEW) =====
-const memorySystem = memoryBootstrap.getMemorySystem();
+const memorySystem = memoryBootstrap.getMemorySystem();      
 const vaultLoader = memoryBootstrap.getVaultLoader();
 
 if (!memoryBootstrap.isReady()) {
@@ -1651,6 +1651,20 @@ app.listen(PORT, () => {
 app.get('/api/memory-status', (req, res) => {
     const status = memoryBootstrap.getStatus();
     const memorySystem = memoryBootstrap.getMemorySystem();
+    // ===== MEMORY CONTEXT RETRIEVAL =====
+        let memoryContext = '';
+        if (memorySystem && typeof memorySystem.getRelevantContext === 'function') {
+            try {
+                console.log('[CHAT] 📋 Retrieving memory context...');
+                memoryContext = await memorySystem.getRelevantContext('user', message, 2400);
+                console.log(`[CHAT] ✅ Memory context retrieved: ${memoryContext.length} characters`);
+            } catch (error) {
+                console.error('[CHAT] ⚠️ Memory retrieval failed:', error);
+                memoryContext = '';
+            }
+        } else {
+            console.log('[CHAT] ⚠️ Memory system not available for context retrieval');
+        }
     
     res.json({
         bootstrap: status,
