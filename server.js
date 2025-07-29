@@ -805,11 +805,11 @@ const fullPrompt = enhancedPrompt;
     updateFamilyMemory(expertDomain, careNeeds, protectiveAlerts, solutionOpportunities);
     lastPersonality = personality;
 
-    // ===== MEMORY STORAGE =====
+// ===== MEMORY STORAGE =====
 if (memorySystem && typeof memorySystem.storeMemory === 'function') {
   try {
     console.log('[CHAT] 💾 Storing conversation in memory...');
-    const conversationEntry = `User: ${memoryQuery}\nAssistant: ${finalResponse}`;
+    const conversationEntry = `User: ${message}\nAssistant: ${finalResponse}`;
     const storeResult = await memorySystem.storeMemory('user', conversationEntry);
     
     if (storeResult && storeResult.success) {
