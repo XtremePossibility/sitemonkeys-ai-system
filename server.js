@@ -743,12 +743,38 @@ if (memorySystem && typeof memorySystem.getRelevantContext === 'function') {
     }
 
     // MASTER SYSTEM PROMPT CONSTRUCTION
-    const systemPrompt = buildMasterSystemPrompt({
-      mode, personality, vaultContent, vaultHealthy, expertDomain,
-      careNeeds, protectiveAlerts, solutionOpportunities, quantitativeNeeds
-    });
+const systemPrompt = buildMasterSystemPrompt({
+  mode, personality, vaultContent, vaultHealthy, expertDomain,
+  careNeeds, protectiveAlerts, solutionOpportunities, quantitativeNeeds
+});
 
-    const fullPrompt = buildConversationPrompt(systemPrompt, message, conversation_history, expertDomain);
+// ADD MEMORY CONTEXT TO CONVERSATION PROMPT
+let enhancedPrompt = buildConversationPrompt(systemPrompt, message, conversation_history, expertDomain);
+
+// CRITICAL FIX: Include retrieved memory context in AI prompt
+if (memoryContext && memoryContext.memories && memoryContext.memories.length > 0) {
+  enhancedPrompt = systemPrompt + `
+
+RELEVANT MEMORY CONTEXT:
+${memoryContext.memories}
+
+CURRENT REQUEST:
+Family Member: ${message}
+
+Respond using both the memory context and your expertise:`;
+  
+  console.log(`[CHAT] 🧠 Added ${memoryContext.memories.length} characters of memory context to AI prompt`);
+} else {
+  enhancedPrompt = systemPrompt + `
+
+CURRENT REQUEST:
+Family Member: ${message}
+
+Respond with your expertise:`;
+  console.log(`[CHAT] ⚠️ No memory context available for AI prompt`);
+}
+
+const fullPrompt = enhancedPrompt;
 
     // ENHANCED API CALL
     const apiResponse = await makeIntelligentAPICall(fullPrompt, personality, prideMotivation);
