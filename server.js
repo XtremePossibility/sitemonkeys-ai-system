@@ -674,15 +674,25 @@ if (!memoryBootstrap.isReady()) {
 console.log('[CHAT] ✅ Memory systems retrieved from bootstrap');
 let memoryContext = '';
 
+// FIX 3: PARAMETER VALIDATION - Ensure string format for memory system
+let memoryQuery;
+if (typeof message === 'string') {
+  memoryQuery = message;
+} else if (message && message.content) {
+  memoryQuery = message.content;
+} else if (message && message.message) {
+  memoryQuery = message.message;
+} else {
+  memoryQuery = String(message || '');
+}
+
+console.log(`[CHAT] 📋 Retrieving memory context for: "${memoryQuery.substring(0, 50)}..."`);
+
 if (memorySystem && typeof memorySystem.getRelevantContext === 'function') {
   try {
-    console.log('[CHAT] 📋 Retrieving memory context...');
-    memoryContext = await memorySystem.getRelevantContext(message, {
-      maxTokens: 2400,
-      includeRecent: true,
-      mode: mode
-    });
-    console.log('[CHAT] ✅ Memory context retrieved:', memoryContext.length, 'characters');
+    // Use the validated string parameter
+    memoryContext = await memorySystem.getRelevantContext('user', memoryQuery, 2400);
+    console.log(`[CHAT] ✅ Memory context retrieved: ${memoryContext?.memories?.length || 0} characters`);
   } catch (error) {
     console.error('[CHAT] ⚠️ Memory context retrieval failed:', error);
     memoryContext = '';
@@ -690,7 +700,6 @@ if (memorySystem && typeof memorySystem.getRelevantContext === 'function') {
 } else {
   console.log('[CHAT] ⚠️ Memory system not available or getRelevantContext missing');
 }
-
     // COMPREHENSIVE INTELLIGENCE ANALYSIS    
     const expertDomain = identifyExpertDomain(message);
     const careNeeds = analyzeCareNeeds(message, conversation_history);
@@ -774,16 +783,14 @@ if (memorySystem && typeof memorySystem.getRelevantContext === 'function') {
 if (memorySystem && typeof memorySystem.storeMemory === 'function') {
   try {
     console.log('[CHAT] 💾 Storing conversation in memory...');
-    await memorySystem.storeMemory({
-      message: message,
-      response: finalResponse,
-      mode: mode,
-      userId: 'user',
-      timestamp: new Date().toISOString(),
-      cost: totalCost,
-      model: 'gpt-4o'
-    });
-    console.log('[CHAT] ✅ Conversation stored successfully');
+    const conversationEntry = `User: ${memoryQuery}\nAssistant: ${finalResponse}`;
+    const storeResult = await memorySystem.storeMemory('user', conversationEntry);
+    
+    if (storeResult && storeResult.success) {
+      console.log(`[CHAT] ✅ Memory stored as ID ${storeResult.memoryId}`);
+    } else {
+      console.log(`[CHAT] ⚠️ Memory storage failed: ${storeResult?.error || 'Unknown error'}`);
+    }
   } catch (error) {
     console.error('[CHAT] ⚠️ Memory storage failed:', error);
   }
