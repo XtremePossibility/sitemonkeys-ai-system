@@ -66,20 +66,20 @@ class RoutingIntelligence {
 
             // FINANCIAL MANAGEMENT ROUTING
             financial_management: {
-                keywords: ['money', 'budget', 'expense', 'income', 'salary', 'cost', 'price', 'investment', 'savings', 'debt', 'loan', 'credit', 'financial', 'bank', 'tax', 'insurance'],
-                contextPatterns: ['financial issue', 'money problem', 'budget concern', 'investment decision'],
+                keywords: ['money', 'budget', 'expense', 'income', 'salary', 'cost', 'price', 'investment', 'savings', 'debt', 'loan', 'credit', 'financial', 'bank', 'tax', 'insurance', 'alan', 'backyard leisure', 'business partner', 'promissory note', 'payments', 'court battle'],
+                contextPatterns: ['financial issue', 'money problem', 'budget concern', 'investment decision', 'payment issue', 'legal battle'],
                 subcategoryRouting: {
                     income_planning: ['salary', 'income', 'earnings', 'revenue', 'paycheck'],
                     expense_tracking: ['expense', 'cost', 'spending', 'budget', 'bills'],
                     investment_strategy: ['investment', 'stocks', 'portfolio', 'retirement', 'savings'],
-                    debt_management: ['debt', 'loan', 'credit', 'mortgage', 'payment'],
+                    debt_management: ['debt', 'loan', 'credit', 'mortgage', 'payment', 'promissory note', 'alan', 'business partner'],
                     financial_goals: ['financial goal', 'money goal', 'savings goal', 'financial planning']
                 }
             },
 
             // TECHNOLOGY & TOOLS ROUTING
             technology_tools: {
-                keywords: ['software', 'app', 'tool', 'system', 'computer', 'phone', 'technology', 'digital', 'online', 'website', 'program', 'automation', 'workflow', 'productivity'],
+                keywords: ['software', 'app', 'tool', 'system', 'computer', 'phone', 'technology', 'digital', 'online', 'website', 'program', 'automation', 'workflow', 'productivity', 'jasper', 'ai'],
                 contextPatterns: ['tech issue', 'software problem', 'system error', 'app not working'],
                 subcategoryRouting: {
                     software_systems: ['software', 'program', 'system', 'application'],
@@ -93,27 +93,35 @@ class RoutingIntelligence {
     }
 
     routeToCategory(query, userId = null) {
-        // Fix: Handle cases where query might not be a string
-let queryString;
-if (typeof query === 'string') {
-    queryString = query;
-} else if (query && query.message) {
-    queryString = query.message;
-} else {
-    queryString = String(query || '');
-}
+        // CRITICAL FIX: Type-safe query handling
+        let queryString;
+        
+        if (typeof query === 'string') {
+            queryString = query;
+        } else if (query && typeof query === 'object') {
+            // Handle object inputs (like {message: "text"})
+            if (query.message) queryString = String(query.message);
+            else if (query.content) queryString = String(query.content);  
+            else if (query.text) queryString = String(query.text);
+            else queryString = JSON.stringify(query);
+        } else {
+            // Handle null, undefined, numbers, etc.
+            queryString = String(query || '');
+        }
 
-if (!queryString) {
-    console.log('[ROUTING ERROR] Empty query, using default category');
-    return {
-        primaryCategory: 'personal_development',
-        subcategory: 'general',
-        confidence: 0.1,
-        allScores: {}
-    };
-}
+        if (!queryString || queryString.length === 0) {
+            console.log('[ROUTING ERROR] Empty query string, using default');
+            return {
+                primaryCategory: 'personal_development',
+                subcategory: 'general',
+                confidence: 0.1,
+                allScores: {}
+            };
+        }
 
-const normalizedQuery = queryString.toLowerCase();
+        console.log(`[ROUTING] 🎯 Processing query: "${queryString.substring(0, 50)}..."`);
+        
+        const normalizedQuery = queryString.toLowerCase();
         const routingScores = {};
 
         // Score each category
@@ -145,12 +153,16 @@ const normalizedQuery = queryString.toLowerCase();
         // Route to subcategory
         const subcategory = this.routeToSubcategory(normalizedQuery, bestCategory);
 
-        return {
+        const result = {
             primaryCategory: bestCategory,
             subcategory: subcategory,
             confidence: Math.max(...Object.values(routingScores)) / 10,
             allScores: routingScores
         };
+
+        console.log(`[ROUTING] ✅ Routed to: ${bestCategory}/${subcategory} (confidence: ${result.confidence})`);
+        
+        return result;
     }
 
     routeToSubcategory(query, categoryName) {
@@ -422,13 +434,13 @@ class PersistentMemoryAPI {
     async createDatabaseSchema() {
         const client = await this.pool.connect();
         try {
-            console.log('[PERSISTENT] 📋 Creating database schema...');
+            console.log('[PERSISTENT] 📋 Creating enhanced database schema...');
             
-            // Create main categories table
+            // Enhanced categories table with proper field sizes
             await client.query(`
                 CREATE TABLE IF NOT EXISTS memory_categories (
                     id SERIAL PRIMARY KEY,
-                    user_id VARCHAR(255) NOT NULL,
+                    user_id TEXT NOT NULL,
                     category_name VARCHAR(100) NOT NULL,
                     subcategory_name VARCHAR(100),
                     current_tokens INTEGER DEFAULT 0,
@@ -441,11 +453,11 @@ class PersistentMemoryAPI {
                 )
             `);
 
-            // Create memories table
+            // Enhanced memories table with proper field sizes
             await client.query(`
                 CREATE TABLE IF NOT EXISTS memory_entries (
                     id SERIAL PRIMARY KEY,
-                    user_id VARCHAR(255) NOT NULL,
+                    user_id TEXT NOT NULL,
                     category_name VARCHAR(100) NOT NULL,
                     subcategory_name VARCHAR(100),
                     content TEXT NOT NULL,
@@ -458,10 +470,10 @@ class PersistentMemoryAPI {
                 )
             `);
 
-            // Create user memory profiles
+            // Enhanced user profiles table with proper field sizes
             await client.query(`
                 CREATE TABLE IF NOT EXISTS user_memory_profiles (
-                    user_id VARCHAR(255) PRIMARY KEY,
+                    user_id TEXT PRIMARY KEY,
                     total_memories INTEGER DEFAULT 0,
                     total_tokens INTEGER DEFAULT 0,
                     active_categories TEXT[],
@@ -471,13 +483,40 @@ class PersistentMemoryAPI {
                 )
             `);
 
+            // MIGRATION: Fix existing tables if they have wrong field types
+            await client.query(`
+                DO $$ 
+                BEGIN
+                    -- Fix memory_categories table
+                    IF EXISTS (SELECT 1 FROM information_schema.columns 
+                              WHERE table_name = 'memory_categories' AND column_name = 'user_id' 
+                              AND data_type = 'character varying' AND character_maximum_length = 255) THEN
+                        ALTER TABLE memory_categories ALTER COLUMN user_id TYPE TEXT;
+                    END IF;
+                    
+                    -- Fix memory_entries table  
+                    IF EXISTS (SELECT 1 FROM information_schema.columns 
+                              WHERE table_name = 'memory_entries' AND column_name = 'user_id' 
+                              AND data_type = 'character varying' AND character_maximum_length = 255) THEN
+                        ALTER TABLE memory_entries ALTER COLUMN user_id TYPE TEXT;
+                    END IF;
+
+                    -- Fix user_memory_profiles table
+                    IF EXISTS (SELECT 1 FROM information_schema.columns 
+                              WHERE table_name = 'user_memory_profiles' AND column_name = 'user_id' 
+                              AND data_type = 'character varying' AND character_maximum_length = 255) THEN
+                        ALTER TABLE user_memory_profiles ALTER COLUMN user_id TYPE TEXT;
+                    END IF;
+                END $$;
+            `);
+
             // Create performance indexes
             await client.query(`
                 CREATE INDEX IF NOT EXISTS idx_memory_relevance 
                 ON memory_entries(user_id, category_name, relevance_score DESC, created_at DESC)
             `);
             
-            persistentLogger.log('✅ Database schema and indexes created');
+            persistentLogger.log('✅ Enhanced database schema created with migrations');
             
         } finally {
             client.release();
@@ -558,7 +597,7 @@ class PersistentMemoryAPI {
             return formattedMemories;
 
         } catch (error) {
-            persistentLogger.error(`Error retrieving context for ${userId}:`, error);
+            persistentLogger.error(`Error retrieving context for ${query}:`, error);
             return { contextFound: false, memories: '', error: error.message };
         }
     }
