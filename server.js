@@ -686,34 +686,7 @@ if (!memoryBootstrap.isReady()) {
 }
 
 console.log('[CHAT] ✅ Memory systems retrieved from bootstrap');
-let memoryContext = '';
 
-// FIX 3: PARAMETER VALIDATION - Ensure string format for memory system
-let memoryQuery;
-if (typeof message === 'string') {
-  memoryQuery = message;
-} else if (message && message.content) {
-  memoryQuery = message.content;
-} else if (message && message.message) {
-  memoryQuery = message.message;
-} else {
-  memoryQuery = String(message || '');
-}
-
-console.log(`[CHAT] 📋 Retrieving memory context for: "${memoryQuery.substring(0, 50)}..."`);
-
-if (memorySystem && typeof memorySystem.getRelevantContext === 'function') {
-  try {
-    // Use the validated string parameter
-    memoryContext = await memorySystem.getRelevantContext('user', memoryQuery, 2400);
-    console.log(`[CHAT] ✅ Memory context retrieved: ${memoryContext?.memories?.length || 0} characters`);
-  } catch (error) {
-    console.error('[CHAT] ⚠️ Memory context retrieval failed:', error);
-    memoryContext = '';
-  }
-} else {
-  console.log('[CHAT] ⚠️ Memory system not available or getRelevantContext missing');
-}
     // COMPREHENSIVE INTELLIGENCE ANALYSIS    
     const expertDomain = identifyExpertDomain(message);
     const careNeeds = analyzeCareNeeds(message, conversation_history);
