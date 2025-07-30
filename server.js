@@ -668,7 +668,7 @@ if (memorySystem && typeof memorySystem.getRelevantContext === 'function') {
     try {
         console.log('[CHAT] 📋 Retrieving memory context...');
         memoryContext = await memorySystem.getRelevantContext('user', message, 2400);
-        console.log(`[CHAT] ✅ Memory context retrieved: ${memoryContext.length} characters`);
+        console.log(`[CHAT] ✅ Memory context retrieved: ${memoryContext.memories ? memoryContext.memories.length : 0} characters`);
     } catch (error) {
         console.error('[CHAT] ⚠️ Memory retrieval failed:', error);
         memoryContext = '';
