@@ -200,12 +200,28 @@ class ExtractionEngine {
             return { contextFound: false, memories: '' };
         }
 
-        const formattedMemories = memories
-            .map(memory => {
-                const timeAgo = this.formatTimeAgo(memory.created_at);
-                return `[${timeAgo}] ${memory.content}`;
-            })
-            .join('\n\n');
+        // CRITICAL FIX: Add structured memory markers that personalities will recognize
+        let formattedMemories = "=== RETRIEVED MEMORY CONTEXT ===\n";
+        
+        memories.forEach(memory => {
+            const timeAgo = this.formatTimeAgo(memory.created_at);
+            formattedMemories += `
+[MEMORY ENTRY - ${memory.category_name}/${memory.subcategory_name || 'general'}]
+Timestamp: ${timeAgo}
+Relevance: ${memory.relevance_score}
+Content: ${memory.content}
+---
+`;
+        });
+        
+        formattedMemories += "\n=== END MEMORY CONTEXT ===\n";
+        formattedMemories += "\nINSTRUCTION: Reference this memory context in your response when relevant. If memory exists that relates to the current query, acknowledge it explicitly with phrases like 'Earlier, you mentioned...' or 'Based on our previous conversation...'";
+
+        console.log('ExtractionEngine.formatForAI DEBUG:', {
+            inputEntries: memories.length,
+            outputLength: formattedMemories.length,
+            hasMemoryMarkers: formattedMemories.includes('RETRIEVED MEMORY CONTEXT')
+        });
 
         return {
             contextFound: true,
