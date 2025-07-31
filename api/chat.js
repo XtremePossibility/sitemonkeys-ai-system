@@ -184,24 +184,40 @@ export default async function handler(req, res) {
     conversationCount++;
 
     // *** COST PROTECTION (PRESERVED) ***
+    // *** COST PROTECTION AND APPROVAL (CRITICAL FIX) ***
     if (claude_requested) {
       const estimatedTokens = Math.ceil((buildMasterPrompt(mode, optimalPersonality, vaultContent, vaultHealthy, expertDomain, careNeeds, protectiveAlerts, solutionOpportunities).length + message.length) / 4) + 800;
       const estimatedCost = (estimatedTokens * 0.015) / 1000;
 
-      if (estimatedCost > 0.50) {
-        return res.status(200).json({
-          response: generateCaringCostMessage(estimatedCost, expertDomain, careNeeds),
-          mode_active: mode,
-          vault_status: { loaded: vaultStatus !== 'not_loaded', tokens: vaultTokens, healthy: vaultHealthy },
-          claude_blocked: true,
-          cognitive_analysis: {
-            expert_domain: expertDomain.domain,
-            care_level: careNeeds.care_level,
-            protective_alerts: protectiveAlerts.length,
-            solution_opportunities: solutionOpportunities.length
-          }
-        });
-      }
+      // ALWAYS require approval for Claude, regardless of cost
+      return res.status(200).json({
+        response: `🧠 **Advanced AI Analysis Required**
+
+I can provide deeper analysis using Claude Sonnet 4 for this complex request.
+
+**Cost Details:**
+- Estimated Cost: $${estimatedCost.toFixed(4)}
+- Token Estimate: ~${estimatedTokens} tokens
+- Current Session Total: ${formatSessionDataForUI().totalCost}
+
+**What you'll get:**
+- Enhanced reasoning capabilities
+- More detailed analysis 
+- Advanced problem-solving
+
+Would you like to proceed?`,
+        mode_active: mode,
+        vault_status: { loaded: vaultStatus !== 'not_loaded', tokens: vaultTokens, healthy: vaultHealthy },
+        claude_cost_approval_required: true,
+        estimated_cost: estimatedCost.toFixed(4),
+        estimated_tokens: estimatedTokens,
+        cognitive_analysis: {
+          expert_domain: expertDomain.domain,
+          care_level: careNeeds.care_level,
+          protective_alerts: protectiveAlerts.length,
+          solution_opportunities: solutionOpportunities.length
+        }
+      });
     }
 
     // *** POLITICAL NEUTRALITY CHECK ***
@@ -219,9 +235,21 @@ export default async function handler(req, res) {
       });
     }
 
+    // *** MEMORY RETRIEVAL - CRITICAL FIX ***
+    let memoryContext = null;
+    try {
+      // Import memory system (this should already be available via server.js bootstrap)
+      if (global.memorySystem) {
+        memoryContext = await global.memorySystem.retrieveMemory(user_id, message);
+        console.log('[MEMORY] Retrieved context:', memoryContext?.contextFound ? 'SUCCESS' : 'NO_MATCH');
+      }
+    } catch (memoryError) {
+      console.error('[MEMORY] Retrieval failed:', memoryError);
+    }
+
     // *** MASTER SYSTEM PROMPT CONSTRUCTION ***
     const masterPrompt = buildMasterPrompt(mode, optimalPersonality, vaultContent, vaultHealthy, expertDomain, careNeeds, protectiveAlerts, solutionOpportunities);
-    const basePrompt = buildFullConversationPrompt(masterPrompt, message, conversation_history, expertDomain, careNeeds);
+    const basePrompt = buildFullConversationPrompt(masterPrompt, message, conversation_history, expertDomain, careNeeds, memoryContext);
     
     // *** SYSTEM INTELLIGENCE INTEGRATION ***
     const intelligence = integrateSystemIntelligence(message, vaultContent, vaultHealthy);
@@ -430,10 +458,15 @@ function buildMasterPrompt(mode, personality, vaultContent, vaultHealthy, expert
   return masterPrompt;
 }
 
-function buildFullConversationPrompt(masterPrompt, message, conversationHistory, expertDomain, careNeeds) {
+function buildFullConversationPrompt(masterPrompt, message, conversationHistory, expertDomain, careNeeds, memoryContext = null) {
   let fullPrompt = masterPrompt;
 
-  // NO MEMORY INTEGRATION - Memory handled by server.js bootstrap
+  // CRITICAL FIX: Enable memory integration 
+  if (memoryContext && memoryContext.contextFound) {
+    fullPrompt += 'PERSISTENT MEMORY CONTEXT:\n';
+    fullPrompt += memoryContext.memories + '\n\n';
+    console.log('[MEMORY] Injected', memoryContext.totalTokens, 'tokens of memory context');
+  }
 
   if (conversationHistory.length > 0) {
     fullPrompt += 'FAMILY CONVERSATION CONTEXT:\n';
