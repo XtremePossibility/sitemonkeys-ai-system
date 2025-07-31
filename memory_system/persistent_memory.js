@@ -812,37 +812,6 @@ class PersistentMemoryAPI {
         return Math.min(relevance, 1.0);
     }
 
-    async storeMemory(userId, content, metadata = {}) {
-        try {
-            // CRITICAL FIX: Add comprehensive debugging
-            console.log('[PERSISTENT DEBUG] storeMemory called with:', {
-                userId: userId,
-                contentLength: content ? content.length : 0,
-                hasPool: !!this.pool,
-                initialized: this.initialized,
-                databaseUrl: !!process.env.DATABASE_URL
-            });
-
-            if (!this.initialized) {
-                console.error('[PERSISTENT ERROR] Memory system not initialized - pool:', !!this.pool, 'initialized:', this.initialized);
-                return { success: false, error: 'Memory system not initialized' };
-            }
-
-            const result = await this.provisionUserMemory(userId);
-            
-            if (result) {
-                persistentLogger.log(`👤 User ${userId} memory system initialized`);
-                return { success: true, message: 'User memory system ready' };
-            } else {
-                return { success: false, error: 'Failed to initialize user memory' };
-            }
-
-        } catch (error) {
-            persistentLogger.error(`Error initializing user ${userId}:`, error);
-            return { success: false, error: error.message };
-        }
-    }
-
     async getSystemHealth() {
         try {
             if (!this.pool) {
@@ -898,9 +867,7 @@ class PersistentMemoryAPI {
     }
 }
 
-// Export singleton instance
-console.log('[PERSISTENT] 📦 Creating Universal Memory System instance...');
-const persistentMemoryInstance = new PersistentMemoryAPI();
-console.log('[PERSISTENT] ✅ Universal Memory System ready for export');
+// Export the class, not an instance
+console.log('[PERSISTENT] 📦 Universal Memory System class ready for export');
 
-export default persistentMemoryInstance;
+export default PersistentMemoryAPI;
