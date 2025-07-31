@@ -405,7 +405,8 @@ class PersistentMemoryAPI {
         };
         
         this.initialized = false;
-        this.initialize();
+        // CRITICAL FIX: Don't call initialize() in constructor
+        // Let memory_bootstrap.js call it explicitly with proper await
     }
 
     async initialize() {
