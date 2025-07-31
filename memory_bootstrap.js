@@ -30,11 +30,54 @@ class MemoryBootstrap {
     }
 
     async initializePersistentMemory() {
-        console.log('[MEMORY_BOOTSTRAP] 🔍 DEBUGGING DATABASE CONNECTION:');
-        console.log('[MEMORY_BOOTSTRAP] DATABASE_URL exists:', !!process.env.DATABASE_URL);
-        console.log('[MEMORY_BOOTSTRAP] DATABASE_URL length:', process.env.DATABASE_URL ? process.env.DATABASE_URL.length : 0);
+        // SYSTEM FIX: Use KV storage instead of PostgreSQL (like vault system)
+        console.log('[MEMORY_BOOTSTRAP] 📊 Using KV storage for memory (like vault system)...');
         
-        if (process.env.DATABASE_URL) {
+        // Create KV-based memory system
+        this.persistentMemory = {
+            async storeMemory(userId, content) {
+                try {
+                    const memoryKey = `memory_${userId}_${Date.now()}`;
+                    const memoryData = {
+                        userId: userId,
+                        content: content,
+                        timestamp: new Date().toISOString(),
+                        category: 'general'
+                    };
+                    
+                    // Store in KV (same as vault system)
+                    const response = await fetch(`https://real-pigeon-39219.upstash.io/set/${memoryKey}`, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${process.env.KV_REST_API_TOKEN}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(memoryData)
+                    });
+                    
+                    if (response.ok) {
+                        console.log('[MEMORY_BOOTSTRAP] ✅ Memory stored in KV:', memoryKey);
+                        return { success: true };
+                    } else {
+                        throw new Error(`KV storage failed: ${response.status}`);
+                    }
+                } catch (error) {
+                    console.error('[MEMORY_BOOTSTRAP] ❌ Memory storage failed:', error);
+                    return { success: false, error: error.message };
+                }
+            },
+            
+            async getRelevantContext(userId, message) {
+                try {
+                    // Simple implementation - return empty for now, can be enhanced
+                    return '';
+                } catch (error) {
+                    return '';
+                }
+            }
+        };
+        
+        console.log('[MEMORY_BOOTSTRAP] ✅ KV-based memory system initialized');
             console.log('[MEMORY_BOOTSTRAP] 📊 Connecting to PostgreSQL...');
             
             try {
