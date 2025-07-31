@@ -11,9 +11,21 @@ import memoryBootstrap from './memory_bootstrap.js';
 console.log('[SERVER] 🚀 Initializing memory systems at application startup...');
 
 // Initialize memory systems once at application startup
-await memoryBootstrap.initialize();
+try {
+    await memoryBootstrap.initialize();
+    console.log('[SERVER] ✅ Memory bootstrap initialized successfully');
+    console.log('[SERVER] Memory system available:', !!memoryBootstrap.getMemorySystem());
+} catch (initError) {
+    console.error('[SERVER] ❌ MEMORY BOOTSTRAP INITIALIZATION FAILED:', {
+        message: initError.message,
+        stack: initError.stack,
+        name: initError.name
+    });
+    // Don't crash the server - let it run with memory system disabled
+    console.log('[SERVER] ⚠️ Continuing with memory system disabled');
+}
 
-console.log('[SERVER] 📊 Memory bootstrap initialized');
+console.log('[SERVER] 📊 Memory bootstrap initialization complete');
 
 // Enable CORS and JSON parsing
 app.use(cors());
