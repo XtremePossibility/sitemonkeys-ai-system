@@ -1,5 +1,5 @@
-// memory_bootstrap.js - CORRECTED PURE COMMONJS VERSION
-const pg = require('pg');
+// memory_bootstrap.js - ES MODULE VERSION
+import pg from 'pg';
 const { Pool } = pg;
 
 class MemoryBootstrap {
@@ -35,7 +35,7 @@ class MemoryBootstrap {
             
             try {
                 // Try to import the sophisticated persistent memory system
-                const PersistentMemoryAPI = require('./memory_system/persistent_memory.js');
+                const { default: PersistentMemoryAPI } = await import('./memory_system/persistent_memory.js');
                 this.persistentMemory = new PersistentMemoryAPI();
                 await this.persistentMemory.initialize();
                 console.log('[MEMORY_BOOTSTRAP] ✅ PostgreSQL persistent memory initialized');
@@ -45,7 +45,7 @@ class MemoryBootstrap {
                 
                 try {
                     // Fallback to database manager
-                    const DatabaseManager = require('./memory_system/database_manager.js');
+                    const { default: DatabaseManager } = await import('./memory_system/database_manager.js');
                     this.persistentMemory = new DatabaseManager();
                     await this.persistentMemory.initialize();
                     console.log('[MEMORY_BOOTSTRAP] ✅ Database manager initialized');
@@ -61,7 +61,7 @@ class MemoryBootstrap {
 
     async initializeVaultSystem() {
         try {
-            const VaultLoader = require('./memory_system/vault_loader.js');
+            const { default: VaultLoader } = await import('./memory_system/vault_loader.js');
             this.vaultMemory = new VaultLoader();
             await this.vaultMemory.initialize();
             console.log('[MEMORY_BOOTSTRAP] 🗄️ Vault system initialized');
