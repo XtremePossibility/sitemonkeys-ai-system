@@ -421,7 +421,12 @@ class PersistentMemoryAPI {
                 ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
                 max: 20,
                 idleTimeoutMillis: 30000,
-                connectionTimeoutMillis: 2000,
+                connectionTimeoutMillis: 10000,  // CRITICAL FIX: Increased from 2000 to 10000
+                acquireTimeoutMillis: 10000,      // CRITICAL FIX: Added for Railway
+                createTimeoutMillis: 10000,       // CRITICAL FIX: Added for Railway
+                destroyTimeoutMillis: 5000,       // CRITICAL FIX: Added for Railway
+                reapIntervalMillis: 1000,         // CRITICAL FIX: Added for Railway
+                createRetryIntervalMillis: 200    // CRITICAL FIX: Added for Railway
             });
 
             // Test connection
