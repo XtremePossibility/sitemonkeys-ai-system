@@ -130,6 +130,26 @@ class MemoryBootstrap {
             }
         };
     }
+
+    // CRITICAL FIX: Add missing getVaultLoader method that chat system expects
+    getVaultLoader() {
+        return this.vaultMemory;
+    }
+
+    // Add isReady method for compatibility
+    isReady() {
+        return this.isInitialized;
+    }
+
+    // Add getStatus method for debugging
+    getStatus() {
+        return {
+            initialized: this.isInitialized,
+            hasMemorySystem: !!this.persistentMemory,
+            hasVaultLoader: !!this.vaultMemory,
+            fallbackMode: this.fallbackMode
+        };
+    }
 }
 
 const memoryBootstrap = new MemoryBootstrap();
