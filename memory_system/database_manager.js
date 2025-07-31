@@ -15,14 +15,17 @@ class DatabaseManager {
             ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
             max: 20,
             idleTimeoutMillis: 30000,
-            connectionTimeoutMillis: 2000,
+            connectionTimeoutMillis: 10000,  // CRITICAL FIX: Increased from 2000 to 10000
+            acquireTimeoutMillis: 10000,     // CRITICAL FIX: Added for Railway
+            createTimeoutMillis: 10000,      // CRITICAL FIX: Added for Railway
         });
 
         this.connectionHealthy = false;
         this.lastHealthCheck = 0;
         this.healthCheckInterval = 30000; // 30 seconds
         
-        this.initializeConnection();
+        // CRITICAL FIX: Don't call async method in constructor
+        // Let memory_bootstrap.js call initialize() properly
     }
 
     async initializeConnection() {
@@ -310,6 +313,11 @@ class DatabaseManager {
         }
     }
 
+    async initialize() {
+        // CRITICAL FIX: Proper initialization method for memory_bootstrap to call
+        await this.initializeConnection();
+        return this.connectionHealthy;
+    }
     async cleanup() {
         try {
             await this.pool.end();
