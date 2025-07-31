@@ -653,8 +653,17 @@ class PersistentMemoryAPI {
             return result;
 
         } catch (error) {
+            // CRITICAL FIX: More detailed error logging
+            console.error(`[PERSISTENT ERROR] FULL STORAGE ERROR for ${userId}:`, {
+                message: error.message,
+                stack: error.stack,
+                code: error.code,
+                detail: error.detail,
+                constraint: error.constraint,
+                query: error.query
+            });
             persistentLogger.error(`Error storing memory for ${userId}:`, error);
-            return { success: false, error: error.message };
+            return { success: false, error: `Storage failed: ${error.message} (Code: ${error.code})` };
         }
     }
 
@@ -713,6 +722,21 @@ class PersistentMemoryAPI {
 
         } catch (error) {
             await client.query('ROLLBACK');
+            // CRITICAL FIX: Log database transaction errors with full details
+            console.error('[PERSISTENT ERROR] DATABASE TRANSACTION FAILED:', {
+                userId: userId,
+                category: categoryName,
+                subcategory: subcategoryName,
+                error: {
+                    message: error.message,
+                    code: error.code,
+                    detail: error.detail,
+                    constraint: error.constraint,
+                    severity: error.severity,
+                    where: error.where,
+                    query: error.query
+                }
+            });
             throw error;
         } finally {
             client.release();
@@ -783,9 +807,19 @@ class PersistentMemoryAPI {
         return Math.min(relevance, 1.0);
     }
 
-    async initializeUser(userId) {
+    async storeMemory(userId, content, metadata = {}) {
         try {
+            // CRITICAL FIX: Add comprehensive debugging
+            console.log('[PERSISTENT DEBUG] storeMemory called with:', {
+                userId: userId,
+                contentLength: content ? content.length : 0,
+                hasPool: !!this.pool,
+                initialized: this.initialized,
+                databaseUrl: !!process.env.DATABASE_URL
+            });
+
             if (!this.initialized) {
+                console.error('[PERSISTENT ERROR] Memory system not initialized - pool:', !!this.pool, 'initialized:', this.initialized);
                 return { success: false, error: 'Memory system not initialized' };
             }
 
