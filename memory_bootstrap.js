@@ -40,7 +40,7 @@ class MemoryBootstrap {
             try {
                 // Try to import the sophisticated persistent memory system
                 console.log('[MEMORY_BOOTSTRAP] 🔄 Importing PersistentMemoryAPI...');
-                const { default: PersistentMemoryAPI } = await import('./persistent_memory.js');
+                const { default: PersistentMemory } = await import('./memory_system/persistent_memory.js');
                 console.log('[MEMORY_BOOTSTRAP] ✅ PersistentMemoryAPI imported successfully');
                 
                 console.log('[MEMORY_BOOTSTRAP] 🔄 Creating PersistentMemoryAPI instance...');
@@ -63,7 +63,7 @@ class MemoryBootstrap {
                 try {
                     // Fallback to database manager
                     console.log('[MEMORY_BOOTSTRAP] 🔄 Importing DatabaseManager...');
-                    const { default: DatabaseManager } = await import('./database_manager.js');
+                    const { default: DatabaseManager } = await import('./memory_system/database_manager.js');
                     console.log('[MEMORY_BOOTSTRAP] ✅ DatabaseManager imported successfully');
                     
                     this.persistentMemory = new DatabaseManager();
@@ -90,7 +90,7 @@ class MemoryBootstrap {
 
     async initializeVaultSystem() {
         try {
-            const { default: VaultLoader } = await import('./vault_loader.js');
+            const { default: VaultLoader } = await import('./memory_system/vault_loader.js');
             this.vaultMemory = new VaultLoader();
             await this.vaultMemory.initialize();
             console.log('[MEMORY_BOOTSTRAP] 🗄️ Vault system initialized');
