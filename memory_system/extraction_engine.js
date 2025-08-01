@@ -196,40 +196,39 @@ class ExtractionEngine {
     }
 
     formatForAI(memories) {
-        if (!memories || memories.length === 0) {
-            return { contextFound: false, memories: '' };
-        }
-
-        // CRITICAL FIX: Add structured memory markers that personalities will recognize
-        let formattedMemories = "=== RETRIEVED MEMORY CONTEXT ===\n";
-        
-        memories.forEach(memory => {
-            const timeAgo = this.formatTimeAgo(memory.created_at);
-            formattedMemories += `
-[MEMORY ENTRY - ${memory.category_name}/${memory.subcategory_name || 'general'}]
-Timestamp: ${timeAgo}
-Relevance: ${memory.relevance_score}
-Content: ${memory.content}
----
-`;
-        });
-        
-        formattedMemories += "\n=== END MEMORY CONTEXT ===\n";
-        formattedMemories += "\nINSTRUCTION: Reference this memory context in your response when relevant. If memory exists that relates to the current query, acknowledge it explicitly with phrases like 'Earlier, you mentioned...' or 'Based on our previous conversation...'";
-
-        console.log('ExtractionEngine.formatForAI DEBUG:', {
-            inputEntries: memories.length,
-            outputLength: formattedMemories.length,
-            hasMemoryMarkers: formattedMemories.includes('RETRIEVED MEMORY CONTEXT')
-        });
-
-        return {
-            contextFound: true,
-            memories: formattedMemories,
-            totalTokens: this.calculateTokens(memories),
-            categoriesUsed: [...new Set(memories.map(m => m.category_name))]
-        };
+    if (!memories || memories.length === 0) {
+        return { contextFound: false, memories: '' };
     }
+
+    // SIMPLIFIED FORMAT - Just the essential content GPT-4 needs
+    let formattedMemories = "PREVIOUS CONVERSATIONS:\n\n";
+    
+    memories.forEach(memory => {
+        // Extract just the actual conversation content, not metadata
+        const content = memory.content;
+        
+        // Clean up the content - remove "User:" and "AI:" prefixes if present
+        let cleanContent = content.replace(/^(User:|AI:|Assistant:)\s*/gm, '');
+        
+        // Add simple separator
+        formattedMemories += `${cleanContent}\n\n`;
+    });
+    
+    formattedMemories += "---\n\nIMPORTANT: The above shows what we discussed before. When relevant to the current question, reference this context by saying things like 'You mentioned...' or 'Based on what you shared...'";
+
+    console.log('ExtractionEngine.formatForAI SIMPLIFIED:', {
+        inputEntries: memories.length,
+        outputLength: formattedMemories.length,
+        simplified: true
+    });
+
+    return {
+        contextFound: true,
+        memories: formattedMemories,
+        totalTokens: this.calculateTokens(memories),
+        categoriesUsed: [...new Set(memories.map(m => m.category_name))]
+    };
+}
 
     formatTimeAgo(timestamp) {
         const days = Math.floor((Date.now() - new Date(timestamp)) / (1000 * 60 * 60 * 24));
