@@ -475,12 +475,14 @@ function buildFullConversationPrompt(masterPrompt, message, conversationHistory,
   let fullPrompt = masterPrompt;
 
   // CRITICAL FIX: Enable memory integration 
-  if (memoryContext && memoryContext.contextFound) {
-    fullPrompt += 'PERSISTENT MEMORY CONTEXT:\n';
-    fullPrompt += memoryContext.memories + '\n\n';
-    console.log('[MEMORY] Injected', memoryContext.totalTokens, 'tokens of memory context');
-  }
-
+if (memoryContext && memoryContext.contextFound) {
+  fullPrompt += 'IMPORTANT: PREVIOUS CONVERSATION MEMORY:\n';
+  fullPrompt += '=== WHAT THIS FAMILY MEMBER HAS TOLD YOU BEFORE ===\n';
+  fullPrompt += memoryContext.memories + '\n';
+  fullPrompt += '=== END OF PREVIOUS CONVERSATIONS ===\n\n';
+  fullPrompt += 'MEMORY INSTRUCTION: When answering, if the current question relates to anything mentioned in the previous conversations above, acknowledge what they told you before and build on that context. Say things like "Based on what you shared about..." or "I remember you mentioned..."\n\n';
+  console.log('[MEMORY] Injected', memoryContext.totalTokens, 'tokens of memory context');
+}
   if (conversationHistory.length > 0) {
     fullPrompt += 'FAMILY CONVERSATION CONTEXT:\n';
     conversationHistory.slice(-3).forEach(msg => {
