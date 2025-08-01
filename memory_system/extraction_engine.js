@@ -204,15 +204,9 @@ class ExtractionEngine {
     let formattedMemories = "=== RETRIEVED MEMORY CONTEXT ===\n";
     
     memories.forEach(memory => {
-        const timeAgo = this.formatTimeAgo(memory.created_at);
-        formattedMemories += `
-[MEMORY ENTRY - ${memory.category_name}/${memory.subcategory_name || 'general'}]
-Timestamp: ${timeAgo}
-Relevance: ${memory.relevance_score}
-Content: ${memory.content}
----
-`;
-    });
+    // Extract just the conversation content, skip all metadata
+    formattedMemories += `${memory.content}\n\n`;
+});
     
     formattedMemories += "\n=== END MEMORY CONTEXT ===\n";
     formattedMemories += "\nINSTRUCTION: Reference this memory context in your response when relevant. If memory exists that relates to the current query, acknowledge it explicitly with phrases like 'Earlier, you mentioned...' or 'Based on our previous conversation...'";
