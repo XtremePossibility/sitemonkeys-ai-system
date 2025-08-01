@@ -471,11 +471,18 @@ function buildMasterPrompt(mode, personality, vaultContent, vaultHealthy, expert
   return masterPrompt;
 }
 
-function buildFullConversationPrompt(masterPrompt, message, conversationHistory, expertDomain, careNeeds, memoryContext = null) {
-  let fullPrompt = masterPrompt;
+function buildFullConversationPrompt(masterPrompt, message, conversationHistory, expertDomain, careNeeds, memoryContext = null) {  
+  let fullPrompt = '';
 
-  // CRITICAL FIX: Enable memory integration 
-if (memoryContext && memoryContext.contextFound) {
+  // MEMORY FIRST - MOST IMPORTANT CONTEXT
+  if (memoryContext && memoryContext.contextFound) {  
+    fullPrompt += 'CRITICAL: REMEMBER PREVIOUS CONVERSATIONS:\n';  
+    fullPrompt += memoryContext.memories + '\n\n';  
+    fullPrompt += 'INSTRUCTION: Reference the above conversations when relevant. Say "You mentioned..." or "Based on what you told me..."\n\n';  
+    console.log('[MEMORY] Injected', memoryContext.totalTokens, 'tokens of memory context');  
+  }
+
+  fullPrompt += masterPrompt;
   fullPrompt += 'IMPORTANT: PREVIOUS CONVERSATION MEMORY:\n';
   fullPrompt += '=== WHAT THIS FAMILY MEMBER HAS TOLD YOU BEFORE ===\n';
   fullPrompt += memoryContext.memories + '\n';
