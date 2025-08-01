@@ -10,22 +10,26 @@ import memoryBootstrap from './memory_bootstrap.js';
 // ===== APPLICATION STARTUP MEMORY INITIALIZATION =====
 console.log('[SERVER] 🚀 Initializing memory systems at application startup...');
 
-// Initialize memory systems once at application startup
-try {
-    await memoryBootstrap.initialize();
-    console.log('[SERVER] ✅ Memory bootstrap initialized successfully');
-    console.log('[SERVER] Memory system available:', !!memoryBootstrap.getMemorySystem());
-} catch (initError) {
-    console.error('[SERVER] ❌ MEMORY BOOTSTRAP INITIALIZATION FAILED:', {
-        message: initError.message,
-        stack: initError.stack,
-        name: initError.name
-    });
-    // Don't crash the server - let it run with memory system disabled
-    console.log('[SERVER] ⚠️ Continuing with memory system disabled');
+// CRITICAL FIX: Move async initialization inside an async function
+async function initializeMemorySystem() {
+    try {
+        await memoryBootstrap.initialize();
+        console.log('[SERVER] ✅ Memory bootstrap initialized successfully');
+        console.log('[SERVER] Memory system available:', !!memoryBootstrap.getMemorySystem());
+    } catch (initError) {
+        console.error('[SERVER] ❌ MEMORY BOOTSTRAP INITIALIZATION FAILED:', {
+            message: initError.message,
+            stack: initError.stack,
+            name: initError.name
+        });
+        // Don't crash the server - let it run with memory system disabled
+        console.log('[SERVER] ⚠️ Continuing with memory system disabled');
+    }
+    console.log('[SERVER] 📊 Memory bootstrap initialization complete');
 }
 
-console.log('[SERVER] 📊 Memory bootstrap initialization complete');
+// Initialize memory systems immediately
+initializeMemorySystem();
 
 // Enable CORS and JSON parsing
 app.use(cors());
