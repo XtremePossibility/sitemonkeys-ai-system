@@ -5,8 +5,8 @@
 // Modes: ALL (Truth, Business, Site Monkeys) - Universal system
 // ================================================================
 
-import pkg from 'pg';
-const { Pool } = pkg;
+import pg from 'pg';
+const { Pool } = pg;
 
 // Persistent memory logger with distinctive prefix
 const persistentLogger = {
