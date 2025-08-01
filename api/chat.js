@@ -314,6 +314,19 @@ Would you like to proceed?`,
     FAMILY_MEMORY.updateMemory(expertDomain, careNeeds, protectiveAlerts, solutionOpportunities);
     lastPersonality = optimalPersonality;
 
+    // *** MEMORY STORAGE - CRITICAL SYSTEM FIX ***
+    try {
+      if (global.memorySystem && global.memorySystem.storeMemory) {
+        const conversationData = `User: ${message}\nAI: ${finalResponse}`;
+        await global.memorySystem.storeMemory(user_id, conversationData);
+        console.log('[MEMORY] Conversation stored successfully');
+      } else {
+        console.log('[MEMORY] Storage system not available - conversation not stored');
+      }
+    } catch (storageError) {
+      console.error('[MEMORY] Storage failed:', storageError);
+    }
+
     const sessionData = formatSessionDataForUI();
 
     res.status(200).json({
