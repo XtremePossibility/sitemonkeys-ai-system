@@ -204,8 +204,8 @@ class ExtractionEngine {
     let formattedMemories = "=== RETRIEVED MEMORY CONTEXT ===\n";
     
     memories.forEach(memory => {
-    // Extract just the conversation content, skip all metadata
-    formattedMemories += `${memory.content}\n\n`;
+    const timeAgo = this.formatTimeAgo(memory.created_at);
+    formattedMemories += `Previous conversation (${timeAgo}): ${memory.content}\n\n`;
 });
     
     formattedMemories += "\n=== END MEMORY CONTEXT ===\n";
