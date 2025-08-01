@@ -44,7 +44,7 @@ class MemoryBootstrap {
                 console.log('[MEMORY_BOOTSTRAP] ✅ PersistentMemoryAPI imported successfully');
                 
                 console.log('[MEMORY_BOOTSTRAP] 🔄 Creating PersistentMemoryAPI instance...');
-                this.persistentMemory = new PersistentMemoryAPI();
+                this.persistentMemory = new PersistentMemory();
                 console.log('[MEMORY_BOOTSTRAP] ✅ PersistentMemoryAPI instance created');
                 
                 console.log('[MEMORY_BOOTSTRAP] 🔄 Initializing persistent memory...');
