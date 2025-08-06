@@ -1,352 +1,448 @@
-// api/chat.js - Integration example with Site Monkeys Memory System
-// This demonstrates how to integrate the complete memory system
+// memory_system/database_manager.js
+// Production-grade PostgreSQL database manager for Site Monkeys AI Memory System
 
-import MemoryBootstrap from '../memory_bootstrap.js';
-import VaultLoader from '../memory_system/vault_loader.js';
+import { Pool } from 'pg';
 
-export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
+class DatabaseManager {
+  constructor() {
+    this.pool = null;
+    this.isInitialized = false;
+    this.initializePool();
   }
 
-  try {
-    const { message, userId, mode = 'truth_general', sessionId } = req.body;
+  initializePool() {
+    const config = {
+      connectionString: process.env.DATABASE_URL,
+      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+      max: 20,
+      min: 2,
+      idleTimeoutMillis: 30000,
+      connectionTimeoutMillis: 2000,
+    };
 
-    if (!message || !userId) {
-      return res.status(400).json({ error: 'Message and userId are required' });
-    }
+    this.pool = new Pool(config);
 
-    // Initialize memory system if needed
-    const initResult = await MemoryBootstrap.initialize();
-    console.log(`Memory system status: ${initResult.mode}`);
-
-    // Build context based on mode
-    let memoryContext = '';
-    let vaultContext = '';
-
-    // 1. Get relevant memory context (always available)
-    const relevantMemories = await MemoryBootstrap.getRelevantContext(
-      userId,
-      message,
-      2400, // Token limit
-      { 
-        currentMode: mode,
-        sessionId 
-      }
-    );
-
-    if (relevantMemories.length > 0) {
-      memoryContext = MemoryBootstrap.formatForAI(relevantMemories, {
-        includeMetadata: true,
-        maxLength: 2400
-      });
-      console.log(`Retrieved ${relevantMemories.length} relevant memories`);
-    }
-
-    // 2. Load vault context if in Site Monkeys mode
-    if (mode === 'site_monkeys') {
-      vaultContext = await MemoryBootstrap.loadVaultMemory(mode);
-      if (vaultContext) {
-        console.log('Vault context loaded for Site Monkeys mode');
-      }
-    }
-
-    // 3. Build complete system prompt with context
-    const systemPrompt = buildSystemPrompt(mode, memoryContext, vaultContext);
-
-    // 4. Process the AI response (this would call your AI provider)
-    const aiResponse = await processAIRequest({
-      systemPrompt,
-      userMessage: message,
-      mode
+    this.pool.on('error', (err) => {
+      console.error('Database pool error:', err);
     });
 
-    // 5. Store the conversation in memory
-    await storeConversationMemory(userId, message, aiResponse, sessionId);
-
-    // 6. Return response with memory stats
-    const memoryStats = await MemoryBootstrap.getMemoryStats(userId);
-    
-    return res.status(200).json({
-      response: aiResponse,
-      mode,
-      memory: {
-        retrievedMemories: relevantMemories.length,
-        totalMemories: memoryStats.totalMemories,
-        totalTokens: memoryStats.totalTokens,
-        systemStatus: initResult.mode
-      },
-      sessionId
-    });
-
-  } catch (error) {
-    console.error('Chat API error:', error);
-    return res.status(500).json({ 
-      error: 'Internal server error',
-      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    this.pool.on('connect', () => {
+      console.log('Database connection established');
     });
   }
-}
 
-/**
- * Build system prompt based on mode and available context
- */
-function buildSystemPrompt(mode, memoryContext, vaultContext) {
-  let basePrompt = '';
+  async initialize() {
+    if (this.isInitialized) return true;
 
-  switch (mode) {
-    case 'truth_general':
-      basePrompt = `You are a truth-focused AI assistant. Provide accurate, evidence-based responses while acknowledging uncertainty when appropriate. Prioritize factual accuracy over helpfulness.`;
-      break;
-    
-    case 'business_validation':
-      basePrompt = `You are a business-focused AI assistant. Analyze decisions through the lens of profitability, risk, and execution feasibility. Always include survival impact and financial implications.`;
-      break;
-    
-    case 'site_monkeys':
-      basePrompt = `You are part of the Site Monkeys AI system. Use both your general knowledge and the specific Site Monkeys context to provide expert guidance. Maintain the system's truth-first philosophy while leveraging proprietary insights.`;
-      break;
-    
-    default:
-      basePrompt = `You are a helpful AI assistant.`;
-  }
-
-  // Add memory context
-  if (memoryContext) {
-    basePrompt += `\n\n${memoryContext}`;
-  }
-
-  // Add vault context for Site Monkeys mode
-  if (vaultContext && mode === 'site_monkeys') {
-    basePrompt += `\n\nSITE MONKEYS CONTEXT:\n${vaultContext}\n`;
-  }
-
-  basePrompt += `\n\nRemember to reference relevant context when helpful, but don't mention the memory system directly to the user.`;
-
-  return basePrompt;
-}
-
-/**
- * Process AI request with your preferred provider
- */
-async function processAIRequest({ systemPrompt, userMessage, mode }) {
-  // This is where you'd integrate with OpenAI, Anthropic, or other AI providers
-  // For example:
-  
-  try {
-    // Example OpenAI integration
-    if (process.env.OPENAI_API_KEY) {
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          model: 'gpt-4',
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: userMessage }
-          ],
-          temperature: mode === 'truth_general' ? 0.3 : 0.7,
-          max_tokens: 1000
-        })
-      });
-
-      const data = await response.json();
-      return data.choices[0]?.message?.content || 'Sorry, I could not process that request.';
+    try {
+      await this.createTables();
+      this.isInitialized = true;
+      console.log('Database initialized successfully');
+      return true;
+    } catch (error) {
+      console.error('Database initialization failed:', error);
+      return false;
     }
-
-    // Fallback response if no AI provider is configured
-    return `I received your message: "${userMessage}". However, no AI provider is currently configured. This is the Site Monkeys memory system responding in ${mode} mode.`;
-    
-  } catch (error) {
-    console.error('AI provider error:', error);
-    return 'I apologize, but I encountered an error processing your request. Please try again.';
   }
-}
 
-/**
- * Store conversation in memory for future reference
- */
-async function storeConversationMemory(userId, userMessage, aiResponse, sessionId) {
-  try {
-    // Store user message
-    await MemoryBootstrap.storeMemory(
-      userId, 
-      userMessage, 
-      {
-        source: 'user_input',
-        sessionId,
-        metadata: {
-          type: 'user_message',
-          timestamp: Date.now()
-        }
-      }
-    );
-
-    // Store AI response if it contains useful information
-    if (aiResponse.length > 50 && !aiResponse.includes('I apologize') && !aiResponse.includes('error')) {
-      await MemoryBootstrap.storeMemory(
-        userId, 
-        `AI Response: ${aiResponse}`, 
-        {
-          source: 'ai_response',
-          sessionId,
-          metadata: {
-            type: 'ai_response',
-            timestamp: Date.now()
-          }
-        }
+  async createTables() {
+    const createMemoriesTable = `
+      CREATE TABLE IF NOT EXISTS persistent_memories (
+        id SERIAL PRIMARY KEY,
+        user_id VARCHAR(255) NOT NULL,
+        content TEXT NOT NULL,
+        category VARCHAR(100) NOT NULL,
+        subcategory VARCHAR(100),
+        relevance_score DECIMAL(3,2) DEFAULT 0.50,
+        token_count INTEGER NOT NULL DEFAULT 0,
+        emotional_weight DECIMAL(3,2) DEFAULT 0.00,
+        is_question BOOLEAN DEFAULT false,
+        user_priority BOOLEAN DEFAULT false,
+        usage_frequency INTEGER DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        last_accessed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        metadata JSONB DEFAULT '{}',
+        archived BOOLEAN DEFAULT false
       );
+    `;
+
+    const createIndexes = `
+      CREATE INDEX IF NOT EXISTS idx_memories_user_category ON persistent_memories(user_id, category);
+      CREATE INDEX IF NOT EXISTS idx_memories_relevance ON persistent_memories(relevance_score DESC);
+      CREATE INDEX IF NOT EXISTS idx_memories_created_at ON persistent_memories(created_at DESC);
+      CREATE INDEX IF NOT EXISTS idx_memories_usage ON persistent_memories(usage_frequency DESC);
+      CREATE INDEX IF NOT EXISTS idx_memories_archived ON persistent_memories(archived);
+      CREATE INDEX IF NOT EXISTS idx_memories_compound ON persistent_memories(user_id, category, archived, relevance_score DESC);
+    `;
+
+    const createCategoryStatsTable = `
+      CREATE TABLE IF NOT EXISTS category_stats (
+        id SERIAL PRIMARY KEY,
+        user_id VARCHAR(255) NOT NULL,
+        category VARCHAR(100) NOT NULL,
+        total_memories INTEGER DEFAULT 0,
+        total_tokens INTEGER DEFAULT 0,
+        avg_relevance DECIMAL(3,2) DEFAULT 0.00,
+        last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(user_id, category)
+      );
+    `;
+
+    await this.pool.query(createMemoriesTable);
+    await this.pool.query(createIndexes);
+    await this.pool.query(createCategoryStatsTable);
+  }
+
+  async storeMemory(memory) {
+    const client = await this.pool.connect();
+    try {
+      await client.query('BEGIN');
+
+      const insertQuery = `
+        INSERT INTO persistent_memories 
+        (user_id, content, category, subcategory, relevance_score, token_count, 
+         emotional_weight, is_question, user_priority, metadata)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+        RETURNING id, created_at
+      `;
+
+      const values = [
+        memory.userId,
+        memory.content,
+        memory.category,
+        memory.subcategory || null,
+        memory.relevanceScore || 0.50,
+        memory.tokenCount || 0,
+        memory.emotionalWeight || 0.00,
+        memory.isQuestion || false,
+        memory.userPriority || false,
+        JSON.stringify(memory.metadata || {})
+      ];
+
+      const result = await client.query(insertQuery, values);
+      
+      // Update category stats
+      await this.updateCategoryStats(client, memory.userId, memory.category);
+      
+      await client.query('COMMIT');
+      
+      return {
+        id: result.rows[0].id,
+        createdAt: result.rows[0].created_at,
+        success: true
+      };
+    } catch (error) {
+      await client.query('ROLLBACK');
+      console.error('Error storing memory:', error);
+      return { success: false, error: error.message };
+    } finally {
+      client.release();
     }
-  } catch (error) {
-    console.error('Error storing conversation memory:', error);
-    // Don't fail the request if memory storage fails
-  }
-}
-
-/**
- * Health check endpoint for memory system
- */
-export async function healthCheck(req, res) {
-  try {
-    const health = await MemoryBootstrap.healthCheck();
-    const systemInfo = MemoryBootstrap.getSystemInfo();
-    
-    return res.status(health.status === 'healthy' ? 200 : 503).json({
-      status: health.status,
-      timestamp: health.timestamp,
-      memory: health,
-      system: systemInfo
-    });
-  } catch (error) {
-    return res.status(500).json({
-      status: 'error',
-      error: error.message,
-      timestamp: new Date().toISOString()
-    });
-  }
-}
-
-/**
- * Memory management endpoint
- */
-export async function memoryManagement(req, res) {
-  const { action, userId } = req.body;
-
-  if (!userId) {
-    return res.status(400).json({ error: 'UserId is required' });
   }
 
-  try {
-    switch (action) {
-      case 'stats':
-        const stats = await MemoryBootstrap.getMemoryStats(userId);
-        return res.json({ success: true, data: stats });
+  async getRelevantMemories(userId, category, queryText = '', limit = 10, tokenBudget = 2400) {
+    try {
+      const searchQuery = `
+        SELECT id, content, category, subcategory, relevance_score, 
+               token_count, emotional_weight, is_question, usage_frequency,
+               created_at, last_accessed_at, metadata,
+               CASE 
+                 WHEN $3 != '' THEN 
+                   (CASE 
+                     WHEN LOWER(content) LIKE LOWER('%' || $3 || '%') THEN relevance_score + 0.3
+                     ELSE relevance_score
+                   END)
+                 ELSE relevance_score 
+               END as computed_relevance
+        FROM persistent_memories 
+        WHERE user_id = $1 AND category = $2 AND archived = false
+        ORDER BY computed_relevance DESC, usage_frequency DESC, created_at DESC
+        LIMIT $4
+      `;
 
-      case 'cleanup':
-        const cleaned = await MemoryBootstrap.optimizeMemoryStorage?.(userId) || { message: 'Cleanup not available in current mode' };
-        return res.json({ success: true, data: cleaned });
-
-      case 'search':
-        const { query, limit = 20 } = req.body;
-        if (!query) {
-          return res.status(400).json({ error: 'Query is required for search' });
+      const result = await this.pool.query(searchQuery, [userId, category, queryText, limit * 2]);
+      
+      // Filter by token budget
+      const memories = [];
+      let totalTokens = 0;
+      
+      for (const row of result.rows) {
+        if (totalTokens + row.token_count <= tokenBudget) {
+          memories.push({
+            id: row.id,
+            content: row.content,
+            category: row.category,
+            subcategory: row.subcategory,
+            relevanceScore: row.computed_relevance,
+            tokenCount: row.token_count,
+            emotionalWeight: row.emotional_weight,
+            isQuestion: row.is_question,
+            usageFrequency: row.usage_frequency,
+            createdAt: row.created_at,
+            lastAccessedAt: row.last_accessed_at,
+            metadata: row.metadata
+          });
+          totalTokens += row.token_count;
         }
         
-        const searchResults = await MemoryBootstrap.searchMemories?.(userId, query, limit) || [];
-        return res.json({ success: true, data: searchResults });
+        if (memories.length >= limit) break;
+      }
 
-      default:
-        return res.status(400).json({ error: 'Invalid action' });
+      // Update access tracking
+      if (memories.length > 0) {
+        const memoryIds = memories.map(m => m.id);
+        await this.updateMemoryAccess(memoryIds);
+      }
+
+      return memories;
+    } catch (error) {
+      console.error('Error retrieving memories:', error);
+      return [];
     }
-  } catch (error) {
-    console.error('Memory management error:', error);
-    return res.status(500).json({ error: error.message });
   }
-}
 
-// Additional utility functions for memory system integration
+  async updateMemoryAccess(memoryIds) {
+    if (!memoryIds || memoryIds.length === 0) return;
 
-/**
- * Middleware to ensure memory system is initialized
- */
-export async function ensureMemoryInitialized(req, res, next) {
-  try {
-    if (!MemoryBootstrap.isInitialized) {
-      console.log('Initializing memory system...');
-      await MemoryBootstrap.initialize();
+    try {
+      const updateQuery = `
+        UPDATE persistent_memories 
+        SET usage_frequency = usage_frequency + 1,
+            last_accessed_at = CURRENT_TIMESTAMP
+        WHERE id = ANY($1)
+      `;
+      await this.pool.query(updateQuery, [memoryIds]);
+    } catch (error) {
+      console.error('Error updating memory access:', error);
     }
-    next();
-  } catch (error) {
-    console.error('Memory initialization failed:', error);
-    // Continue anyway - the system will fall back to in-memory mode
-    next();
+  }
+
+  async getCategoryTokenCount(userId, category) {
+    try {
+      const result = await this.pool.query(
+        'SELECT COALESCE(SUM(token_count), 0) as total FROM persistent_memories WHERE user_id = $1 AND category = $2 AND archived = false',
+        [userId, category]
+      );
+      return parseInt(result.rows[0].total);
+    } catch (error) {
+      console.error('Error getting category token count:', error);
+      return 0;
+    }
+  }
+
+  async cleanupCategory(userId, category, maxTokens = 50000) {
+    const client = await this.pool.connect();
+    try {
+      await client.query('BEGIN');
+
+      // Get current token count
+      const tokenCount = await this.getCategoryTokenCount(userId, category);
+      
+      if (tokenCount <= maxTokens) {
+        await client.query('COMMIT');
+        return { cleaned: 0, tokensFreed: 0 };
+      }
+
+      // Archive lowest relevance, oldest memories
+      const cleanupQuery = `
+        UPDATE persistent_memories 
+        SET archived = true
+        WHERE id IN (
+          SELECT id FROM persistent_memories 
+          WHERE user_id = $1 AND category = $2 AND archived = false
+          ORDER BY relevance_score ASC, usage_frequency ASC, created_at ASC
+          LIMIT (
+            SELECT COUNT(*) FROM persistent_memories 
+            WHERE user_id = $1 AND category = $2 AND archived = false
+          ) / 4
+        )
+        RETURNING token_count
+      `;
+
+      const result = await client.query(cleanupQuery, [userId, category]);
+      const tokensFreed = result.rows.reduce((sum, row) => sum + row.token_count, 0);
+      
+      await this.updateCategoryStats(client, userId, category);
+      await client.query('COMMIT');
+
+      console.log(`Cleaned up category ${category} for user ${userId}: archived ${result.rowCount} memories, freed ${tokensFreed} tokens`);
+      
+      return {
+        cleaned: result.rowCount,
+        tokensFreed: tokensFreed
+      };
+    } catch (error) {
+      await client.query('ROLLBACK');
+      console.error('Error cleaning up category:', error);
+      return { cleaned: 0, tokensFreed: 0 };
+    } finally {
+      client.release();
+    }
+  }
+
+  async updateCategoryStats(client, userId, category) {
+    const statsQuery = `
+      INSERT INTO category_stats (user_id, category, total_memories, total_tokens, avg_relevance, last_updated)
+      SELECT 
+        $1 as user_id,
+        $2 as category,
+        COUNT(*) as total_memories,
+        COALESCE(SUM(token_count), 0) as total_tokens,
+        COALESCE(AVG(relevance_score), 0.00) as avg_relevance,
+        CURRENT_TIMESTAMP as last_updated
+      FROM persistent_memories 
+      WHERE user_id = $1 AND category = $2 AND archived = false
+      ON CONFLICT (user_id, category) 
+      DO UPDATE SET 
+        total_memories = EXCLUDED.total_memories,
+        total_tokens = EXCLUDED.total_tokens,
+        avg_relevance = EXCLUDED.avg_relevance,
+        last_updated = EXCLUDED.last_updated
+    `;
+
+    await client.query(statsQuery, [userId, category]);
+  }
+
+  async getCategoryStats(userId, category = null) {
+    try {
+      let query = 'SELECT * FROM category_stats WHERE user_id = $1';
+      let params = [userId];
+      
+      if (category) {
+        query += ' AND category = $2';
+        params.push(category);
+      }
+      
+      query += ' ORDER BY total_tokens DESC';
+      
+      const result = await this.pool.query(query, params);
+      return result.rows;
+    } catch (error) {
+      console.error('Error getting category stats:', error);
+      return [];
+    }
+  }
+
+  async getUserMemoryCount(userId) {
+    try {
+      const result = await this.pool.query(
+        'SELECT COUNT(*) as count FROM persistent_memories WHERE user_id = $1 AND archived = false',
+        [userId]
+      );
+      return parseInt(result.rows[0].count);
+    } catch (error) {
+      console.error('Error getting user memory count:', error);
+      return 0;
+    }
+  }
+
+  async deleteMemory(userId, memoryId) {
+    try {
+      const result = await this.pool.query(
+        'UPDATE persistent_memories SET archived = true WHERE user_id = $1 AND id = $2 RETURNING category',
+        [userId, memoryId]
+      );
+      
+      if (result.rows.length > 0) {
+        const category = result.rows[0].category;
+        const client = await this.pool.connect();
+        try {
+          await this.updateCategoryStats(client, userId, category);
+        } finally {
+          client.release();
+        }
+      }
+      
+      return result.rowCount > 0;
+    } catch (error) {
+      console.error('Error deleting memory:', error);
+      return false;
+    }
+  }
+
+  async getMemoriesByCategory(userId, category, limit = 50) {
+    try {
+      const result = await this.pool.query(`
+        SELECT id, content, subcategory, relevance_score, token_count, 
+               created_at, usage_frequency, metadata
+        FROM persistent_memories 
+        WHERE user_id = $1 AND category = $2 AND archived = false
+        ORDER BY created_at DESC
+        LIMIT $3
+      `, [userId, category, limit]);
+      
+      return result.rows.map(row => ({
+        id: row.id,
+        content: row.content,
+        subcategory: row.subcategory,
+        relevanceScore: row.relevance_score,
+        tokenCount: row.token_count,
+        createdAt: row.created_at,
+        usageFrequency: row.usage_frequency,
+        metadata: row.metadata
+      }));
+    } catch (error) {
+      console.error('Error getting memories by category:', error);
+      return [];
+    }
+  }
+
+  async searchMemories(userId, searchTerm, limit = 20) {
+    try {
+      const result = await this.pool.query(`
+        SELECT id, content, category, subcategory, relevance_score, token_count,
+               created_at, usage_frequency
+        FROM persistent_memories 
+        WHERE user_id = $1 AND archived = false 
+          AND LOWER(content) LIKE LOWER('%' || $2 || '%')
+        ORDER BY relevance_score DESC, created_at DESC
+        LIMIT $3
+      `, [userId, searchTerm, limit]);
+      
+      return result.rows.map(row => ({
+        id: row.id,
+        content: row.content,
+        category: row.category,
+        subcategory: row.subcategory,
+        relevanceScore: row.relevance_score,
+        tokenCount: row.token_count,
+        createdAt: row.created_at,
+        usageFrequency: row.usage_frequency
+      }));
+    } catch (error) {
+      console.error('Error searching memories:', error);
+      return [];
+    }
+  }
+
+  async healthCheck() {
+    try {
+      await this.pool.query('SELECT 1');
+      return {
+        status: 'healthy',
+        timestamp: new Date().toISOString(),
+        pool: {
+          total: this.pool.totalCount,
+          idle: this.pool.idleCount,
+          waiting: this.pool.waitingCount
+        }
+      };
+    } catch (error) {
+      return {
+        status: 'unhealthy',
+        error: error.message,
+        timestamp: new Date().toISOString()
+      };
+    }
+  }
+
+  async close() {
+    if (this.pool) {
+      await this.pool.end();
+      console.log('Database connection pool closed');
+    }
   }
 }
 
-/**
- * Get memory context for a specific category
- */
-export async function getMemoryByCategory(userId, category, limit = 10) {
-  try {
-    return await MemoryBootstrap.getCategoryMemories?.(userId, category, limit) || [];
-  } catch (error) {
-    console.error('Error getting category memories:', error);
-    return [];
-  }
-}
-
-/**
- * Format multiple memory contexts for different use cases
- */
-export function formatMemoryForContext(memories, contextType = 'chat') {
-  if (!memories || memories.length === 0) return '';
-
-  switch (contextType) {
-    case 'chat':
-      return MemoryBootstrap.formatForAI(memories, { includeMetadata: false });
-    
-    case 'detailed':
-      return MemoryBootstrap.formatForAI(memories, { 
-        includeMetadata: true,
-        maxLength: 4000 
-      });
-    
-    case 'summary':
-      const summaryItems = memories.slice(0, 5).map(m => 
-        `• ${m.content.substring(0, 100)}${m.content.length > 100 ? '...' : ''}`
-      ).join('\n');
-      return `Recent relevant information:\n${summaryItems}`;
-    
-    default:
-      return MemoryBootstrap.formatForAI(memories);
-  }
-}
-
-// Export the main handler as default
-export { handler as default };
-
-/* 
-USAGE EXAMPLES:
-
-1. Basic chat with memory:
-   POST /api/chat
-   { "message": "Tell me about my workout routine", "userId": "user123", "mode": "truth_general" }
-
-2. Health check:
-   GET /api/chat/health
-
-3. Memory management:
-   POST /api/chat/memory
-   { "action": "stats", "userId": "user123" }
-
-4. Search memories:
-   POST /api/chat/memory  
-   { "action": "search", "userId": "user123", "query": "exercise", "limit": 10 }
-
-5. Site Monkeys mode with vault:
-   POST /api/chat
-   { "message": "What's our business strategy?", "userId": "user123", "mode": "site_monkeys" }
-*/
+export default new DatabaseManager();
