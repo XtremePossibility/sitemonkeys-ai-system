@@ -1,5 +1,5 @@
 // memory_system/database_manager.js
-// Production-grade PostgreSQL database manager for Site Monkeys AI Memory System
+// FIXED: Removed duplicate export that was causing the crash
 
 import { Pool } from 'pg';
 
@@ -445,4 +445,5 @@ class DatabaseManager {
   }
 }
 
-export default new DatabaseManager();
+// FIXED: Single export only
+export default DatabaseManager;
