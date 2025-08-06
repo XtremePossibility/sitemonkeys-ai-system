@@ -16,29 +16,47 @@ import cors from 'cors';
 const app = express();
 import memoryBootstrap from './memory_bootstrap.js';
 
-// ===== APPLICATION STARTUP MEMORY INITIALIZATION =====
-console.log('[SERVER] 🚀 Initializing memory systems at application startup...');
+// ===== FULL SYSTEM STARTUP + SHUTDOWN CONTROL =====
+async function initializeServer() {
+  console.log('[SERVER] 🚀 Starting Site Monkeys Caring Family System...');
 
-// CRITICAL FIX: Move async initialization inside an async function
-async function initializeMemorySystem() {
-    try {
-        await memoryBootstrap.initialize();
-        console.log('[SERVER] ✅ Memory bootstrap initialized successfully');
-        console.log('[SERVER] Memory system available:', !!memoryBootstrap.getMemorySystem());
-    } catch (initError) {
-        console.error('[SERVER] ❌ MEMORY BOOTSTRAP INITIALIZATION FAILED:', {
-            message: initError.message,
-            stack: initError.stack,
-            name: initError.name
-        });
-        // Don't crash the server - let it run with memory system disabled
-        console.log('[SERVER] ⚠️ Continuing with memory system disabled');
+  try {
+    const memoryResult = await memoryBootstrap.initialize();
+    if (memoryResult.success) {
+      console.log(`[SERVER] ✅ Memory system ready (${memoryResult.mode} mode)`);
+    } else {
+      console.log(`[SERVER] ⚠️ Memory fallback mode: ${memoryResult.error}`);
     }
-    console.log('[SERVER] 📊 Memory bootstrap initialization complete');
+
+    const PORT = process.env.PORT || 3000;
+    app.listen(PORT, () => {
+      console.log(`🚀 Caring Family Intelligence System running on port ${PORT}`);
+      console.log(`💙 ${FAMILY_PHILOSOPHY.core_mission}`);
+      console.log(`✨ ${FAMILY_PHILOSOPHY.one_and_done_philosophy}`);
+      console.log(`📁 Vault endpoint: /api/load-vault`);
+    });
+
+  } catch (error) {
+    console.error('[SERVER] ❌ Server initialization failed:', error);
+    process.exit(1);
+  }
 }
 
-// Initialize memory systems immediately
-initializeMemorySystem();
+// Graceful shutdown hooks
+process.on('SIGTERM', async () => {
+  console.log('[SERVER] 🔄 Graceful shutdown (SIGTERM)...');
+  await memoryBootstrap.shutdown();
+  process.exit(0);
+});
+
+process.on('SIGINT', async () => {
+  console.log('[SERVER] 🔄 Graceful shutdown (SIGINT)...');
+  await memoryBootstrap.shutdown();
+  process.exit(0);
+});
+
+initializeServer();
+
 
 // Enable CORS and JSON parsing
 app.use(cors());
