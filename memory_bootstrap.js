@@ -1,185 +1,479 @@
-// memory_bootstrap.js - ES MODULE VERSION
-import pg from 'pg';
-const { Pool } = pg;
+// memory_bootstrap.js
+// Bootstrap and fallback system for Site Monkeys AI memory system
+
+import PersistentMemory from './memory_system/persistent_memory.js';
+import VaultLoader from './memory_system/vault_loader.js';
 
 class MemoryBootstrap {
-    constructor() {
-        this.persistentMemory = null;
-        this.vaultMemory = null;
-        this.isInitialized = false;
-        this.fallbackMode = false;
-    }
+  constructor() {
+    this.persistentMemory = new PersistentMemory();
+    this.vaultLoader = new VaultLoader();
+    this.fallbackMemory = new Map();
+    this.isHealthy = false;
+    this.lastHealthCheck = null;
+    this.retryAttempts = 0;
+    this.maxRetries = 3;
+  }
 
-    async initialize() {
-        console.log('[MEMORY_BOOTSTRAP] 🚀 Starting application-level memory initialization...');
+  /**
+   * Initialize the memory system with fallbacks
+   */
+  async initialize() {
+    console.log('Initializing Site Monkeys AI Memory System...');
+
+    try {
+      // Try to initialize persistent memory
+      const persistentSuccess = await this.initializePersistentMemory();
+      
+      if (persistentSuccess) {
+        this.isHealthy = true;
+        this.retryAttempts = 0;
+        console.log('✅ Memory system initialized successfully');
+        return { success: true, mode: 'persistent' };
+      }
+
+      // Fall back to in-memory mode
+      console.warn('⚠️ Falling back to in-memory storage');
+      this.initializeFallbackMemory();
+      return { success: true, mode: 'fallback' };
+
+    } catch (error) {
+      console.error('❌ Memory system initialization failed:', error);
+      this.initializeFallbackMemory();
+      return { success: false, mode: 'fallback', error: error.message };
+    }
+  }
+
+  /**
+   * Initialize persistent memory with retries
+   */
+  async initializePersistentMemory() {
+    for (let attempt = 1; attempt <= this.maxRetries; attempt++) {
+      try {
+        console.log(`Attempting persistent memory initialization (${attempt}/${this.maxRetries})...`);
         
-        try {
-            // Initialize persistent memory system
-            await this.initializePersistentMemory();
-            
-            // Initialize vault system (Site Monkeys only)
-            await this.initializeVaultSystem();
-            
-            this.isInitialized = true;
-            console.log('[MEMORY_BOOTSTRAP] ✅ Memory systems initialized successfully');
-            
-        } catch (error) {
-            console.error('[MEMORY_BOOTSTRAP] ⚠️ Initialization failed, using fallback:', error.message);
-            this.initializeFallbackMemory();
+        const success = await this.persistentMemory.initialize();
+        if (success) {
+          console.log('✅ Persistent memory initialized');
+          return true;
         }
+
+        throw new Error('Persistent memory initialization returned false');
+      } catch (error) {
+        console.error(`❌ Attempt ${attempt} failed:`, error.message);
+        
+        if (attempt < this.maxRetries) {
+          const delay = Math.min(1000 * Math.pow(2, attempt - 1), 5000);
+          console.log(`⏳ Retrying in ${delay}ms...`);
+          await this.sleep(delay);
+        }
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Initialize fallback in-memory storage
+   */
+  initializeFallbackMemory() {
+    console.log('Initializing fallback memory system...');
+    this.fallbackMemory.clear();
+    this.isHealthy = true; // Fallback is always "healthy"
+    console.log('✅ Fallback memory system ready');
+  }
+
+  /**
+   * Store memory with fallback support
+   */
+  async storeMemory(userId, content, options = {}) {
+    try {
+      if (this.isHealthy && this.persistentMemory) {
+        const result = await this.persistentMemory.storeMemory(userId, content, options);
+        if (result.success) {
+          return result;
+        }
+        // If persistent storage fails, fall back
+        console.warn('Persistent storage failed, using fallback');
+      }
+
+      // Fallback storage
+      return this.storeFallbackMemory(userId, content, options);
+    } catch (error) {
+      console.error('Error storing memory:', error);
+      return this.storeFallbackMemory(userId, content, options);
+    }
+  }
+
+  /**
+   * Get relevant context with fallback support
+   */
+  async getRelevantContext(userId, message, tokenLimit = 2400, options = {}) {
+    try {
+      if (this.isHealthy && this.persistentMemory) {
+        const result = await this.persistentMemory.getRelevantContext(userId, message, tokenLimit, options);
+        if (result && result.length >= 0) {
+          return result;
+        }
+        console.warn('Persistent memory returned invalid result, using fallback');
+      }
+
+      // Fallback retrieval
+      return this.getFallbackContext(userId, message, tokenLimit, options);
+    } catch (error) {
+      console.error('Error getting relevant context:', error);
+      return this.getFallbackContext(userId, message, tokenLimit, options);
+    }
+  }
+
+  /**
+   * Store memory in fallback system
+   */
+  storeFallbackMemory(userId, content, options = {}) {
+    try {
+      if (!this.fallbackMemory.has(userId)) {
+        this.fallbackMemory.set(userId, []);
+      }
+
+      const userMemories = this.fallbackMemory.get(userId);
+      const memory = {
+        id: Date.now() + Math.random(),
+        content: content.trim(),
+        timestamp: new Date().toISOString(),
+        metadata: options.metadata || {},
+        tokenCount: Math.ceil(content.length / 4)
+      };
+
+      userMemories.push(memory);
+
+      // Limit fallback memory to prevent memory leaks
+      if (userMemories.length > 100) {
+        userMemories.shift(); // Remove oldest
+      }
+
+      this.fallbackMemory.set(userId, userMemories);
+
+      console.log(`Stored memory in fallback (${userMemories.length} total)`);
+      return { success: true, id: memory.id, mode: 'fallback' };
+    } catch (error) {
+      console.error('Error storing fallback memory:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
+   * Get context from fallback system
+   */
+  getFallbackContext(userId, message, tokenLimit = 2400, options = {}) {
+    try {
+      const userMemories = this.fallbackMemory.get(userId) || [];
+      
+      if (userMemories.length === 0) {
+        return [];
+      }
+
+      const messageLower = message.toLowerCase();
+      let relevantMemories = [];
+      let totalTokens = 0;
+
+      // Simple relevance scoring for fallback
+      const scoredMemories = userMemories
+        .map(memory => {
+          let score = 0;
+          const contentLower = memory.content.toLowerCase();
+          
+          // Keyword matching
+          const words = messageLower.split(' ').filter(w => w.length > 3);
+          const matches = words.filter(word => contentLower.includes(word));
+          score += matches.length / words.length;
+
+          // Recency boost
+          const hoursOld = (Date.now() - Date.parse(memory.timestamp)) / (1000 * 60 * 60);
+          if (hoursOld < 24) score += 0.2;
+          else if (hoursOld < 168) score += 0.1;
+
+          return { ...memory, relevanceScore: score };
+        })
+        .sort((a, b) => b.relevanceScore - a.relevanceScore);
+
+      // Select memories within token limit
+      for (const memory of scoredMemories) {
+        if (totalTokens + memory.tokenCount <= tokenLimit) {
+          relevantMemories.push(memory);
+          totalTokens += memory.tokenCount;
+        }
+        if (relevantMemories.length >= 10) break;
+      }
+
+      console.log(`Retrieved ${relevantMemories.length} memories from fallback (${totalTokens} tokens)`);
+      return relevantMemories;
+    } catch (error) {
+      console.error('Error getting fallback context:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Load vault memory if in Site Monkeys mode
+   */
+  async loadVaultMemory(mode) {
+    if (mode !== 'site_monkeys') {
+      return null;
     }
 
-    async initializePersistentMemory() {
-        console.log('[MEMORY_BOOTSTRAP] 🔍 DEBUGGING DATABASE CONNECTION:');
-        console.log('[MEMORY_BOOTSTRAP] DATABASE_URL exists:', !!process.env.DATABASE_URL);
-        console.log('[MEMORY_BOOTSTRAP] DATABASE_URL length:', process.env.DATABASE_URL ? process.env.DATABASE_URL.length : 0);
+    try {
+      console.log('Loading Site Monkeys vault memory...');
+      const vaultMemory = await this.vaultLoader.loadVault();
+      
+      if (vaultMemory) {
+        console.log('✅ Vault memory loaded successfully');
+        return vaultMemory;
+      }
+      
+      console.warn('⚠️ Vault memory not available');
+      return null;
+    } catch (error) {
+      console.error('❌ Error loading vault memory:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Get memory system status and statistics
+   */
+  async getMemoryStats(userId) {
+    try {
+      if (this.isHealthy && this.persistentMemory) {
+        const stats = await this.persistentMemory.getMemoryStats(userId);
+        return { ...stats, mode: 'persistent' };
+      }
+
+      // Fallback stats
+      const userMemories = this.fallbackMemory.get(userId) || [];
+      const totalTokens = userMemories.reduce((sum, mem) => sum + mem.tokenCount, 0);
+
+      return {
+        totalMemories: userMemories.length,
+        totalTokens,
+        avgRelevance: 0.5,
+        categories: [],
+        categoriesUsed: 0,
+        mode: 'fallback'
+      };
+    } catch (error) {
+      console.error('Error getting memory stats:', error);
+      return {
+        totalMemories: 0,
+        totalTokens: 0,
+        avgRelevance: 0,
+        categories: [],
+        categoriesUsed: 0,
+        mode: 'error'
+      };
+    }
+  }
+
+  /**
+   * Perform health check and attempt recovery
+   */
+  async healthCheck() {
+    const now = Date.now();
+    
+    // Don't check too frequently
+    if (this.lastHealthCheck && (now - this.lastHealthCheck) < 30000) {
+      return {
+        status: this.isHealthy ? 'healthy' : 'degraded',
+        lastCheck: new Date(this.lastHealthCheck).toISOString(),
+        mode: this.isHealthy ? 'persistent' : 'fallback'
+      };
+    }
+
+    this.lastHealthCheck = now;
+
+    try {
+      if (this.persistentMemory) {
+        const healthResult = await this.persistentMemory.healthCheck();
         
-        if (process.env.DATABASE_URL) {
-            console.log('[MEMORY_BOOTSTRAP] 📊 Connecting to PostgreSQL...');
-            
-            try {
-                // Try to import the sophisticated persistent memory system
-                console.log('[MEMORY_BOOTSTRAP] 🔄 Importing PersistentMemoryAPI...');
-                const { default: PersistentMemoryAPI } = await import('./persistent_memory.js');
-                console.log('[MEMORY_BOOTSTRAP] ✅ PersistentMemoryAPI imported successfully');
-                
-                console.log('[MEMORY_BOOTSTRAP] 🔄 Creating PersistentMemoryAPI instance...');
-                this.persistentMemory = new PersistentMemoryAPI();
-                console.log('[MEMORY_BOOTSTRAP] ✅ PersistentMemoryAPI instance created');
-                
-                console.log('[MEMORY_BOOTSTRAP] 🔄 Initializing persistent memory...');
-                await this.persistentMemory.initialize();
-                console.log('[MEMORY_BOOTSTRAP] ✅ PostgreSQL persistent memory initialized');
-                
-            } catch (error) {
-                console.error('[MEMORY_BOOTSTRAP] ❌ PERSISTENT MEMORY FAILED WITH FULL ERROR:', {
-                    message: error.message,
-                    stack: error.stack,
-                    name: error.name,
-                    code: error.code
-                });
-                console.log('[MEMORY_BOOTSTRAP] ⚠️ PostgreSQL failed, trying database manager...');
-                
-                try {
-                    // Fallback to database manager
-                    console.log('[MEMORY_BOOTSTRAP] 🔄 Importing DatabaseManager...');
-                    const { default: DatabaseManager } = await import('./database_manager.js');
-                    console.log('[MEMORY_BOOTSTRAP] ✅ DatabaseManager imported successfully');
-                    
-                    this.persistentMemory = new DatabaseManager();
-                    console.log('[MEMORY_BOOTSTRAP] 🔄 Initializing database manager...');
-                    await this.persistentMemory.initialize();
-                    console.log('[MEMORY_BOOTSTRAP] ✅ Database manager initialized');
-                } catch (dbError) {
-                    console.error('[MEMORY_BOOTSTRAP] ❌ DATABASE MANAGER FAILED WITH FULL ERROR:', {
-                        message: dbError.message,
-                        stack: dbError.stack,
-                        name: dbError.name,
-                        code: dbError.code
-                    });
-                    console.log('[MEMORY_BOOTSTRAP] ⚠️ Database manager also failed:', dbError.message);
-                    throw new Error(`All memory systems failed: ${error.message} | ${dbError.message}`);
-                }
-            }
+        if (healthResult.status === 'healthy') {
+          if (!this.isHealthy) {
+            console.log('🔄 Memory system recovered, switching back to persistent mode');
+            this.isHealthy = true;
+            this.retryAttempts = 0;
+          }
         } else {
-            console.error('[MEMORY_BOOTSTRAP] ❌ NO DATABASE_URL FOUND IN ENVIRONMENT');
-            console.log('[MEMORY_BOOTSTRAP] Available env vars:', Object.keys(process.env).filter(key => key.includes('DATA')));
-            throw new Error('No DATABASE_URL found');
+          if (this.isHealthy) {
+            console.warn('⚠️ Memory system degraded, switching to fallback mode');
+            this.isHealthy = false;
+          }
         }
+
+        return {
+          status: this.isHealthy ? 'healthy' : 'degraded',
+          mode: this.isHealthy ? 'persistent' : 'fallback',
+          lastCheck: new Date(now).toISOString(),
+          details: healthResult,
+          fallbackMemories: Array.from(this.fallbackMemory.keys()).reduce((sum, key) => 
+            sum + this.fallbackMemory.get(key).length, 0
+          )
+        };
+      }
+    } catch (error) {
+      console.error('Health check failed:', error);
+      this.isHealthy = false;
     }
 
-    async initializeVaultSystem() {
+    return {
+      status: 'degraded',
+      mode: 'fallback',
+      lastCheck: new Date(now).toISOString(),
+      error: 'Persistent memory unavailable',
+      fallbackMemories: Array.from(this.fallbackMemory.keys()).reduce((sum, key) => 
+        sum + this.fallbackMemory.get(key).length, 0
+      )
+    };
+  }
+
+  /**
+   * Attempt to recover persistent memory
+   */
+  async attemptRecovery() {
+    if (this.isHealthy) return true;
+
+    console.log('🔄 Attempting memory system recovery...');
+    
+    try {
+      const success = await this.initializePersistentMemory();
+      if (success) {
+        this.isHealthy = true;
+        console.log('✅ Memory system recovery successful');
+        return true;
+      }
+    } catch (error) {
+      console.error('❌ Recovery attempt failed:', error);
+    }
+
+    return false;
+  }
+
+  /**
+   * Migrate fallback memories to persistent storage
+   */
+  async migrateFallbackMemories() {
+    if (!this.isHealthy || this.fallbackMemory.size === 0) {
+      return { migrated: 0, errors: 0 };
+    }
+
+    console.log('🔄 Migrating fallback memories to persistent storage...');
+    
+    let migrated = 0;
+    let errors = 0;
+
+    for (const [userId, memories] of this.fallbackMemory.entries()) {
+      for (const memory of memories) {
         try {
-            const { default: VaultLoader } = await import('./vault_loader.js');
-            this.vaultMemory = new VaultLoader();
-            await this.vaultMemory.initialize();
-            console.log('[MEMORY_BOOTSTRAP] 🗄️ Vault system initialized');
-        } catch (error) {
-            console.log('[MEMORY_BOOTSTRAP] ⚠️ Vault system unavailable:', error.message);
-        }
-    }
-
-    initializeFallbackMemory() {
-        console.log('[MEMORY_BOOTSTRAP] 🆘 Initializing emergency in-memory system...');
-        
-        this.persistentMemory = {
-            getRelevantContext: async (userId, message, maxTokens) => {
-                console.log('[MEMORY_BOOTSTRAP] 📋 Emergency mode: no persistent context');
-                return '';
-            },
-            storeMemory: async (userId, conversation) => {
-                console.log('[MEMORY_BOOTSTRAP] 💾 Emergency mode: memory not stored');
-                return true;
-            },
-            getSystemHealth: () => ({
-                status: 'emergency_mode',
-                persistent_memory: false,
-                vault_memory: !!this.vaultMemory
-            })
-        };
-        
-        this.fallbackMode = true;
-        this.isInitialized = true;
-    }
-
-    getMemorySystem() {
-        if (!this.isInitialized) {
-            console.log('[MEMORY_BOOTSTRAP] ⚠️ Memory system not initialized yet');
-            return null;
-        }
-        
-        return {
-            persistent: this.persistentMemory,
-            vault: this.vaultMemory,
-            getRelevantContext: async (userId, message, maxTokens = 2400) => {
-                if (this.persistentMemory && typeof this.persistentMemory.getRelevantContext === 'function') {
-                    return await this.persistentMemory.getRelevantContext(userId, message, maxTokens);
-                }
-                return '';
-            },
-            storeMemory: async (userId, conversation) => {
-                if (this.persistentMemory && typeof this.persistentMemory.storeMemory === 'function') {
-                    return await this.persistentMemory.storeMemory(userId, conversation);
-                }
-                return false;
-            },
-            getSystemHealth: () => {
-                const health = {
-                    status: this.fallbackMode ? 'fallback_mode' : 'operational',
-                    persistent_memory: !!this.persistentMemory && !this.fallbackMode,
-                    vault_memory: !!this.vaultMemory,
-                    initialized: this.isInitialized
-                };
-                
-                if (this.persistentMemory && typeof this.persistentMemory.getSystemHealth === 'function') {
-                    return { ...health, ...this.persistentMemory.getSystemHealth() };
-                }
-                
-                return health;
+          const result = await this.persistentMemory.storeMemory(
+            userId, 
+            memory.content, 
+            {
+              metadata: {
+                ...memory.metadata,
+                migratedFromFallback: true,
+                originalTimestamp: memory.timestamp
+              }
             }
-        };
+          );
+          
+          if (result.success) {
+            migrated++;
+          } else {
+            errors++;
+          }
+        } catch (error) {
+          console.error('Error migrating memory:', error);
+          errors++;
+        }
+      }
     }
 
-    // CRITICAL FIX: Add missing getVaultLoader method that chat system expects
-    getVaultLoader() {
-        return this.vaultMemory;
+    // Clear fallback memories after successful migration
+    if (errors === 0) {
+      this.fallbackMemory.clear();
+      console.log(`✅ Successfully migrated ${migrated} memories`);
+    } else {
+      console.warn(`⚠️ Migration completed with errors: ${migrated} migrated, ${errors} errors`);
     }
 
-    // Add isReady method for compatibility
-    isReady() {
-        return this.isInitialized;
+    return { migrated, errors };
+  }
+
+  /**
+   * Format memory context for AI injection
+   */
+  formatForAI(memories, options = {}) {
+    if (this.isHealthy && this.persistentMemory) {
+      return this.persistentMemory.formatForAI(memories, options);
     }
 
-    // Add getStatus method for debugging
-    getStatus() {
-        return {
-            initialized: this.isInitialized,
-            hasMemorySystem: !!this.persistentMemory,
-            hasVaultLoader: !!this.vaultMemory,
-            fallbackMode: this.fallbackMode
-        };
+    // Simple fallback formatting
+    if (!memories || memories.length === 0) return '';
+
+    let formatted = '=== CONTEXT ===\n';
+    for (const memory of memories) {
+      formatted += `${memory.content}\n`;
     }
+    formatted += '=== END CONTEXT ===\n\n';
+    
+    return formatted;
+  }
+
+  /**
+   * Utility: Sleep function for retries
+   */
+  sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  /**
+   * Get detailed system information
+   */
+  getSystemInfo() {
+    return {
+      isHealthy: this.isHealthy,
+      mode: this.isHealthy ? 'persistent' : 'fallback',
+      retryAttempts: this.retryAttempts,
+      maxRetries: this.maxRetries,
+      lastHealthCheck: this.lastHealthCheck ? new Date(this.lastHealthCheck).toISOString() : null,
+      fallbackMemoryUsers: this.fallbackMemory.size,
+      fallbackMemoriesTotal: Array.from(this.fallbackMemory.values())
+        .reduce((sum, memories) => sum + memories.length, 0)
+    };
+  }
+
+  /**
+   * Graceful shutdown
+   */
+  async shutdown() {
+    console.log('🔄 Shutting down memory system...');
+    
+    try {
+      // Attempt to migrate any remaining fallback memories
+      if (this.isHealthy && this.fallbackMemory.size > 0) {
+        await this.migrateFallbackMemories();
+      }
+
+      // Close database connections
+      if (this.persistentMemory && this.persistentMemory.dbManager) {
+        await this.persistentMemory.dbManager.close();
+      }
+
+      // Clear fallback memory
+      this.fallbackMemory.clear();
+      
+      console.log('✅ Memory system shutdown complete');
+    } catch (error) {
+      console.error('❌ Error during shutdown:', error);
+    }
+  }
 }
 
-const memoryBootstrap = new MemoryBootstrap();
-export default memoryBootstrap;
+// Export singleton instance
+export default new MemoryBootstrap();
