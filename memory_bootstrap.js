@@ -286,31 +286,6 @@ class MemoryBootstrap {
     }
   }
 
-  /**
-   * Graceful shutdown
-   */
-  async shutdown() {
-    console.log('[MEMORY] 🔄 Shutting down memory system...');
-    
-    try {
-      if (this.persistentMemory && this.persistentMemory.dbManager) {
-        await this.persistentMemory.dbManager.close();
-      }
-
-      this.fallbackMemory.clear();
-      
-      // Clean up global
-      if (global.memorySystem) {
-        delete global.memorySystem;
-      }
-      
-      console.log('[MEMORY] ✅ Shutdown complete');
-    } catch (error) {
-      console.error('[MEMORY] ❌ Shutdown error:', error);
-    }
-  }
-}
-
 /**
    * Get memory system instance (for server.js compatibility)
    * YOUR SERVER.JS IS CALLING THIS METHOD
@@ -366,6 +341,31 @@ class MemoryBootstrap {
   isReady() {
     return this.isHealthy || this.fallbackMemory.size >= 0; // Always ready (fallback mode works)
   }
+  
+  /**
+   * Graceful shutdown
+   */
+  async shutdown() {
+    console.log('[MEMORY] 🔄 Shutting down memory system...');
+    
+    try {
+      if (this.persistentMemory && this.persistentMemory.dbManager) {
+        await this.persistentMemory.dbManager.close();
+      }
+
+      this.fallbackMemory.clear();
+      
+      // Clean up global
+      if (global.memorySystem) {
+        delete global.memorySystem;
+      }
+      
+      console.log('[MEMORY] ✅ Shutdown complete');
+    } catch (error) {
+      console.error('[MEMORY] ❌ Shutdown error:', error);
+    }
+  }
+}
 
 // Export singleton instance
 const memoryBootstrap = new MemoryBootstrap();
