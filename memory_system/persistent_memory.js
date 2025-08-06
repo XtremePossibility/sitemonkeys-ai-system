@@ -1,48 +1,54 @@
 // memory_system/persistent_memory.js
-// Main interface for Site Monkeys AI persistent memory system
+// FIXED: Proper exports and integration with your system
 
 import DatabaseManager from './database_manager.js';
-import RoutingIntelligence from './routing_intelligence.js';
-import ExtractionEngine from './extraction_engine.js';
-import CategoryManager from './category_manager.js';
 
 class PersistentMemory {
   constructor() {
-    this.dbManager = DatabaseManager;
-    this.routingIntelligence = new RoutingIntelligence();
-    this.extractionEngine = new ExtractionEngine();
-    this.categoryManager = new CategoryManager();
+    this.dbManager = new DatabaseManager();
     this.isInitialized = false;
+    
+    // Simple category system (simplified for compatibility)
+    this.categories = [
+      'Health & Wellness',
+      'Relationships & Social', 
+      'Business & Career',
+      'Financial Management',
+      'Personal Development',
+      'Home & Lifestyle',
+      'Technology & Tools',
+      'Legal & Administrative',
+      'Travel & Experiences',
+      'Creative Projects',
+      'Emergency & Contingency',
+      'Dynamic Category 1',
+      'Dynamic Category 2',
+      'Dynamic Category 3',
+      'Dynamic Category 4',
+      'Dynamic Category 5'
+    ];
   }
 
   async initialize() {
     if (this.isInitialized) return true;
 
     try {
-      // Initialize database
       const dbInit = await this.dbManager.initialize();
       if (!dbInit) {
         throw new Error('Database initialization failed');
       }
 
-      // Initialize category manager
-      await this.categoryManager.initialize();
-
       this.isInitialized = true;
-      console.log('PersistentMemory system initialized successfully');
+      console.log('[MEMORY] PersistentMemory system initialized successfully');
       return true;
     } catch (error) {
-      console.error('PersistentMemory initialization failed:', error);
+      console.error('[MEMORY] PersistentMemory initialization failed:', error);
       return false;
     }
   }
 
   /**
-   * Store a memory with automatic categorization and relevance scoring
-   * @param {string} userId - User identifier
-   * @param {string} content - Memory content
-   * @param {Object} options - Additional options
-   * @returns {Object} Storage result
+   * Store a memory with automatic categorization
    */
   async storeMemory(userId, content, options = {}) {
     try {
@@ -50,82 +56,58 @@ class PersistentMemory {
         await this.initialize();
       }
 
-      // Validate inputs
       if (!userId || !content) {
         return { success: false, error: 'UserId and content are required' };
       }
 
       if (content.length < 10) {
-        return { success: false, error: 'Content too short to be meaningful' };
+        return { success: false, error: 'Content too short' };
       }
 
-      // Calculate token count (approximate)
+      // Simple categorization (pick first category for simplicity)
+      const category = this.categorizeContent(content);
       const tokenCount = this.calculateTokens(content);
+      const relevanceScore = this.calculateRelevanceScore(content);
 
-      // Route to category using RoutingIntelligence
-      const routing = await this.routingIntelligence.routeMemory(content, options.context);
-      
-      if (!routing || !routing.category) {
-        console.warn('Failed to route memory, using fallback category');
-        routing = {
-          category: 'Personal Development',
-          subcategory: 'General',
-          confidence: 0.3
-        };
+      // Check category capacity
+      const currentTokens = await this.dbManager.getCategoryTokenCount(userId, category);
+      if (currentTokens > 45000) {
+        console.log(`[MEMORY] Category ${category} approaching limit, cleaning up...`);
+        await this.dbManager.cleanupCategory(userId, category);
       }
 
-      // Calculate relevance score
-      const relevanceScore = this.calculateRelevanceScore(content, options);
-
-      // Check category capacity and cleanup if needed
-      const currentTokens = await this.dbManager.getCategoryTokenCount(userId, routing.category);
-      if (currentTokens > 45000) { // 45K threshold to allow for cleanup
-        console.log(`Category ${routing.category} approaching limit, cleaning up...`);
-        await this.dbManager.cleanupCategory(userId, routing.category);
-      }
-
-      // Create memory object
       const memory = {
         userId,
         content: content.trim(),
-        category: routing.category,
-        subcategory: routing.subcategory,
+        category,
+        subcategory: 'General',
         relevanceScore,
         tokenCount,
         emotionalWeight: this.detectEmotionalWeight(content),
         isQuestion: this.isQuestion(content),
         userPriority: options.priority || false,
         metadata: {
-          routingConfidence: routing.confidence,
-          contentHash: this.generateContentHash(content),
-          source: options.source || 'user_input',
-          sessionId: options.sessionId,
+          source: options.source || 'chat',
           timestamp: Date.now(),
           ...options.metadata
         }
       };
 
-      // Store in database
       const result = await this.dbManager.storeMemory(memory);
       
       if (result.success) {
-        console.log(`Memory stored: ${routing.category}/${routing.subcategory} (${tokenCount} tokens, relevance: ${relevanceScore})`);
+        console.log(`[MEMORY] Stored: ${category} (${tokenCount} tokens)`);
       }
 
       return result;
     } catch (error) {
-      console.error('Error storing memory:', error);
+      console.error('[MEMORY] Error storing memory:', error);
       return { success: false, error: error.message };
     }
   }
 
   /**
-   * Retrieve relevant memories based on query and context
-   * @param {string} userId - User identifier
-   * @param {string} message - Current message/query
-   * @param {number} tokenLimit - Maximum tokens to retrieve (default: 2400)
-   * @param {Object} options - Additional options
-   * @returns {Array} Relevant memories
+   * Get relevant memories based on query
    */
   async getRelevantContext(userId, message, tokenLimit = 2400, options = {}) {
     try {
@@ -137,136 +119,47 @@ class PersistentMemory {
         return [];
       }
 
-      // Use ExtractionEngine to find relevant memories
-      const relevantMemories = await this.extractionEngine.extractRelevantMemories(
-        userId, 
-        message, 
-        tokenLimit,
-        options
+      // Get best category for the message
+      const category = this.categorizeContent(message);
+      
+      // Get memories from that category
+      const memories = await this.dbManager.getRelevantMemories(
+        userId,
+        category,
+        message,
+        10,
+        tokenLimit
       );
 
-      // Sort by relevance and recency
-      relevantMemories.sort((a, b) => {
-        const scoreA = a.relevanceScore + (a.usageFrequency * 0.01) + this.getRecencyBoost(a.createdAt);
-        const scoreB = b.relevanceScore + (b.usageFrequency * 0.01) + this.getRecencyBoost(b.createdAt);
-        return scoreB - scoreA;
-      });
+      // If not enough memories, try other categories
+      if (memories.length < 3 && tokenLimit > 500) {
+        const remainingTokens = tokenLimit - memories.reduce((sum, mem) => sum + mem.tokenCount, 0);
+        
+        for (const otherCategory of this.categories) {
+          if (otherCategory !== category && remainingTokens > 100) {
+            const additionalMemories = await this.dbManager.getRelevantMemories(
+              userId,
+              otherCategory,
+              message,
+              3,
+              remainingTokens
+            );
+            memories.push(...additionalMemories);
+            
+            if (memories.length >= 5) break;
+          }
+        }
+      }
 
-      return relevantMemories;
+      return memories.sort((a, b) => b.relevanceScore - a.relevanceScore);
     } catch (error) {
-      console.error('Error retrieving relevant context:', error);
+      console.error('[MEMORY] Error retrieving context:', error);
       return [];
     }
   }
 
   /**
-   * Get memories for a specific category
-   * @param {string} userId - User identifier
-   * @param {string} category - Category name
-   * @param {number} limit - Maximum memories to return
-   * @returns {Array} Category memories
-   */
-  async getCategoryMemories(userId, category, limit = 50) {
-    try {
-      if (!this.isInitialized) {
-        await this.initialize();
-      }
-
-      return await this.dbManager.getMemoriesByCategory(userId, category, limit);
-    } catch (error) {
-      console.error('Error getting category memories:', error);
-      return [];
-    }
-  }
-
-  /**
-   * Search memories by content
-   * @param {string} userId - User identifier
-   * @param {string} searchTerm - Search term
-   * @param {number} limit - Maximum results
-   * @returns {Array} Search results
-   */
-  async searchMemories(userId, searchTerm, limit = 20) {
-    try {
-      if (!this.isInitialized) {
-        await this.initialize();
-      }
-
-      return await this.dbManager.searchMemories(userId, searchTerm, limit);
-    } catch (error) {
-      console.error('Error searching memories:', error);
-      return [];
-    }
-  }
-
-  /**
-   * Get memory statistics for user
-   * @param {string} userId - User identifier
-   * @returns {Object} Memory statistics
-   */
-  async getMemoryStats(userId) {
-    try {
-      if (!this.isInitialized) {
-        await this.initialize();
-      }
-
-      const categoryStats = await this.dbManager.getCategoryStats(userId);
-      const totalMemories = await this.dbManager.getUserMemoryCount(userId);
-      
-      const totalTokens = categoryStats.reduce((sum, cat) => sum + cat.total_tokens, 0);
-      const avgRelevance = categoryStats.length > 0 
-        ? categoryStats.reduce((sum, cat) => sum + parseFloat(cat.avg_relevance), 0) / categoryStats.length 
-        : 0;
-
-      return {
-        totalMemories,
-        totalTokens,
-        avgRelevance: Math.round(avgRelevance * 100) / 100,
-        categories: categoryStats.map(stat => ({
-          category: stat.category,
-          memories: stat.total_memories,
-          tokens: stat.total_tokens,
-          avgRelevance: Math.round(parseFloat(stat.avg_relevance) * 100) / 100,
-          lastUpdated: stat.last_updated
-        })),
-        categoriesUsed: categoryStats.length
-      };
-    } catch (error) {
-      console.error('Error getting memory stats:', error);
-      return {
-        totalMemories: 0,
-        totalTokens: 0,
-        avgRelevance: 0,
-        categories: [],
-        categoriesUsed: 0
-      };
-    }
-  }
-
-  /**
-   * Delete a memory
-   * @param {string} userId - User identifier
-   * @param {number} memoryId - Memory ID
-   * @returns {boolean} Success status
-   */
-  async deleteMemory(userId, memoryId) {
-    try {
-      if (!this.isInitialized) {
-        await this.initialize();
-      }
-
-      return await this.dbManager.deleteMemory(userId, memoryId);
-    } catch (error) {
-      console.error('Error deleting memory:', error);
-      return false;
-    }
-  }
-
-  /**
-   * Format memories for AI context injection
-   * @param {Array} memories - Array of memories
-   * @param {Object} options - Formatting options
-   * @returns {string} Formatted context string
+   * Format memories for AI context
    */
   formatForAI(memories, options = {}) {
     if (!memories || memories.length === 0) {
@@ -276,7 +169,7 @@ class PersistentMemory {
     const includeMetadata = options.includeMetadata || false;
     const maxLength = options.maxLength || 2400;
 
-    let formatted = '=== RELEVANT CONTEXT ===\n';
+    let formatted = '=== MEMORY CONTEXT ===\n';
     let currentLength = formatted.length;
 
     for (const memory of memories) {
@@ -284,14 +177,13 @@ class PersistentMemory {
       
       if (includeMetadata) {
         const timeAgo = this.getTimeAgo(memory.createdAt);
-        memoryText = `[${memory.category}${memory.subcategory ? `/${memory.subcategory}` : ''} - ${timeAgo}] ${memory.content}\n`;
+        memoryText = `[${memory.category} - ${timeAgo}] ${memory.content}\n`;
       } else {
         memoryText = `${memory.content}\n`;
       }
 
       if (currentLength + memoryText.length > maxLength) {
-        // Try to fit a truncated version
-        const remaining = maxLength - currentLength - 10; // Leave space for "..."
+        const remaining = maxLength - currentLength - 10;
         if (remaining > 50) {
           memoryText = `${memory.content.substring(0, remaining)}...\n`;
         } else {
@@ -303,106 +195,134 @@ class PersistentMemory {
       currentLength += memoryText.length;
     }
 
-    formatted += '=== END CONTEXT ===\n\n';
+    formatted += '=== END CONTEXT ===\n';
     return formatted;
+  }
+
+  /**
+   * Get memory statistics
+   */
+  async getMemoryStats(userId) {
+    try {
+      if (!this.isInitialized) {
+        await this.initialize();
+      }
+
+      const categoryStats = await this.dbManager.getCategoryStats(userId);
+      const totalMemories = await this.dbManager.getUserMemoryCount(userId);
+      
+      const totalTokens = categoryStats.reduce((sum, cat) => sum + cat.total_tokens, 0);
+
+      return {
+        totalMemories,
+        totalTokens,
+        categories: categoryStats.map(stat => ({
+          category: stat.category,
+          memories: stat.total_memories,
+          tokens: stat.total_tokens
+        })),
+        categoriesUsed: categoryStats.length
+      };
+    } catch (error) {
+      console.error('[MEMORY] Error getting stats:', error);
+      return {
+        totalMemories: 0,
+        totalTokens: 0,
+        categories: [],
+        categoriesUsed: 0
+      };
+    }
+  }
+
+  /**
+   * Health check
+   */
+  async healthCheck() {
+    try {
+      const dbHealth = await this.dbManager.healthCheck();
+      
+      return {
+        status: dbHealth.status === 'healthy' ? 'healthy' : 'degraded',
+        database: dbHealth,
+        initialized: this.isInitialized,
+        timestamp: new Date().toISOString()
+      };
+    } catch (error) {
+      return {
+        status: 'error',
+        error: error.message,
+        initialized: this.isInitialized,
+        timestamp: new Date().toISOString()
+      };
+    }
   }
 
   // Helper methods
 
+  categorizeContent(content) {
+    const contentLower = content.toLowerCase();
+    
+    // Simple keyword-based categorization
+    const categoryKeywords = {
+      'Health & Wellness': ['health', 'doctor', 'medical', 'exercise', 'diet'],
+      'Business & Career': ['work', 'job', 'business', 'career', 'project', 'meeting'],
+      'Financial Management': ['money', 'budget', 'investment', 'financial', 'cost'],
+      'Relationships & Social': ['family', 'friend', 'relationship', 'social'],
+      'Technology & Tools': ['computer', 'software', 'app', 'technology', 'system'],
+      'Personal Development': ['learn', 'goal', 'skill', 'development', 'growth']
+    };
+
+    let bestCategory = 'Personal Development'; // Default
+    let bestScore = 0;
+
+    for (const [category, keywords] of Object.entries(categoryKeywords)) {
+      let score = 0;
+      for (const keyword of keywords) {
+        if (contentLower.includes(keyword)) {
+          score += 1;
+        }
+      }
+      
+      if (score > bestScore) {
+        bestScore = score;
+        bestCategory = category;
+      }
+    }
+
+    return bestCategory;
+  }
+
   calculateTokens(text) {
-    // Approximate token calculation (1 token ≈ 4 characters for English)
     return Math.ceil(text.length / 4);
   }
 
-  calculateRelevanceScore(content, options = {}) {
+  calculateRelevanceScore(content) {
     let score = 0.5; // Base score
 
-    // Boost for questions
-    if (this.isQuestion(content)) {
-      score += 0.2;
-    }
-
-    // Boost for emotional content
-    const emotionalWeight = this.detectEmotionalWeight(content);
-    score += emotionalWeight * 0.3;
-
-    // Boost for user-marked priority
-    if (options.priority) {
-      score += 0.3;
-    }
-
-    // Boost for longer, more detailed content
-    if (content.length > 200) {
-      score += 0.1;
-    }
-
-    // Boost for personal pronouns (indicates personal significance)
-    const personalPronouns = (content.match(/\b(I|me|my|mine|myself)\b/gi) || []).length;
-    score += Math.min(personalPronouns * 0.05, 0.2);
+    if (this.isQuestion(content)) score += 0.2;
+    if (content.length > 100) score += 0.1;
+    if (this.detectEmotionalWeight(content) > 0.5) score += 0.1;
 
     return Math.min(score, 1.0);
   }
 
   detectEmotionalWeight(content) {
-    const emotionalKeywords = [
-      'love', 'hate', 'excited', 'worried', 'anxious', 'happy', 'sad', 
-      'angry', 'frustrated', 'proud', 'disappointed', 'surprised',
-      'afraid', 'confident', 'nervous', 'grateful', 'jealous', 'hopeful'
-    ];
-
-    const strongEmotions = [
-      'devastated', 'ecstatic', 'furious', 'terrified', 'overjoyed',
-      'heartbroken', 'thrilled', 'panicked', 'elated', 'disgusted'
-    ];
-
-    let weight = 0;
+    const emotionalWords = ['love', 'hate', 'excited', 'worried', 'happy', 'sad'];
     const lowerContent = content.toLowerCase();
-
-    emotionalKeywords.forEach(keyword => {
-      if (lowerContent.includes(keyword)) {
-        weight += 0.1;
+    
+    let weight = 0;
+    for (const word of emotionalWords) {
+      if (lowerContent.includes(word)) {
+        weight += 0.2;
       }
-    });
-
-    strongEmotions.forEach(keyword => {
-      if (lowerContent.includes(keyword)) {
-        weight += 0.3;
-      }
-    });
-
-    // Check for exclamation marks
-    const exclamations = (content.match(/!/g) || []).length;
-    weight += Math.min(exclamations * 0.1, 0.3);
+    }
 
     return Math.min(weight, 1.0);
   }
 
   isQuestion(content) {
     return content.includes('?') || 
-           /^(what|how|when|where|why|who|which|can|could|would|should|will|do|does|did|is|are|was|were)\b/i.test(content.trim());
-  }
-
-  generateContentHash(content) {
-    // Simple hash function for content deduplication
-    let hash = 0;
-    for (let i = 0; i < content.length; i++) {
-      const char = content.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
-      hash = hash & hash; // Convert to 32-bit integer
-    }
-    return hash.toString(36);
-  }
-
-  getRecencyBoost(createdAt) {
-    const now = new Date();
-    const created = new Date(createdAt);
-    const daysDiff = (now - created) / (1000 * 60 * 60 * 24);
-    
-    // More recent memories get a small boost
-    if (daysDiff < 1) return 0.1;
-    if (daysDiff < 7) return 0.05;
-    if (daysDiff < 30) return 0.02;
-    return 0;
+           /^(what|how|when|where|why|who)\b/i.test(content.trim());
   }
 
   getTimeAgo(timestamp) {
@@ -413,26 +333,7 @@ class PersistentMemory {
     if (diffInSeconds < 60) return 'just now';
     if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
     if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
-    if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)}d ago`;
-    if (diffInSeconds < 2592000) return `${Math.floor(diffInSeconds / 604800)}w ago`;
-    return `${Math.floor(diffInSeconds / 2592000)}mo ago`;
-  }
-
-  async healthCheck() {
-    const dbHealth = await this.dbManager.healthCheck();
-    const stats = await this.getMemoryStats('health_check_user');
-    
-    return {
-      status: dbHealth.status === 'healthy' ? 'healthy' : 'degraded',
-      database: dbHealth,
-      initialized: this.isInitialized,
-      timestamp: new Date().toISOString(),
-      components: {
-        routingIntelligence: !!this.routingIntelligence,
-        extractionEngine: !!this.extractionEngine,
-        categoryManager: !!this.categoryManager
-      }
-    };
+    return `${Math.floor(diffInSeconds / 86400)}d ago`;
   }
 }
 
