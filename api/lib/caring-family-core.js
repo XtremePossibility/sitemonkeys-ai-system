@@ -74,6 +74,13 @@ export function identifyExpertDomain(message) {
     }
   }
 
+  // Add safety check
+  const domainConfig = EXPERT_DOMAINS[primaryDomain];
+  if (!domainConfig) {
+    console.error(`Invalid domain: ${primaryDomain}`);
+    primaryDomain = 'general_problem_solving';
+  }
+
   return {
     domain: primaryDomain,
     title: EXPERT_DOMAINS[primaryDomain].title,
