@@ -255,7 +255,7 @@ class ExtractionEngine {
     let query = `
         SELECT id, content, token_count, relevance_score, usage_frequency, 
                last_accessed, created_at, metadata
-        FROM memory_entries 
+        FROM persistent_memories 
         WHERE user_id = $1 AND category_name = $2
     `;
     const params = [userId, categoryName];
@@ -458,7 +458,7 @@ class PersistentMemoryAPI {
             
             // Enhanced categories table with proper field sizes
             await client.query(`
-                CREATE TABLE IF NOT EXISTS memory_categories (
+                CREATE TABLE IF NOT EXISTS category_stats (
                     id SERIAL PRIMARY KEY,
                     user_id TEXT NOT NULL,
                     category_name VARCHAR(100) NOT NULL,
@@ -475,7 +475,7 @@ class PersistentMemoryAPI {
 
             // Enhanced memories table with proper field sizes
             await client.query(`
-                CREATE TABLE IF NOT EXISTS memory_entries (
+                CREATE TABLE IF NOT EXISTS persistent_memories (
                     id SERIAL PRIMARY KEY,
                     user_id TEXT NOT NULL,
                     category_name VARCHAR(100) NOT NULL,
@@ -704,8 +704,8 @@ class PersistentMemoryAPI {
 
             // Store memory
             const insertResult = await client.query(`
-                INSERT INTO memory_entries 
-                (user_id, category_name, subcategory_name, content, token_count, relevance_score, metadata)
+                INSERT INTO persistent_memories
+                (user_id, category, subcategory, content, token_count, relevance_score, metadata)
                 VALUES ($1, $2, $3, $4, $5, $6, $7)
                 RETURNING id
             `, [userId, categoryName, subcategoryName, content, tokenCount, relevanceScore, metadata]);
