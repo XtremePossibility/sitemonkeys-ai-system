@@ -2,49 +2,54 @@
 
 export class ProductValidator {
   
-  static validateRecommendation(response, mode, vaultData = null) {
-    const validation = {
-      validation_passed: false,
-      evidence_strength: 0,
-      value_analysis: 'INSUFFICIENT',
-      risk_assessment: 'MISSING',
-      disclosure_compliance: false,
-      override_reason: null,
-      structured_recommendation: null,
-      enforcement_actions: []
-    };
-    
-    const recommendationPatterns = [
-      /recommend/i,
-      /suggest/i,
-      /should use/i,
-      /try using/i,
-      /consider/i,
-      /go with/i,
-      /use \w+/i,
-      /switch to/i
-    ];
-    
-    const hasRecommendation = recommendationPatterns.some(pattern => pattern.test(response));
-    
-    if (!hasRecommendation) {
-      validation.validation_passed = true;
-      return validation;
-    }
-    
-    validation.evidence_strength = this.analyzeEvidenceStrength(response);
-    validation.value_analysis = this.analyzeValueProposition(response, mode);
-    validation.risk_assessment = this.analyzeRiskAssessment(response, mode);
-    validation.disclosure_compliance = this.checkDisclosureCompliance(response);
-    
-    const modeValidation = this.applyModeSpecificValidation(response, mode, vaultData);
-    Object.assign(validation, modeValidation);
-    
-    validation.validation_passed = this.determineOverallValidation(validation);
-    
-    if (!validation.validation_passed) {
-      validation.enforcement_actions = this.generateEnforcementActions(validation);
-    }
+  // Fix validateRecommendation method (lines 27-31)
+static validateRecommendation(response, mode, vaultData = null) {
+  const validation = {
+    validation_passed: false,
+    evidence_strength: 0,
+    value_analysis: 'INSUFFICIENT',
+    risk_assessment: 'MISSING',
+    disclosure_compliance: false,
+    override_reason: null,
+    structured_recommendation: null,
+    enforcement_actions: []
+  };
+  
+  const recommendationPatterns = [
+    /recommend/i,
+    /suggest/i,
+    /should use/i,
+    /try using/i,
+    /consider/i,
+    /go with/i,
+    /use \w+/i,
+    /switch to/i
+  ];
+  
+  const hasRecommendation = recommendationPatterns.some(pattern => pattern.test(response));
+  
+  if (!hasRecommendation) {
+    validation.validation_passed = true;
+    return validation;
+  }
+  
+  // FIXED: Use class name instead of 'this'
+  validation.evidence_strength = ProductValidator.analyzeEvidenceStrength(response);
+  validation.value_analysis = ProductValidator.analyzeValueProposition(response, mode);
+  validation.risk_assessment = ProductValidator.analyzeRiskAssessment(response, mode);
+  validation.disclosure_compliance = ProductValidator.checkDisclosureCompliance(response);
+  
+  const modeValidation = ProductValidator.applyModeSpecificValidation(response, mode, vaultData);
+  Object.assign(validation, modeValidation);
+  
+  validation.validation_passed = ProductValidator.determineOverallValidation(validation);
+  
+  if (!validation.validation_passed) {
+    validation.enforcement_actions = ProductValidator.generateEnforcementActions(validation);
+  }
+  
+  return validation;
+}
     
     return validation;
   }
