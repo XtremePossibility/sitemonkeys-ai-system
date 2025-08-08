@@ -64,8 +64,8 @@ export function validateExpertQuality(response, expertDomain, originalMessage) {
   
   // Determine if enforcement is needed
   validation.enforcement_needed = validation.expert_level < 70 || 
-                                  validation.drift_analysis.drift_score > 30 ||
-                                  validation.quality_score < 80;
+                                validation.drift_analysis.total_drift_score > 30 ||
+                                validation.quality_score < 80;
   
   return validation;
 }
