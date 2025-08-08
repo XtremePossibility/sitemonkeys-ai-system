@@ -18,21 +18,22 @@ export const RISK_PATTERNS = {
     ]
   },
   
-  time_pressure: {
-    triggers: ['urgent', 'quickly', 'asap', 'deadline', 'rush', 'immediately'],
-    risks: [
-      'quality_compromise',
-      'increased_errors',
-      'resource_strain',
-      'corner_cutting',
-      'stakeholder_burnout'
-    ],
-    initiative_questions: [
-      'What quality checks might be skipped under time pressure?',
-      'Are there parallel workstreams that could accelerate delivery?',
-      'What\'s the real cost of delay versus the cost of rushing?'
-    ]
-  },
+  // Fix time_pressure initiative_questions (line 41)
+time_pressure: {
+  triggers: ['urgent', 'quickly', 'asap', 'deadline', 'rush', 'immediately'],
+  risks: [
+    'quality_compromise',
+    'increased_errors',
+    'resource_strain',
+    'corner_cutting',
+    'stakeholder_burnout'
+  ],
+  initiative_questions: [
+    'What quality checks might be skipped under time pressure?',
+    'Are there parallel workstreams that could accelerate delivery?',
+    "What's the real cost of delay versus the cost of rushing?"  // FIXED: Removed unnecessary escaping
+  ]
+}
   
   legal_implications: {
     triggers: ['contract', 'agreement', 'legal', 'compliance', 'regulation', 'liability'],
