@@ -5,7 +5,7 @@ import DatabaseManager from './database_manager.js';
 
 class MemoryCore {
   constructor() {
-    this.dbManager = DatabaseManager;
+    this.dbManager = new DatabaseManager();
     this.tokenLimits = {
       categoryMax: 50000,
       extractionMax: 2400,
