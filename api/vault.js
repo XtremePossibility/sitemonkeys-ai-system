@@ -59,3 +59,34 @@ export function enforceVaultCompliance(response, mode) {
   // Add Site Monkeys compliance signature
   return response + '\n\n🏢 Site Monkeys professional standards maintained.';
 }
+export function generateVaultContext(triggeredFrameworks) {
+  let context = 'SITE MONKEYS BUSINESS INTELLIGENCE:\n\n';
+  
+  triggeredFrameworks.forEach(trigger => {
+    switch (trigger.category) {
+      case 'pricing':
+        context += '💰 **PRICING STRATEGY:**\n';
+        context += `- Boost Plan: $697/month (85% margin minimum)\n`;
+        context += `- Climb Plan: $1,497/month (85% margin minimum)\n`;
+        context += `- Lead Plan: $2,997/month (85% margin minimum)\n`;
+        context += `- Professional pricing floors maintain market credibility\n\n`;
+        break;
+        
+      case 'business_strategy':
+        context += '📈 **BUSINESS STRATEGY:**\n';
+        context += `- Quality-first approach with premium positioning\n`;
+        context += `- Professional service delivery standards\n\n`;
+        break;
+    }
+  });
+  
+  return context;
+}
+
+export function enforceVaultCompliance(response, mode) {
+  if (mode !== 'site_monkeys') {
+    return response;
+  }
+  
+  return response + '\n\n🏢 *Site Monkeys professional standards maintained.*';
+}
