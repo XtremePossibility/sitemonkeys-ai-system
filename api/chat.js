@@ -6,16 +6,14 @@
 console.log('[CHAT] 🚀 Chat system initializing...');
 console.log('[DEBUG] Chat imports starting...');
 
-import { trackApiCall, formatSessionDataForUI } from './lib/tokenTracker.js';
-import { EMERGENCY_FALLBACKS, validateVaultStructure, getVaultValue } from './lib/site-monkeys/emergency-fallbacks.js';
-import { ENFORCEMENT_PROTOCOLS } from './lib/site-monkeys/enforcement-protocols.js';
-import { QUALITY_ENFORCEMENT } from './lib/site-monkeys/quality-enforcement.js';
-import { AI_ARCHITECTURE } from './lib/site-monkeys/ai-architecture.js';
-import { getVaultStatus, checkVaultTriggers, generateVaultContext, enforceVaultCompliance } from './lib/vault.js';
-import { integrateSystemIntelligence, enhancePromptWithIntelligence, getSystemIntelligenceStatus } from './lib/system-intelligence.js';
-import zlib from 'zlib';
+// CORRECTED IMPORTS - Replace existing imports in chat.js
+import { trackApiCall, formatSessionDataForUI } from './tokenTracker.js';
+import { EMERGENCY_FALLBACKS, validateVaultStructure, getVaultValue } from './site-monkeys/emergency-fallbacks.js';
+import { ENFORCEMENT_PROTOCOLS } from './site-monkeys/enforcement-protocols.js';
+import { QUALITY_ENFORCEMENT } from './site-monkeys/quality-enforcement.js';
+import { AI_ARCHITECTURE } from './site-monkeys/ai-architecture.js';
 
-// IMPORT ALL COGNITIVE MODULES
+// NEW ENFORCEMENT MODULE IMPORTS (ADD THESE)
 import { 
   FAMILY_PHILOSOPHY, 
   identifyExpertDomain, 
@@ -23,48 +21,48 @@ import {
   calculatePrideMotivation, 
   selectCaringPersonality,
   buildCaringExpertPrompt,
-  FAMILY_MEMORY
-} from './lib/caring-family-core.js';
+  FAMILY_MEMORY 
+} from './caring-family-core.js';
 
 import { 
   requiresQuantitativeReasoning,
   enforceQuantitativeAnalysis,
   enforceCalculationStandards,
-  validateCalculationQuality
-} from './lib/quantitative-enforcer.js';
+  validateCalculationQuality 
+} from './quantitative-enforcer.js';
 
 import { 
   requiresSurvivalAnalysis,
   enforceBusinessSurvival,
   validateBusinessSurvival,
-  applySurvivalProtection
-} from './lib/survival-guardian.js';
+  applySurvivalProtection 
+} from './survival-guardian.js';
 
 import { 
   validateExpertQuality,
   enforceExpertStandards,
-  monitorSystemDrift
-} from './lib/expert-validator.js';
+  monitorSystemDrift 
+} from './expert-validator.js';
 
 import { 
   scanForProtectiveAlerts,
   findSolutionOpportunities,
   applyProtectiveIntelligence,
-  assessCrossContextNeeds
-} from './lib/protective-intelligence.js';
+  assessCrossContextNeeds 
+} from './protective-intelligence.js';
 
 import { 
   detectPoliticalContent,
   applyPoliticalNeutrality,
-  enforceEvidenceBasedStandards
-} from './lib/political-neutrality.js';
+  enforceEvidenceBasedStandards 
+} from './political-neutrality.js';
 
 import { 
   detectSiteMonkeysViolations,
   enforceSiteMonkeysStandards,
   enforcePricingFloors,
-  integrateVaultLogic
-} from './lib/site-monkeys-enforcement.js';
+  integrateVaultLogic 
+} from './site-monkeys-enforcement.js';
 
 console.log('[DEBUG] All cognitive modules loaded successfully');
 
