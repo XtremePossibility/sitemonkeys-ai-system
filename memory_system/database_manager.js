@@ -5,13 +5,19 @@ import { Pool } from 'pg';
 
 class DatabaseManager {
   constructor() {
-    this.pool = null;
-    this.isInitialized = false;
-    this.initializePool();
-  }
+  this.pool = null;
+  this.isInitialized = false;
+  // Don't initialize pool in constructor - do it lazily when needed
+}
 
   initializePool() {
-    const config = {
+  // Guard against missing DATABASE_URL during module loading
+  if (!process.env.DATABASE_URL) {
+    console.warn('[DATABASE] DATABASE_URL not found, skipping pool initialization');
+    return;
+  }
+  
+  const config = {
       connectionString: process.env.DATABASE_URL,
       ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
       max: 20,
