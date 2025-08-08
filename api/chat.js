@@ -6,17 +6,16 @@
 console.log('[CHAT] 🚀 Chat system initializing...');
 console.log('[DEBUG] Chat imports starting...');
 
-// CORRECTED IMPORTS - Replace existing imports in chat.js
-import { trackApiCall, formatSessionDataForUI } from './tokenTracker.js';
-import { EMERGENCY_FALLBACKS, validateVaultStructure, getVaultValue } from './site-monkeys/emergency-fallbacks.js';
-import { ENFORCEMENT_PROTOCOLS } from './site-monkeys/enforcement-protocols.js';
-import { QUALITY_ENFORCEMENT } from './site-monkeys/quality-enforcement.js';
-import { AI_ARCHITECTURE } from './site-monkeys/ai-architecture.js';
+import { trackApiCall, formatSessionDataForUI } from './lib/tokenTracker.js';
+import { EMERGENCY_FALLBACKS, validateVaultStructure, getVaultValue } from './lib/site-monkeys/emergency-fallbacks.js';
+import { ENFORCEMENT_PROTOCOLS } from './lib/site-monkeys/enforcement-protocols.js';
+import { QUALITY_ENFORCEMENT } from './lib/site-monkeys/quality-enforcement.js';
+import { AI_ARCHITECTURE } from './lib/site-monkeys/ai-architecture.js';
 import { getVaultStatus, checkVaultTriggers, generateVaultContext, enforceVaultCompliance } from './lib/vault.js';
 import { integrateSystemIntelligence, enhancePromptWithIntelligence, getSystemIntelligenceStatus } from './lib/system-intelligence.js';
 import zlib from 'zlib';
 
-// NEW ENFORCEMENT MODULE IMPORTS (ADD THESE)
+// IMPORT ALL COGNITIVE MODULES
 import { 
   FAMILY_PHILOSOPHY, 
   identifyExpertDomain, 
@@ -24,48 +23,48 @@ import {
   calculatePrideMotivation, 
   selectCaringPersonality,
   buildCaringExpertPrompt,
-  FAMILY_MEMORY 
-} from './caring-family-core.js';
+  FAMILY_MEMORY
+} from './lib/caring-family-core.js';
 
 import { 
   requiresQuantitativeReasoning,
   enforceQuantitativeAnalysis,
   enforceCalculationStandards,
-  validateCalculationQuality 
-} from './quantitative-enforcer.js';
+  validateCalculationQuality
+} from './lib/quantitative-enforcer.js';
 
 import { 
   requiresSurvivalAnalysis,
   enforceBusinessSurvival,
   validateBusinessSurvival,
-  applySurvivalProtection 
-} from './survival-guardian.js';
+  applySurvivalProtection
+} from './lib/survival-guardian.js';
 
 import { 
   validateExpertQuality,
   enforceExpertStandards,
-  monitorSystemDrift 
-} from './expert-validator.js';
+  monitorSystemDrift
+} from './lib/expert-validator.js';
 
 import { 
   scanForProtectiveAlerts,
   findSolutionOpportunities,
   applyProtectiveIntelligence,
-  assessCrossContextNeeds 
-} from './protective-intelligence.js';
+  assessCrossContextNeeds
+} from './lib/protective-intelligence.js';
 
 import { 
   detectPoliticalContent,
   applyPoliticalNeutrality,
-  enforceEvidenceBasedStandards 
-} from './political-neutrality.js';
+  enforceEvidenceBasedStandards
+} from './lib/political-neutrality.js';
 
 import { 
   detectSiteMonkeysViolations,
   enforceSiteMonkeysStandards,
   enforcePricingFloors,
-  integrateVaultLogic 
-} from './site-monkeys-enforcement.js';
+  integrateVaultLogic
+} from './lib/site-monkeys-enforcement.js';
 
 console.log('[DEBUG] All cognitive modules loaded successfully');
 
@@ -236,38 +235,16 @@ Would you like to proceed?`,
       });
     }
 
- // *** MEMORY RETRIEVAL - CRITICAL FIX ***
+    // *** MEMORY RETRIEVAL - CRITICAL FIX ***
     let memoryContext = null;
     try {
-      // Check multiple memory system sources
-      if (global.memorySystem && global.memorySystem.retrieveMemory) {
+      // Import memory system (this should already be available via server.js bootstrap)
+      if (global.memorySystem) {
         memoryContext = await global.memorySystem.retrieveMemory(user_id, message);
         console.log('[MEMORY] Retrieved context:', memoryContext?.contextFound ? 'SUCCESS' : 'NO_MATCH');
-      } else if (typeof retrieveMemory === 'function') {
-        // Fallback to direct memory function if available
-        memoryContext = await retrieveMemory(user_id, message);
-      } else {
-        console.log('[MEMORY] Memory system not available - using session memory');
-        // Use conversation history as fallback memory
-        let fallbackMemories = '';
-        if (conversation_history && conversation_history.length > 0) {
-          const recentMessages = conversation_history.slice(-3);
-          for (let i = 0; i < recentMessages.length; i++) {
-            const msg = recentMessages[i];
-            fallbackMemories += (msg.role === 'user' ? 'User: ' : 'AI: ') + msg.content;
-            if (i < recentMessages.length - 1) fallbackMemories += '\n';
-          }
-        }
-        memoryContext = {
-          contextFound: conversation_history && conversation_history.length > 0,
-          memories: fallbackMemories,
-          totalTokens: 0
-        };
       }
     } catch (memoryError) {
       console.error('[MEMORY] Retrieval failed:', memoryError);
-      // Graceful fallback - system continues without memory
-      memoryContext = { contextFound: false, memories: '', totalTokens: 0 };
     }
 
     // *** MASTER SYSTEM PROMPT CONSTRUCTION ***
