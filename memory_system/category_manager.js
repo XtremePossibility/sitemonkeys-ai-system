@@ -5,7 +5,7 @@ import DatabaseManager from './database_manager.js';
 
 class CategoryManager {
   constructor() {
-    this.dbManager = DatabaseManager;
+    this.dbManager = new DatabaseManager();
     this.predefinedCategories = [
       'Health & Wellness',
       'Relationships & Social',
