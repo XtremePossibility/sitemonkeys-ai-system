@@ -6,7 +6,7 @@ import RoutingIntelligence from './routing_intelligence.js';
 
 class ExtractionEngine {
   constructor() {
-    this.dbManager = DatabaseManager;
+    this.dbManager = new DatabaseManager();
     this.routingIntelligence = new RoutingIntelligence();
   }
 
@@ -21,7 +21,7 @@ class ExtractionEngine {
   async extractRelevantMemories(userId, query, tokenLimit = 2400, options = {}) {
     try {
       // Route the query to determine relevant categories
-      const routing = await this.routingIntelligence.routeMemory(query, options.context);
+      const routing = this.routingIntelligence.routeToCategory(query, options.context);
       const primaryCategory = routing?.category;
       
       if (!primaryCategory) {
