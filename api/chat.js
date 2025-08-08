@@ -12,7 +12,7 @@ import { EMERGENCY_FALLBACKS, validateVaultStructure, getVaultValue } from './si
 import { ENFORCEMENT_PROTOCOLS } from './site-monkeys/enforcement-protocols.js';
 import { QUALITY_ENFORCEMENT } from './site-monkeys/quality-enforcement.js';
 import { AI_ARCHITECTURE } from './site-monkeys/ai-architecture.js';
-import { getVaultStatus, checkVaultTriggers, generateVaultContext, enforceVaultCompliance } from './vault.js';
+import { getVaultStatus, checkVaultTriggers, generateVaultContext, enforceVaultCompliance } from './lib/vault.js';
 import { integrateSystemIntelligence, enhancePromptWithIntelligence, getSystemIntelligenceStatus } from './lib/system-intelligence.js';
 import zlib from 'zlib';
 
@@ -25,47 +25,47 @@ import {
   selectCaringPersonality,
   buildCaringExpertPrompt,
   FAMILY_MEMORY 
-} from './lib/caring-family-core.js';
+} from './caring-family-core.js';
 
 import { 
   requiresQuantitativeReasoning,
   enforceQuantitativeAnalysis,
   enforceCalculationStandards,
   validateCalculationQuality 
-} from './lib/quantitative-enforcer.js';
+} from './quantitative-enforcer.js';
 
 import { 
   requiresSurvivalAnalysis,
   enforceBusinessSurvival,
   validateBusinessSurvival,
   applySurvivalProtection 
-} from './lib/survival-guardian.js';
+} from './survival-guardian.js';
 
 import { 
   validateExpertQuality,
   enforceExpertStandards,
   monitorSystemDrift 
-} from './lib/expert-validator.js';
+} from './expert-validator.js';
 
 import { 
   scanForProtectiveAlerts,
   findSolutionOpportunities,
   applyProtectiveIntelligence,
   assessCrossContextNeeds 
-} from './lib/protective-intelligence.js';
+} from './protective-intelligence.js';
 
 import { 
   detectPoliticalContent,
   applyPoliticalNeutrality,
   enforceEvidenceBasedStandards 
-} from './lib/political-neutrality.js';
+} from './political-neutrality.js';
 
 import { 
   detectSiteMonkeysViolations,
   enforceSiteMonkeysStandards,
   enforcePricingFloors,
   integrateVaultLogic 
-} from './lib/site-monkeys-enforcement.js';
+} from './site-monkeys-enforcement.js';
 
 console.log('[DEBUG] All cognitive modules loaded successfully');
 
@@ -239,32 +239,13 @@ Would you like to proceed?`,
     // *** MEMORY RETRIEVAL - CRITICAL FIX ***
     let memoryContext = null;
     try {
-      // Check if global memory system is available
-      if (global.memorySystem && global.memorySystem.retrieveMemory) {
+      // Import memory system (this should already be available via server.js bootstrap)
+      if (global.memorySystem) {
         memoryContext = await global.memorySystem.retrieveMemory(user_id, message);
         console.log('[MEMORY] Retrieved context:', memoryContext?.contextFound ? 'SUCCESS' : 'NO_MATCH');
-      } else {
-        console.log('[MEMORY] Memory system not available - using session memory');
-        // Use conversation history as fallback memory
-        let fallbackMemories = '';
-        if (conversation_history && conversation_history.length > 0) {
-          const recentMessages = conversation_history.slice(-3);
-          for (let i = 0; i < recentMessages.length; i++) {
-            const msg = recentMessages[i];
-            fallbackMemories += (msg.role === 'user' ? 'User: ' : 'AI: ') + msg.content;
-            if (i < recentMessages.length - 1) fallbackMemories += '\n';
-          }
-        }
-        memoryContext = {
-          contextFound: conversation_history && conversation_history.length > 0,
-          memories: fallbackMemories,
-          totalTokens: 0
-        };
       }
     } catch (memoryError) {
       console.error('[MEMORY] Retrieval failed:', memoryError);
-      // Graceful fallback - system continues without memory
-      memoryContext = { contextFound: false, memories: '', totalTokens: 0 };
     }
 
     // *** MASTER SYSTEM PROMPT CONSTRUCTION ***
@@ -521,10 +502,6 @@ function buildFullConversationPrompt(masterPrompt, message, conversationHistory,
 
   return fullPrompt;
 }
-
-console.log('=== MASTER PROMPT DEBUG ===');
-console.log(masterPrompt);
-console.log('=== END PROMPT ===');
 
 // *** ENHANCED API CALL ***
 async function makeEnhancedAPICall(prompt, personality, prideMotivation) {
