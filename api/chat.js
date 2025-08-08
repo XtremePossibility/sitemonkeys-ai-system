@@ -1,8 +1,3 @@
-// Add this at the top of chat.js temporarily:
-console.log('Testing imports...');
-import('./lib/caring-family-core.js').then(() => console.log('✓ caring-family-core'));
-import('./lib/quantitative-enforcer.js').then(() => console.log('✓ quantitative-enforcer'));
-// etc.
 // FORCE CACHE REFRESH - 2025-07-27-1559 - DELETE AFTER DEPLOY
 // COMPLETE MODULAR CARING FAMILY INTELLIGENCE SYSTEM
 // Orchestrates all cognitive modules for universal expert intelligence
