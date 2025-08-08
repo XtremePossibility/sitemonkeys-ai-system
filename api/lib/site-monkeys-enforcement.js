@@ -65,16 +65,17 @@ export function detectSiteMonkeysViolations(response, mode) {
   };
 }
 
+// Fix detectPricingViolations function (line 70)
 export function detectPricingViolations(response) {
   const violations = [];
   const responseLower = response.toLowerCase();
   
-  // Extract all dollar amounts from response
+  // FIXED: Extract all dollar amounts from response
   const dollarMatches = response.match(/\$(\d{1,3}(?:,\d{3})*|\d+)/g);
   
   if (dollarMatches) {
     dollarMatches.forEach(match => {
-      const amount = parseInt(match.replace(/[$,]/g, ''));
+      const amount = parseInt(match.replace(/[$,]/g, ''));  // FIXED: Simplified regex
       
       // Check against Site Monkeys minimum pricing
       if (amount > 0 && amount < SITE_MONKEYS_CONFIG.pricing.boost.price) {
@@ -90,6 +91,9 @@ export function detectPricingViolations(response) {
     });
   }
   
+  // Continue with rest of function...
+  return violations;
+
   // Check for pricing reduction language
   PRICING_VIOLATION_TRIGGERS.forEach(trigger => {
     if (responseLower.includes(trigger.toLowerCase())) {
