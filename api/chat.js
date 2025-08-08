@@ -1,3 +1,8 @@
+// Add this at the top of chat.js temporarily:
+console.log('Testing imports...');
+import('./lib/caring-family-core.js').then(() => console.log('✓ caring-family-core'));
+import('./lib/quantitative-enforcer.js').then(() => console.log('✓ quantitative-enforcer'));
+// etc.
 // FORCE CACHE REFRESH - 2025-07-27-1559 - DELETE AFTER DEPLOY
 // COMPLETE MODULAR CARING FAMILY INTELLIGENCE SYSTEM
 // Orchestrates all cognitive modules for universal expert intelligence
@@ -12,7 +17,7 @@ import { EMERGENCY_FALLBACKS, validateVaultStructure, getVaultValue } from './si
 import { ENFORCEMENT_PROTOCOLS } from './site-monkeys/enforcement-protocols.js';
 import { QUALITY_ENFORCEMENT } from './site-monkeys/quality-enforcement.js';
 import { AI_ARCHITECTURE } from './site-monkeys/ai-architecture.js';
-import { getVaultStatus, checkVaultTriggers, generateVaultContext, enforceVaultCompliance } from './lib/vault.js';
+import { getVaultStatus, checkVaultTriggers, generateVaultContext, enforceVaultCompliance } from './lib//vault.js';
 import { integrateSystemIntelligence, enhancePromptWithIntelligence, getSystemIntelligenceStatus } from './lib/system-intelligence.js';
 import zlib from 'zlib';
 
@@ -25,47 +30,47 @@ import {
   selectCaringPersonality,
   buildCaringExpertPrompt,
   FAMILY_MEMORY 
-} from './caring-family-core.js';
+} from './lib/caring-family-core.js';
 
 import { 
   requiresQuantitativeReasoning,
   enforceQuantitativeAnalysis,
   enforceCalculationStandards,
   validateCalculationQuality 
-} from './quantitative-enforcer.js';
+} from './lib/quantitative-enforcer.js';
 
 import { 
   requiresSurvivalAnalysis,
   enforceBusinessSurvival,
   validateBusinessSurvival,
   applySurvivalProtection 
-} from './survival-guardian.js';
+} from './lib/survival-guardian.js';
 
 import { 
   validateExpertQuality,
   enforceExpertStandards,
   monitorSystemDrift 
-} from './expert-validator.js';
+} from './lib/expert-validator.js';
 
 import { 
   scanForProtectiveAlerts,
   findSolutionOpportunities,
   applyProtectiveIntelligence,
   assessCrossContextNeeds 
-} from './protective-intelligence.js';
+} from './lib/protective-intelligence.js';
 
 import { 
   detectPoliticalContent,
   applyPoliticalNeutrality,
   enforceEvidenceBasedStandards 
-} from './political-neutrality.js';
+} from './lib/political-neutrality.js';
 
 import { 
   detectSiteMonkeysViolations,
   enforceSiteMonkeysStandards,
   enforcePricingFloors,
   integrateVaultLogic 
-} from './site-monkeys-enforcement.js';
+} from './lib/site-monkeys-enforcement.js';
 
 console.log('[DEBUG] All cognitive modules loaded successfully');
 
