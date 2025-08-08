@@ -5,13 +5,13 @@
 // ================================================================
 
 const vaultLogger = {
-    log: (message) => console.log(`[VAULT] ${new Date().toISOString()} ${message}`),
-    error: (message, error) => console.error(`[VAULT ERROR] ${new Date().toISOString()} ${message}`, error),
-    warn: (message) => console.warn(`[VAULT WARN] ${new Date().toISOString()} ${message}`)
+    log: (message) => console.log('[VAULT] ' + new Date().toISOString() + ' ' + message),
+    error: (message, error) => console.error('[VAULT ERROR] ' + new Date().toISOString() + ' ' + message, error),
+    warn: (message) => console.warn('[VAULT WARN] ' + new Date().toISOString() + ' ' + message)
 };
 
 // Force immediate logging to verify module load
-console.log('[VAULT] 🏛️ Site Monkeys Vault Loader initializing...');
+console.log('[VAULT] Site Monkeys Vault Loader initializing...');
 
 class VaultLoader {
     constructor() {
