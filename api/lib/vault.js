@@ -1,9 +1,9 @@
-// COMPLETE VAULT SYSTEM - SITE MONKEYS BUSINESS LOGIC ENGINE
-// TIER 1: CORE VAULT ACCESS AND SECURITY
-// TIER 2: BUSINESS RULE ENFORCEMENT 
+// COMPLETE VAULT SYSTEM - SITE MONKEYS BUSINESS LOGIC ENGINE  
+// TIER 1: CORE VAULT ACCESS AND SECURITY  
+// TIER 2: BUSINESS RULE ENFORCEMENT   
 // TIER 3: CONFLICT DETECTION AND RESOLUTION
 
-// TIER 1: VAULT ACCESS CONTROL
+// TIER 1: VAULT ACCESS CONTROL  
 export async function verifyVaultAccess(mode, vaultRequested) {
   if (mode !== 'site_monkeys' && vaultRequested) {
     return {
@@ -37,13 +37,13 @@ export async function verifyVaultAccess(mode, vaultRequested) {
   };
 }
 
-// TIER 2: SITE MONKEYS BUSINESS LOGIC ENGINE
+// TIER 2: SITE MONKEYS BUSINESS LOGIC ENGINE  
 const SITE_MONKEYS_VAULT = {
   vault_id: "SM-VAULT-2025-001",
   version: "3.2.1",
   loaded_timestamp: Date.now(),
   
-  // CORE BUSINESS RULES
+  // CORE BUSINESS RULES  
   pricing_logic: {
     minimum_service_price: 697,
     hourly_rate_floor: 89,
@@ -89,7 +89,7 @@ const SITE_MONKEYS_VAULT = {
     }
   },
   
-  // FINANCIAL LOGIC
+  // FINANCIAL LOGIC  
   business_intelligence: {
     monthly_targets: {
       revenue: 15000,
@@ -112,11 +112,34 @@ const SITE_MONKEYS_VAULT = {
   }
 };
 
-// TIER 2: VAULT TRIGGER DETECTION
+// FIXED: Added missing logOverride function
+function logOverride(type, details, mode) {
+  const timestamp = new Date().toISOString();
+  console.log(`[VAULT-OVERRIDE] ${timestamp} - Type: ${type}, Details: ${details}, Mode: ${mode}`);
+  
+  // Store override history for monitoring
+  if (!global.vaultOverrideHistory) {
+    global.vaultOverrideHistory = [];
+  }
+  
+  global.vaultOverrideHistory.push({
+    timestamp,
+    type,
+    details,
+    mode
+  });
+  
+  // Keep only last 100 overrides
+  if (global.vaultOverrideHistory.length > 100) {
+    global.vaultOverrideHistory = global.vaultOverrideHistory.slice(-100);
+  }
+}
+
+// TIER 2: VAULT TRIGGER DETECTION  
 export function checkVaultTriggers(message) {
   const triggers = [];
   
-  // Pricing triggers
+  // Pricing triggers  
   const PRICING_PATTERNS = [
     /price|cost|quote|estimate|fee|rate|charge/i,
     /how much|what does.*cost|pricing/i,
@@ -135,7 +158,7 @@ export function checkVaultTriggers(message) {
     }
   });
   
-  // Project scope triggers
+  // Project scope triggers  
   const SCOPE_PATTERNS = [
     /website|app|application|development/i,
     /project|build|create|develop/i,
@@ -153,7 +176,7 @@ export function checkVaultTriggers(message) {
     }
   });
   
-  // Business strategy triggers
+  // Business strategy triggers  
   const STRATEGY_PATTERNS = [
     /client|customer|revenue|growth/i,
     /marketing|sales|business/i,
@@ -174,7 +197,7 @@ export function checkVaultTriggers(message) {
   return triggers;
 }
 
-// TIER 2: VAULT CONTEXT GENERATION
+// TIER 2: VAULT CONTEXT GENERATION  
 export function generateVaultContext(triggeredFrameworks) {
   if (!triggeredFrameworks || triggeredFrameworks.length === 0) {
     return '';
@@ -219,13 +242,13 @@ export function generateVaultContext(triggeredFrameworks) {
   return context;
 }
 
-// TIER 3: CONFLICT DETECTION AND RESOLUTION
+// TIER 3: CONFLICT DETECTION AND RESOLUTION  
 export function detectVaultConflicts(response, triggeredFrameworks) {
   const conflicts = [];
   
   triggeredFrameworks.forEach(trigger => {
     if (trigger.category === 'pricing') {
-      // Check for pricing violations
+      // Check for pricing violations  
       const priceMatches = response.match(/\$(\d+)/g);
       if (priceMatches) {
         priceMatches.forEach(match => {
@@ -242,7 +265,7 @@ export function detectVaultConflicts(response, triggeredFrameworks) {
         });
       }
       
-      // Check for pricing language that might undercut
+      // Check for pricing language that might undercut  
       const UNDERCUT_PATTERNS = [
         /cheap|affordable|budget.friendly/i,
         /lowest price|competitive pricing/i,
@@ -262,7 +285,7 @@ export function detectVaultConflicts(response, triggeredFrameworks) {
     }
     
     if (trigger.category === 'project_scope') {
-      // Check for scope creep enablement
+      // Check for scope creep enablement  
       const SCOPE_CREEP_PATTERNS = [
         /we can add|easy to include/i,
         /no problem|sure thing/i,
@@ -285,7 +308,7 @@ export function detectVaultConflicts(response, triggeredFrameworks) {
   return conflicts;
 }
 
-// TIER 3: VAULT COMPLIANCE ENFORCEMENT
+// TIER 3: VAULT COMPLIANCE ENFORCEMENT  
 export function enforceVaultCompliance(response, conflicts) {
   if (!conflicts || conflicts.length === 0) {
     return { response, modified: false };
@@ -335,7 +358,7 @@ CORRECTED APPROACH: For this scope of work, the appropriate investment range beg
   };
 }
 
-// TIER 3: VAULT STATUS AND MONITORING
+// TIER 3: VAULT STATUS AND MONITORING  
 export function getVaultStatus() {
   return {
     vault_loaded: true,
