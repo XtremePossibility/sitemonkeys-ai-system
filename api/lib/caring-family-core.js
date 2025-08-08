@@ -110,7 +110,7 @@ export function analyzeCareNeeds(message, conversationHistory) {
                         stressLevel > 2 ? 'high' : 
                         supportLevel > 2 ? 'medium' : 'standard',
     truth_delivery_style: stressLevel > 0 ? 'gentle_firm' : 'direct_caring',
-    urgency_level: detectUrgencyLevel(message)
+    export function detectUrgencyLevel(message) {
   };
 }
 
