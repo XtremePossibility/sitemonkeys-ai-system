@@ -243,15 +243,18 @@ try {
   if (global.memorySystem && global.memorySystem.retrieveMemory) {
     memoryContext = await global.memorySystem.retrieveMemory(user_id, message);
     console.log('[MEMORY] Retrieved context:', memoryContext?.contextFound ? 'SUCCESS' : 'NO_MATCH');
-  } else if (typeof retrieveMemory === 'function') {
-    // Fallback to direct memory function if available
-    memoryContext = await retrieveMemory(user_id, message);
   } else {
     console.log('[MEMORY] Memory system not available - using session memory');
     // Use conversation history as fallback memory
+    let fallbackMemories = '';
+    if (conversation_history && conversation_history.length > 0) {
+      fallbackMemories = conversation_history.slice(-3).map(function(msg) {
+        return (msg.role === 'user' ? 'User: ' : 'AI: ') + msg.content;
+      }).join('\n');
+    }
     memoryContext = {
-      contextFound: conversation_history.length > 0,
-      memories: conversation_history.slice(-3).map(msg => `${msg.role}: ${msg.content}`).join('\n'),
+      contextFound: conversation_history && conversation_history.length > 0,
+      memories: fallbackMemories,
       totalTokens: 0
     };
   }
