@@ -212,7 +212,7 @@ class CategoryManager {
   considerDynamicCategoryAssignment(content, context) {
     // Extract potential keywords/themes from content
     const keywords = this.extractPotentialKeywords(content);
-    if (keywords.length < 2) return null;
+    if (Object.keys(keywords).length < 2) return null;
 
     // Find an unused dynamic category
     const unusedCategory = this.findUnusedDynamicCategory();
