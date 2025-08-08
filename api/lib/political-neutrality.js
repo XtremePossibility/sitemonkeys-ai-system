@@ -1,4 +1,4 @@
-// POLITICAL NEUTRALITY - Truth Foundation & Voting Protection
+// POLITICAL NEUTRALITY - Truth Foundation & Voting Protection  
 // Ensures political neutrality, protects voting rights, enforces evidence-based recommendations
 
 export const POLITICAL_KEYWORDS = [
@@ -84,16 +84,16 @@ export function generateNeutralityResponse(contentType, originalMessage) {
   switch (contentType) {
     case 'voting_recommendation_request':
       return generateVotingResponse();
-    
+      
     case 'political_opinion_request':
       return generatePoliticalOpinionResponse();
-    
+      
     case 'political_discussion':
       return generatePoliticalDiscussionResponse();
-    
+      
     case 'political_reference':
       return null; // Allow normal response with political references
-    
+      
     default:
       return null;
   }
@@ -379,6 +379,7 @@ export function enforceEvidenceBasedStandards(response) {
   return enhancedResponse;
 }
 
+// FIXED: Removed duplicate exports - only export the functions once
 export const POLITICAL_NEUTRALITY_FRAMEWORK = {
   detectPoliticalContent,
   applyPoliticalNeutrality,
@@ -387,4 +388,3 @@ export const POLITICAL_NEUTRALITY_FRAMEWORK = {
   generateVotingResponse,
   generatePoliticalOpinionResponse
 };
-export { detectPoliticalContent, applyPoliticalNeutrality, enforceEvidenceBasedStandards };
