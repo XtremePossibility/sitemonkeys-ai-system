@@ -128,7 +128,6 @@ class VaultLoader {
 }
 
 // Export singleton instance
-console.log('[VAULT] 📦 Creating Site Monkeys Vault Loader instance...');
 console.log('[VAULT] ✅ Vault Loader ready for export');
 
 export default VaultLoader;
