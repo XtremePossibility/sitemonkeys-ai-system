@@ -12,7 +12,7 @@ import { EMERGENCY_FALLBACKS, validateVaultStructure, getVaultValue } from './si
 import { ENFORCEMENT_PROTOCOLS } from './site-monkeys/enforcement-protocols.js';
 import { QUALITY_ENFORCEMENT } from './site-monkeys/quality-enforcement.js';
 import { AI_ARCHITECTURE } from './site-monkeys/ai-architecture.js';
-import { getVaultStatus, checkVaultTriggers, generateVaultContext, enforceVaultCompliance } from './lib//vault.js';
+import { getVaultStatus, checkVaultTriggers, generateVaultContext, enforceVaultCompliance } from './lib/vault.js';
 import { integrateSystemIntelligence, enhancePromptWithIntelligence, getSystemIntelligenceStatus } from './lib/system-intelligence.js';
 import zlib from 'zlib';
 
@@ -239,13 +239,10 @@ Would you like to proceed?`,
     // *** MEMORY RETRIEVAL - CRITICAL FIX ***
     let memoryContext = null;
     try {
-      // Check multiple memory system sources
+      // Check if global memory system is available
       if (global.memorySystem && global.memorySystem.retrieveMemory) {
         memoryContext = await global.memorySystem.retrieveMemory(user_id, message);
         console.log('[MEMORY] Retrieved context:', memoryContext?.contextFound ? 'SUCCESS' : 'NO_MATCH');
-      } else if (typeof retrieveMemory === 'function') {
-        // Fallback to direct memory function if available
-        memoryContext = await retrieveMemory(user_id, message);
       } else {
         console.log('[MEMORY] Memory system not available - using session memory');
         // Use conversation history as fallback memory
