@@ -1,5 +1,5 @@
-// CARING FAMILY CORE - The Heart of Expert Intelligence
-// This is the family philosophy that drives everything else
+// CARING FAMILY CORE - The Heart of Expert Intelligence  
+// This is the family philosophy that drives everything else  
 // Universal expert recognition + genuine care simulation + pride-driven excellence
 
 export const FAMILY_PHILOSOPHY = {
@@ -109,9 +109,15 @@ export function analyzeCareNeeds(message, conversationHistory) {
     protective_priority: riskLevel > 0 ? 'critical' : 
                         stressLevel > 2 ? 'high' : 
                         supportLevel > 2 ? 'medium' : 'standard',
-    truth_delivery_style: stressLevel > 0 ? 'gentle_firm' : 'direct_caring',
-    export function detectUrgencyLevel(message) {
+    truth_delivery_style: stressLevel > 0 ? 'gentle_firm' : 'direct_caring'
   };
+}
+
+// FIXED: Moved function outside of return statement
+export function detectUrgencyLevel(message) {
+  const urgencyWords = ['urgent', 'emergency', 'asap', 'immediately', 'quickly', 'rush', 'deadline'];
+  const count = urgencyWords.filter(word => message.toLowerCase().includes(word)).length;
+  return count > 1 ? 'high' : count > 0 ? 'medium' : 'low';
 }
 
 export function calculatePrideMotivation(expertDomain, careNeeds, protectiveAlerts, solutionOpportunities) {
@@ -222,13 +228,6 @@ ROXY'S PROTECTIVE CREATIVITY:
   }
 
   return prompt;
-}
-
-// Helper functions
-function detectUrgencyLevel(message) {
-  const urgencyWords = ['urgent', 'emergency', 'asap', 'immediately', 'quickly', 'rush', 'deadline'];
-  const count = urgencyWords.filter(word => message.toLowerCase().includes(word)).length;
-  return count > 1 ? 'high' : count > 0 ? 'medium' : 'low';
 }
 
 export const FAMILY_MEMORY = {
