@@ -1,3 +1,8 @@
+// memory_system/routing_intelligence.js
+// Smart category detection and routing for Site Monkeys AI Memory System
+
+console.log('[ROUTING] 🧠 Routing Intelligence loading...');
+
 class RoutingIntelligence {
     constructor() {
         this.routingPatterns = {
