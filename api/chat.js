@@ -12,7 +12,7 @@ import { EMERGENCY_FALLBACKS, validateVaultStructure, getVaultValue } from './si
 import { ENFORCEMENT_PROTOCOLS } from './site-monkeys/enforcement-protocols.js';
 import { QUALITY_ENFORCEMENT } from './site-monkeys/quality-enforcement.js';
 import { AI_ARCHITECTURE } from './site-monkeys/ai-architecture.js';
-import { getVaultStatus, checkVaultTriggers, generateVaultContext, enforceVaultCompliance } from './lib/vault.js';
+import { getVaultStatus, checkVaultTriggers, generateVaultContext, enforceVaultCompliance } from './vault.js';
 import { integrateSystemIntelligence, enhancePromptWithIntelligence, getSystemIntelligenceStatus } from './lib/system-intelligence.js';
 import zlib from 'zlib';
 
