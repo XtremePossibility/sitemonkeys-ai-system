@@ -236,18 +236,37 @@ Would you like to proceed?`,
       });
     }
 
-// *** MEMORY RETRIEVAL - CRITICAL FIX ***
+ // *** MEMORY RETRIEVAL - CRITICAL FIX ***
     let memoryContext = null;
     try {
+      // Check multiple memory system sources
       if (global.memorySystem && global.memorySystem.retrieveMemory) {
         memoryContext = await global.memorySystem.retrieveMemory(user_id, message);
         console.log('[MEMORY] Retrieved context:', memoryContext?.contextFound ? 'SUCCESS' : 'NO_MATCH');
+      } else if (typeof retrieveMemory === 'function') {
+        // Fallback to direct memory function if available
+        memoryContext = await retrieveMemory(user_id, message);
       } else {
-        console.log('[MEMORY] Memory system not available - using fallback');
-        memoryContext = { contextFound: false, memories: '', totalTokens: 0 };
+        console.log('[MEMORY] Memory system not available - using session memory');
+        // Use conversation history as fallback memory
+        let fallbackMemories = '';
+        if (conversation_history && conversation_history.length > 0) {
+          const recentMessages = conversation_history.slice(-3);
+          for (let i = 0; i < recentMessages.length; i++) {
+            const msg = recentMessages[i];
+            fallbackMemories += (msg.role === 'user' ? 'User: ' : 'AI: ') + msg.content;
+            if (i < recentMessages.length - 1) fallbackMemories += '\n';
+          }
+        }
+        memoryContext = {
+          contextFound: conversation_history && conversation_history.length > 0,
+          memories: fallbackMemories,
+          totalTokens: 0
+        };
       }
     } catch (memoryError) {
       console.error('[MEMORY] Retrieval failed:', memoryError);
+      // Graceful fallback - system continues without memory
       memoryContext = { contextFound: false, memories: '', totalTokens: 0 };
     }
 
