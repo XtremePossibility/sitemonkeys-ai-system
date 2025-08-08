@@ -522,6 +522,10 @@ function buildFullConversationPrompt(masterPrompt, message, conversationHistory,
   return fullPrompt;
 }
 
+console.log('=== MASTER PROMPT DEBUG ===');
+console.log(masterPrompt);
+console.log('=== END PROMPT ===');
+
 // *** ENHANCED API CALL ***
 async function makeEnhancedAPICall(prompt, personality, prideMotivation) {
   const maxTokens = Math.floor(1200 + (prideMotivation * 800)); // More tokens for high pride situations
