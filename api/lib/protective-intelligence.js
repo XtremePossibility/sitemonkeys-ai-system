@@ -33,8 +33,8 @@ time_pressure: {
     'Are there parallel workstreams that could accelerate delivery?',
     "What's the real cost of delay versus the cost of rushing?"  // FIXED: Removed unnecessary escaping
   ]
-}
-  
+},  
+    
   legal_implications: {
     triggers: ['contract', 'agreement', 'legal', 'compliance', 'regulation', 'liability'],
     risks: [
