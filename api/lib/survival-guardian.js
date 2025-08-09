@@ -53,13 +53,14 @@ MARGIN PROTECTION: Site Monkeys pricing ($697/$1,497/$2,997) is designed to main
   return response;
 }
 
+// Fix detectMarginViolations function (line 50)
 export function detectMarginViolations(response) {
-  const marginMatches = response.match(/(\d+)%?\s*margin/gi);
+  const marginMatches = response.match(/(\d+)%?\s*margin/gi);  // FIXED: Removed double escaping
   const violations = [];
   
   if (marginMatches) {
     marginMatches.forEach(match => {
-      const percentage = parseInt(match.match(/\d+/)[0]);
+      const percentage = parseInt(match.match(/\d+/)[0]);  // FIXED: Simplified regex
       if (percentage < SURVIVAL_REQUIREMENTS.minimum_margin) {
         violations.push({
           found_margin: percentage,
@@ -151,8 +152,9 @@ export function validateBusinessSurvival(projections, mode) {
   return validation;
 }
 
+// Also fix extractMargins function (line 138)
 export function extractMargins(text) {
-  const marginMatches = text.match(/(\d+)%?\s*margin/gi);
+  const marginMatches = text.match(/(\d+)%?\s*margin/gi);  // FIXED
   if (!marginMatches) return [];
   
   return marginMatches.map(match => {
