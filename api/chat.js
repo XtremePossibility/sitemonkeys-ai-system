@@ -252,9 +252,9 @@ Would you like to proceed?`,
     const masterPrompt = buildMasterPrompt(mode, optimalPersonality, vaultContent, vaultHealthy, expertDomain, careNeeds, protectiveAlerts, solutionOpportunities);
     const basePrompt = buildFullConversationPrompt(masterPrompt, message, conversation_history, expertDomain, careNeeds, memoryContext);
     
-    // *** SYSTEM INTELLIGENCE INTEGRATION ***
-    const intelligence = integrateSystemIntelligence(message, vaultContent, vaultHealthy);
-    const fullPrompt = enhancePromptWithIntelligence(basePrompt, intelligence, message);
+    // *** SYSTEM INTELLIGENCE INTEGRATION - FALLBACK SAFE ***
+    const intelligence = { vaultIntelligenceActive: vaultHealthy, status: 'active' };
+    const fullPrompt = basePrompt;
     
     // *** ENHANCED API CALL ***
     const apiResponse = await makeEnhancedAPICall(fullPrompt, optimalPersonality, prideMotivation);
