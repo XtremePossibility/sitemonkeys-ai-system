@@ -39,6 +39,28 @@ async function improvedRefreshVault() {
   try {
     const response = await fetch('/api/load-vault?refresh=true');
     const data = await response.json();
+
+    / *** ADD THIS: PROCESS SESSION DATA FOR COST DISPLAY ***
+if (data.session_data) {
+  // Update cost display elements
+  const tokenElement = document.getElementById('token-count');
+  const costElement = document.getElementById('cost-estimate');
+  
+  if (tokenElement && data.session_data.calls_display) {
+    tokenElement.textContent = data.session_data.calls_display;
+  }
+  
+  if (costElement && data.session_data.cost_display) {
+    costElement.textContent = data.session_data.cost_display;
+  }
+  
+  // Log cost tracking for verification
+  console.log('💰 Session Cost Update:', {
+    total_cost: data.session_data.cost_display,
+    total_calls: data.session_data.calls_display,
+    vault_tokens: data.session_data.vault_display,
+    status: data.session_data.status
+  }
     
     // CACHE THE VAULT CONTENT FOR CHAT
     window.currentVaultContent = data.vault_content || '';
