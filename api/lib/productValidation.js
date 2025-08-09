@@ -49,10 +49,7 @@ static validateRecommendation(response, mode, vaultData = null) {
   }
   
   return validation;
-}
-    
-    return validation;  
-}  
+} 
     
   static analyzeEvidenceStrength(response) {
     let evidenceScore = 0;
