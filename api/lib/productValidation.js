@@ -51,9 +51,9 @@ static validateRecommendation(response, mode, vaultData = null) {
   return validation;
 }
     
-    return validation;
-  }
-  
+    return validation;  
+}  
+    
   static analyzeEvidenceStrength(response) {
     let evidenceScore = 0;
     
@@ -157,7 +157,7 @@ static validateRecommendation(response, mode, vaultData = null) {
     
     switch (mode) {
       case 'truth_general':
-        modeValidation.comparison_framework = this.validateComparisonFramework(response);
+        modeValidation.comparison_framework = ProductValidator.validateComparisonFramework(response)
         break;
         
       case 'business_validation':
