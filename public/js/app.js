@@ -40,27 +40,35 @@ async function improvedRefreshVault() {
     const response = await fetch('/api/load-vault?refresh=true');
     const data = await response.json();
 
-    / *** ADD THIS: PROCESS SESSION DATA FOR COST DISPLAY ***
+// *** COST TRACKING DISPLAY FIX ***
 if (data.session_data) {
   // Update cost display elements
   const tokenElement = document.getElementById('token-count');
   const costElement = document.getElementById('cost-estimate');
   
-  if (tokenElement && data.session_data.calls_display) {
-    tokenElement.textContent = data.session_data.calls_display;
+  if (tokenElement) {
+    tokenElement.textContent = `Tokens: ${data.session_data.calls_display || '0'}`;
   }
   
-  if (costElement && data.session_data.cost_display) {
-    costElement.textContent = data.session_data.cost_display;
+  if (costElement) {
+    costElement.textContent = `Cost: ${data.session_data.cost_display || '$0.00'}`;
   }
   
-  // Log cost tracking for verification
-  console.log('💰 Session Cost Update:', {
-    total_cost: data.session_data.cost_display,
-    total_calls: data.session_data.calls_display,
-    vault_tokens: data.session_data.vault_display,
-    status: data.session_data.status
+  // Create cost display if elements don't exist
+  if (!tokenElement || !costElement) {
+    let statusBar = document.querySelector('.status-bar');
+    if (!statusBar) {
+      statusBar = document.createElement('div');
+      statusBar.className = 'status-bar';
+      statusBar.style.cssText = 'position: fixed; bottom: 10px; right: 10px; background: rgba(0,0,0,0.8); color: white; padding: 8px; border-radius: 4px; font-size: 12px;';
+      document.body.appendChild(statusBar);
+    }
+    statusBar.innerHTML = `
+      <span id="token-count">Tokens: ${data.session_data.calls_display || '0'}</span> | 
+      <span id="cost-estimate">Cost: ${data.session_data.cost_display || '$0.00'}</span>
+    `;
   }
+}
     
     // CACHE THE VAULT CONTENT FOR CHAT
     window.currentVaultContent = data.vault_content || '';
