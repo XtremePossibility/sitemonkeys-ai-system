@@ -18,7 +18,7 @@ export function requiresQuantitativeReasoning(message) {
   return QUANTITATIVE_TRIGGERS.some(trigger => messageLower.includes(trigger));
 }
 
-// Fix containsActualCalculations function (lines 24-32)
+// CURRENT BROKEN CODE (containsActualCalculations function):
 export function containsActualCalculations(response) {
   const calculationIndicators = [
     /\$[\d,]+/g,                    // Dollar amounts
