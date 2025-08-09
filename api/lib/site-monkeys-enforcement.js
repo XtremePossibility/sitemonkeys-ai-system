@@ -65,7 +65,6 @@ export function detectSiteMonkeysViolations(response, mode) {
   };
 }
 
-// Fix detectPricingViolations function (line 70)
 // REPLACE THE ENTIRE detectPricingViolations FUNCTION WITH:
 export function detectPricingViolations(response) {
   const violations = [];
@@ -104,6 +103,8 @@ export function detectPricingViolations(response) {
   });
   
   return violations;
+}
+  
   // Check for pricing reduction language
   PRICING_VIOLATION_TRIGGERS.forEach(trigger => {
     if (responseLower.includes(trigger.toLowerCase())) {
