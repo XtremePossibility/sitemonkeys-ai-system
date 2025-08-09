@@ -21,13 +21,13 @@ export function requiresQuantitativeReasoning(message) {
 // Fix containsActualCalculations function (lines 24-32)
 export function containsActualCalculations(response) {
   const calculationIndicators = [
-    /\$[\d,]+/g,                    // FIXED: Dollar amounts
-    /=\s*\$[\d,]+/g,                // FIXED: Equations with results
-    /\d+\s*×\s*\$\d+/g,             // FIXED: Multiplication
-    /month\s+\d+:/gi,               // FIXED: Month labels
-    /revenue:\s*\$[\d,]+/gi,        // FIXED: Revenue calculations
-    /profit:\s*\$[\d,]+/gi,         // FIXED: Profit calculations
-    /margin:\s*\d+%/gi              // FIXED: Margin percentages
+    /\$[\d,]+/g,                    // Dollar amounts
+    /=\s*\$[\d,]+/g,                // Equations with results
+    /\d+\s*×\s*\$\d+/g,             // Multiplication
+    /month\s+\d+:/gi,               // Month labels
+    /revenue:\s*\$[\d,]+/gi,        // Revenue calculations
+    /profit:\s*\$[\d,]+/gi,         // Profit calculations
+    /margin:\s*\d+%/gi              // Margin percentages
   ];
   
   return calculationIndicators.some(pattern => pattern.test(response));
