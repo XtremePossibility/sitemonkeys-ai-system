@@ -252,9 +252,9 @@ Would you like to proceed?`,
     const masterPrompt = buildMasterPrompt(mode, optimalPersonality, vaultContent, vaultHealthy, expertDomain, careNeeds, protectiveAlerts, solutionOpportunities);
     const basePrompt = buildFullConversationPrompt(masterPrompt, message, conversation_history, expertDomain, careNeeds, memoryContext);
     
-    /// *** SYSTEM INTELLIGENCE INTEGRATION - FIXED ***
-const intelligence = { vaultIntelligenceActive: vaultHealthy, status: 'active' };
-const fullPrompt = basePrompt; // Use basePrompt directly without enhancement
+    // *** SYSTEM INTELLIGENCE INTEGRATION ***
+    const intelligence = integrateSystemIntelligence(message, vaultContent, vaultHealthy);
+    const fullPrompt = enhancePromptWithIntelligence(basePrompt, intelligence, message);
     
     // *** ENHANCED API CALL ***
     const apiResponse = await makeEnhancedAPICall(fullPrompt, optimalPersonality, prideMotivation);
@@ -374,8 +374,6 @@ const fullPrompt = basePrompt; // Use basePrompt directly without enhancement
         source: vaultStatus.includes('frontend') ? 'frontend' : vaultStatus.includes('kv') ? 'kv' : 'fallback'
       },
       system_intelligence: getSystemIntelligenceStatus(intelligence),
-      intelligence_status: intelligence,
-      system_intelligence_active: intelligence.vaultIntelligenceActive,
       session_data: sessionData
     });
 
@@ -470,15 +468,6 @@ function buildMasterPrompt(mode, personality, vaultContent, vaultHealthy, expert
   masterPrompt += '3. SUGGEST SOLUTION PATHS (better approaches when you see opportunities)\n';
   masterPrompt += '4. PROVIDE NEXT STEPS (specific, actionable guidance)\n';
   masterPrompt += '5. CARING MOTIVATION (brief note showing genuine investment in their success)\n\n';
-
- // 10. ENHANCED INTELLIGENCE ACTIVATION
-masterPrompt += 'INTELLIGENCE AMPLIFICATION PROTOCOLS:\n'; 
-masterPrompt += '- Apply Claude-level reasoning depth to every analysis\n';
-masterPrompt += '- Use multi-step logical chains for complex problems\n';
-masterPrompt += '- Provide 3-5 actionable recommendations per response\n';
-masterPrompt += '- Include "What am I missing?" verification checks\n';
-masterPrompt += '- Cross-reference insights across all active intelligence modules\n';
-masterPrompt += '- Anticipate follow-up questions and address them proactively\n\n';
   
   return masterPrompt;
 }
@@ -555,7 +544,6 @@ async function makeEnhancedAPICall(prompt, personality, prideMotivation) {
       return await makeEnhancedAPICall(prompt, 'roxy', prideMotivation);
     }
   } else {
-    
     // GPT-4 for Eli and Roxy
     if (!process.env.OPENAI_API_KEY) {
       throw new Error('OpenAI API key not configured');
