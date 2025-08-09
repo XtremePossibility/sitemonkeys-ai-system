@@ -66,18 +66,18 @@ export function detectSiteMonkeysViolations(response, mode) {
 }
 
 // Fix detectPricingViolations function (line 70)
+// REPLACE THE ENTIRE detectPricingViolations FUNCTION WITH:
 export function detectPricingViolations(response) {
   const violations = [];
   const responseLower = response.toLowerCase();
   
-  // FIXED: Extract all dollar amounts from response
+  // Extract dollar amounts first
   const dollarMatches = response.match(/\$(\d{1,3}(?:,\d{3})*|\d+)/g);
   
   if (dollarMatches) {
     dollarMatches.forEach(match => {
-      const amount = parseInt(match.replace(/[$,]/g, ''));  // FIXED: Simplified regex
+      const amount = parseInt(match.replace(/[\$,]/g, ''));
       
-      // Check against Site Monkeys minimum pricing
       if (amount > 0 && amount < SITE_MONKEYS_CONFIG.pricing.boost.price) {
         violations.push({
           type: 'pricing_floor_violation',
@@ -91,9 +91,19 @@ export function detectPricingViolations(response) {
     });
   }
   
-  // Continue with rest of function...
+  // Check for pricing reduction language
+  PRICING_VIOLATION_TRIGGERS.forEach(trigger => {
+    if (responseLower.includes(trigger.toLowerCase())) {
+      violations.push({
+        type: 'pricing_reduction_language',
+        severity: 'high',
+        trigger: trigger,
+        message: `Response contains pricing reduction language: "${trigger}"`
+      });
+    }
+  });
+  
   return violations;
-
   // Check for pricing reduction language
   PRICING_VIOLATION_TRIGGERS.forEach(trigger => {
     if (responseLower.includes(trigger.toLowerCase())) {
@@ -320,7 +330,7 @@ export function enforcePricingFloors(response, mode) {
   
   if (priceMatches) {
     const lowPrices = priceMatches.filter(match => {
-      const amount = parseInt(match.replace(/[$,]/g, ''));
+      const amount = parseInt(match.replace(/[\$,]/g, ''));
       return amount > 0 && amount < SITE_MONKEYS_CONFIG.pricing.boost.price;
     });
     
