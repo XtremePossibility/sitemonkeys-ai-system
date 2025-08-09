@@ -471,9 +471,7 @@ function buildMasterPrompt(mode, personality, vaultContent, vaultHealthy, expert
   masterPrompt += '4. PROVIDE NEXT STEPS (specific, actionable guidance)\n';
   masterPrompt += '5. CARING MOTIVATION (brief note showing genuine investment in their success)\n\n';
 
-  / 10. ENHANCED INTELLIGENCE ACTIVATION
-// Enhance prompt with intelligence  
-masterPrompt = enhancePromptWithIntelligence(masterPrompt, intelligence, message);
+ // 10. ENHANCED INTELLIGENCE ACTIVATION
 masterPrompt += 'INTELLIGENCE AMPLIFICATION PROTOCOLS:\n'; 
 masterPrompt += '- Apply Claude-level reasoning depth to every analysis\n';
 masterPrompt += '- Use multi-step logical chains for complex problems\n';
@@ -557,8 +555,7 @@ async function makeEnhancedAPICall(prompt, personality, prideMotivation) {
       return await makeEnhancedAPICall(prompt, 'roxy', prideMotivation);
     }
   } else {
-    // Intelligence integration right before OpenAI call
-const intelligence = integrateSystemIntelligence(message, vaultContent, vaultHealthy);
+    
     // GPT-4 for Eli and Roxy
     if (!process.env.OPENAI_API_KEY) {
       throw new Error('OpenAI API key not configured');
