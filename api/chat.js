@@ -374,6 +374,8 @@ Would you like to proceed?`,
         source: vaultStatus.includes('frontend') ? 'frontend' : vaultStatus.includes('kv') ? 'kv' : 'fallback'
       },
       system_intelligence: getSystemIntelligenceStatus(intelligence),
+      intelligence_status: intelligence,
+      system_intelligence_active: intelligence.vaultIntelligenceActive,
       session_data: sessionData
     });
 
@@ -470,7 +472,9 @@ function buildMasterPrompt(mode, personality, vaultContent, vaultHealthy, expert
   masterPrompt += '5. CARING MOTIVATION (brief note showing genuine investment in their success)\n\n';
 
   / 10. ENHANCED INTELLIGENCE ACTIVATION
-masterPrompt += 'INTELLIGENCE AMPLIFICATION PROTOCOLS:\n';
+// Enhance prompt with intelligence  
+masterPrompt = enhancePromptWithIntelligence(masterPrompt, intelligence, message);
+masterPrompt += 'INTELLIGENCE AMPLIFICATION PROTOCOLS:\n'; 
 masterPrompt += '- Apply Claude-level reasoning depth to every analysis\n';
 masterPrompt += '- Use multi-step logical chains for complex problems\n';
 masterPrompt += '- Provide 3-5 actionable recommendations per response\n';
@@ -553,6 +557,8 @@ async function makeEnhancedAPICall(prompt, personality, prideMotivation) {
       return await makeEnhancedAPICall(prompt, 'roxy', prideMotivation);
     }
   } else {
+    // Intelligence integration right before OpenAI call
+const intelligence = integrateSystemIntelligence(message, vaultContent, vaultHealthy);
     // GPT-4 for Eli and Roxy
     if (!process.env.OPENAI_API_KEY) {
       throw new Error('OpenAI API key not configured');
