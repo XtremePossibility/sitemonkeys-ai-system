@@ -39,6 +39,7 @@ class DatabaseManager {
 
   async initialize() {
     if (this.isInitialized) return true;
+    this.initializePool(); 
 
     try {
       await this.createTables();
