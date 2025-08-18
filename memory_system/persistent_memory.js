@@ -245,59 +245,60 @@ class ExtractionEngine {
     }
 
     async extractFromCategory(userId, categoryName, subcategoryName, maxTokens, dbClient) {
-    // DEBUG: Log what we're searching for
-    console.log(`[EXTRACTION] 🔍 Searching for userId: "${userId}", category: "${categoryName}", subcategory: "${subcategoryName}"`);
-    
-    let query = `
-        SELECT id, category_name, subcategory_name, content, token_count, relevance_score, usage_frequency, 
-               last_accessed, created_at, metadata
-        FROM persistent_memories 
-        WHERE user_id = $1 AND category_name = $2
-    `;
-    const params = [userId, categoryName];
+        // DEBUG: Log what we're searching for
+        console.log(`[EXTRACTION] 🔍 Searching for userId: "${userId}", category: "${categoryName}", subcategory: "${subcategoryName}"`);
+        
+        let query = `
+            SELECT id, category_name, subcategory_name, content, token_count, relevance_score, usage_frequency, 
+                   last_accessed, created_at, metadata
+            FROM persistent_memories 
+            WHERE user_id = $1 AND category_name = $2
+        `;
+        const params = [userId, categoryName];
 
-    if (subcategoryName && subcategoryName !== 'null' && subcategoryName !== null) {
-        query += ` AND subcategory_name = $3`;
-        params.push(subcategoryName);
-    }
-
-    query += ` 
-        ORDER BY 
-            relevance_score DESC, 
-            usage_frequency DESC,
-            created_at DESC 
-        LIMIT 20
-    `;
-
-    console.log(`[EXTRACTION] 📊 Query: ${query}`);
-    console.log(`[EXTRACTION] 📊 Params: ${JSON.stringify(params)}`);
-
-    const result = await dbClient.query(query, params);
-    
-    console.log(`[EXTRACTION] 📈 Found ${result.rows.length} memories in database`);
-    
-    // Smart token-aware selection
-    const selectedMemories = [];
-    let currentTokens = 0;
-
-    for (const memory of result.rows) {
-        if (currentTokens + memory.token_count <= maxTokens) {
-            // Update usage statistics
-            await this.updateMemoryUsage(memory.id, dbClient);
-            
-            selectedMemories.push({
-                ...memory,
-                extractionReason: subcategoryName ? 'subcategory_match' : 'category_match'
-            });
-            
-            currentTokens += memory.token_count;
-            console.log(`[EXTRACTION] ✅ Selected memory ID ${memory.id} (${memory.token_count} tokens)`);
+        if (subcategoryName && subcategoryName !== 'null' && subcategoryName !== null) {
+            query += ` AND subcategory_name = $3`;
+            params.push(subcategoryName);
         }
+
+        query += ` 
+            ORDER BY 
+                relevance_score DESC, 
+                usage_frequency DESC,
+                created_at DESC 
+            LIMIT 20
+        `;
+
+        console.log(`[EXTRACTION] 📊 Query: ${query}`);
+        console.log(`[EXTRACTION] 📊 Params: ${JSON.stringify(params)}`);
+
+        const result = await dbClient.query(query, params);
+        
+        console.log(`[EXTRACTION] 📈 Found ${result.rows.length} memories in database`);
+        
+        // Smart token-aware selection
+        const selectedMemories = [];
+        let currentTokens = 0;
+
+        for (const memory of result.rows) {
+            if (currentTokens + memory.token_count <= maxTokens) {
+                // Update usage statistics
+                await this.updateMemoryUsage(memory.id, dbClient);
+                
+                selectedMemories.push({
+                    ...memory,
+                    extractionReason: subcategoryName ? 'subcategory_match' : 'category_match'
+                });
+                
+                currentTokens += memory.token_count;
+                console.log(`[EXTRACTION] ✅ Selected memory ID ${memory.id} (${memory.token_count} tokens)`);
+            }
+        }
+
+        console.log(`[EXTRACTION] 🎯 Returning ${selectedMemories.length} memories (${currentTokens} tokens)`);
+        return selectedMemories;
     }
 
-    console.log(`[EXTRACTION] 🎯 Returning ${selectedMemories.length} memories (${currentTokens} tokens)`);
-    return selectedMemories;
-}
     async updateMemoryUsage(memoryId, dbClient) {
         await dbClient.query(`
             UPDATE persistent_memories 
@@ -334,29 +335,29 @@ class ExtractionEngine {
     }
 
     formatForAI(memories) {
-    if (!memories || memories.length === 0) {
-        return { contextFound: false, memories: '' };
+        if (!memories || memories.length === 0) {
+            return { contextFound: false, memories: '' };
+        }
+
+        console.log(`[MEMORY FORMAT] 📝 Formatting ${memories.length} memories for AI`);
+        
+        const formattedMemories = memories
+            .map((memory, index) => {
+                const timeAgo = this.formatTimeAgo(memory.created_at);
+                console.log(`[MEMORY FORMAT] Memory ${index + 1}: "${memory.content.substring(0, 100)}..."`);
+                return `[${timeAgo}] ${memory.content}`;
+            })
+            .join('\n\n');
+
+        console.log(`[MEMORY FORMAT] ✅ Final formatted memory length: ${formattedMemories.length} characters`);
+
+        return {
+            contextFound: true,
+            memories: formattedMemories,
+            totalTokens: this.calculateTokens(memories),
+            categoriesUsed: [...new Set(memories.map(m => m.category_name))]
+        };
     }
-
-    console.log(`[MEMORY FORMAT] 📝 Formatting ${memories.length} memories for AI`);
-    
-    const formattedMemories = memories
-        .map((memory, index) => {
-            const timeAgo = this.formatTimeAgo(memory.created_at);
-            console.log(`[MEMORY FORMAT] Memory ${index + 1}: "${memory.content.substring(0, 100)}..."`);
-            return `[${timeAgo}] ${memory.content}`;
-        })
-        .join('\n\n');
-
-    console.log(`[MEMORY FORMAT] ✅ Final formatted memory length: ${formattedMemories.length} characters`);
-
-    return {
-        contextFound: true,
-        memories: formattedMemories,
-        totalTokens: this.calculateTokens(memories),
-        categoriesUsed: [...new Set(memories.map(m => m.category_name))]
-    };
-}
 
     formatTimeAgo(timestamp) {
         const days = Math.floor((Date.now() - new Date(timestamp)) / (1000 * 60 * 60 * 24));
@@ -377,58 +378,7 @@ class PersistentMemoryAPI {
         this.pool = null;
         this.router = new RoutingIntelligence();
         this.extractor = new ExtractionEngine();
-     // inside class PersistentMemoryAPI { ... }
-    // still inside class PersistentMemoryAPI
         
-    async storeConversationMemory(userId, content, metadata = {}) {
-      return this.storeMemory(userId, content, metadata);
-    }
-
-    // Public helper used by your system/smoke test
-    async retrieveMemory(userId, query, maxTokens = 2400) {
-      return this.getRelevantContext(userId, query, maxTokens);
-    }
-    
-    // The actual retrieval pipeline (this replaces the orphaned block you have now)
-    async getRelevantContext(userId, query, maxTokens = 2400) {
-      try {
-        if (!this.initialized) {
-          return { contextFound: false, memories: '', error: 'Memory system not initialized' };
-        }
-    
-        // Ensure user memory space exists
-        await this.provisionUserMemory(userId);
-    
-        // Route query to appropriate categories
-        const routing = this.router.routeToCategory(query, userId);
-    
-        // Extract relevant memories
-        const client = await this.pool.connect();
-        const extraction = await this.extractor.extractRelevantMemories(userId, query, routing, client);
-        client.release();
-    
-        if (!extraction.success) {
-          return { contextFound: false, memories: '', error: extraction.error };
-        }
-    
-        // Format for AI consumption
-        const formattedMemories = this.extractor.formatForAI(extraction.memories);
-    
-        persistentLogger.log(`📋 Retrieved ${extraction.memories.length} memories (${extraction.tokenCount} tokens) for ${userId}`);
-    
-        // Respect the maxTokens soft cap (your extractor already respects token budgets,
-        // but we preserve the API surface)
-        return {
-          ...formattedMemories,
-          totalTokens: Math.min(formattedMemories.totalTokens ?? 0, maxTokens)
-        };
-    
-      } catch (error) {
-        persistentLogger.error(`Error retrieving context for ${query}:`, error);
-        return { contextFound: false, memories: '', error: error.message };
-      }
-    }
-   
         this.categories = {
             // 11 MAIN PREDETERMINED CATEGORIES (50K each)
             health_wellness: { maxTokens: 50000, subcategories: ['physical_health', 'mental_health', 'medical_history', 'fitness_nutrition', 'wellness_practices'] },
@@ -460,11 +410,11 @@ class PersistentMemoryAPI {
         try {
             if (!process.env.DATABASE_URL) {
                 persistentLogger.error('❌ DATABASE_URL environment variable not found');
-                return;
+                return false;
             }
 
             console.log('[PERSISTENT] 🔌 Connecting to database...');
-this.pool = getDbPool();
+            this.pool = getDbPool();
 
             // Test connection
             const client = await this.pool.connect();
@@ -482,99 +432,101 @@ this.pool = getDbPool();
             // Schedule periodic maintenance
             setInterval(() => this.performMaintenance(), 60 * 60 * 1000); // Every hour
             
+            return true;
+            
         } catch (error) {
             persistentLogger.error('❌ Universal Memory API initialization failed:', error);
+            return false;
         }
     }
 
     async createDatabaseSchema() {
-  const client = await this.pool.connect();
-  try {
-    console.log('[PERSISTENT] 📋 Creating enhanced database schema...');
+        const client = await this.pool.connect();
+        try {
+            console.log('[PERSISTENT] 📋 Creating enhanced database schema...');
 
-    await client.query(`
-      -- main memories
-      CREATE TABLE IF NOT EXISTS persistent_memories (
-        id SERIAL PRIMARY KEY,
-        user_id TEXT NOT NULL,
-        category_name VARCHAR(100) NOT NULL,
-        subcategory_name VARCHAR(100),
-        content TEXT NOT NULL,
-        token_count INTEGER NOT NULL,
-        relevance_score DECIMAL(3,2) DEFAULT 0.50,
-        usage_frequency INTEGER DEFAULT 0,
-        last_accessed TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        metadata JSONB
-      );
+            await client.query(`
+                -- main memories
+                CREATE TABLE IF NOT EXISTS persistent_memories (
+                    id SERIAL PRIMARY KEY,
+                    user_id TEXT NOT NULL,
+                    category_name VARCHAR(100) NOT NULL,
+                    subcategory_name VARCHAR(100),
+                    content TEXT NOT NULL,
+                    token_count INTEGER NOT NULL,
+                    relevance_score DECIMAL(3,2) DEFAULT 0.50,
+                    usage_frequency INTEGER DEFAULT 0,
+                    last_accessed TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    metadata JSONB
+                );
 
-      -- categories (quota tracking)
-      CREATE TABLE IF NOT EXISTS memory_categories (
-        id SERIAL PRIMARY KEY,
-        user_id TEXT NOT NULL,
-        category_name VARCHAR(100) NOT NULL,
-        subcategory_name VARCHAR(100),
-        current_tokens INTEGER DEFAULT 0,
-        max_tokens INTEGER DEFAULT 50000,
-        is_dynamic BOOLEAN DEFAULT FALSE,
-        dynamic_focus VARCHAR(255),
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        UNIQUE(user_id, category_name, subcategory_name)
-      );
+                -- categories (quota tracking)
+                CREATE TABLE IF NOT EXISTS memory_categories (
+                    id SERIAL PRIMARY KEY,
+                    user_id TEXT NOT NULL,
+                    category_name VARCHAR(100) NOT NULL,
+                    subcategory_name VARCHAR(100),
+                    current_tokens INTEGER DEFAULT 0,
+                    max_tokens INTEGER DEFAULT 50000,
+                    is_dynamic BOOLEAN DEFAULT FALSE,
+                    dynamic_focus VARCHAR(255),
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    UNIQUE(user_id, category_name, subcategory_name)
+                );
 
-      -- users (stats)
-      CREATE TABLE IF NOT EXISTS user_memory_profiles (
-        user_id TEXT PRIMARY KEY,
-        total_memories INTEGER DEFAULT 0,
-        total_tokens INTEGER DEFAULT 0,
-        active_categories TEXT[],
-        memory_patterns JSONB,
-        last_optimization TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      );
+                -- users (stats)
+                CREATE TABLE IF NOT EXISTS user_memory_profiles (
+                    user_id TEXT PRIMARY KEY,
+                    total_memories INTEGER DEFAULT 0,
+                    total_tokens INTEGER DEFAULT 0,
+                    active_categories TEXT[],
+                    memory_patterns JSONB,
+                    last_optimization TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                );
 
-      -- indexes (canonical)
-      CREATE INDEX IF NOT EXISTS idx_pm_user_cat_rel_created
-        ON persistent_memories (user_id, category_name, relevance_score DESC, created_at DESC);
-      CREATE INDEX IF NOT EXISTS idx_pm_last_accessed
-        ON persistent_memories (user_id, last_accessed DESC);
-    `);
+                -- indexes (canonical)
+                CREATE INDEX IF NOT EXISTS idx_pm_user_cat_rel_created
+                    ON persistent_memories (user_id, category_name, relevance_score DESC, created_at DESC);
+                CREATE INDEX IF NOT EXISTS idx_pm_last_accessed
+                    ON persistent_memories (user_id, last_accessed DESC);
+            `);
 
-    // Optional migration: move rows from legacy table if it exists
-    await client.query(`
-      DO $$
-      BEGIN
-        IF EXISTS (
-          SELECT 1 FROM information_schema.tables
-          WHERE table_name = 'memory_entries'
-        ) THEN
-          INSERT INTO persistent_memories
-            (user_id, category_name, subcategory_name, content, token_count, relevance_score, usage_frequency, last_accessed, created_at, metadata)
-          SELECT
-            user_id,
-            category_name,
-            subcategory_name,
-            content,
-            token_count,
-            COALESCE(relevance_score, 0.50),
-            COALESCE(usage_frequency, 0),
-            COALESCE(last_accessed, CURRENT_TIMESTAMP),
-            COALESCE(created_at, CURRENT_TIMESTAMP),
-            metadata
-          FROM memory_entries;
+            // Optional migration: move rows from legacy table if it exists
+            await client.query(`
+                DO $$
+                BEGIN
+                    IF EXISTS (
+                        SELECT 1 FROM information_schema.tables
+                        WHERE table_name = 'memory_entries'
+                    ) THEN
+                        INSERT INTO persistent_memories
+                            (user_id, category_name, subcategory_name, content, token_count, relevance_score, usage_frequency, last_accessed, created_at, metadata)
+                        SELECT
+                            user_id,
+                            category_name,
+                            subcategory_name,
+                            content,
+                            token_count,
+                            COALESCE(relevance_score, 0.50),
+                            COALESCE(usage_frequency, 0),
+                            COALESCE(last_accessed, CURRENT_TIMESTAMP),
+                            COALESCE(created_at, CURRENT_TIMESTAMP),
+                            metadata
+                        FROM memory_entries;
 
-          DROP TABLE memory_entries;
-        END IF;
-      END $$;
-    `);
+                        DROP TABLE memory_entries;
+                    END IF;
+                END $$;
+            `);
 
-    persistentLogger.log('✅ Enhanced database schema created with migrations');
-  } finally {
-    client.release();
-  }
-}
-
+            persistentLogger.log('✅ Enhanced database schema created with migrations');
+        } finally {
+            client.release();
+        }
+    }
 
     async provisionUserMemory(userId) {
         if (!this.initialized) {
@@ -621,10 +573,18 @@ this.pool = getDbPool();
         }
     }
 
-    async retrieveMemory(userId, query, maxTokens = 2400) {
-      return this.getRelevantContext(userId, query, maxTokens);
+    // Public API methods for memory_bootstrap.js compatibility
+    async storeConversationMemory(userId, content, metadata = {}) {
+        return this.storeMemory(userId, content, metadata);
     }
 
+    async retrieveMemory(userId, query, maxTokens = 2400) {
+        return this.getRelevantContext(userId, query, maxTokens);
+    }
+    
+    // Main retrieval method
+    async getRelevantContext(userId, query, maxTokens = 2400) {
+        try {
             if (!this.initialized) {
                 return { contextFound: false, memories: '', error: 'Memory system not initialized' };
             }
@@ -634,7 +594,7 @@ this.pool = getDbPool();
 
             // Route query to appropriate categories
             const routing = this.router.routeToCategory(query, userId);
-            
+
             // Extract relevant memories
             const client = await this.pool.connect();
             const extraction = await this.extractor.extractRelevantMemories(userId, query, routing, client);
@@ -646,10 +606,14 @@ this.pool = getDbPool();
 
             // Format for AI consumption
             const formattedMemories = this.extractor.formatForAI(extraction.memories);
-            
+
             persistentLogger.log(`📋 Retrieved ${extraction.memories.length} memories (${extraction.tokenCount} tokens) for ${userId}`);
-            
-            return formattedMemories;
+
+            // Respect the maxTokens soft cap
+            return {
+                ...formattedMemories,
+                totalTokens: Math.min(formattedMemories.totalTokens ?? 0, maxTokens)
+            };
 
         } catch (error) {
             persistentLogger.error(`Error retrieving context for ${query}:`, error);
@@ -797,33 +761,32 @@ this.pool = getDbPool();
     }
 
     async makeSpace(userId, categoryName, subcategoryName, neededTokens, client) {
-  const deletedTokens = await client.query(`
-    WITH deleted AS (
-      DELETE FROM persistent_memories
-      WHERE user_id = $1 AND category_name = $2 AND subcategory_name = $3
-      AND id IN (
-        SELECT id FROM persistent_memories
-        WHERE user_id = $1 AND category_name = $2 AND subcategory_name = $3
-        ORDER BY relevance_score ASC, usage_frequency ASC, created_at ASC
-        LIMIT 10
-      )
-      RETURNING token_count
-    )
-    SELECT COALESCE(SUM(token_count), 0) AS freed_tokens FROM deleted
-  `, [userId, categoryName, subcategoryName]);
+        const deletedTokens = await client.query(`
+            WITH deleted AS (
+                DELETE FROM persistent_memories
+                WHERE user_id = $1 AND category_name = $2 AND subcategory_name = $3
+                AND id IN (
+                    SELECT id FROM persistent_memories
+                    WHERE user_id = $1 AND category_name = $2 AND subcategory_name = $3
+                    ORDER BY relevance_score ASC, usage_frequency ASC, created_at ASC
+                    LIMIT 10
+                )
+                RETURNING token_count
+            )
+            SELECT COALESCE(SUM(token_count), 0) AS freed_tokens FROM deleted
+        `, [userId, categoryName, subcategoryName]);
 
-  const freedTokens = parseInt(deletedTokens.rows[0].freed_tokens || 0, 10);
+        const freedTokens = parseInt(deletedTokens.rows[0].freed_tokens || 0, 10);
 
-  await client.query(`
-    UPDATE memory_categories
-    SET current_tokens = GREATEST(current_tokens - $1, 0),
-        updated_at = CURRENT_TIMESTAMP
-    WHERE user_id = $2 AND category_name = $3 AND subcategory_name = $4
-  `, [freedTokens, userId, categoryName, subcategoryName]);
+        await client.query(`
+            UPDATE memory_categories
+            SET current_tokens = GREATEST(current_tokens - $1, 0),
+                updated_at = CURRENT_TIMESTAMP
+            WHERE user_id = $2 AND category_name = $3 AND subcategory_name = $4
+        `, [freedTokens, userId, categoryName, subcategoryName]);
 
-  persistentLogger.log(`🧹 Made space in ${categoryName}/${subcategoryName}: freed ${freedTokens} tokens`);
-}
-
+        persistentLogger.log(`🧹 Made space in ${categoryName}/${subcategoryName}: freed ${freedTokens} tokens`);
+    }
 
     calculateInitialRelevance(content, metadata) {
         let relevance = 0.5; // Base relevance
@@ -848,10 +811,11 @@ this.pool = getDbPool();
         return Math.min(relevance, 1.0);
     }
 
-    async getSystemHealth() {
+    // Health check method for memory_bootstrap.js compatibility
+    async healthCheck() {
         try {
             if (!this.pool) {
-                return { overall: false, error: 'Database pool not initialized' };
+                return { status: 'error', error: 'Database pool not initialized' };
             }
 
             const client = await this.pool.connect();
@@ -859,19 +823,55 @@ this.pool = getDbPool();
             client.release();
             
             return {
-                overall: this.initialized,
-                database: { healthy: true },
+                status: 'healthy',
                 initialized: this.initialized,
                 timestamp: new Date().toISOString()
             };
 
         } catch (error) {
             return {
-                overall: false,
+                status: 'error',
                 error: error.message,
                 timestamp: new Date().toISOString()
             };
         }
+    }
+
+    async getSystemHealth() {
+        return this.healthCheck();
+    }
+
+    async getMemoryStats(userId) {
+        try {
+            if (!this.initialized) {
+                return { totalMemories: 0, totalTokens: 0, error: 'Not initialized' };
+            }
+
+            const client = await this.pool.connect();
+            const stats = await client.query(`
+                SELECT 
+                    COUNT(*) as total_memories,
+                    COALESCE(SUM(token_count), 0) as total_tokens
+                FROM persistent_memories 
+                WHERE user_id = $1
+            `, [userId]);
+            client.release();
+
+            return {
+                totalMemories: parseInt(stats.rows[0].total_memories),
+                totalTokens: parseInt(stats.rows[0].total_tokens),
+                mode: 'persistent'
+            };
+
+        } catch (error) {
+            persistentLogger.error(`Error getting stats for ${userId}:`, error);
+            return { totalMemories: 0, totalTokens: 0, error: error.message };
+        }
+    }
+
+    // Format method for extraction engine compatibility
+    formatForAI(memories, options = {}) {
+        return this.extractor.formatForAI(memories);
     }
 
     async performMaintenance() {
@@ -880,7 +880,7 @@ this.pool = getDbPool();
             
             // Database health check
             const health = await this.getSystemHealth();
-            if (!health.overall) {
+            if (health.status !== 'healthy') {
                 persistentLogger.warn('⚠️ Database health check failed during maintenance');
             }
             
