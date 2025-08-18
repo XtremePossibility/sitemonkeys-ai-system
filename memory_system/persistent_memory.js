@@ -304,7 +304,7 @@ class ExtractionEngine {
 }
     async updateMemoryUsage(memoryId, dbClient) {
         await dbClient.query(`
-            UPDATE memory_entries 
+            UPDATE persistent_memories 
             SET usage_frequency = usage_frequency + 1,
                 last_accessed = CURRENT_TIMESTAMP
             WHERE id = $1
