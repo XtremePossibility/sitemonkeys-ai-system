@@ -98,4 +98,5 @@ class DatabaseSingleton {
 }
 
 const dbSingleton = new DatabaseSingleton();
-module.exports = dbSingleton;
+export default dbSingleton;
+export const getDbPool = async () => dbSingleton.getPool();
