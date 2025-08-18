@@ -420,14 +420,15 @@ class PersistentMemoryAPI {
             this.pool = new Pool({
                 connectionString: process.env.DATABASE_URL,
                 ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
-                max: 20,
+                max: 10,  // Reduced for Railway limits
+                min: 2,
                 idleTimeoutMillis: 30000,
-                connectionTimeoutMillis: 10000,  // CRITICAL FIX: Increased from 2000 to 10000
-                acquireTimeoutMillis: 10000,      // CRITICAL FIX: Added for Railway
-                createTimeoutMillis: 10000,       // CRITICAL FIX: Added for Railway
-                destroyTimeoutMillis: 5000,       // CRITICAL FIX: Added for Railway
-                reapIntervalMillis: 1000,         // CRITICAL FIX: Added for Railway
-                createRetryIntervalMillis: 200    // CRITICAL FIX: Added for Railway
+                connectionTimeoutMillis: 10000,
+                acquireTimeoutMillis: 10000,
+                createTimeoutMillis: 10000,
+                statement_timeout: 30000,  // Add for Railway
+                query_timeout: 30000       // Add for Railway
+            });
             });
 
             // Test connection
@@ -458,7 +459,7 @@ class PersistentMemoryAPI {
             
             // Enhanced categories table with proper field sizes
             await client.query(`
-                CREATE TABLE IF NOT EXISTS category_stats (
+                CREATE TABLE IF NOT EXISTS memory_categories (
                     id SERIAL PRIMARY KEY,
                     user_id TEXT NOT NULL,
                     category_name VARCHAR(100) NOT NULL,
