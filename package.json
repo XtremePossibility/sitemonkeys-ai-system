@@ -18,6 +18,9 @@
     "#lib/*": "./lib/*"
   },
   "scripts": {
-    "start": "node server.js"
+    "start": "node --trace-warnings index.js"
+  },
+  "engines": {
+    "node": ">=14.0.0"
   }
 }
