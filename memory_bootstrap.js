@@ -89,11 +89,11 @@ global.memorySystem = {
 
             // Additional methods for compatibility
             getMemoryStats: async (userId) => {
-                return await this.getMemoryStats(userId);
+                return await self.getMemoryStats(userId);
             },
 
             healthCheck: async () => {
-                return await this.healthCheck();
+                return await self.healthCheck();
             }
         };
 
@@ -160,7 +160,7 @@ global.memorySystem = {
    */
   async storeMemoryForChat(userId, conversationData) {
     try {
-      if (this.isHealthy && this.persistentMemory) {
+      if (self.isHealthy && self.persistentMemory) {
         const result = await this.persistentMemory.storeMemory(
           userId,
           conversationData,
@@ -180,11 +180,11 @@ global.memorySystem = {
       }
 
       // Fallback storage
-      return await this.fallbackStore(userId, conversationData);
+      return await self.fallbackStore(userId, conversationData);
 
     } catch (error) {
       console.error('[MEMORY] Storage error:', error);
-      return await this.fallbackStore(userId, conversationData);
+      return await self.fallbackStore(userId, conversationData);
     }
   }
 
@@ -283,7 +283,7 @@ global.memorySystem = {
   async getMemoryStats(userId) {
     try {
       if (this.isHealthy && this.persistentMemory) {
-        return await this.persistentMemory.getMemoryStats(userId);
+        return await self.persistentMemory.getMemoryStats(userId);
       }
 
       // Fallback stats
@@ -339,10 +339,10 @@ global.memorySystem = {
       console.log('[MEMORY] getMemorySystem called but system not healthy - returning fallback');
       return {
         getRelevantContext: async (userId, message, tokenLimit = 2400) => {
-          return await this.fallbackRetrieve(userId, message);
+          return await self.fallbackRetrieve(userId, message);
         },
         storeMemory: async (userId, conversationData) => {
-          return await this.fallbackStore(userId, conversationData);
+          return await self.fallbackStore(userId, conversationData);
         },
         isHealthy: () => false
       };
@@ -354,11 +354,11 @@ global.memorySystem = {
         return result;
       },
       storeMemory: async (userId, conversationData) => {
-        return await this.storeMemoryForChat(userId, conversationData);
+        return await self.storeMemoryForChat(userId, conversationData);
       },
       isHealthy: () => this.isHealthy,
       getStats: async (userId) => {
-        return await this.getMemoryStats(userId);
+        return await self.getMemoryStats(userId);
       }
     };
   }
