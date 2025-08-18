@@ -44,23 +44,37 @@ class MemoryBootstrap {
                 return await this.retrieveMemoryForChat(userId, message);
             },
             
-            // Your chat.js expects this exact method signature  
-            storeMemory: async (userId, conversation) => {
-                if (this.isHealthy && this.persistentMemory) {
-                    return await this.persistentMemory.storeMemory(userId, conversation);
-                } else {
-                    // Emergency fallback with proper return structure
-                    console.log('[MEMORY_BOOTSTRAP] 💾 Emergency mode: memory simulation');
-                    return {
-                        success: false,
-                        memoryId: `emergency_${Date.now()}`,
-                        tokenCount: 0,
-                        relevanceScore: 0,
-                        mode: 'emergency_fallback',
-                        error: 'Persistent memory temporarily unavailable'
-                    };
-                }
-            },
+          storeMemory: async (userId, conversation) => {
+    try {
+        // First try persistent memory if available
+        if (this.isHealthy && this.persistentMemory) {
+            console.log('[MEMORY_BOOTSTRAP] Using persistent memory storage');
+            const result = await this.persistentMemory.storeMemory(userId, conversation);
+            if (result && result.success) {
+                return result;
+            }
+        }
+        
+        // Fall back to the actual fallback storage method
+        console.log('[MEMORY_BOOTSTRAP] Using fallback storage');
+        const fallbackResult = await this.fallbackStore(userId, conversation);
+        return fallbackResult;
+        
+    } catch (error) {
+        console.error('[MEMORY_BOOTSTRAP] Storage error:', error);
+        // Even on error, try fallback storage
+        try {
+            return await this.fallbackStore(userId, conversation);
+        } catch (fallbackError) {
+            console.error('[MEMORY_BOOTSTRAP] Fallback storage also failed:', fallbackError);
+            return {
+                success: false,
+                error: fallbackError.message || 'Storage failed completely'
+            };
+        }
+    }
+ }           
+        },
 
             // Additional methods for compatibility
             getMemoryStats: async (userId) => {
