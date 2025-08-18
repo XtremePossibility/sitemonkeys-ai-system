@@ -23,6 +23,9 @@ async function run() {
   } else if (mem.initialize) {
     await mem.initialize();
   }
+  if (mem.initialize) {
+  await mem.initialize();
+}
 
   // Health
   if (mem.healthCheck || mem.getSystemHealth) {
