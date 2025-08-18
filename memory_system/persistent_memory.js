@@ -620,7 +620,7 @@ class PersistentMemoryAPI {
             return { contextFound: false, memories: '', error: error.message };
         }
     }
-
+  
     async storeMemory(userId, content, metadata = {}) {
         try {
             if (!this.initialized) {
@@ -673,9 +673,11 @@ class PersistentMemoryAPI {
     }
 
     async storeMemoryInDatabase(userId, categoryName, subcategoryName, content, metadata = {}) {
+        if (!this.pool) {
         const client = await this.pool.connect();
-        try {
-            await client.query('BEGIN');
+            const client = await this.pool.connect();
+            try {
+                await client.query('BEGIN');
 
             // Calculate token count
             const tokenCount = Math.ceil(content.length / 4);
