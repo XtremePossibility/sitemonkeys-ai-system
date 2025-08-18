@@ -5,8 +5,7 @@
 // Modes: ALL (Truth, Business, Site Monkeys) - Universal system
 // ================================================================
 
-import pg from 'pg';
-const { Pool } = pg;
+import { getDbPool } from './db_singleton.js';
 
 // Persistent memory logger with distinctive prefix
 const persistentLogger = {
@@ -453,96 +452,93 @@ class PersistentMemoryAPI {
     }
 
     async createDatabaseSchema() {
-        const client = await this.pool.connect();
-        try {
-            console.log('[PERSISTENT] 📋 Creating enhanced database schema...');
-            
-            // Enhanced categories table with proper field sizes
-            -- main memories
-        CREATE TABLE IF NOT EXISTS persistent_memories (
-          id SERIAL PRIMARY KEY,
-          user_id TEXT NOT NULL,
-          category_name VARCHAR(100) NOT NULL,
-          subcategory_name VARCHAR(100),
-          content TEXT NOT NULL,
-          token_count INTEGER NOT NULL,
-          relevance_score DECIMAL(3,2) DEFAULT 0.50,
-          usage_frequency INTEGER DEFAULT 0,
-          last_accessed TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-          metadata JSONB
-        );
+  const client = await this.pool.connect();
+  try {
+    console.log('[PERSISTENT] 📋 Creating enhanced database schema...');
 
-            -- categories (quota tracking)
-        CREATE TABLE IF NOT EXISTS memory_categories (
-          id SERIAL PRIMARY KEY,
-          user_id TEXT NOT NULL,
-          category_name VARCHAR(100) NOT NULL,
-          subcategory_name VARCHAR(100),
-          current_tokens INTEGER DEFAULT 0,
-          max_tokens INTEGER DEFAULT 50000,
-          is_dynamic BOOLEAN DEFAULT FALSE,
-          dynamic_focus VARCHAR(255),
-          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-          UNIQUE(user_id, category_name, subcategory_name)
-        );  
+    await client.query(`
+      -- main memories
+      CREATE TABLE IF NOT EXISTS persistent_memories (
+        id SERIAL PRIMARY KEY,
+        user_id TEXT NOT NULL,
+        category_name VARCHAR(100) NOT NULL,
+        subcategory_name VARCHAR(100),
+        content TEXT NOT NULL,
+        token_count INTEGER NOT NULL,
+        relevance_score DECIMAL(3,2) DEFAULT 0.50,
+        usage_frequency INTEGER DEFAULT 0,
+        last_accessed TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        metadata JSONB
+      );
 
-            -- users (stats)
-        CREATE TABLE IF NOT EXISTS user_memory_profiles (
-          user_id TEXT PRIMARY KEY,
-          total_memories INTEGER DEFAULT 0,
-          total_tokens INTEGER DEFAULT 0,
-          active_categories TEXT[],
-          memory_patterns JSONB,
-          last_optimization TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        );
+      -- categories (quota tracking)
+      CREATE TABLE IF NOT EXISTS memory_categories (
+        id SERIAL PRIMARY KEY,
+        user_id TEXT NOT NULL,
+        category_name VARCHAR(100) NOT NULL,
+        subcategory_name VARCHAR(100),
+        current_tokens INTEGER DEFAULT 0,
+        max_tokens INTEGER DEFAULT 50000,
+        is_dynamic BOOLEAN DEFAULT FALSE,
+        dynamic_focus VARCHAR(255),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(user_id, category_name, subcategory_name)
+      );
 
-            -- indexes
-        CREATE INDEX IF NOT EXISTS idx_pm_user_cat_rel_created
-          ON persistent_memories (user_id, category_name, relevance_score DESC, created_at DESC);
-        CREATE INDEX IF NOT EXISTS idx_pm_last_accessed
-          ON persistent_memories (user_id, last_accessed DESC);
+      -- users (stats)
+      CREATE TABLE IF NOT EXISTS user_memory_profiles (
+        user_id TEXT PRIMARY KEY,
+        total_memories INTEGER DEFAULT 0,
+        total_tokens INTEGER DEFAULT 0,
+        active_categories TEXT[],
+        memory_patterns JSONB,
+        last_optimization TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
 
+      -- indexes (canonical)
+      CREATE INDEX IF NOT EXISTS idx_pm_user_cat_rel_created
+        ON persistent_memories (user_id, category_name, relevance_score DESC, created_at DESC);
+      CREATE INDEX IF NOT EXISTS idx_pm_last_accessed
+        ON persistent_memories (user_id, last_accessed DESC);
+    `);
 
-            // MIGRATION: Fix existing tables if they have wrong field types
-            await client.query(`
-                DO $$
-                BEGIN
-                  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name='memory_entries') THEN
-                    INSERT INTO persistent_memories
-                      (user_id, category_name, subcategory_name, content, token_count, relevance_score, usage_frequency, last_accessed, created_at, metadata)
-                    SELECT
-                      user_id,
-                      category_name,       -- assumes old had category_name; if it was 'category', map it here
-                      subcategory_name,
-                      content,
-                      token_count,
-                      COALESCE(relevance_score, 0.50),
-                      COALESCE(usage_frequency, 0),
-                      COALESCE(last_accessed, CURRENT_TIMESTAMP),
-                      COALESCE(created_at, CURRENT_TIMESTAMP),
-                      metadata
-                    FROM memory_entries;
-                
-                    DROP TABLE memory_entries;
-                  END IF;
-                END $$;
-            `);
+    // Optional migration: move rows from legacy table if it exists
+    await client.query(`
+      DO $$
+      BEGIN
+        IF EXISTS (
+          SELECT 1 FROM information_schema.tables
+          WHERE table_name = 'memory_entries'
+        ) THEN
+          INSERT INTO persistent_memories
+            (user_id, category_name, subcategory_name, content, token_count, relevance_score, usage_frequency, last_accessed, created_at, metadata)
+          SELECT
+            user_id,
+            category_name,
+            subcategory_name,
+            content,
+            token_count,
+            COALESCE(relevance_score, 0.50),
+            COALESCE(usage_frequency, 0),
+            COALESCE(last_accessed, CURRENT_TIMESTAMP),
+            COALESCE(created_at, CURRENT_TIMESTAMP),
+            metadata
+          FROM memory_entries;
 
-            // Create performance indexes
-            await client.query(`
-                CREATE INDEX IF NOT EXISTS idx_memory_relevance 
-                ON memory_entries(user_id, category_name, relevance_score DESC, created_at DESC)
-            `);
-            
-            persistentLogger.log('✅ Enhanced database schema created with migrations');
-            
-        } finally {
-            client.release();
-        }
-    }
+          DROP TABLE memory_entries;
+        END IF;
+      END $$;
+    `);
+
+    persistentLogger.log('✅ Enhanced database schema created with migrations');
+  } finally {
+    client.release();
+  }
+}
+
 
     async provisionUserMemory(userId) {
         if (!this.initialized) {
@@ -763,33 +759,33 @@ class PersistentMemoryAPI {
     }
 
     async makeSpace(userId, categoryName, subcategoryName, neededTokens, client) {
-        // Strategy: Remove lowest relevance memories until we have space
-        const deletedTokens = await client.query(`
-            WITH deleted_memories AS (
-                DELETE FROM memory_entries 
-                WHERE user_id = $1 AND category_name = $2 AND subcategory_name = $3
-                AND id IN (
-                    SELECT id FROM memory_entries 
-                    WHERE user_id = $1 AND category_name = $2 AND subcategory_name = $3
-                    ORDER BY relevance_score ASC, usage_frequency ASC, created_at ASC
-                    LIMIT 10
-                )
-                RETURNING token_count
-            )
-            SELECT COALESCE(SUM(token_count), 0) as freed_tokens FROM deleted_memories
-        `, [userId, categoryName, subcategoryName]);
+  const deletedTokens = await client.query(`
+    WITH deleted AS (
+      DELETE FROM persistent_memories
+      WHERE user_id = $1 AND category_name = $2 AND subcategory_name = $3
+      AND id IN (
+        SELECT id FROM persistent_memories
+        WHERE user_id = $1 AND category_name = $2 AND subcategory_name = $3
+        ORDER BY relevance_score ASC, usage_frequency ASC, created_at ASC
+        LIMIT 10
+      )
+      RETURNING token_count
+    )
+    SELECT COALESCE(SUM(token_count), 0) AS freed_tokens FROM deleted
+  `, [userId, categoryName, subcategoryName]);
 
-        const freedTokens = parseInt(deletedTokens.rows[0].freed_tokens);
+  const freedTokens = parseInt(deletedTokens.rows[0].freed_tokens || 0, 10);
 
-        // Update category token count
-        await client.query(`
-            UPDATE memory_categories 
-            SET current_tokens = current_tokens - $1
-            WHERE user_id = $2 AND category_name = $3 AND subcategory_name = $4
-        `, [freedTokens, userId, categoryName, subcategoryName]);
+  await client.query(`
+    UPDATE memory_categories
+    SET current_tokens = GREATEST(current_tokens - $1, 0),
+        updated_at = CURRENT_TIMESTAMP
+    WHERE user_id = $2 AND category_name = $3 AND subcategory_name = $4
+  `, [freedTokens, userId, categoryName, subcategoryName]);
 
-        persistentLogger.log(`🧹 Made space in ${categoryName}/${subcategoryName}: freed ${freedTokens} tokens`);
-    }
+  persistentLogger.log(`🧹 Made space in ${categoryName}/${subcategoryName}: freed ${freedTokens} tokens`);
+}
+
 
     calculateInitialRelevance(content, metadata) {
         let relevance = 0.5; // Base relevance
