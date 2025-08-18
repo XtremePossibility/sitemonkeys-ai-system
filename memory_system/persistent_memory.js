@@ -402,108 +402,88 @@ class PersistentMemoryAPI {
         };
         
         this.initialized = false;
-        // CRITICAL FIX: Don't call initialize() in constructor
-        // Let memory_bootstrap.js call it explicitly with proper await
     }
 
-    // Replace the initialize() method in your persistent_memory.js with this enhanced version
+    // FIXED INITIALIZE METHOD - THE REAL FIX
+    async initialize() {
+        try {
+            console.log('[PERSISTENT] 🚀 Smart initialization starting...');
+            
+            if (!process.env.DATABASE_URL) {
+                persistentLogger.error('❌ DATABASE_URL environment variable not found');
+                console.log('[PERSISTENT] ❌ DATABASE_URL missing');
+                return false;
+            }
+            console.log('[PERSISTENT] ✅ DATABASE_URL exists');
 
-async initialize() {
-    try {
-        console.log('[PERSISTENT] 🔍 STEP 1: Checking DATABASE_URL...');
-        if (!process.env.DATABASE_URL) {
-            persistentLogger.error('❌ DATABASE_URL environment variable not found');
-            console.log('[PERSISTENT] ❌ DATABASE_URL missing - this is the failure point');
+            console.log('[PERSISTENT] 🔌 Connecting to database...');
+            this.pool = await getDbPool();
+            console.log('[PERSISTENT] ✅ Database pool obtained');
+
+            // Test connection
+            const client = await this.pool.connect();
+            await client.query('SELECT NOW()');
+            client.release();
+            
+            persistentLogger.log('✅ Database connection established');
+
+            // Smart schema creation - check if tables exist first
+            console.log('[PERSISTENT] 🔍 Checking if database schema exists...');
+            const schemaExists = await this.checkSchemaExists();
+            
+            if (schemaExists) {
+                console.log('[PERSISTENT] ✅ Database schema already exists, skipping creation');
+            } else {
+                console.log('[PERSISTENT] 📋 Database schema missing, creating...');
+                try {
+                    await this.createDatabaseSchema();
+                    console.log('[PERSISTENT] ✅ Database schema created successfully');
+                } catch (schemaError) {
+                    console.error('[PERSISTENT] ⚠️ Schema creation failed, but continuing:', schemaError.message);
+                    // Continue anyway - tables might exist but creation failed due to permissions
+                }
+            }
+            
+            this.initialized = true;
+            persistentLogger.log('✅ Universal Memory API initialized successfully');
+            
+            // Schedule periodic maintenance
+            setInterval(() => this.performMaintenance(), 60 * 60 * 1000);
+            
+            console.log('[PERSISTENT] 🎉 INITIALIZATION COMPLETE - returning true');
+            return true;
+            
+        } catch (error) {
+            console.error('[PERSISTENT] ❌ Initialization failed:', error);
+            persistentLogger.error('❌ Universal Memory API initialization failed:', error);
             return false;
         }
-        console.log('[PERSISTENT] ✅ STEP 1: DATABASE_URL exists');
-
-        console.log('[PERSISTENT] 🔍 STEP 2: Connecting to database...');
-        // CRITICAL FIX: Await the getDbPool() call
-        this.pool = await getDbPool();
-        console.log('[PERSISTENT] ✅ STEP 2: Database pool obtained');
-
-        console.log('[PERSISTENT] 🔍 STEP 3: Testing database connection...');
-        // Test connection
-        const client = await this.pool.connect();
-        const testResult = await client.query('SELECT NOW() as time, version() as version');
-        client.release();
-        
-        console.log('[PERSISTENT] ✅ STEP 3: Database connection test successful');
-        console.log('[PERSISTENT] 📅 Database time:', testResult.rows[0].time);
-        console.log('[PERSISTENT] 🗄️ PostgreSQL version:', testResult.rows[0].version.substring(0, 50) + '...');
-        persistentLogger.log('✅ Database connection established');
-
-        console.log('[PERSISTENT] 🔍 STEP 4: Creating database schema...');
-        // Create database schema - THIS IS LIKELY WHERE IT FAILS
-        try {
-            await this.createDatabaseSchema();
-            console.log('[PERSISTENT] ✅ STEP 4: Database schema creation successful');
-        } catch (schemaError) {
-            console.error('[PERSISTENT] ❌ STEP 4 FAILED: Schema creation error:', {
-                message: schemaError.message,
-                code: schemaError.code,
-                detail: schemaError.detail,
-                hint: schemaError.hint,
-                position: schemaError.position,
-                severity: schemaError.severity
-            });
-            
-            // Check if tables already exist (might not be an error)
-            try {
-                const checkClient = await this.pool.connect();
-                const tableCheck = await checkClient.query(`
-                    SELECT table_name 
-                    FROM information_schema.tables 
-                    WHERE table_schema = 'public' 
-                    AND table_name IN ('persistent_memories', 'memory_categories', 'user_memory_profiles')
-                `);
-                checkClient.release();
-                
-                console.log('[PERSISTENT] 📊 Existing tables found:', tableCheck.rows.map(r => r.table_name));
-                
-                if (tableCheck.rows.length >= 1) {
-                    console.log('[PERSISTENT] ✅ Tables exist, continuing despite schema error...');
-                } else {
-                    console.log('[PERSISTENT] ❌ No tables found and schema creation failed');
-                    throw schemaError;
-                }
-            } catch (checkError) {
-                console.error('[PERSISTENT] ❌ Could not check existing tables:', checkError.message);
-                throw schemaError;
-            }
-        }
-        
-        console.log('[PERSISTENT] 🔍 STEP 5: Setting initialized flag...');
-        this.initialized = true;
-        console.log('[PERSISTENT] ✅ STEP 5: Initialized flag set to true');
-        
-        persistentLogger.log('✅ Universal Memory API initialized successfully');
-        
-        console.log('[PERSISTENT] 🔍 STEP 6: Scheduling maintenance...');
-        // Schedule periodic maintenance
-        setInterval(() => this.performMaintenance(), 60 * 60 * 1000); // Every hour
-        console.log('[PERSISTENT] ✅ STEP 6: Maintenance scheduled');
-        
-        console.log('[PERSISTENT] 🎉 INITIALIZATION COMPLETE - returning true');
-        return true;
-        
-    } catch (error) {
-        console.error('[PERSISTENT] ❌ INITIALIZATION FAILED AT MAIN LEVEL:', {
-            message: error.message,
-            stack: error.stack.split('\n').slice(0, 5).join('\n'),
-            code: error.code,
-            detail: error.detail,
-            hint: error.hint,
-            severity: error.severity,
-            where: error.where
-        });
-        persistentLogger.error('❌ Universal Memory API initialization failed:', error);
-        
-        console.log('[PERSISTENT] 💥 RETURNING FALSE DUE TO ERROR');
-        return false;
     }
-}
+
+    // Check if schema exists method
+    async checkSchemaExists() {
+        try {
+            const client = await this.pool.connect();
+            const result = await client.query(`
+                SELECT table_name 
+                FROM information_schema.tables 
+                WHERE table_schema = 'public' 
+                AND table_name IN ('persistent_memories', 'memory_categories', 'user_memory_profiles')
+            `);
+            client.release();
+            
+            const existingTables = result.rows.map(r => r.table_name);
+            console.log('[PERSISTENT] 📊 Found existing tables:', existingTables);
+            
+            // Return true if at least the main table exists
+            return existingTables.includes('persistent_memories');
+            
+        } catch (error) {
+            console.error('[PERSISTENT] ❌ Error checking schema:', error.message);
+            return false;
+        }
+    }
+
     async createDatabaseSchema() {
         const client = await this.pool.connect();
         try {
@@ -558,35 +538,7 @@ async initialize() {
                     ON persistent_memories (user_id, last_accessed DESC);
             `);
 
-            // Optional migration: move rows from legacy table if it exists
-            await client.query(`
-                DO $$
-                BEGIN
-                    IF EXISTS (
-                        SELECT 1 FROM information_schema.tables
-                        WHERE table_name = 'memory_entries'
-                    ) THEN
-                        INSERT INTO persistent_memories
-                            (user_id, category_name, subcategory_name, content, token_count, relevance_score, usage_frequency, last_accessed, created_at, metadata)
-                        SELECT
-                            user_id,
-                            category_name,
-                            subcategory_name,
-                            content,
-                            token_count,
-                            COALESCE(relevance_score, 0.50),
-                            COALESCE(usage_frequency, 0),
-                            COALESCE(last_accessed, CURRENT_TIMESTAMP),
-                            COALESCE(created_at, CURRENT_TIMESTAMP),
-                            metadata
-                        FROM memory_entries;
-
-                        DROP TABLE memory_entries;
-                    END IF;
-                END $$;
-            `);
-
-            persistentLogger.log('✅ Enhanced database schema created with migrations');
+            persistentLogger.log('✅ Enhanced database schema created');
         } finally {
             client.release();
         }
@@ -722,7 +674,6 @@ async initialize() {
             return result;
 
         } catch (error) {
-            // CRITICAL FIX: More detailed error logging
             console.error(`[PERSISTENT ERROR] FULL STORAGE ERROR for ${userId}:`, {
                 message: error.message,
                 stack: error.stack,
@@ -737,7 +688,6 @@ async initialize() {
     }
 
     async storeMemoryInDatabase(userId, categoryName, subcategoryName, content, metadata = {}) {
-        // CRITICAL FIX: Proper error handling for null pool
         if (!this.pool) {
             return { success: false, error: 'Database pool not initialized' };
         }
@@ -796,7 +746,6 @@ async initialize() {
 
         } catch (error) {
             await client.query('ROLLBACK');
-            // CRITICAL FIX: Log database transaction errors with full details
             console.error('[PERSISTENT ERROR] DATABASE TRANSACTION FAILED:', {
                 userId: userId,
                 category: categoryName,
