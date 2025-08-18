@@ -5,6 +5,8 @@
 // Modes: ALL (Truth, Business, Site Monkeys) - Universal system
 // ================================================================
 
+import { Pool } from 'pg';
+
 import { getDbPool } from './db_singleton.js';
 
 // Persistent memory logger with distinctive prefix
@@ -417,18 +419,18 @@ class PersistentMemoryAPI {
 
             console.log('[PERSISTENT] 🔌 Connecting to database...');
             this.pool = new Pool({
-                connectionString: process.env.DATABASE_URL,
-                ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
-                max: 10,  // Reduced for Railway limits
-                min: 2,
-                idleTimeoutMillis: 30000,
-                connectionTimeoutMillis: 10000,
-                acquireTimeoutMillis: 10000,
-                createTimeoutMillis: 10000,
-                statement_timeout: 30000,  // Add for Railway
-                query_timeout: 30000       // Add for Railway
+              connectionString: process.env.DATABASE_URL,
+              ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+              max: 10,
+              min: 2,
+              idleTimeoutMillis: 30000,
+              connectionTimeoutMillis: 10000,
+              acquireTimeoutMillis: 10000,
+              createTimeoutMillis: 10000,
+              statement_timeout: 30000,
+              query_timeout: 30000
             });
-            });
+
 
             // Test connection
             const client = await this.pool.connect();
