@@ -165,38 +165,41 @@ class MemoryBootstrap {
 
   /**
    * Retrieve memory in the format your chat.js expects
+   * CRITICAL FIX: Handle the object returned by getRelevantContext properly
    */
   async retrieveMemoryForChat(userId, message) {
     try {
       if (this.isHealthy && this.persistentMemory) {
-        const memories = await this.persistentMemory.getRelevantContext(userId, message, 2400);
+        console.log('[MEMORY_BOOTSTRAP] 📡 Calling persistent memory getRelevantContext...');
+        const memoryResult = await this.persistentMemory.getRelevantContext(userId, message, 2400);
         
-        if (memories && memories.length > 0) {
-          const formattedMemories = this.persistentMemory.formatForAI(memories, {
-            includeMetadata: false,
-            maxLength: 2400
-          });
-
+        console.log('[MEMORY_BOOTSTRAP] 📊 Memory result type:', typeof memoryResult);
+        console.log('[MEMORY_BOOTSTRAP] 📊 Memory result keys:', Object.keys(memoryResult || {}));
+        console.log('[MEMORY_BOOTSTRAP] 📊 Context found:', memoryResult?.contextFound);
+        
+        // CRITICAL FIX: memoryResult is already an object with contextFound and memories
+        if (memoryResult && memoryResult.contextFound) {
+          console.log('[MEMORY_BOOTSTRAP] ✅ Found persistent memories, returning formatted result');
           return {
             contextFound: true,
-            memories: formattedMemories,
-            totalTokens: memories.reduce((sum, mem) => sum + (mem.tokenCount || 0), 0),
-            memoryCount: memories.length
+            memories: memoryResult.memories, // This is already formatted as a string
+            totalTokens: memoryResult.totalTokens || 0,
+            memoryCount: memoryResult.categoriesUsed ? memoryResult.categoriesUsed.length : 1
           };
+        } else {
+          console.log('[MEMORY_BOOTSTRAP] ℹ️ No persistent memories found');
         }
+      } else {
+        console.log('[MEMORY_BOOTSTRAP] ⚠️ Persistent memory not healthy, skipping');
       }
 
       // Fallback or no memories found
-      return {
-        contextFound: false,
-        memories: '',
-        totalTokens: 0,
-        memoryCount: 0
-      };
+      console.log('[MEMORY_BOOTSTRAP] 🔄 Using fallback memory retrieval');
+      return await this.fallbackRetrieve(userId, message);
 
     } catch (error) {
-      console.error('[MEMORY] Retrieval error:', error);
-      return this.fallbackRetrieve(userId, message);
+      console.error('[MEMORY_BOOTSTRAP] ❌ Retrieval error:', error);
+      return await this.fallbackRetrieve(userId, message);
     }
   }
 
@@ -238,9 +241,11 @@ class MemoryBootstrap {
    */
   async fallbackRetrieve(userId, message) {
     try {
+      console.log(`[MEMORY_BOOTSTRAP] 🔍 Fallback retrieve for user: ${userId}`);
       const userMemories = this.fallbackMemory.get(userId) || [];
       
       if (userMemories.length === 0) {
+        console.log('[MEMORY_BOOTSTRAP] ℹ️ No fallback memories found');
         return {
           contextFound: false,
           memories: '',
@@ -264,6 +269,7 @@ class MemoryBootstrap {
           .map(mem => mem.content)
           .join('\n');
 
+        console.log(`[MEMORY_BOOTSTRAP] ✅ Found ${relevantMemories.length} fallback memories`);
         return {
           contextFound: true,
           memories: `=== MEMORY CONTEXT ===\n${formattedMemories}\n=== END CONTEXT ===\n`,
@@ -272,6 +278,7 @@ class MemoryBootstrap {
         };
       }
 
+      console.log('[MEMORY_BOOTSTRAP] ℹ️ No relevant fallback memories found');
       return {
         contextFound: false,
         memories: '',
@@ -317,7 +324,7 @@ class MemoryBootstrap {
 
       this.fallbackMemory.set(userId, userMemories);
       
-      console.log(`[MEMORY] ✅ Stored in fallback memory - ID: ${newMemory.id}, Total memories: ${userMemories.length}`);
+      console.log(`[MEMORY] ⚠️ Stored in fallback memory (persistent memory unavailable) - ID: ${newMemory.id}, Total memories: ${userMemories.length}`);
       return { success: true, mode: 'fallback', id: newMemory.id };
 
     } catch (error) {
