@@ -377,7 +377,58 @@ class PersistentMemoryAPI {
         this.pool = null;
         this.router = new RoutingIntelligence();
         this.extractor = new ExtractionEngine();
+     // inside class PersistentMemoryAPI { ... }
+    // still inside class PersistentMemoryAPI
         
+    async storeConversationMemory(userId, content, metadata = {}) {
+      return this.storeMemory(userId, content, metadata);
+    }
+
+    // Public helper used by your system/smoke test
+    async retrieveMemory(userId, query, maxTokens = 2400) {
+      return this.getRelevantContext(userId, query, maxTokens);
+    }
+    
+    // The actual retrieval pipeline (this replaces the orphaned block you have now)
+    async getRelevantContext(userId, query, maxTokens = 2400) {
+      try {
+        if (!this.initialized) {
+          return { contextFound: false, memories: '', error: 'Memory system not initialized' };
+        }
+    
+        // Ensure user memory space exists
+        await this.provisionUserMemory(userId);
+    
+        // Route query to appropriate categories
+        const routing = this.router.routeToCategory(query, userId);
+    
+        // Extract relevant memories
+        const client = await this.pool.connect();
+        const extraction = await this.extractor.extractRelevantMemories(userId, query, routing, client);
+        client.release();
+    
+        if (!extraction.success) {
+          return { contextFound: false, memories: '', error: extraction.error };
+        }
+    
+        // Format for AI consumption
+        const formattedMemories = this.extractor.formatForAI(extraction.memories);
+    
+        persistentLogger.log(`📋 Retrieved ${extraction.memories.length} memories (${extraction.tokenCount} tokens) for ${userId}`);
+    
+        // Respect the maxTokens soft cap (your extractor already respects token budgets,
+        // but we preserve the API surface)
+        return {
+          ...formattedMemories,
+          totalTokens: Math.min(formattedMemories.totalTokens ?? 0, maxTokens)
+        };
+    
+      } catch (error) {
+        persistentLogger.error(`Error retrieving context for ${query}:`, error);
+        return { contextFound: false, memories: '', error: error.message };
+      }
+    }
+   
         this.categories = {
             // 11 MAIN PREDETERMINED CATEGORIES (50K each)
             health_wellness: { maxTokens: 50000, subcategories: ['physical_health', 'mental_health', 'medical_history', 'fitness_nutrition', 'wellness_practices'] },
