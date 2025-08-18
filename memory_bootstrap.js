@@ -43,35 +43,6 @@ try {
     console.error('[MEMORY] ❌ Persistent memory import failed:', error.message);
     this.isHealthy = false;
 }
-      
-      if (success) {
-        this.isHealthy = true;
-        console.log('[MEMORY] ✅ Persistent memory system ready');
-      } else {
-        console.log('[MEMORY] ⚠️ Falling back to in-memory storage');
-        this.isHealthy = false;
-      }
-
-      // Set up global.memorySystem interface for your chat.js
-      global.memorySystem = {
-        // Your chat.js expects this exact method signature
-        retrieveMemory: async (userId, message) => {
-          return await this.retrieveMemoryForChat(userId, message);
-        },
-
-        // Your chat.js expects this exact method signature  
-        storeMemory: async (userId, conversation) => {
-    console.log('[MEMORY_BOOTSTRAP] 💾 Emergency mode: memory simulation');
-    // Return proper object structure to prevent downstream undefined errors
-    return {
-        success: false,
-        memoryId: `emergency_${Date.now()}`,
-        tokenCount: 0,
-        relevanceScore: 0,
-        mode: 'emergency_fallback',
-        error: 'Persistent memory temporarily unavailable'
-    };
-}
 
         // Additional methods for compatibility
         getMemoryStats: async (userId) => {
