@@ -5,7 +5,9 @@
 // Modes: ALL (Truth, Business, Site Monkeys) - Universal system
 // ================================================================
 
-import { Pool } from 'pg';
+// ================================================================
+// PERSISTENT MEMORY SYSTEM - UNIVERSAL USER CONVERSATIONS
+// ================================================================
 
 import { getDbPool } from './db_singleton.js';
 
