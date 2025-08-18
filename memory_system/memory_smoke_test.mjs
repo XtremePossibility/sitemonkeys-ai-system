@@ -1,6 +1,7 @@
 // memory_smoke_test.mjs
 // Run with: node memory_smoke_test.mjs
-
+// memory_smoke_test.mjs
+import MemoryModule from './memory_system/persistent_memory.js';
 // 🔧 Adjust this path to your module:
 import MemoryModule from './memory_system/memory_api.js';
 
