@@ -5,10 +5,6 @@
 // surgical extraction, and self-provisioning infrastructure.
 // ================================================================
 
-import memorySystemV2Instance from '../memory_api.js';
-export const getRelevantContext = memorySystemV2Instance.getRelevantContext.bind(memorySystemV2Instance);
-export const storeMemory = memorySystemV2Instance.storeMemory.bind(memorySystemV2Instance);
-export const initializeUser = memorySystemV2Instance.initializeUser.bind(memorySystemV2Instance);
 const { Pool } = require('pg');
 
 // Memory system logger with distinctive prefix
@@ -536,4 +532,8 @@ class MemoryAPIV2 {
 console.log('[MEMORY V2] 📦 Creating Memory System V2 instance...');
 const memorySystemV2Instance = new MemoryAPIV2();
 console.log('[MEMORY V2] ✅ Memory System V2 ready for export');
-module.exports = memorySystemV2Instance;
+module.exports = {
+    getRelevantContext: (userId, query, maxTokens) => memorySystemV2Instance.getRelevantContext(userId, query, maxTokens),
+    storeMemory: (userId, content, metadata) => memorySystemV2Instance.storeMemory(userId, content, metadata),
+    initializeUser: (userId) => memorySystemV2Instance.initializeUser(userId)
+};
