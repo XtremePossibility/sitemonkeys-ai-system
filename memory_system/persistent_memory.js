@@ -458,76 +458,76 @@ class PersistentMemoryAPI {
             console.log('[PERSISTENT] 📋 Creating enhanced database schema...');
             
             // Enhanced categories table with proper field sizes
-            await client.query(`
-                CREATE TABLE IF NOT EXISTS memory_categories (
-                    id SERIAL PRIMARY KEY,
-                    user_id TEXT NOT NULL,
-                    category_name VARCHAR(100) NOT NULL,
-                    subcategory_name VARCHAR(100),
-                    current_tokens INTEGER DEFAULT 0,
-                    max_tokens INTEGER DEFAULT 50000,
-                    is_dynamic BOOLEAN DEFAULT FALSE,
-                    dynamic_focus VARCHAR(255),
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    UNIQUE(user_id, category_name, subcategory_name)
-                )
-            `);
+            -- main memories
+        CREATE TABLE IF NOT EXISTS persistent_memories (
+          id SERIAL PRIMARY KEY,
+          user_id TEXT NOT NULL,
+          category_name VARCHAR(100) NOT NULL,
+          subcategory_name VARCHAR(100),
+          content TEXT NOT NULL,
+          token_count INTEGER NOT NULL,
+          relevance_score DECIMAL(3,2) DEFAULT 0.50,
+          usage_frequency INTEGER DEFAULT 0,
+          last_accessed TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          metadata JSONB
+        );
 
-            // Enhanced memories table with proper field sizes
-            await client.query(`
-                CREATE TABLE IF NOT EXISTS persistent_memories (
-                    id SERIAL PRIMARY KEY,
-                    user_id TEXT NOT NULL,
-                    category_name VARCHAR(100) NOT NULL,
-                    subcategory_name VARCHAR(100),
-                    content TEXT NOT NULL,
-                    token_count INTEGER NOT NULL,
-                    relevance_score DECIMAL(3,2) DEFAULT 0.50,
-                    usage_frequency INTEGER DEFAULT 0,
-                    last_accessed TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    metadata JSONB
-                )
-            `);
+            -- categories (quota tracking)
+        CREATE TABLE IF NOT EXISTS memory_categories (
+          id SERIAL PRIMARY KEY,
+          user_id TEXT NOT NULL,
+          category_name VARCHAR(100) NOT NULL,
+          subcategory_name VARCHAR(100),
+          current_tokens INTEGER DEFAULT 0,
+          max_tokens INTEGER DEFAULT 50000,
+          is_dynamic BOOLEAN DEFAULT FALSE,
+          dynamic_focus VARCHAR(255),
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          UNIQUE(user_id, category_name, subcategory_name)
+        );  
 
-            // Enhanced user profiles table with proper field sizes
-            await client.query(`
-                CREATE TABLE IF NOT EXISTS user_memory_profiles (
-                    user_id TEXT PRIMARY KEY,
-                    total_memories INTEGER DEFAULT 0,
-                    total_tokens INTEGER DEFAULT 0,
-                    active_categories TEXT[],
-                    memory_patterns JSONB,
-                    last_optimization TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                )
-            `);
+            -- users (stats)
+        CREATE TABLE IF NOT EXISTS user_memory_profiles (
+          user_id TEXT PRIMARY KEY,
+          total_memories INTEGER DEFAULT 0,
+          total_tokens INTEGER DEFAULT 0,
+          active_categories TEXT[],
+          memory_patterns JSONB,
+          last_optimization TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+
+            -- indexes
+        CREATE INDEX IF NOT EXISTS idx_pm_user_cat_rel_created
+          ON persistent_memories (user_id, category_name, relevance_score DESC, created_at DESC);
+        CREATE INDEX IF NOT EXISTS idx_pm_last_accessed
+          ON persistent_memories (user_id, last_accessed DESC);
+
 
             // MIGRATION: Fix existing tables if they have wrong field types
             await client.query(`
-                DO $$ 
+                DO $$
                 BEGIN
-                    -- Fix memory_categories table
-                    IF EXISTS (SELECT 1 FROM information_schema.columns 
-                              WHERE table_name = 'memory_categories' AND column_name = 'user_id' 
-                              AND data_type = 'character varying' AND character_maximum_length = 255) THEN
-                        ALTER TABLE memory_categories ALTER COLUMN user_id TYPE TEXT;
-                    END IF;
-                    
-                    -- Fix memory_entries table  
-                    IF EXISTS (SELECT 1 FROM information_schema.columns 
-                              WHERE table_name = 'memory_entries' AND column_name = 'user_id' 
-                              AND data_type = 'character varying' AND character_maximum_length = 255) THEN
-                        ALTER TABLE memory_entries ALTER COLUMN user_id TYPE TEXT;
-                    END IF;
-
-                    -- Fix user_memory_profiles table
-                    IF EXISTS (SELECT 1 FROM information_schema.columns 
-                              WHERE table_name = 'user_memory_profiles' AND column_name = 'user_id' 
-                              AND data_type = 'character varying' AND character_maximum_length = 255) THEN
-                        ALTER TABLE user_memory_profiles ALTER COLUMN user_id TYPE TEXT;
-                    END IF;
+                  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name='memory_entries') THEN
+                    INSERT INTO persistent_memories
+                      (user_id, category_name, subcategory_name, content, token_count, relevance_score, usage_frequency, last_accessed, created_at, metadata)
+                    SELECT
+                      user_id,
+                      category_name,       -- assumes old had category_name; if it was 'category', map it here
+                      subcategory_name,
+                      content,
+                      token_count,
+                      COALESCE(relevance_score, 0.50),
+                      COALESCE(usage_frequency, 0),
+                      COALESCE(last_accessed, CURRENT_TIMESTAMP),
+                      COALESCE(created_at, CURRENT_TIMESTAMP),
+                      metadata
+                    FROM memory_entries;
+                
+                    DROP TABLE memory_entries;
+                  END IF;
                 END $$;
             `);
 
