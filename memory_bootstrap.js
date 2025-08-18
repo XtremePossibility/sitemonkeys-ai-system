@@ -40,9 +40,18 @@ class MemoryBootstrap {
         },
 
         // Your chat.js expects this exact method signature  
-        storeMemory: async (userId, conversationData) => {
-          return await this.storeMemoryForChat(userId, conversationData);
-        },
+        storeMemory: async (userId, conversation) => {
+    console.log('[MEMORY_BOOTSTRAP] 💾 Emergency mode: memory simulation');
+    // Return proper object structure to prevent downstream undefined errors
+    return {
+        success: false,
+        memoryId: `emergency_${Date.now()}`,
+        tokenCount: 0,
+        relevanceScore: 0,
+        mode: 'emergency_fallback',
+        error: 'Persistent memory temporarily unavailable'
+    };
+}
 
         // Additional methods for compatibility
         getMemoryStats: async (userId) => {
