@@ -38,43 +38,54 @@ class MemoryBootstrap {
         }
 
         // Set up global.memorySystem interface for your chat.js (THIS WAS MISSING!)
-        global.memorySystem = {
-            // Your chat.js expects this exact method signature
-            retrieveMemory: async (userId, message) => {
-                return await this.retrieveMemoryForChat(userId, message);
-            },
+// Fix: Capture 'this' context to avoid arrow function binding issues
+const self = this;
+global.memorySystem = {
+    // Your chat.js expects this exact method signature
+    retrieveMemory: async (userId, message) => {
+        return await self.retrieveMemoryForChat(userId, message);
+    },
+    
+    storeMemory: async (userId, conversation) => {
+        try {
+            // First try persistent memory if available
+            if (self.isHealthy && self.persistentMemory) {
+                console.log('[MEMORY_BOOTSTRAP] Using persistent memory storage');
+                const result = await self.persistentMemory.storeMemory(userId, conversation);
+                if (result && result.success) {
+                    return result;
+                }
+            }
             
-          storeMemory: async (userId, conversation) => {
-    try {
-        // First try persistent memory if available
-        if (this.isHealthy && this.persistentMemory) {
-            console.log('[MEMORY_BOOTSTRAP] Using persistent memory storage');
-            const result = await this.persistentMemory.storeMemory(userId, conversation);
-            if (result && result.success) {
-                return result;
+            // Fall back to the actual fallback storage method
+            console.log('[MEMORY_BOOTSTRAP] Using fallback storage');
+            const fallbackResult = await self.fallbackStore(userId, conversation);
+            return fallbackResult;
+            
+        } catch (error) {
+            console.error('[MEMORY_BOOTSTRAP] Storage error:', error);
+            // Even on error, try fallback storage
+            try {
+                return await self.fallbackStore(userId, conversation);
+            } catch (fallbackError) {
+                console.error('[MEMORY_BOOTSTRAP] Fallback storage also failed:', fallbackError);
+                return {
+                    success: false,
+                    error: fallbackError.message || 'Storage failed completely'
+                };
             }
         }
-        
-        // Fall back to the actual fallback storage method
-        console.log('[MEMORY_BOOTSTRAP] Using fallback storage');
-        const fallbackResult = await this.fallbackStore(userId, conversation);
-        return fallbackResult;
-        
-    } catch (error) {
-        console.error('[MEMORY_BOOTSTRAP] Storage error:', error);
-        // Even on error, try fallback storage
-        try {
-            return await this.fallbackStore(userId, conversation);
-        } catch (fallbackError) {
-            console.error('[MEMORY_BOOTSTRAP] Fallback storage also failed:', fallbackError);
-            return {
-                success: false,
-                error: fallbackError.message || 'Storage failed completely'
-            };
-        }
+    },
+
+    // Additional methods for compatibility
+    getMemoryStats: async (userId) => {
+        return await self.getMemoryStats(userId);
+    },
+
+    healthCheck: async () => {
+        return await self.healthCheck();
     }
- }           
-        },
+};
 
             // Additional methods for compatibility
             getMemoryStats: async (userId) => {
@@ -93,14 +104,15 @@ class MemoryBootstrap {
         console.error('[MEMORY] ❌ Initialization failed:', error);
         
         // Set up fallback global.memorySystem
-        global.memorySystem = {
-            retrieveMemory: async (userId, message) => {
-                return await this.fallbackRetrieve(userId, message);
-            },
-            storeMemory: async (userId, conversationData) => {
-                return await this.fallbackStore(userId, conversationData);
-            }
-        };
+const self = this;
+global.memorySystem = {
+    retrieveMemory: async (userId, message) => {
+        return await self.fallbackRetrieve(userId, message);
+    },
+    storeMemory: async (userId, conversationData) => {
+        return await self.fallbackStore(userId, conversationData);
+    }
+};
 
         return { success: false, mode: 'fallback', error: error.message };
     }
