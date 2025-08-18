@@ -18,59 +18,79 @@ class MemoryBootstrap {
     console.log('[MEMORY] 🚀 Initializing Site Monkeys Memory System...');
 
     try {
-      // Initialize persistent memory with better error handling
-try {
-    // Fix the class name import issue
-    const { default: PersistentMemoryAPI } = await import('./memory_system/persistent_memory.js');
-    this.persistentMemory = new PersistentMemoryAPI();
-    const success = await this.persistentMemory.initialize();
-    
-    if (success) {
-        this.isHealthy = true;
-        console.log('[MEMORY] ✅ Persistent memory system ready');
-        
-        // Update the global interface to use the working persistent memory
-        global.memorySystem.storeMemory = async (userId, conversation) => {
-            return await this.persistentMemory.storeMemory(userId, conversation);
-        };
-    } else {
-        console.log('[MEMORY] ⚠️ Falling back to in-memory storage');
-        this.isHealthy = false;
-    }
-} catch (error) {
-    console.error('[MEMORY] ❌ Persistent memory import failed:', error.message);
-    this.isHealthy = false;
-}
-
-        // Additional methods for compatibility
-        getMemoryStats: async (userId) => {
-          return await this.getMemoryStats(userId);
-        },
-
-        healthCheck: async () => {
-          return await this.healthCheck();
+        // Initialize persistent memory with better error handling
+        try {
+            // Fix the class name import issue
+            const { default: PersistentMemoryAPI } = await import('./memory_system/persistent_memory.js');
+            this.persistentMemory = new PersistentMemoryAPI();
+            const success = await this.persistentMemory.initialize();
+            
+            if (success) {
+                this.isHealthy = true;
+                console.log('[MEMORY] ✅ Persistent memory system ready');
+            } else {
+                console.log('[MEMORY] ⚠️ Falling back to in-memory storage');
+                this.isHealthy = false;
+            }
+        } catch (error) {
+            console.error('[MEMORY] ❌ Persistent memory import failed:', error.message);
+            this.isHealthy = false;
         }
-      };
 
-      console.log('[MEMORY] ✅ Global memory system interface established');
-      return { success: true, mode: this.isHealthy ? 'persistent' : 'fallback' };
+        // Set up global.memorySystem interface for your chat.js (THIS WAS MISSING!)
+        global.memorySystem = {
+            // Your chat.js expects this exact method signature
+            retrieveMemory: async (userId, message) => {
+                return await this.retrieveMemoryForChat(userId, message);
+            },
+            
+            // Your chat.js expects this exact method signature  
+            storeMemory: async (userId, conversation) => {
+                if (this.isHealthy && this.persistentMemory) {
+                    return await this.persistentMemory.storeMemory(userId, conversation);
+                } else {
+                    // Emergency fallback with proper return structure
+                    console.log('[MEMORY_BOOTSTRAP] 💾 Emergency mode: memory simulation');
+                    return {
+                        success: false,
+                        memoryId: `emergency_${Date.now()}`,
+                        tokenCount: 0,
+                        relevanceScore: 0,
+                        mode: 'emergency_fallback',
+                        error: 'Persistent memory temporarily unavailable'
+                    };
+                }
+            },
+
+            // Additional methods for compatibility
+            getMemoryStats: async (userId) => {
+                return await this.getMemoryStats(userId);
+            },
+
+            healthCheck: async () => {
+                return await this.healthCheck();
+            }
+        };
+
+        console.log('[MEMORY] ✅ Global memory system interface established');
+        return { success: true, mode: this.isHealthy ? 'persistent' : 'fallback' };
 
     } catch (error) {
-      console.error('[MEMORY] ❌ Initialization failed:', error);
-      
-      // Set up fallback global.memorySystem
-      global.memorySystem = {
-        retrieveMemory: async (userId, message) => {
-          return await this.fallbackRetrieve(userId, message);
-        },
-        storeMemory: async (userId, conversationData) => {
-          return await this.fallbackStore(userId, conversationData);
-        }
-      };
+        console.error('[MEMORY] ❌ Initialization failed:', error);
+        
+        // Set up fallback global.memorySystem
+        global.memorySystem = {
+            retrieveMemory: async (userId, message) => {
+                return await this.fallbackRetrieve(userId, message);
+            },
+            storeMemory: async (userId, conversationData) => {
+                return await this.fallbackStore(userId, conversationData);
+            }
+        };
 
-      return { success: false, mode: 'fallback', error: error.message };
+        return { success: false, mode: 'fallback', error: error.message };
     }
-  }
+}
 
   /**
    * Retrieve memory in the format your chat.js expects
