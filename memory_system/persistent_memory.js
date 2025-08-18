@@ -1,12 +1,5 @@
 // ================================================================
 // PERSISTENT MEMORY SYSTEM - UNIVERSAL USER CONVERSATIONS
-// Revolutionary persistent memory with 11+5 categories, smart routing,
-// surgical extraction, and self-provisioning infrastructure.
-// Modes: ALL (Truth, Business, Site Monkeys) - Universal system
-// ================================================================
-
-// ================================================================
-// PERSISTENT MEMORY SYSTEM - UNIVERSAL USER CONVERSATIONS
 // ================================================================
 
 import { getDbPool } from './db_singleton.js';
@@ -256,7 +249,7 @@ class ExtractionEngine {
     console.log(`[EXTRACTION] 🔍 Searching for userId: "${userId}", category: "${categoryName}", subcategory: "${subcategoryName}"`);
     
     let query = `
-        SELECT id, content, token_count, relevance_score, usage_frequency, 
+        SELECT id, category_name, subcategory_name, content, token_count, relevance_score, usage_frequency, 
                last_accessed, created_at, metadata
         FROM persistent_memories 
         WHERE user_id = $1 AND category_name = $2
@@ -420,19 +413,7 @@ class PersistentMemoryAPI {
             }
 
             console.log('[PERSISTENT] 🔌 Connecting to database...');
-            this.pool = new Pool({
-              connectionString: process.env.DATABASE_URL,
-              ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
-              max: 10,
-              min: 2,
-              idleTimeoutMillis: 30000,
-              connectionTimeoutMillis: 10000,
-              acquireTimeoutMillis: 10000,
-              createTimeoutMillis: 10000,
-              statement_timeout: 30000,
-              query_timeout: 30000
-            });
-
+this.pool = getDbPool();
 
             // Test connection
             const client = await this.pool.connect();
@@ -589,8 +570,10 @@ class PersistentMemoryAPI {
         }
     }
 
-    async getRelevantContext(userId, query, maxTokens = 2400) {
-        try {
+    async retrieveMemory(userId, query, maxTokens = 2400) {
+      return this.getRelevantContext(userId, query, maxTokens);
+    }
+
             if (!this.initialized) {
                 return { contextFound: false, memories: '', error: 'Memory system not initialized' };
             }
