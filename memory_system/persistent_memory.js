@@ -414,7 +414,8 @@ class PersistentMemoryAPI {
             }
 
             console.log('[PERSISTENT] 🔌 Connecting to database...');
-            this.pool = getDbPool();
+            // CRITICAL FIX: Await the getDbPool() call
+            this.pool = await getDbPool();
 
             // Test connection
             const client = await this.pool.connect();
@@ -620,7 +621,7 @@ class PersistentMemoryAPI {
             return { contextFound: false, memories: '', error: error.message };
         }
     }
-  
+    
     async storeMemory(userId, content, metadata = {}) {
         try {
             if (!this.initialized) {
@@ -673,11 +674,14 @@ class PersistentMemoryAPI {
     }
 
     async storeMemoryInDatabase(userId, categoryName, subcategoryName, content, metadata = {}) {
+        // CRITICAL FIX: Proper error handling for null pool
         if (!this.pool) {
+            return { success: false, error: 'Database pool not initialized' };
+        }
+        
         const client = await this.pool.connect();
-            const client = await this.pool.connect();
-            try {
-                await client.query('BEGIN');
+        try {
+            await client.query('BEGIN');
 
             // Calculate token count
             const tokenCount = Math.ceil(content.length / 4);
