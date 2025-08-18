@@ -20,9 +20,29 @@ class MemoryBootstrap {
     console.log('[MEMORY] 🚀 Initializing Site Monkeys Memory System...');
 
     try {
-      // Initialize persistent memory
-      this.persistentMemory = new PersistentMemory();
-      const success = await this.persistentMemory.initialize();
+      // Initialize persistent memory with better error handling
+try {
+    // Fix the class name import issue
+    const { default: PersistentMemoryAPI } = await import('./memory_system/persistent_memory.js');
+    this.persistentMemory = new PersistentMemoryAPI();
+    const success = await this.persistentMemory.initialize();
+    
+    if (success) {
+        this.isHealthy = true;
+        console.log('[MEMORY] ✅ Persistent memory system ready');
+        
+        // Update the global interface to use the working persistent memory
+        global.memorySystem.storeMemory = async (userId, conversation) => {
+            return await this.persistentMemory.storeMemory(userId, conversation);
+        };
+    } else {
+        console.log('[MEMORY] ⚠️ Falling back to in-memory storage');
+        this.isHealthy = false;
+    }
+} catch (error) {
+    console.error('[MEMORY] ❌ Persistent memory import failed:', error.message);
+    this.isHealthy = false;
+}
       
       if (success) {
         this.isHealthy = true;
