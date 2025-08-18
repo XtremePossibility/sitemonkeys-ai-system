@@ -704,8 +704,8 @@ class PersistentMemoryAPI {
 
             // Store memory
             const insertResult = await client.query(`
-                INSERT INTO persistent_memories
-                (user_id, category, subcategory, content, token_count, relevance_score, metadata)
+                INSERT INTO persistent_memories 
+                (user_id, category_name, subcategory_name, content, ...)  -- Correct field names!
                 VALUES ($1, $2, $3, $4, $5, $6, $7)
                 RETURNING id
             `, [userId, categoryName, subcategoryName, content, tokenCount, relevanceScore, metadata]);
