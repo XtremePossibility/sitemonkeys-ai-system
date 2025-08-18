@@ -2,7 +2,7 @@
 // FIXED: Compatible with your existing chat.js system
 // Sets up global.memorySystem as expected by your chat handler
 
-import PersistentMemory from './memory_system/persistent_memory.js';
+import memorySystemV2Instance from './memory_api.js';
 
 class MemoryBootstrap {
   constructor() {
