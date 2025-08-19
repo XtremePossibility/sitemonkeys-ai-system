@@ -528,8 +528,39 @@ class MemoryAPIV2 {
     }
 }
 
-// Export singleton instance using CommonJS
-console.log('[MEMORY V2] 📦 Creating Memory System V2 instance...');
-const memorySystemV2Instance = new MemoryAPIV2();
-console.log('[MEMORY V2] ✅ Memory System V2 ready for export');
-module.exports = memorySystemV2Instance;
+// Export façade delegating to the real persistent engine (ESM), no new Pool, no mocks.
+module.exports = (function () {
+  let enginePromise = null;
+  async function getEngine() {
+    if (!enginePromise) {
+      enginePromise = (async () => {
+        const mod = await import('./persistent_memory.js');
+        const Engine = mod.default || mod.PersistentMemory || mod;
+        const inst = new Engine();
+        await inst.initialize();
+        return inst;
+      })();
+    }
+    return enginePromise;
+  }
+  return {
+    async initializeUser(userId) {
+      const eng = await getEngine();
+      return eng.provisionUserMemory(userId);
+    },
+    async storeMemory(userId, content, metadata = {}) {
+      const eng = await getEngine();
+      return eng.storeMemory(userId, content, metadata);
+    },
+    async getRelevantContext(userId, query, maxTokens = 2400) {
+      const eng = await getEngine();
+      return eng.getRelevantContext(userId, query, maxTokens);
+    },
+    async getSystemHealth() {
+      const eng = await getEngine();
+      if (typeof eng.getSystemHealth === 'function') return eng.getSystemHealth();
+      if (typeof eng.healthCheck === 'function') return eng.healthCheck();
+      return { status: 'unknown' };
+    }
+  };
+})();
