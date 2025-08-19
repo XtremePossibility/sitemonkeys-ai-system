@@ -48,7 +48,7 @@ class MemoryBootstrap {
             console.log('[MEMORY] 📝 Step 1: Attempting to import PersistentMemoryAPI...');
 
 /// Fix the class name import issue
-const { default: PersistentMemoryAPI } = await import('./memory_system/persistent_memory.js');
+const PersistentMemoryAPI = require('./memory_system/persistent_memory.js');
 console.log('[MEMORY] ✅ Step 1: PersistentMemoryAPI imported successfully');
             
             console.log('[MEMORY] 📝 Step 2: Creating PersistentMemoryAPI instance...');
