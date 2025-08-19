@@ -291,6 +291,9 @@ class ExtractionEngine {
                 });
                 
                 currentTokens += memory.token_count;
+                
+                // Add break to stop processing once limit reached
+                if (currentTokens >= maxTokens) break;
                 console.log(`[EXTRACTION] ✅ Selected memory ID ${memory.id} (${memory.token_count} tokens)`);
             }
         }
