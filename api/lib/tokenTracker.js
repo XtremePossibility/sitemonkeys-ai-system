@@ -78,6 +78,10 @@ export function trackApiCall(personality, promptTokens, completionTokens, vaultT
     sessionData.totalCalls++;
     sessionData.totalTokens += totalTokens;
     sessionData.totalCost += callCost;
+    // 🔧 accumulate true counts instead of estimating later
+    sessionData.promptTokens += (promptTokens || 0);
+    sessionData.completionTokens += (completionTokens || 0);
+    sessionData.vaultTokensUsed += (vaultTokens || 0);
     sessionData.lastCall = {
       timestamp: Date.now(),
       personality,
@@ -174,7 +178,13 @@ export function formatSessionDataForUI() {
       vault_display: sessionData.vaultTokensUsed + ' tokens',
       efficiency_display: 'Normal',
       calls_display: sessionData.totalCalls + ' calls',
-      status: 'ACTIVE'
+      status: 'ACTIVE',
+      // 🔧 expose numeric totals (add-only)
+      promptTokens: sessionData.promptTokens,
+      completionTokens: sessionData.completionTokens,
+      vaultTokens: sessionData.vaultTokensUsed,
+      totalCost: Number(sessionData.totalCost.toFixed(6)),
+      totalCalls: sessionData.totalCalls
     };
     
   } catch (error) {
@@ -185,7 +195,13 @@ export function formatSessionDataForUI() {
       vault_display: '0 tokens',
       efficiency_display: 'Error',
       calls_display: '0 calls',
-      status: 'ERROR'
+      status: 'ERROR',
+      // 🔧 numeric totals even on error
+      promptTokens: 0,
+      completionTokens: 0,
+      vaultTokens: 0,
+      totalCost: 0,
+      totalCalls: 0
     };
   }
 }
