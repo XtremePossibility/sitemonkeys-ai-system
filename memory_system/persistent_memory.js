@@ -413,10 +413,16 @@ async initialize() {
     try {
         console.log('[PERSISTENT] 🚀 Smart initialization starting...');
         
-        if (!process.env.DATABASE_URL) {
-            persistentLogger.error('❌ DATABASE_URL environment variable not found');
-            return false;
-        }
+        // Check for any valid database URL (Railway might use DATABASE_PRIVATE_URL)
+const hasValidDbUrl = process.env.DATABASE_PRIVATE_URL || 
+                     process.env.DATABASE_URL ||
+                     process.env.POSTGRES_URL ||
+                     process.env.POSTGRESQL_URL;
+
+if (!hasValidDbUrl) {
+    persistentLogger.error('❌ No database URL environment variable found');
+    return false;
+}
 
         console.log('[PERSISTENT] 🔌 Connecting to database...');
         this.pool = await getDbPool();
