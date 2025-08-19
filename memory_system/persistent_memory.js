@@ -295,6 +295,7 @@ class ExtractionEngine {
             });
             
             currentTokens += memory.token_count;
+            
             console.log(`[EXTRACTION] ✅ Selected memory ID ${memory.id} (${memory.token_count} tokens)`);
         }
     }
