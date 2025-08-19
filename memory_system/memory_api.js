@@ -532,31 +532,31 @@ class MemoryAPIV2 {
 module.exports = (function () {
   let enginePromise = null;
   async function getEngine() {
-  if (!enginePromise) {
-    enginePromise = (async () => {
-      try {
-        console.log('🔧 [DEBUG] Starting engine import...');
-        const mod = await import('./persistent_memory.js');
-        console.log('🔧 [DEBUG] Module imported:', Object.keys(mod));
-        
-        const Engine = mod.default || mod.PersistentMemory || mod;
-        console.log('🔧 [DEBUG] Engine found:', typeof Engine);
-        
-        const inst = new Engine();
-        console.log('🔧 [DEBUG] Instance created, initializing...');
-        
-        await inst.initialize();
-        console.log('🔧 [DEBUG] Engine initialized successfully!');
-        
-        return inst;
-      } catch (error) {
-        console.error('🔧 [DEBUG] Engine setup failed:', error);
-        throw error;
-      }
-    })();
+    if (!enginePromise) {
+      enginePromise = (async () => {
+        try {
+          console.log('🔧 [DEBUG] Starting engine import...');
+          const mod = await import('./persistent_memory.js');
+          console.log('🔧 [DEBUG] Module imported:', Object.keys(mod));
+          
+          const Engine = mod.default || mod.PersistentMemory || mod;
+          console.log('🔧 [DEBUG] Engine found:', typeof Engine);
+          
+          const inst = new Engine();
+          console.log('🔧 [DEBUG] Instance created, initializing...');
+          
+          await inst.initialize();
+          console.log('🔧 [DEBUG] Engine initialized successfully!');
+          
+          return inst;
+        } catch (error) {
+          console.error('🔧 [DEBUG] Engine setup failed:', error);
+          throw error;
+        }
+      })();
+    }
+    return enginePromise;
   }
-  return enginePromise;
-}
 
   return {
     async initializeUser(userId) {
