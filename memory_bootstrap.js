@@ -47,15 +47,8 @@ class MemoryBootstrap {
         try {
             console.log('[MEMORY] 📝 Step 1: Attempting to import PersistentMemoryAPI...');
 
-// 🔧 DEBUG: Add enhanced import debugging
-console.log('🔧 [BOOTSTRAP DEBUG] About to import persistent memory from: ./memory_system/persistent_memory.js');
-const mod = await import('./memory_system/persistent_memory');
-console.log('🔧 [BOOTSTRAP DEBUG] Import successful. Module keys:', Object.keys(mod));
-console.log('🔧 [BOOTSTRAP DEBUG] mod.default exists:', !!mod.default);
-console.log('🔧 [BOOTSTRAP DEBUG] mod.default type:', typeof mod.default);
-
-const PersistentMemoryAPI = mod.default || mod.PersistentMemory || mod;
-console.log('🔧 [BOOTSTRAP DEBUG] Final class to use:', typeof PersistentMemoryAPI);
+/// Fix the class name import issue
+const { default: PersistentMemoryAPI } = await import('./memory_system/persistent_memory.js');
 console.log('[MEMORY] ✅ Step 1: PersistentMemoryAPI imported successfully');
             
             console.log('[MEMORY] 📝 Step 2: Creating PersistentMemoryAPI instance...');
