@@ -24,7 +24,10 @@ let sessionData = {
   },
   vaultTokensUsed: 0,
   errorCount: 0,
-  lastError: null
+  lastError: null,
+  // 🔧 add true numeric totals
+  promptTokens: 0,
+  completionTokens: 0
 };
 
 // Pricing constants (per 1K tokens)
