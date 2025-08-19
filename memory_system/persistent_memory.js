@@ -404,85 +404,83 @@ class PersistentMemoryAPI {
         this.initialized = false;
     }
 
-    // FIXED INITIALIZE METHOD - THE REAL FIX
-    async initialize() {
-        try {
-            console.log('[PERSISTENT] 🚀 Smart initialization starting...');
-            
-            if (!process.env.DATABASE_URL) {
-                persistentLogger.error('❌ DATABASE_URL environment variable not found');
-                console.log('[PERSISTENT] ❌ DATABASE_URL missing');
-                return false;
-            }
-            console.log('[PERSISTENT] ✅ DATABASE_URL exists');
+    // BEST FIX: Smart initialize() method that checks for existing tables
 
-            console.log('[PERSISTENT] 🔌 Connecting to database...');
-            this.pool = await getDbPool();
-            console.log('[PERSISTENT] ✅ Database pool obtained');
-
-            // Test connection
-            const client = await this.pool.connect();
-            await client.query('SELECT NOW()');
-            client.release();
-            
-            persistentLogger.log('✅ Database connection established');
-
-            // Smart schema creation - check if tables exist first
-            console.log('[PERSISTENT] 🔍 Checking if database schema exists...');
-            const schemaExists = await this.checkSchemaExists();
-            
-            if (schemaExists) {
-                console.log('[PERSISTENT] ✅ Database schema already exists, skipping creation');
-            } else {
-                console.log('[PERSISTENT] 📋 Database schema missing, creating...');
-                try {
-                    await this.createDatabaseSchema();
-                    console.log('[PERSISTENT] ✅ Database schema created successfully');
-                } catch (schemaError) {
-                    console.error('[PERSISTENT] ⚠️ Schema creation failed, but continuing:', schemaError.message);
-                    // Continue anyway - tables might exist but creation failed due to permissions
-                }
-            }
-            
-            this.initialized = true;
-            persistentLogger.log('✅ Universal Memory API initialized successfully');
-            
-            // Schedule periodic maintenance
-            setInterval(() => this.performMaintenance(), 60 * 60 * 1000);
-            
-            console.log('[PERSISTENT] 🎉 INITIALIZATION COMPLETE - returning true');
-            return true;
-            
-        } catch (error) {
-            console.error('[PERSISTENT] ❌ Initialization failed:', error);
-            persistentLogger.error('❌ Universal Memory API initialization failed:', error);
+async initialize() {
+    try {
+        console.log('[PERSISTENT] 🚀 Smart initialization starting...');
+        
+        if (!process.env.DATABASE_URL) {
+            persistentLogger.error('❌ DATABASE_URL environment variable not found');
             return false;
         }
-    }
 
-    // Check if schema exists method
-    async checkSchemaExists() {
-        try {
-            const client = await this.pool.connect();
-            const result = await client.query(`
-                SELECT table_name 
-                FROM information_schema.tables 
-                WHERE table_schema = 'public' 
-                AND table_name IN ('persistent_memories', 'memory_categories', 'user_memory_profiles')
-            `);
-            client.release();
-            
-            const existingTables = result.rows.map(r => r.table_name);
-            console.log('[PERSISTENT] 📊 Found existing tables:', existingTables);
-            
-            // Return true if at least the main table exists
-            return existingTables.includes('persistent_memories');
-            
-        } catch (error) {
-            console.error('[PERSISTENT] ❌ Error checking schema:', error.message);
-            return false;
+        console.log('[PERSISTENT] 🔌 Connecting to database...');
+        this.pool = await getDbPool();
+
+        // Test connection
+        const client = await this.pool.connect();
+        await client.query('SELECT NOW()');
+        client.release();
+        
+        persistentLogger.log('✅ Database connection established');
+
+        // Smart schema creation - check if tables exist first
+        console.log('[PERSISTENT] 🔍 Checking if database schema exists...');
+        const schemaExists = await this.checkSchemaExists();
+        
+        if (schemaExists) {
+            console.log('[PERSISTENT] ✅ Database schema already exists, skipping creation');
+        } else {
+            console.log('[PERSISTENT] 📋 Database schema missing, creating...');
+            try {
+                await this.createDatabaseSchema();
+                console.log('[PERSISTENT] ✅ Database schema created successfully');
+            } catch (schemaError) {
+                console.error('[PERSISTENT] ⚠️ Schema creation failed, but continuing:', schemaError.message);
+                // Continue anyway - tables might exist but creation failed due to permissions
+            }
         }
+        
+        this.initialized = true;
+        persistentLogger.log('✅ Universal Memory API initialized successfully');
+        
+        // Schedule periodic maintenance
+        setInterval(() => this.performMaintenance(), 60 * 60 * 1000);
+        
+        console.log('[PERSISTENT] 🎉 SMART INIT COMPLETE - returning true');
+        return true;
+        
+    } catch (error) {
+        console.error('[PERSISTENT] ❌ Smart initialization failed:', error);
+        persistentLogger.error('❌ Universal Memory API initialization failed:', error);
+        return false;
     }
+}
+
+// Add this new method to check if schema exists
+async checkSchemaExists() {
+    try {
+        const client = await this.pool.connect();
+        const result = await client.query(`
+            SELECT table_name 
+            FROM information_schema.tables 
+            WHERE table_schema = 'public' 
+            AND table_name IN ('persistent_memories', 'memory_categories', 'user_memory_profiles')
+        `);
+        client.release();
+        
+        const existingTables = result.rows.map(r => r.table_name);
+        console.log('[PERSISTENT] 📊 Found existing tables:', existingTables);
+        
+        // Return true if at least the main table exists
+        return existingTables.includes('persistent_memories');
+        
+    } catch (error) {
+        console.error('[PERSISTENT] ❌ Error checking schema:', error.message);
+        return false;
+    }
+}
 
     async createDatabaseSchema() {
         const client = await this.pool.connect();
