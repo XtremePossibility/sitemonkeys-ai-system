@@ -59,7 +59,7 @@ console.log('[MEMORY] ✅ Step 1: PersistentMemoryAPI imported successfully');
             const success = await this.persistentMemory.initialize();
             console.log(`[MEMORY] 📊 Step 3: initialize() returned: ${success} (type: ${typeof success})`);
             
-            if (success !== false) {  
+            if (success === true) {    
                 this.isHealthy = true;
                 console.log('[MEMORY] ✅ Persistent memory system ready');
                 console.log('[MEMORY] 🔍 DEBUG - isHealthy set to:', this.isHealthy);
