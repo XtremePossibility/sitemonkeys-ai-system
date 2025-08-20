@@ -2,7 +2,7 @@
 // Preserves all breakthrough insights from this conversation
 // Ready for immediate Railway deployment
 
-import express from 'express'; I
+import express from 'express';
 import cors from 'cors';
 const app = express();
 import memoryBootstrap from './memory_bootstrap.js';
