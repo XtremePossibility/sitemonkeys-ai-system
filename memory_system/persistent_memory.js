@@ -249,15 +249,15 @@ class ExtractionEngine {
         console.log(`[EXTRACTION] 🔍 Searching for userId: "${userId}", category: "${categoryName}", subcategory: "${subcategoryName}"`);
         
         let query = `
-            SELECT id, category, subcategory, content, token_count, relevance_score, usage_frequency,   
+            SELECT id, category_name, subcategory_name, content, token_count, relevance_score, usage_frequency,   
                    last_accessed, created_at, metadata  
             FROM persistent_memories   
-            WHERE user_id = $1 AND category = $2
+            WHERE user_id = $1 AND category_name = $2
         `;
         const params = [userId, categoryName];
 
         if (subcategoryName && subcategoryName !== 'null' && subcategoryName !== null) {
-            query += ` AND subcategory = $3`;
+            query += ` AND subcategory_name = $3`;
             params.push(subcategoryName);
         }
 
@@ -540,7 +540,7 @@ async checkSchemaExists() {
 
                 -- indexes (canonical)
                 CREATE INDEX IF NOT EXISTS idx_pm_user_cat_rel_created    
-                    ON persistent_memories (user_id, category, relevance_score DESC, created_at DESC);
+                    ON persistent_memories (user_id, category_name, relevance_score DESC, created_at DESC);
                 CREATE INDEX IF NOT EXISTS idx_pm_last_accessed
                     ON persistent_memories (user_id, last_accessed DESC);
             `);
@@ -724,8 +724,8 @@ async checkSchemaExists() {
             // Store memory
             const insertResult = await client.query(`  
                 INSERT INTO persistent_memories     
-                (user_id, category, subcategory, content, token_count, relevance_score, metadata)    
-                VALUES ($1, $2, $3, $4, $5, $6, $7)  
+                (user_id, category_name, subcategory_name, content, token_count, relevance_score, metadata)    
+                VALUES ($1, $2, $3, $4, $5, $6, $7) 
                 RETURNING id
             `, [userId, categoryName, subcategoryName, content, tokenCount, relevanceScore, JSON.stringify(metadata)]);
 
@@ -783,10 +783,10 @@ async checkSchemaExists() {
         const deletedTokens = await client.query(`
             WITH deleted AS (
                 DELETE FROM persistent_memories
-                WHERE user_id = $1 AND category = $2 AND subcategory = $3
+                WHERE user_id = $1 AND category_name = $2 AND subcategory_name = $3
                 AND id IN (
                     SELECT id FROM persistent_memories
-                    WHERE user_id = $1 AND category = $2 AND subcategory = $3
+                    WHERE user_id = $1 AND category_name = $2 AND subcategory_name = $3
                     ORDER BY relevance_score ASC, usage_frequency ASC, created_at ASC
                     LIMIT 10
                 )
