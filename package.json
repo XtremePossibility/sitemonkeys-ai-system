@@ -18,7 +18,7 @@
     "#lib/*": "./lib/*"
   },
   "scripts": {
-    "start": "node --trace-warnings index.js"
+    "start": "node --trace-warnings server.js"
   },
   "engines": {
     "node": ">=14.0.0"
