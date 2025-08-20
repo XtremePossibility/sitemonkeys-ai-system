@@ -524,7 +524,7 @@ async checkSchemaExists() {
                     dynamic_focus VARCHAR(255),
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    UNIQUE(user_id, category, subcategory)
+                    UNIQUE(user_id, category_name, subcategory_name)
                 );
 
                 -- users (stats)
@@ -561,9 +561,9 @@ async checkSchemaExists() {
         try {
             // Create user profile
             await client.query(`    
-                INSERT INTO memory_categories (user_id, category, max_tokens, is_dynamic)    
+                INSERT INTO memory_categories (user_id, category_name, max_tokens, is_dynamic)    
                 VALUES ($1, $2, $3, $4)    
-                ON CONFLICT (user_id, category, subcategory) DO NOTHING
+                ON CONFLICT (user_id, category_name, subcategory_name) DO NOTHING
             `, [userId, Object.keys(this.categories)]);
 
             // Initialize all categories for user
@@ -571,9 +571,9 @@ async checkSchemaExists() {
                 if (categoryConfig.subcategories) {
                     for (const subcategory of categoryConfig.subcategories) {
                         await client.query(`    
-                            INSERT INTO memory_categories (user_id, category, max_tokens, is_dynamic)    
+                            INSERT INTO memory_categories (user_id, category_name, max_tokens, is_dynamic)    
                             VALUES ($1, $2, $3, $4)    
-                            ON CONFLICT (user_id, category, subcategory) DO NOTHING
+                            ON CONFLICT (user_id, category_name, subcategory_name) DO NOTHING
                         `, [userId, categoryName, subcategory, categoryConfig.maxTokens, !!categoryConfig.aiManaged]);
                     }
                 } else {
@@ -581,7 +581,7 @@ async checkSchemaExists() {
                     await client.query(`  
                         INSERT INTO memory_categories (user_id, category, max_tokens, is_dynamic)  
                         VALUES ($1, $2, $3, $4)  
-                        ON CONFLICT (user_id, category, subcategory) DO NOTHING
+                        ON CONFLICT (user_id, category_name, subcategory_name) DO NOTHING
                     `, [userId, categoryName, categoryConfig.maxTokens, true]);
                 }
             }
@@ -710,7 +710,7 @@ async checkSchemaExists() {
             const capacityCheck = await client.query(`  
                 SELECT current_tokens, max_tokens     
                 FROM memory_categories     
-                WHERE user_id = $1 AND category = $2 AND subcategory = $3
+                WHERE user_id = $1 AND category_name = $2 AND subcategory_name = $3
             `, [userId, categoryName, subcategoryName]);
 
             if (capacityCheck.rows.length === 0) {
@@ -739,7 +739,7 @@ async checkSchemaExists() {
             await client.query(`  
                 UPDATE memory_categories     
                 SET current_tokens = current_tokens + $1, updated_at = CURRENT_TIMESTAMP    
-                WHERE user_id = $2 AND category = $3 AND subcategory = $4
+                WHERE user_id = $2 AND category_name = $3 AND subcategory_name = $4
             `, [tokenCount, userId, categoryName, subcategoryName]);
 
             await client.query('COMMIT');
@@ -779,9 +779,9 @@ async checkSchemaExists() {
         
         await client.query(`  
             INSERT INTO memory_categories     
-            (user_id, category, subcategory, max_tokens, is_dynamic)    
+            (user_id, category_name, subcategory_name, max_tokens, is_dynamic)    
             VALUES ($1, $2, $3, $4, $5)    
-            ON CONFLICT (user_id, category, subcategory) DO NOTHING
+            ON CONFLICT (user_id, category_name, subcategory_name) DO NOTHING
         `, [userId, categoryName, subcategoryName, maxTokens, isDynamic]);
     }
 
@@ -807,7 +807,7 @@ async checkSchemaExists() {
             UPDATE memory_categories
             SET current_tokens = GREATEST(current_tokens - $1, 0),
                 updated_at = CURRENT_TIMESTAMP
-            WHERE user_id = $2 AND category = $3 AND subcategory = $4
+            WHERE user_id = $2 AND category_name = $3 AND subcategory_name = $4
         `, [freedTokens, userId, categoryName, subcategoryName]);
 
         persistentLogger.log(`🧹 Made space in ${categoryName}/${subcategoryName}: freed ${freedTokens} tokens`);
