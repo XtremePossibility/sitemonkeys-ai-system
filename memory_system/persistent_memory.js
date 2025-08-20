@@ -501,8 +501,8 @@ async checkSchemaExists() {
                 CREATE TABLE IF NOT EXISTS persistent_memories (    
                     id SERIAL PRIMARY KEY,    
                     user_id TEXT NOT NULL,    
-                    category VARCHAR(100) NOT NULL,    
-                    subcategory VARCHAR(100),
+                    category_name VARCHAR(100) NOT NULL,    
+                    subcategory_name VARCHAR(100),
                     content TEXT NOT NULL,
                     token_count INTEGER NOT NULL,
                     relevance_score DECIMAL(3,2) DEFAULT 0.50,
@@ -579,7 +579,7 @@ async checkSchemaExists() {
                 } else {
                     // Dynamic category
                     await client.query(`  
-                        INSERT INTO memory_categories (user_id, category, max_tokens, is_dynamic)  
+                        INSERT INTO memory_categories (user_id, category_name, max_tokens, is_dynamic)
                         VALUES ($1, $2, $3, $4)  
                         ON CONFLICT (user_id, category_name, subcategory_name) DO NOTHING
                     `, [userId, categoryName, categoryConfig.maxTokens, true]);
