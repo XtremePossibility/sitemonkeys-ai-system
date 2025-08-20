@@ -28,8 +28,13 @@ async function initializeMemorySystem() {
     console.log('[SERVER] 📊 Memory bootstrap initialization complete');
 }
 
-// Initialize memory systems immediately
-initializeMemorySystem();
+// Wrap entire server startup in async function
+async function startServer() {
+    // Initialize memory systems first
+    await initializeMemorySystem();
+    
+    // Continue with rest of server setup...
+}
 
 // Enable CORS and JSON parsing
 app.use(cors());
@@ -1670,11 +1675,18 @@ app.get('/api/memory-status', async (req, res) => {
     }
 });
 
-// START SERVER
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`🚀 Caring Family Intelligence System running on port ${PORT}`);
-  console.log(`💙 ${FAMILY_PHILOSOPHY.core_mission}`);
-  console.log(`✨ ${FAMILY_PHILOSOPHY.one_and_done_philosophy}`);
-  console.log(`📁 Vault endpoint: /api/load-vault`);
+// START SERVER (move this inside the startServer function)
+    const PORT = process.env.PORT || 3000;
+    app.listen(PORT, () => {
+      console.log(`🚀 Caring Family Intelligence System running on port ${PORT}`);
+      console.log(`💙 ${FAMILY_PHILOSOPHY.core_mission}`);
+      console.log(`✨ ${FAMILY_PHILOSOPHY.one_and_done_philosophy}`);
+      console.log(`📁 Vault endpoint: /api/load-vault`);
+    });
+}
+
+// Start the server
+startServer().catch(error => {
+    console.error('[SERVER] ❌ Failed to start server:', error);
+    process.exit(1);
 });
