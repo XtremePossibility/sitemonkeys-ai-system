@@ -2,7 +2,7 @@
 // SELF-INITIALIZING VERSION - automatically starts when first accessed
 // Sets up global.memorySystem as expected by your chat handler
 
-// Force deploy - $(date)
+// Force deploy 
 class MemoryBootstrap {
   constructor() {
     this.persistentMemory = null;
