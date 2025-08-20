@@ -1,7 +1,7 @@
 // ================================================================
 // PERSISTENT MEMORY SYSTEM - UNIVERSAL USER CONVERSATIONS
 // ================================================================
-//redeploy
+//redeploy-force-update-2
 import { getDbPool } from './db_singleton.js';
 
 // Persistent memory logger with distinctive prefix
