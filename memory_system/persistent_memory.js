@@ -516,8 +516,8 @@ async checkSchemaExists() {
                 CREATE TABLE IF NOT EXISTS memory_categories (    
                     id SERIAL PRIMARY KEY,    
                     user_id TEXT NOT NULL,    
-                    category VARCHAR(100) NOT NULL,    
-                    subcategory VARCHAR(100),
+                    category_name VARCHAR(100) NOT NULL,    
+                    subcategory_name VARCHAR(100),
                     current_tokens INTEGER DEFAULT 0,
                     max_tokens INTEGER DEFAULT 50000,
                     is_dynamic BOOLEAN DEFAULT FALSE,
