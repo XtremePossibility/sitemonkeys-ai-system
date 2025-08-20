@@ -2,7 +2,7 @@
 // SELF-INITIALIZING VERSION - automatically starts when first accessed
 // Sets up global.memorySystem as expected by your chat handler
 
-// Force deploy - August 20, 2025 - 2:23 PM
+// Force deploy - $(date)
 class MemoryBootstrap {
   constructor() {
     this.persistentMemory = null;
