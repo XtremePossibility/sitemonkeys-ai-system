@@ -2,7 +2,7 @@
 // Preserves all breakthrough insights from this conversation
 // Ready for immediate Railway deployment
 
-import express from 'express';
+import express from 'express'; I
 import cors from 'cors';
 const app = express();
 import memoryBootstrap from './memory_bootstrap.js';
@@ -1675,18 +1675,11 @@ app.get('/api/memory-status', async (req, res) => {
     }
 });
 
-// START SERVER (move this inside the startServer function)
-    const PORT = process.env.PORT || 3000;
-    app.listen(PORT, () => {
-      console.log(`🚀 Caring Family Intelligence System running on port ${PORT}`);
-      console.log(`💙 ${FAMILY_PHILOSOPHY.core_mission}`);
-      console.log(`✨ ${FAMILY_PHILOSOPHY.one_and_done_philosophy}`);
-      console.log(`📁 Vault endpoint: /api/load-vault`);
-    });
-}
-
-// Start the server
-startServer().catch(error => {
-    console.error('[SERVER] ❌ Failed to start server:', error);
-    process.exit(1);
+// START SERVER
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`🚀 Caring Family Intelligence System running on port ${PORT}`);
+  console.log(`💙 ${FAMILY_PHILOSOPHY.core_mission}`);
+  console.log(`✨ ${FAMILY_PHILOSOPHY.one_and_done_philosophy}`);
+  console.log(`📁 Vault endpoint: /api/load-vault`);
 });
