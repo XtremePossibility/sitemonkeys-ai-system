@@ -559,30 +559,24 @@ async checkSchemaExists() {
 
         const client = await this.pool.connect();
         try {
-            // Create user profile
-            await client.query(`    
-                INSERT INTO memory_categories (user_id, category_name, max_tokens, is_dynamic)    
-                VALUES ($1, $2, $3, $4)    
-                ON CONFLICT (user_id, category_name, subcategory_name) DO NOTHING
-            `, [userId, Object.keys(this.categories)]);
 
             // Initialize all categories for user
             for (const [categoryName, categoryConfig] of Object.entries(this.categories)) {
                 if (categoryConfig.subcategories) {
                     for (const subcategory of categoryConfig.subcategories) {
-                        await client.query(`    
-                            INSERT INTO memory_categories (user_id, category_name, max_tokens, is_dynamic)    
-                            VALUES ($1, $2, $3, $4)    
-                            ON CONFLICT (user_id, category_name, subcategory_name) DO NOTHING
+                        await client.query(`        
+                            INSERT INTO memory_categories (user_id, category_name, subcategory_name, max_tokens, is_dynamic)    
+                             VALUES ($1, $2, $3, $4, $5)    
+                             ON CONFLICT (user_id, category_name, subcategory_name) DO NOTHING
                         `, [userId, categoryName, subcategory, categoryConfig.maxTokens, !!categoryConfig.aiManaged]);
                     }
                 } else {
                     // Dynamic category
                     await client.query(`  
-                        INSERT INTO memory_categories (user_id, category_name, max_tokens, is_dynamic)
-                        VALUES ($1, $2, $3, $4)  
+                        INSERT INTO memory_categories (user_id, category_name, subcategory_name, max_tokens, is_dynamic)  
+                        VALUES ($1, $2, $3, $4, $5)  
                         ON CONFLICT (user_id, category_name, subcategory_name) DO NOTHING
-                    `, [userId, categoryName, categoryConfig.maxTokens, true]);
+                    `, [userId, categoryName, null, categoryConfig.maxTokens, true]);
                 }
             }
 
