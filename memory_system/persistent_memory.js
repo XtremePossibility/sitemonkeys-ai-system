@@ -561,8 +561,8 @@ async checkSchemaExists() {
         try {
             // Create user profile
             await client.query(`    
-                INSERT INTO memory_categories (user_id, category_name, subcategory_name, max_tokens, is_dynamic)    
-                VALUES ($1, $2, $3, $4, $5)    
+                INSERT INTO memory_categories (user_id, category_name, max_tokens, is_dynamic)    
+                VALUES ($1, $2, $3, $4)    
                 ON CONFLICT (user_id, category_name, subcategory_name) DO NOTHING
             `, [userId, Object.keys(this.categories)]);
 
