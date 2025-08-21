@@ -249,15 +249,15 @@ class ExtractionEngine {
         console.log(`[EXTRACTION] 🔍 Searching for userId: "${userId}", category: "${categoryName}", subcategory: "${subcategoryName}"`);
         
         let query = `
-            SELECT id, category_name, subcategory_name, content, token_count, relevance_score, usage_frequency,   
-                   last_accessed, created_at, metadata  
-            FROM persistent_memories   
-            WHERE user_id = $1 AND category_name = $2
+            SELECT id, category, subcategory, content, token_count, relevance_score, usage_frequency,     
+                   last_accessed, created_at, metadata    
+            FROM persistent_memories     
+            WHERE user_id = $1 AND category = $2
         `;
         const params = [userId, categoryName];
 
         if (subcategoryName && subcategoryName !== 'null' && subcategoryName !== null) {
-            query += ` AND subcategory_name = $3`;
+            query += ` AND subcategory = $3`;
             params.push(subcategoryName);
         }
 
@@ -358,7 +358,7 @@ class ExtractionEngine {
             contextFound: true,
             memories: formattedMemories,
             totalTokens: this.calculateTokens(memories),
-            categoriesUsed: [...new Set(memories.map(m => m.category_name))]
+            categoriesUsed: [...new Set(memories.map(m => m.category))]
         };
     }
 
@@ -724,7 +724,7 @@ async checkSchemaExists() {
             // Store memory
             const insertResult = await client.query(`  
                 INSERT INTO persistent_memories     
-                (user_id, category_name, subcategory_name, content, token_count, relevance_score, metadata)    
+                (user_id, category, subcategory, content, token_count, relevance_score, metadata)  
                 VALUES ($1, $2, $3, $4, $5, $6, $7) 
                 RETURNING id
             `, [userId, categoryName, subcategoryName, content, tokenCount, relevanceScore, JSON.stringify(metadata)]);
