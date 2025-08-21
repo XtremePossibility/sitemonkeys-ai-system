@@ -219,7 +219,7 @@ class ExtractionEngine {
         let query = `
             SELECT id, content, token_count, relevance_score, usage_frequency, 
                    last_accessed, created_at, metadata
-            FROM memory_entries 
+            FROM persistent_memories  
             WHERE user_id = $1 AND category = $2
         `;
         const params = [userId, categoryName];
@@ -262,7 +262,7 @@ class ExtractionEngine {
 
     async updateMemoryUsage(memoryId, dbClient) {
         await dbClient.query(`
-            UPDATE memory_entries 
+            UPDATE persistent_memories 
             SET usage_frequency = usage_frequency + 1,
                 last_accessed = CURRENT_TIMESTAMP
             WHERE id = $1
@@ -422,7 +422,7 @@ class MemoryAPIV2 {
 
             // Create memories table
             await client.query(`
-                CREATE TABLE IF NOT EXISTS memory_entries (
+                CREATE TABLE IF NOT EXISTS persistent_memories (
                     id SERIAL PRIMARY KEY,
                     user_id VARCHAR(255) NOT NULL,
                     category VARCHAR(100) NOT NULL,
