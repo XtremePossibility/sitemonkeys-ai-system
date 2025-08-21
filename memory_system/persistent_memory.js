@@ -358,7 +358,7 @@ class ExtractionEngine {
             contextFound: true,
             memories: formattedMemories,
             totalTokens: this.calculateTokens(memories),
-            categoriesUsed: [...new Set(memories.map(m => m.category))]
+            categoriesUsed: [...new Set(memories.map(m => m.category_name))]
         };
     }
 
