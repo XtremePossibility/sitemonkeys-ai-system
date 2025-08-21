@@ -12,14 +12,14 @@ BEGIN
     END IF;
 
     -- Copy rows to live table with existing columns only
-    INSERT INTO persistent_memories (
-      user_id, category_name, subcategory_name, content, token_count,
+    INSERT INTO persistent_memories (  
+    user_id, category, subcategory, content, token_count,
       relevance_score, usage_frequency, last_accessed, created_at, metadata
     )
     SELECT
       COALESCE(user_id, 'unknown'),
-      COALESCE(category_name, 'personal_development'),
-      COALESCE(subcategory_name, 'general'),
+      COALESCE(category, 'personal_development'),  
+      COALESCE(subcategory, 'general'),
       COALESCE(content, ''),
       COALESCE(token_count, CEIL(LENGTH(content)::float / 4)::integer),
       COALESCE(relevance_score, 0.5),
