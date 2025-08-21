@@ -25,7 +25,7 @@ let sessionData = {
   vaultTokensUsed: 0,
   errorCount: 0,
   lastError: null,
-  // 🔧 add true numeric totals
+  // NEW numeric totals
   promptTokens: 0,
   completionTokens: 0
 };
@@ -78,10 +78,11 @@ export function trackApiCall(personality, promptTokens, completionTokens, vaultT
     sessionData.totalCalls++;
     sessionData.totalTokens += totalTokens;
     sessionData.totalCost += callCost;
-    // 🔧 accumulate true counts instead of estimating later
-    sessionData.promptTokens += (promptTokens || 0);
-    sessionData.completionTokens += (completionTokens || 0);
-    sessionData.vaultTokensUsed += (vaultTokens || 0);
+    // NEW numeric totals
+    sessionData.promptTokens = (sessionData.promptTokens || 0) + promptTokens;
+    sessionData.completionTokens = (sessionData.completionTokens || 0) + completionTokens;
+    sessionData.vaultTokensUsed = (sessionData.vaultTokensUsed || 0) + vaultTokens;
+    
     sessionData.lastCall = {
       timestamp: Date.now(),
       personality,
@@ -95,7 +96,6 @@ export function trackApiCall(personality, promptTokens, completionTokens, vaultT
     sessionData.costs[personality] += callCost;
     sessionData.tokens[personality] += totalTokens;
     sessionData.calls[personality]++;
-    sessionData.vaultTokensUsed += vaultTokens;
     
     const warnings = [];
     
@@ -174,34 +174,158 @@ export function formatSessionDataForUI() {
     const sessionHours = sessionDuration / (1000 * 60 * 60);
     
     return {
+      // NEW numeric totals (added; do not remove existing display fields)
+      promptTokens: sessionData.promptTokens || 0,
+      completionTokens: sessionData.completionTokens || 0,
+      vaultTokens: sessionData.vaultTokensUsed || 0,
+      totalCost: Number(sessionData.totalCost.toFixed(6)),
+      totalCalls: sessionData.totalCalls,
       cost_display: '$' + sessionData.totalCost.toFixed(4),
       vault_display: sessionData.vaultTokensUsed + ' tokens',
       efficiency_display: 'Normal',
       calls_display: sessionData.totalCalls + ' calls',
-      status: 'ACTIVE',
-      // 🔧 expose numeric totals (add-only)
-      promptTokens: sessionData.promptTokens,
-      completionTokens: sessionData.completionTokens,
-      vaultTokens: sessionData.vaultTokensUsed,
-      totalCost: Number(sessionData.totalCost.toFixed(6)),
-      totalCalls: sessionData.totalCalls
+      status: 'ACTIVE'
     };
     
   } catch (error) {
     console.error('❌ Session data formatting error:', error.message);
     
     return {
-      cost_display: '$0.0000',
-      vault_display: '0 tokens',
-      efficiency_display: 'Error',
-      calls_display: '0 calls',
-      status: 'ERROR',
-      // 🔧 numeric totals even on error
       promptTokens: 0,
       completionTokens: 0,
       vaultTokens: 0,
       totalCost: 0,
-      totalCalls: 0
+      totalCalls: 0,
+      cost_display: '$0.0000',
+      vault_display: '0 tokens',
+      efficiency_display: 'Error',
+      calls_display: '0 calls',
+      status: 'ERROR'
     };
   }
+}
+
+/**
+ * Get detailed session statistics
+ * @returns {object} Complete session analytics
+ */
+export function getSessionStats() {
+  return {
+    ...sessionData,
+    sessionDuration: Date.now() - sessionData.sessionStart,
+    averageCostPerCall: sessionData.totalCalls > 0 ? sessionData.totalCost / sessionData.totalCalls : 0,
+    averageTokensPerCall: sessionData.totalCalls > 0 ? sessionData.totalTokens / sessionData.totalCalls : 0,
+    costBreakdown: {
+      eli: {
+        cost: sessionData.costs.eli,
+        tokens: sessionData.tokens.eli,
+        calls: sessionData.calls.eli,
+        percentage: sessionData.totalCost > 0 ? (sessionData.costs.eli / sessionData.totalCost * 100) : 0
+      },
+      roxy: {
+        cost: sessionData.costs.roxy,
+        tokens: sessionData.tokens.roxy,
+        calls: sessionData.calls.roxy,
+        percentage: sessionData.totalCost > 0 ? (sessionData.costs.roxy / sessionData.totalCost * 100) : 0
+      },
+      claude: {
+        cost: sessionData.costs.claude,
+        tokens: sessionData.tokens.claude,
+        calls: sessionData.calls.claude,
+        percentage: sessionData.totalCost > 0 ? (sessionData.costs.claude / sessionData.totalCost * 100) : 0
+      }
+    }
+  };
+}
+
+/**
+ * Reset session tracking data
+ */
+export function resetSession() {
+  const previousSession = { ...sessionData };
+  
+  sessionData = {
+    totalCalls: 0,
+    totalTokens: 0,
+    totalCost: 0,
+    sessionStart: Date.now(),
+    lastCall: null,
+    costs: { eli: 0, roxy: 0, claude: 0 },
+    tokens: { eli: 0, roxy: 0, claude: 0 },
+    calls: { eli: 0, roxy: 0, claude: 0 },
+    vaultTokensUsed: 0,
+    errorCount: 0,
+    lastError: null,
+    promptTokens: 0,
+    completionTokens: 0
+  };
+  
+  console.log('🔄 Session tracking reset');
+  return previousSession;
+}
+
+/**
+ * Get cost estimation for a planned call
+ * @param {string} personality - Target personality
+ * @param {number} estimatedPromptTokens - Expected input tokens
+ * @param {number} estimatedCompletionTokens - Expected output tokens
+ * @returns {object} Cost estimation
+ */
+export function estimateCallCost(personality, estimatedPromptTokens, estimatedCompletionTokens) {
+  if (!PRICING[personality]) {
+    throw new Error('Invalid personality for cost estimation: ' + personality);
+  }
+  
+  const pricing = PRICING[personality];
+  const inputCost = (estimatedPromptTokens * pricing.input) / 1000;
+  const outputCost = (estimatedCompletionTokens * pricing.output) / 1000;
+  const totalCost = inputCost + outputCost;
+  
+  return {
+    personality,
+    estimatedPromptTokens,
+    estimatedCompletionTokens,
+    estimatedTotalTokens: estimatedPromptTokens + estimatedCompletionTokens,
+    inputCost,
+    outputCost,
+    totalCost,
+    projectedSessionCost: sessionData.totalCost + totalCost,
+    costWarning: totalCost > 0.25,
+    sessionWarning: (sessionData.totalCost + totalCost) > 2.00
+  };
+}
+
+/**
+ * Track error in token processing
+ * @param {string} errorType - Type of error
+ * @param {string} errorMessage - Error details
+ * @param {object} context - Additional context
+ */
+export function trackError(errorType, errorMessage, context = {}) {
+  sessionData.errorCount++;
+  sessionData.lastError = {
+    timestamp: Date.now(),
+    type: errorType,
+    message: errorMessage,
+    context
+  };
+  
+  console.error(`❌ Token Tracker Error [${errorType}]: ${errorMessage}`, context);
+}
+
+// Export all session data getters for debugging
+export function getSessionData() {
+  return { ...sessionData };
+}
+
+export function getCurrentCosts() {
+  return { ...sessionData.costs };
+}
+
+export function getCurrentTokens() {
+  return { ...sessionData.tokens };
+}
+
+export function getCurrentCalls() {
+  return { ...sessionData.calls };
 }
