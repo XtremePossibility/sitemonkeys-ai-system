@@ -477,16 +477,6 @@ class MemoryAPIV2 {
         const extraction = await this.extractor.extractRelevantMemories(userId, query, routing, client);
         client.release();
 
-        calculateInitialRelevance(content, metadata) {
-            let relevance = 0.5;
-            const emotionalWords = ['excited', 'worried', 'happy', 'stressed', 'important', 'urgent', 'critical'];
-            const emotionalMatches = emotionalWords.filter(word => content.toLowerCase().includes(word)).length;
-            relevance += emotionalMatches * 0.05;
-            if (content.includes('?')) relevance += 0.1;
-            if (metadata.userMarkedImportant) relevance += 0.2;
-            return Math.min(relevance, 1.0);
-        }
-
         if (!extraction.success) {
             return { contextFound: false, memories: '', error: extraction.error };
         }
@@ -550,8 +540,20 @@ class MemoryAPIV2 {
             timestamp: new Date().toISOString()
         };
     }
+
+    calculateInitialRelevance(content, metadata) {
+        let relevance = 0.5;
+        const emotionalWords = ['excited', 'worried', 'happy', 'stressed', 'important', 'urgent', 'critical'];
+        const emotionalMatches = emotionalWords.filter(word => content.toLowerCase().includes(word)).length;
+        relevance += emotionalMatches * 0.05;
+        if (content.includes('?')) relevance += 0.1;
+        if (metadata.userMarkedImportant) relevance += 0.2;
+        return Math.min(relevance, 1.0);
+    }
+
     // Add this method right after getSystemHealth()
     async healthCheck() {
+    
         return this.getSystemHealth();
     }
 
