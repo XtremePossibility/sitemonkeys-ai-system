@@ -249,15 +249,15 @@ class ExtractionEngine {
         console.log(`[EXTRACTION] 🔍 Searching for userId: "${userId}", category: "${categoryName}", subcategory: "${subcategoryName}"`);
         
         let query = `
-            SELECT id, category_name, subcategory_name, content, token_count, relevance_score, usage_frequency,     
+            SELECT id, category, subcategory, content, token_count, relevance_score, usage_frequency,     
                    last_accessed, created_at, metadata    
             FROM persistent_memories     
-            WHERE user_id = $1 AND category_name = $2
+            WHERE user_id = $1 AND category = $2
         `;
         const params = [userId, categoryName];
 
         if (subcategoryName && subcategoryName !== 'null' && subcategoryName !== null) {
-            query += ` AND subcategory_name = $3`;
+            query += ` AND subcategory = $3`;
             params.push(subcategoryName);
         }
 
@@ -524,7 +524,7 @@ async checkSchemaExists() {
                     dynamic_focus VARCHAR(255),
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    UNIQUE(user_id, category_name, subcategory_name)
+                    UNIQUE(user_id, category, subcategory))
                 );
 
                 -- users (stats)
