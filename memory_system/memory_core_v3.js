@@ -410,8 +410,8 @@ class MemoryAPIV2 {
                 CREATE TABLE IF NOT EXISTS memory_categories (
                     id SERIAL PRIMARY KEY,
                     user_id VARCHAR(255) NOT NULL,
-                    category VARCHAR(100) NOT NULL,
-                    subcategory VARCHAR(100),
+                    category_name VARCHAR(100) NOT NULL,
+                    subcategory_name VARCHAR(100),
                     current_tokens INTEGER DEFAULT 0,
                     max_tokens INTEGER DEFAULT 50000,
                     is_dynamic BOOLEAN DEFAULT FALSE,
@@ -427,8 +427,8 @@ class MemoryAPIV2 {
                 CREATE TABLE IF NOT EXISTS persistent_memories (
                     id SERIAL PRIMARY KEY,
                     user_id VARCHAR(255) NOT NULL,
-                    category VARCHAR(100) NOT NULL,
-                    subcategory VARCHAR(100),
+                    category_name VARCHAR(100) NOT NULL,
+                    subcategory_name VARCHAR(100),
                     content TEXT NOT NULL,
                     token_count INTEGER NOT NULL,
                     relevance_score DECIMAL(3,2) DEFAULT 0.50,
