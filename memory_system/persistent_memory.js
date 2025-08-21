@@ -501,8 +501,8 @@ async checkSchemaExists() {
                 CREATE TABLE IF NOT EXISTS persistent_memories (    
                     id SERIAL PRIMARY KEY,    
                     user_id TEXT NOT NULL,    
-                    category VARCHAR(100) NOT NULL,    
-                    subcategory VARCHAR(100),
+                    category_name VARCHAR(100) NOT NULL,    
+                    subcategory_name VARCHAR(100),
                     content TEXT NOT NULL,
                     token_count INTEGER NOT NULL,
                     relevance_score DECIMAL(3,2) DEFAULT 0.50,
@@ -516,15 +516,15 @@ async checkSchemaExists() {
                 CREATE TABLE IF NOT EXISTS memory_categories (    
                     id SERIAL PRIMARY KEY,    
                     user_id TEXT NOT NULL,    
-                    category VARCHAR(100) NOT NULL,    
-                    subcategory VARCHAR(100),
+                    category_name VARCHAR(100) NOT NULL,    
+                    subcategory_name VARCHAR(100),
                     current_tokens INTEGER DEFAULT 0,
                     max_tokens INTEGER DEFAULT 50000,
                     is_dynamic BOOLEAN DEFAULT FALSE,
                     dynamic_focus VARCHAR(255),
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    UNIQUE(user_id, category, subcategory)
+                    UNIQUE(user_id, category_name, subcategory_name)
                 );
 
                 -- users (stats)
@@ -540,7 +540,7 @@ async checkSchemaExists() {
 
                 -- indexes (canonical)
                 CREATE INDEX IF NOT EXISTS idx_pm_user_cat_rel_created    
-                    ON persistent_memories (user_id, category, relevance_score DESC, created_at DESC);
+                    ON persistent_memories (user_id, category_name, relevance_score DESC, created_at DESC);
                 CREATE INDEX IF NOT EXISTS idx_pm_last_accessed
                     ON persistent_memories (user_id, last_accessed DESC);
             `);
@@ -565,7 +565,7 @@ async checkSchemaExists() {
                 if (categoryConfig.subcategories) {
                     for (const subcategory of categoryConfig.subcategories) {
                         await client.query(`        
-                            INSERT INTO memory_categories (user_id, category, subcategory, max_tokens, is_dynamic)    
+                            INSERT INTO memory_categories (user_id, category_name, subcategory_name, max_tokens, is_dynamic)  
                              VALUES ($1, $2, $3, $4, $5)    
                              ON CONFLICT (user_id, category, subcategory) DO NOTHING
                         `, [userId, categoryName, subcategory, categoryConfig.maxTokens, !!categoryConfig.aiManaged]);
@@ -573,7 +573,7 @@ async checkSchemaExists() {
                 } else {
                     // Dynamic category
                     await client.query(`  
-                        INSERT INTO memory_categories (user_id, category, subcategory, max_tokens, is_dynamic)  
+                        INSERT INTO memory_categories (user_id, category_name, subcategory_name, max_tokens, is_dynamic)
                         VALUES ($1, $2, $3, $4, $5)  
                         ON CONFLICT (user_id, category, subcategory) DO NOTHING
                     `, [userId, categoryName, null, categoryConfig.maxTokens, true]);
@@ -773,7 +773,7 @@ async checkSchemaExists() {
         
         await client.query(`  
             INSERT INTO memory_categories     
-            (user_id, category, subcategory, max_tokens, is_dynamic)    
+            (user_id, category_name, subcategory_name, max_tokens, is_dynamic)   
             VALUES ($1, $2, $3, $4, $5)    
             ON CONFLICT (user_id, category, subcategory) DO NOTHING
         `, [userId, categoryName, subcategoryName, maxTokens, isDynamic]);
@@ -783,10 +783,10 @@ async checkSchemaExists() {
         const deletedTokens = await client.query(`
             WITH deleted AS (
                 DELETE FROM persistent_memories
-                WHERE user_id = $1 AND category = $2 AND subcategory = $3
+                WHERE user_id = $1 AND category_name = $2 AND subcategory_name = $3
                 AND id IN (
                     SELECT id FROM persistent_memories
-                    WHERE user_id = $1 AND category = $2 AND subcategory = $3
+                    WHERE user_id = $1 AND category_name = $2 AND subcategory_name = $3
                     ORDER BY relevance_score ASC, usage_frequency ASC, created_at ASC
                     LIMIT 10
                 )
@@ -801,7 +801,7 @@ async checkSchemaExists() {
             UPDATE memory_categories
             SET current_tokens = GREATEST(current_tokens - $1, 0),
                 updated_at = CURRENT_TIMESTAMP
-            WHERE user_id = $2 AND category = $3 AND subcategory = $4
+            WHERE user_id = $2 AND category_name = $3 AND subcategory_name = $4
         `, [freedTokens, userId, categoryName, subcategoryName]);
 
         persistentLogger.log(`🧹 Made space in ${categoryName}/${subcategoryName}: freed ${freedTokens} tokens`);
