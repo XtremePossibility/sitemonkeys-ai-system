@@ -249,15 +249,15 @@ class ExtractionEngine {
         console.log(`[EXTRACTION] 🔍 Searching for userId: "${userId}", category: "${categoryName}", subcategory: "${subcategoryName}"`);
         
         let query = `
-            SELECT id, category, subcategory, content, token_count, relevance_score, usage_frequency,     
+            SELECT id, category_name, subcategory_name, content, token_count, relevance_score, usage_frequency,     
                    last_accessed, created_at, metadata    
             FROM persistent_memories     
-            WHERE user_id = $1 AND category = $2
+            WHERE user_id = $1 AND category_name = $2
         `;
         const params = [userId, categoryName];
 
         if (subcategoryName && subcategoryName !== 'null' && subcategoryName !== null) {
-            query += ` AND subcategory = $3`;
+            query += ` AND subcategory_name = $3`;
             params.push(subcategoryName);
         }
 
@@ -358,7 +358,7 @@ class ExtractionEngine {
             contextFound: true,
             memories: formattedMemories,
             totalTokens: this.calculateTokens(memories),
-            categoriesUsed: [...new Set(memories.map(m => m.category))]
+            categoriesUsed: [...new Set(memories.map(m => m.category_name))]
         };
     }
 
@@ -405,91 +405,63 @@ class PersistentMemoryAPI {
         };
         
         this.initialized = false;
+        this._initPromise = null;
     }
 
-    // BEST FIX: Smart initialize() method that checks for existing tables
+    // NEW: boolean health for bootstrap compatibility
+    isHealthy() {
+        return !!this.pool && this.initialized === true;
+    }
 
-async initialize() {
-    try {
-        console.log('[PERSISTENT] 🚀 Smart initialization starting...');
-        
-        // Check for any valid database URL (Railway might use DATABASE_PRIVATE_URL)
-const hasValidDbUrl = process.env.DATABASE_PRIVATE_URL || 
-                     process.env.DATABASE_URL ||
-                     process.env.POSTGRES_URL ||
-                     process.env.POSTGRESQL_URL;
-
-if (!hasValidDbUrl) {
-    persistentLogger.error('❌ No database URL environment variable found');
-    return false;
-}
-
-        console.log('[PERSISTENT] 🔌 Connecting to database...');
-        this.pool = await getDbPool();
-
-        // Test connection
-        const client = await this.pool.connect();
-        await client.query('SELECT NOW()');
-        client.release();
-        
-        persistentLogger.log('✅ Database connection established');
-
-        // Smart schema creation - check if tables exist first
-        console.log('[PERSISTENT] 🔍 Checking if database schema exists...');
-        const schemaExists = await this.checkSchemaExists();
-        
-        if (schemaExists) {
-            console.log('[PERSISTENT] ✅ Database schema already exists, skipping creation');
-        } else {
-            console.log('[PERSISTENT] 📋 Database schema missing, creating...');
-            try {
-                await this.createDatabaseSchema();
-                console.log('[PERSISTENT] ✅ Database schema created successfully');
-            } catch (schemaError) {
-                console.error('[PERSISTENT] ⚠️ Schema creation failed, but continuing:', schemaError.message);
-                // Continue anyway - tables might exist but creation failed due to permissions
+    async getSystemHealth() {
+        try {
+            if (!this.pool) {
+                return { overall: false, error: 'Database pool not initialized' };
             }
-        }
-        
-        this.initialized = true;
-        persistentLogger.log('✅ Universal Memory API initialized successfully');
-        
-        // Schedule periodic maintenance
-        setInterval(() => this.performMaintenance(), 60 * 60 * 1000);
-        
-        console.log('[PERSISTENT] 🎉 SMART INIT COMPLETE - returning true');
-        return true;
-        
-    } catch (error) {
-        console.error('[PERSISTENT] ❌ Smart initialization failed:', error);
-        persistentLogger.error('❌ Universal Memory API initialization failed:', error);
-        return false;
+            const c = await this.pool.connect(); await c.query('SELECT 1'); c.release();
+            return { overall: this.initialized, database: { healthy: true }, initialized: this.initialized, timestamp: new Date().toISOString() };
+        } catch (e) { return { overall: false, error: e.message, timestamp: new Date().toISOString() }; }
     }
-}
 
-// Add this new method to check if schema exists
-async checkSchemaExists() {
-    try {
-        const client = await this.pool.connect();
-        const result = await client.query(`
-            SELECT table_name 
-            FROM information_schema.tables 
-            WHERE table_schema = 'public' 
-            AND table_name IN ('persistent_memories', 'memory_categories', 'user_memory_profiles')
-        `);
-        client.release();
-        
-        const existingTables = result.rows.map(r => r.table_name);
-        console.log('[PERSISTENT] 📊 Found existing tables:', existingTables);
-        
-        // Return true if at least the main table exists
-        return existingTables.includes('persistent_memories');
-        
-    } catch (error) {
-        console.error('[PERSISTENT] ❌ Error checking schema:', error.message);
-        return false;
+    async initialize() {
+        // Singleton init promise to avoid races
+        if (this._initPromise) return this._initPromise;
+        this._initPromise = (async () => {
+            try {
+                if (!process.env.DATABASE_URL) {
+                    persistentLogger.error('❌ DATABASE_URL environment variable not found');
+                    this.initialized = false; throw new Error('DATABASE_URL missing');
+                }
+                console.log('[PERSISTENT] 🔌 Connecting to database...');
+                this.pool = getDbPool();
+
+                // Test connection
+                const client = await this.pool.connect();
+                await client.query('SELECT NOW()');
+                client.release();
+
+                persistentLogger.log('✅ Database connection established');
+
+                // Create database schema (non-fatal)
+                try {
+                    await this.createDatabaseSchema();
+                } catch (e) {
+                    console.error('[MEMORY][INIT] ensure schema failed, continuing:', e?.message, e?.code, e?.detail);
+                    // continue; objects may already exist
+                }
+
+                this.initialized = true;
+                persistentLogger.log('✅ Universal Memory API initialized successfully');
+                setInterval(() => this.performMaintenance(), 60 * 60 * 1000); // Every hour
+                return true;
+            } catch (error) {
+                this.initialized = false;
+                persistentLogger.error('❌ Universal Memory API initialization failed:', error);
+                throw error;
+            }
+        })();
+        return this._initPromise;
     }
-}
 
     async createDatabaseSchema() {
         const client = await this.pool.connect();
@@ -501,8 +473,8 @@ async checkSchemaExists() {
                 CREATE TABLE IF NOT EXISTS persistent_memories (    
                     id SERIAL PRIMARY KEY,    
                     user_id TEXT NOT NULL,    
-                    category VARCHAR(100) NOT NULL,
-                    subcategory VARCHAR(100),
+                    category_name VARCHAR(100) NOT NULL,    
+                    subcategory_name VARCHAR(100),
                     content TEXT NOT NULL,
                     token_count INTEGER NOT NULL,
                     relevance_score DECIMAL(3,2) DEFAULT 0.50,
@@ -516,15 +488,15 @@ async checkSchemaExists() {
                 CREATE TABLE IF NOT EXISTS memory_categories (    
                     id SERIAL PRIMARY KEY,    
                     user_id TEXT NOT NULL,    
-                    category VARCHAR(100) NOT NULL,
-                    subcategory VARCHAR(100),
+                    category_name VARCHAR(100) NOT NULL,    
+                    subcategory_name VARCHAR(100),
                     current_tokens INTEGER DEFAULT 0,
                     max_tokens INTEGER DEFAULT 50000,
                     is_dynamic BOOLEAN DEFAULT FALSE,
                     dynamic_focus VARCHAR(255),
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    UNIQUE(user_id, category, subcategory))
+                    UNIQUE(user_id, category_name, subcategory_name)
                 );
 
                 -- users (stats)
@@ -538,9 +510,33 @@ async checkSchemaExists() {
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 );
 
-                -- indexes (canonical)
-                CREATE INDEX IF NOT EXISTS idx_pm_user_cat_rel_created    
-                    ON persistent_memories (user_id, category, relevance_score DESC, created_at DESC);
+                -- migrate from legacy memory_entries (if present, once)
+                DO $$ 
+                BEGIN
+                    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'memory_entries')
+                       AND NOT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'memory_entries_legacy') THEN
+                        INSERT INTO persistent_memories
+                            (user_id, category_name, subcategory_name, content, token_count, relevance_score, usage_frequency, last_accessed, created_at, metadata)
+                        SELECT
+                            user_id,
+                            category_name,
+                            subcategory_name,
+                            content,
+                            COALESCE(token_count, CEIL(LENGTH(content)::float / 4)::integer),
+                            COALESCE(relevance_score, 0.50),
+                            COALESCE(usage_frequency, 0),
+                            COALESCE(last_accessed, CURRENT_TIMESTAMP),
+                            COALESCE(created_at, CURRENT_TIMESTAMP),
+                            COALESCE(metadata, '{}'::jsonb)
+                        FROM memory_entries;
+                        EXECUTE 'ALTER TABLE memory_entries RENAME TO memory_entries_legacy';
+                    END IF;
+                END $$;
+            `);
+
+            await client.query(`
+                CREATE INDEX IF NOT EXISTS idx_pm_user_cat_rel_created
+                    ON persistent_memories (user_id, category_name, relevance_score DESC, created_at DESC);
                 CREATE INDEX IF NOT EXISTS idx_pm_last_accessed
                     ON persistent_memories (user_id, last_accessed DESC);
             `);
@@ -559,23 +555,29 @@ async checkSchemaExists() {
 
         const client = await this.pool.connect();
         try {
+            // Create/ensure user profile with active categories
+            await client.query(`
+                INSERT INTO user_memory_profiles (user_id, active_categories, total_memories, total_tokens)
+                VALUES ($1, $2, 0, 0)
+                ON CONFLICT (user_id) DO NOTHING
+            `, [userId, Object.keys(this.categories)]);
 
             // Initialize all categories for user
             for (const [categoryName, categoryConfig] of Object.entries(this.categories)) {
                 if (categoryConfig.subcategories) {
                     for (const subcategory of categoryConfig.subcategories) {
                         await client.query(`        
-                            INSERT INTO memory_categories (user_id, category, subcategory, max_tokens, is_dynamic)  
+                            INSERT INTO memory_categories (user_id, category_name, subcategory_name, max_tokens, is_dynamic)  
                              VALUES ($1, $2, $3, $4, $5)    
-                             ON CONFLICT (user_id, category, subcategory) DO NOTHING
+                             ON CONFLICT (user_id, category_name, subcategory_name) DO NOTHING
                         `, [userId, categoryName, subcategory, categoryConfig.maxTokens, !!categoryConfig.aiManaged]);
                     }
                 } else {
                     // Dynamic category
                     await client.query(`  
-                        INSERT INTO memory_categories (user_id, category, subcategory, max_tokens, is_dynamic)
+                        INSERT INTO memory_categories (user_id, category_name, subcategory_name, max_tokens, is_dynamic)
                         VALUES ($1, $2, $3, $4, $5)  
-                        ON CONFLICT (user_id, category, subcategory) DO NOTHING
+                        ON CONFLICT (user_id, category_name, subcategory_name) DO NOTHING
                     `, [userId, categoryName, null, categoryConfig.maxTokens, true]);
                 }
             }
@@ -704,7 +706,7 @@ async checkSchemaExists() {
             const capacityCheck = await client.query(`  
                 SELECT current_tokens, max_tokens     
                 FROM memory_categories     
-                WHERE user_id = $1 AND category = $2 AND subcategory = $3
+                WHERE user_id = $1 AND category_name = $2 AND subcategory_name = $3
             `, [userId, categoryName, subcategoryName]);
 
             if (capacityCheck.rows.length === 0) {
@@ -724,7 +726,7 @@ async checkSchemaExists() {
             // Store memory
             const insertResult = await client.query(`  
                 INSERT INTO persistent_memories     
-                (user_id, category, subcategory, content, token_count, relevance_score, metadata)
+                (user_id, category_name, subcategory_name, content, token_count, relevance_score, metadata)
                 VALUES ($1, $2, $3, $4, $5, $6, $7) 
                 RETURNING id
             `, [userId, categoryName, subcategoryName, content, tokenCount, relevanceScore, JSON.stringify(metadata)]);
@@ -733,7 +735,7 @@ async checkSchemaExists() {
             await client.query(`  
                 UPDATE memory_categories     
                 SET current_tokens = current_tokens + $1, updated_at = CURRENT_TIMESTAMP    
-                WHERE user_id = $2 AND category = $3 AND subcategory = $4
+                WHERE user_id = $2 AND category_name = $3 AND subcategory_name = $4
             `, [tokenCount, userId, categoryName, subcategoryName]);
 
             await client.query('COMMIT');
@@ -773,9 +775,9 @@ async checkSchemaExists() {
         
         await client.query(`  
             INSERT INTO memory_categories     
-            (user_id, category, subcategory, max_tokens, is_dynamic)   
+            (user_id, category_name, subcategory_name, max_tokens, is_dynamic)   
             VALUES ($1, $2, $3, $4, $5)    
-            ON CONFLICT (user_id, category, subcategory) DO NOTHING
+            ON CONFLICT (user_id, category_name, subcategory_name) DO NOTHING
         `, [userId, categoryName, subcategoryName, maxTokens, isDynamic]);
     }
 
@@ -783,10 +785,10 @@ async checkSchemaExists() {
         const deletedTokens = await client.query(`
             WITH deleted AS (
                 DELETE FROM persistent_memories
-                WHERE user_id = $1 AND category = $2 AND subcategory = $3
+                WHERE user_id = $1 AND category_name = $2 AND subcategory_name = $3
                 AND id IN (
                     SELECT id FROM persistent_memories
-                    WHERE user_id = $1 AND category = $2 AND subcategory = $3
+                    WHERE user_id = $1 AND category_name = $2 AND subcategory_name = $3
                     ORDER BY relevance_score ASC, usage_frequency ASC, created_at ASC
                     LIMIT 10
                 )
@@ -801,7 +803,7 @@ async checkSchemaExists() {
             UPDATE memory_categories
             SET current_tokens = GREATEST(current_tokens - $1, 0),
                 updated_at = CURRENT_TIMESTAMP
-            WHERE user_id = $2 AND category = $3 AND subcategory = $4
+            WHERE user_id = $2 AND category_name = $3 AND subcategory_name = $4
         `, [freedTokens, userId, categoryName, subcategoryName]);
 
         persistentLogger.log(`🧹 Made space in ${categoryName}/${subcategoryName}: freed ${freedTokens} tokens`);
@@ -856,10 +858,6 @@ async checkSchemaExists() {
         }
     }
 
-    async getSystemHealth() {
-        return this.healthCheck();
-    }
-
     async getMemoryStats(userId) {
         try {
             if (!this.initialized) {
@@ -899,7 +897,7 @@ async checkSchemaExists() {
             
             // Database health check
             const health = await this.getSystemHealth();
-            if (health.status !== 'healthy') {
+            if (!health.overall) {
                 persistentLogger.warn('⚠️ Database health check failed during maintenance');
             }
             
