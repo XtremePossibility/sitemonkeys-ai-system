@@ -220,12 +220,12 @@ class ExtractionEngine {
             SELECT id, content, token_count, relevance_score, usage_frequency, 
                    last_accessed, created_at, metadata
             FROM persistent_memories  
-            WHERE user_id = $1 AND category = $2
+            WHERE user_id = $1 AND category_name = $2
         `;
         const params = [userId, categoryName];
 
         if (subcategoryName) {
-            query += ` AND subcategory = $3`;
+            query += ` AND subcategory_name = $3`;
             params.push(subcategoryName);
         }
 
@@ -418,7 +418,7 @@ class MemoryAPIV2 {
                     dynamic_focus VARCHAR(255),
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    UNIQUE(user_id, category, subcategory)
+                    UNIQUE(user_id, category_name, subcategory_name)
                 )
             `);
 
@@ -455,7 +455,7 @@ class MemoryAPIV2 {
             // Create performance indexes
             await client.query(`
                 CREATE INDEX IF NOT EXISTS idx_memory_relevance 
-                ON persistent_memories(user_id, category, relevance_score DESC, created_at DESC)
+                ON persistent_memories(user_id, category_name, relevance_score DESC, created_at DESC)
             `);
             
             memoryLogger.log('✅ Database schema and indexes created');
@@ -502,7 +502,7 @@ class MemoryAPIV2 {
 
         const result = await client.query(`
             INSERT INTO persistent_memories 
-            (user_id, category, subcategory, content, token_count, relevance_score, metadata)
+            (user_id, category_name, subcategory_name, content, token_count, relevance_score, metadata)
             VALUES ($1, $2, $3, $4, $5, $6, $7) 
             RETURNING id
         `, [userId, routing.primaryCategory, routing.subcategory, content, tokenCount, relevanceScore, JSON.stringify(metadata)]);
