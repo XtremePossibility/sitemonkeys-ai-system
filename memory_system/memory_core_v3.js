@@ -392,9 +392,11 @@ class MemoryAPIV2 {
             
             // Schedule periodic maintenance
             setInterval(() => this.performMaintenance(), 60 * 60 * 1000); // Every hour
+            return true;
             
         } catch (error) {
             memoryLogger.error('❌ Memory API V2 initialization failed:', error);
+            return false;
         }
     }
 
