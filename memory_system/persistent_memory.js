@@ -704,7 +704,7 @@ async checkSchemaExists() {
             const capacityCheck = await client.query(`  
                 SELECT current_tokens, max_tokens     
                 FROM memory_categories     
-                WHERE user_id = $1 AND category = $2 AND subcategory = $3
+                WHERE user_id = $1 AND category_name = $2 AND subcategory_name = $3
             `, [userId, categoryName, subcategoryName]);
 
             if (capacityCheck.rows.length === 0) {
@@ -724,7 +724,7 @@ async checkSchemaExists() {
             // Store memory
             const insertResult = await client.query(`  
                 INSERT INTO persistent_memories     
-                (user_id, category, subcategory, content, token_count, relevance_score, metadata)  
+                (user_id, category_name, subcategory_name, content, token_count, relevance_score, metadata)
                 VALUES ($1, $2, $3, $4, $5, $6, $7) 
                 RETURNING id
             `, [userId, categoryName, subcategoryName, content, tokenCount, relevanceScore, JSON.stringify(metadata)]);
@@ -733,7 +733,7 @@ async checkSchemaExists() {
             await client.query(`  
                 UPDATE memory_categories     
                 SET current_tokens = current_tokens + $1, updated_at = CURRENT_TIMESTAMP    
-                WHERE user_id = $2 AND category = $3 AND subcategory = $4
+                WHERE user_id = $2 AND category_name = $3 AND subcategory_name = $4
             `, [tokenCount, userId, categoryName, subcategoryName]);
 
             await client.query('COMMIT');
