@@ -477,6 +477,16 @@ class MemoryAPIV2 {
         const extraction = await this.extractor.extractRelevantMemories(userId, query, routing, client);
         client.release();
 
+        calculateInitialRelevance(content, metadata) {
+            let relevance = 0.5;
+            const emotionalWords = ['excited', 'worried', 'happy', 'stressed', 'important', 'urgent', 'critical'];
+            const emotionalMatches = emotionalWords.filter(word => content.toLowerCase().includes(word)).length;
+            relevance += emotionalMatches * 0.05;
+            if (content.includes('?')) relevance += 0.1;
+            if (metadata.userMarkedImportant) relevance += 0.2;
+            return Math.min(relevance, 1.0);
+        }
+
         if (!extraction.success) {
             return { contextFound: false, memories: '', error: extraction.error };
         }
@@ -489,16 +499,38 @@ class MemoryAPIV2 {
 }
 
     async storeMemory(userId, content, metadata = {}) {
-        memoryLogger.log(`💾 Storing memory for user ${userId}, content: "${content.substring(0, 50)}..."`);
+    if (!this.initialized) {
+        return { success: false, error: 'Memory system not initialized' };
+    }
+
+    try {
+        const routing = this.router.routeToCategory(content, userId);
+        const client = await this.pool.connect();
         
-        // Return mock success for now
+        const tokenCount = Math.ceil(content.length / 4);
+        const relevanceScore = this.calculateInitialRelevance(content, metadata);
+
+        const result = await client.query(`
+            INSERT INTO persistent_memories 
+            (user_id, category, subcategory, content, token_count, relevance_score, metadata)
+            VALUES ($1, $2, $3, $4, $5, $6, $7) 
+            RETURNING id
+        `, [userId, routing.primaryCategory, routing.subcategory, content, tokenCount, relevanceScore, JSON.stringify(metadata)]);
+
+        client.release();
+        
+        memoryLogger.log(`💾 Stored memory ${result.rows[0].id} for ${userId}`);
         return {
             success: true,
-            memoryId: Math.floor(Math.random() * 10000),
-            tokenCount: Math.ceil(content.length / 4),
-            relevanceScore: 0.75
+            memoryId: result.rows[0].id,
+            tokenCount: tokenCount,
+            relevanceScore: relevanceScore
         };
+    } catch (error) {
+        memoryLogger.error(`Error storing memory: ${error.message}`);
+        return { success: false, error: error.message };
     }
+}
 
     async initializeUser(userId) {
         memoryLogger.log(`👤 Initializing user ${userId} memory system`);
@@ -517,6 +549,10 @@ class MemoryAPIV2 {
             version: 'V2',
             timestamp: new Date().toISOString()
         };
+    }
+    // Add this method right after getSystemHealth()
+    async healthCheck() {
+        return this.getSystemHealth();
     }
 
     async performMaintenance() {
