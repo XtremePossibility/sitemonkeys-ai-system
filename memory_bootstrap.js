@@ -1,8 +1,10 @@
-// memory_bootstrap.js
-// SELF-INITIALIZING VERSION - automatically starts when first accessed
-// Sets up global.memorySystem as expected by your chat handler
+// memory_bootstrap.js  
+// PRODUCTION-GRADE BOOTSTRAP - Site Monkeys AI System
+// Sets up global.memorySystem as expected by chat handler
+// ZERO-FAILURE INITIALIZATION with fallback resilience
 
-// Force deploy 
+console.log('[MEMORY_BOOTSTRAP] 🚀 Site Monkeys Memory Bootstrap initializing...');
+
 class MemoryBootstrap {
   constructor() {
     this.persistentMemory = null;
@@ -20,20 +22,20 @@ class MemoryBootstrap {
     if (this.isHealthy) {
       return true; // Already initialized and healthy
     }
-    
+      
     if (this.initPromise) {
       // Initialization already in progress, wait for it
       return await this.initPromise;
     }
-    
+      
     if (!this.initStarted) {
       // Start initialization for the first time
-      console.log('[MEMORY] 🚀 AUTO-INITIALIZING Site Monkeys Memory System...');
+      console.log('[MEMORY_BOOTSTRAP] 🚀 AUTO-INITIALIZING Site Monkeys Memory System...');
       this.initStarted = true;
       this.initPromise = this.initialize();
       return await this.initPromise;
     }
-    
+      
     return false;
   }
 
@@ -41,60 +43,62 @@ class MemoryBootstrap {
    * Initialize memory system and set up global.memorySystem
    */
   async initialize() {
-    console.log('[MEMORY] 🚀 Initializing Site Monkeys Memory System...');
+    console.log('[MEMORY_BOOTSTRAP] 🚀 Initializing Site Monkeys Memory System...');
 
     try {
         // Initialize persistent memory with ENHANCED error handling
         try {
-            console.log('[MEMORY] 📝 Step 1: Attempting to import PersistentMemoryAPI...');
+            console.log('[MEMORY_BOOTSTRAP] 📝 Step 1: Attempting to import PersistentMemoryAPI...');
 
-/// Fix the class name import issue
-const PersistentMemoryAPI = (await import('./memory_system/persistent_memories.js')).default;
-this.persistentMemory = new PersistentMemoryAPI();
-console.log('[MEMORY] ✅ Step 1: PersistentMemoryAPI imported successfully');
-            
-            console.log('[MEMORY] 📝 Step 2: Creating PersistentMemoryAPI instance...');
-            this.persistentMemory = persistentMemoryInstance;
-            console.log('[MEMORY] ✅ Step 2: PersistentMemoryAPI instance created');
-            
-            console.log('[MEMORY] 📝 Step 3: Calling initialize() method...');
+            // CRITICAL FIX: Correct import path (singular, not plural)
+            const { default: PersistentMemoryAPI } = await import('./memory_system/persistent_memory.js');
+            console.log('[MEMORY_BOOTSTRAP] ✅ Step 1: PersistentMemoryAPI imported successfully');
+              
+            console.log('[MEMORY_BOOTSTRAP] 📝 Step 2: Creating PersistentMemoryAPI instance...');
+            this.persistentMemory = new PersistentMemoryAPI();
+            console.log('[MEMORY_BOOTSTRAP] ✅ Step 2: PersistentMemoryAPI instance created');
+              
+            console.log('[MEMORY_BOOTSTRAP] 📝 Step 3: Calling initialize() method...');
             const success = await this.persistentMemory.initialize();
-            console.log(`[MEMORY] 📊 Step 3: initialize() returned: ${success} (type: ${typeof success})`);
-            
-            if (success && success !== false) {      
-                this.isHealthy = true;
-                console.log('[MEMORY] ✅ Persistent memory system ready');
-                console.log('[MEMORY] 🔍 DEBUG - isHealthy set to:', this.isHealthy);
-                console.log('[MEMORY] 🔍 DEBUG - persistentMemory exists:', !!this.persistentMemory);
+            console.log(`[MEMORY_BOOTSTRAP] 📊 Step 3: initialize() returned: ${success} (type: ${typeof success})`);
+              
+            if (success && success !== false) {
+                // Additional health verification using the correct method
+                console.log('[MEMORY_BOOTSTRAP] 📝 Step 4: Verifying system health...');
+                const healthCheck = await this.persistentMemory.getSystemHealth();
+                console.log('[MEMORY_BOOTSTRAP] 🔍 Health check result:', JSON.stringify(healthCheck));
                 
-                // Additional health verification
-                const healthCheck = await this.persistentMemory.healthCheck();
-                console.log('[MEMORY] 🔍 DEBUG - Health check result:', JSON.stringify(healthCheck));
+                if (healthCheck.overall) {
+                    this.isHealthy = true;
+                    console.log('[MEMORY_BOOTSTRAP] ✅ Persistent memory system ready and healthy');
+                } else {
+                    console.log('[MEMORY_BOOTSTRAP] ⚠️ Health check failed - falling back to in-memory storage');
+                    this.isHealthy = false;
+                }
             } else {
-                console.log('[MEMORY] ⚠️ Persistent memory initialize() returned false - falling back to in-memory storage');
-                console.log('[MEMORY] 🔍 DEBUG - Success value was:', success);
+                console.log('[MEMORY_BOOTSTRAP] ⚠️ Persistent memory initialize() returned false - falling back to in-memory storage');
                 this.isHealthy = false;
             }
         } catch (error) {
-            console.error('[MEMORY] ❌ DETAILED ERROR during persistent memory initialization:');
-            console.error('[MEMORY] ❌ Error message:', error.message);
-            console.error('[MEMORY] ❌ Error stack:', error.stack);
-            console.error('[MEMORY] ❌ Error code:', error.code);
-            console.error('[MEMORY] ❌ Full error object:', JSON.stringify(error, Object.getOwnPropertyNames(error)));
+            console.error('[MEMORY_BOOTSTRAP] ❌ DETAILED ERROR during persistent memory initialization:');
+            console.error('[MEMORY_BOOTSTRAP] ❌ Error message:', error.message);
+            console.error('[MEMORY_BOOTSTRAP] ❌ Error stack:', error.stack);
+            console.error('[MEMORY_BOOTSTRAP] ❌ Error code:', error.code);
+            console.error('[MEMORY_BOOTSTRAP] ❌ Full error object:', JSON.stringify(error, Object.getOwnPropertyNames(error)));
             this.isHealthy = false;
         }
 
         // Set up global.memorySystem interface for your chat.js AFTER INITIALIZATION
         this.setupGlobalInterface();
 
-        console.log('[MEMORY] ✅ Global memory system interface established');
-        console.log(`[MEMORY] 📊 Final state - isHealthy: ${this.isHealthy}, mode: ${this.isHealthy ? 'persistent' : 'fallback'}`);
+        console.log('[MEMORY_BOOTSTRAP] ✅ Global memory system interface established');
+        console.log(`[MEMORY_BOOTSTRAP] 📊 Final state - isHealthy: ${this.isHealthy}, mode: ${this.isHealthy ? 'persistent' : 'fallback'}`);
         return this.isHealthy;
 
     } catch (error) {
-        console.error('[MEMORY] ❌ CRITICAL: Initialization failed completely:', error);
-        console.error('[MEMORY] ❌ Full error details:', JSON.stringify(error, Object.getOwnPropertyNames(error)));
-        
+        console.error('[MEMORY_BOOTSTRAP] ❌ CRITICAL: Initialization failed completely:', error);
+        console.error('[MEMORY_BOOTSTRAP] ❌ Full error details:', JSON.stringify(error, Object.getOwnPropertyNames(error)));
+          
         // Set up fallback global.memorySystem
         this.setupGlobalInterface();
         return false;
@@ -108,13 +112,13 @@ console.log('[MEMORY] ✅ Step 1: PersistentMemoryAPI imported successfully');
         // Your chat.js expects this exact method signature
         retrieveMemory: async (userId, message) => {
             await self.ensureInitialized(); // Auto-initialize if needed
-            console.log(`[MEMORY] 🔍 Retrieve called - isHealthy: ${self.isHealthy}`);
+            console.log(`[MEMORY_BOOTSTRAP] 🔍 Retrieve called - isHealthy: ${self.isHealthy}`);
             return await self.retrieveMemoryForChat(userId, message);
         },
-        
+          
         storeMemory: async (userId, conversation) => {
             await self.ensureInitialized(); // Auto-initialize if needed
-            console.log(`[MEMORY] 💾 Store called - isHealthy: ${self.isHealthy}, has persistentMemory: ${!!self.persistentMemory}`);
+            console.log(`[MEMORY_BOOTSTRAP] 💾 Store called - isHealthy: ${self.isHealthy}, has persistentMemory: ${!!self.persistentMemory}`);
             try {
                 // First try persistent memory if available
                 if (self.isHealthy && self.persistentMemory) {
@@ -129,13 +133,13 @@ console.log('[MEMORY] ✅ Step 1: PersistentMemoryAPI imported successfully');
                 } else {
                     console.log('[MEMORY_BOOTSTRAP] ⚠️ System not healthy or no persistentMemory - using fallback');
                 }
-                
+                  
                 // Fall back to the actual fallback storage method
                 console.log('[MEMORY_BOOTSTRAP] 🔄 Using fallback storage');
                 const fallbackResult = await self.fallbackStore(userId, conversation);
                 console.log('[MEMORY_BOOTSTRAP] 📊 Fallback storage result:', JSON.stringify(fallbackResult));
                 return fallbackResult;
-                
+                  
             } catch (error) {
                 console.error('[MEMORY_BOOTSTRAP] ❌ Storage error:', error);
                 console.error('[MEMORY_BOOTSTRAP] ❌ Error details:', JSON.stringify(error, Object.getOwnPropertyNames(error)));
@@ -174,11 +178,11 @@ console.log('[MEMORY] ✅ Step 1: PersistentMemoryAPI imported successfully');
       if (this.isHealthy && this.persistentMemory) {
         console.log('[MEMORY_BOOTSTRAP] 📡 Calling persistent memory getRelevantContext...');
         const memoryResult = await this.persistentMemory.getRelevantContext(userId, message, 2400);
-        
+          
         console.log('[MEMORY_BOOTSTRAP] 📊 Memory result type:', typeof memoryResult);
         console.log('[MEMORY_BOOTSTRAP] 📊 Memory result keys:', Object.keys(memoryResult || {}));
         console.log('[MEMORY_BOOTSTRAP] 📊 Context found:', memoryResult?.contextFound);
-        
+          
         // CRITICAL FIX: memoryResult is already an object with contextFound and memories
         if (memoryResult && memoryResult.contextFound) {
           console.log('[MEMORY_BOOTSTRAP] ✅ Found persistent memories, returning formatted result');
@@ -223,9 +227,9 @@ console.log('[MEMORY] ✅ Step 1: PersistentMemoryAPI imported successfully');
           }
         );
 
-        if (result.success) {
-          console.log('[MEMORY] ✅ Conversation stored successfully');
-          return { success: true, id: result.id };
+        if (result && result.success) {
+          console.log('[MEMORY_BOOTSTRAP] ✅ Conversation stored successfully');
+          return { success: true, id: result.memoryId };
         }
       }
 
@@ -233,7 +237,7 @@ console.log('[MEMORY] ✅ Step 1: PersistentMemoryAPI imported successfully');
       return await this.fallbackStore(userId, conversationData);
 
     } catch (error) {
-      console.error('[MEMORY] Storage error:', error);
+      console.error('[MEMORY_BOOTSTRAP] Storage error:', error);
       return await this.fallbackStore(userId, conversationData);
     }
   }
@@ -245,7 +249,7 @@ console.log('[MEMORY] ✅ Step 1: PersistentMemoryAPI imported successfully');
     try {
       console.log(`[MEMORY_BOOTSTRAP] 🔍 Fallback retrieve for user: ${userId}`);
       const userMemories = this.fallbackMemory.get(userId) || [];
-      
+        
       if (userMemories.length === 0) {
         console.log('[MEMORY_BOOTSTRAP] ℹ️ No fallback memories found');
         return {
@@ -289,7 +293,7 @@ console.log('[MEMORY] ✅ Step 1: PersistentMemoryAPI imported successfully');
       };
 
     } catch (error) {
-      console.error('[MEMORY] Fallback retrieval error:', error);
+      console.error('[MEMORY_BOOTSTRAP] Fallback retrieval error:', error);
       return {
         contextFound: false,
         memories: '',
@@ -304,8 +308,8 @@ console.log('[MEMORY] ✅ Step 1: PersistentMemoryAPI imported successfully');
    */
   async fallbackStore(userId, conversationData) {
     try {
-      console.log(`[MEMORY] 🔄 Fallback store called for user: ${userId}`);
-      
+      console.log(`[MEMORY_BOOTSTRAP] 🔄 Fallback store called for user: ${userId}`);
+        
       if (!this.fallbackMemory.has(userId)) {
         this.fallbackMemory.set(userId, []);
       }
@@ -316,7 +320,7 @@ console.log('[MEMORY] ✅ Step 1: PersistentMemoryAPI imported successfully');
         timestamp: Date.now(),
         id: Date.now() + Math.random()
       };
-      
+        
       userMemories.push(newMemory);
 
       // Keep only last 50 memories per user to prevent memory leaks
@@ -325,12 +329,12 @@ console.log('[MEMORY] ✅ Step 1: PersistentMemoryAPI imported successfully');
       }
 
       this.fallbackMemory.set(userId, userMemories);
-      
-      console.log(`[MEMORY] ⚠️ Stored in fallback memory (persistent memory unavailable) - ID: ${newMemory.id}, Total memories: ${userMemories.length}`);
+        
+      console.log(`[MEMORY_BOOTSTRAP] ⚠️ Stored in fallback memory (persistent memory unavailable) - ID: ${newMemory.id}, Total memories: ${userMemories.length}`);
       return { success: true, mode: 'fallback', id: newMemory.id };
 
     } catch (error) {
-      console.error('[MEMORY] Fallback storage error:', error);
+      console.error('[MEMORY_BOOTSTRAP] Fallback storage error:', error);
       return { success: false, error: error.message };
     }
   }
@@ -352,7 +356,7 @@ console.log('[MEMORY] ✅ Step 1: PersistentMemoryAPI imported successfully');
         mode: 'fallback'
       };
     } catch (error) {
-      console.error('[MEMORY] Stats error:', error);
+      console.error('[MEMORY_BOOTSTRAP] Stats error:', error);
       return { totalMemories: 0, totalTokens: 0, mode: 'error' };
     }
   }
@@ -363,9 +367,9 @@ console.log('[MEMORY] ✅ Step 1: PersistentMemoryAPI imported successfully');
   async healthCheck() {
     try {
       if (this.persistentMemory) {
-        const health = await this.persistentMemory.healthCheck();
+        const health = await this.persistentMemory.getSystemHealth();
         return {
-          status: health.status === 'healthy' ? 'healthy' : 'degraded',
+          status: health.overall ? 'healthy' : 'degraded',
           mode: this.isHealthy ? 'persistent' : 'fallback',
           lastCheck: new Date().toISOString(),
           fallbackMemories: this.fallbackMemory.size
@@ -398,12 +402,12 @@ console.log('[MEMORY] ✅ Step 1: PersistentMemoryAPI imported successfully');
     if (!this.initStarted) {
       this.ensureInitialized();
     }
-    
+      
     return {
       getRelevantContext: async (userId, message, tokenLimit = 2400) => {
-        await self.ensureInitialized();
-        return await self.retrieveMemoryForChat(userId, message);
-      },
+       await self.ensureInitialized();
+       return await self.retrieveMemoryForChat(userId, message, tokenLimit);
+     },
       storeMemory: async (userId, conversationData) => {
         await self.ensureInitialized();
         return await self.storeMemoryForChat(userId, conversationData);
@@ -417,7 +421,7 @@ console.log('[MEMORY] ✅ Step 1: PersistentMemoryAPI imported successfully');
   }
 
   /**
-   * Get vault loader (for server.js compatibility) 
+   * Get vault loader (for server.js compatibility)   
    * YOUR SERVER.JS IS CALLING THIS METHOD
    */
   getVaultLoader() {
@@ -433,33 +437,33 @@ console.log('[MEMORY] ✅ Step 1: PersistentMemoryAPI imported successfully');
 
   /**
    * Check if system is ready (for server.js compatibility)
-   * YOUR SERVER.JS IS CALLING THIS METHOD  
+   * YOUR SERVER.JS IS CALLING THIS METHOD    
    */
   isReady() {
     return this.isHealthy || this.fallbackMemory.size >= 0; // Always ready (fallback mode works)
   }
-  
+    
   /**
    * Graceful shutdown
    */
   async shutdown() {
-    console.log('[MEMORY] 🔄 Shutting down memory system...');
-    
+    console.log('[MEMORY_BOOTSTRAP] 🔄 Shutting down memory system...');
+      
     try {
-      if (this.persistentMemory && this.persistentMemory.dbManager) {
-        await this.persistentMemory.dbManager.close();
+      if (this.persistentMemory && this.persistentMemory.shutdown) {
+        await this.persistentMemory.shutdown();
       }
 
       this.fallbackMemory.clear();
-      
+        
       // Clean up global
       if (global.memorySystem) {
         delete global.memorySystem;
       }
-      
-      console.log('[MEMORY] ✅ Shutdown complete');
+        
+      console.log('[MEMORY_BOOTSTRAP] ✅ Shutdown complete');
     } catch (error) {
-      console.error('[MEMORY] ❌ Shutdown error:', error);
+      console.error('[MEMORY_BOOTSTRAP] ❌ Shutdown error:', error);
     }
   }
 }
