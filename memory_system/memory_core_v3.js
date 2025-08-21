@@ -5,7 +5,7 @@
 // surgical extraction, and self-provisioning infrastructure.
 // ================================================================
 
-const { Pool } = require('pg');
+import { Pool } from 'pg';
 
 // Memory system logger with distinctive prefix
 const memoryLogger = {
@@ -453,7 +453,7 @@ class MemoryAPIV2 {
             // Create performance indexes
             await client.query(`
                 CREATE INDEX IF NOT EXISTS idx_memory_relevance 
-                ON memory_entries(user_id, category, relevance_score DESC, created_at DESC)
+                ON persistent_memories(user_id, category, relevance_score DESC, created_at DESC)
             `);
             
             memoryLogger.log('✅ Database schema and indexes created');
@@ -465,16 +465,26 @@ class MemoryAPIV2 {
 
     // Mock functions for immediate testing
     async getRelevantContext(userId, query, maxTokens = 2400) {
-        memoryLogger.log(`📋 Getting relevant context for user ${userId}, query: "${query.substring(0, 50)}..."`);
-        
-        // Return mock data for now to verify integration
-        return {
-            contextFound: true,
-            memories: `[MEMORY V2 TEST] This is a test memory response for query: "${query}"`,
-            totalTokens: 150,
-            categoriesUsed: ['business_career']
-        };
+    if (!this.initialized) {
+        return { contextFound: false, memories: '', error: 'Memory system not initialized' };
     }
+
+    try {
+        const routing = this.router.routeToCategory(query, userId);
+        const client = await this.pool.connect();
+        const extraction = await this.extractor.extractRelevantMemories(userId, query, routing, client);
+        client.release();
+
+        if (!extraction.success) {
+            return { contextFound: false, memories: '', error: extraction.error };
+        }
+
+        return this.extractor.formatForAI(extraction.memories);
+    } catch (error) {
+        memoryLogger.error(`Error retrieving context: ${error.message}`);
+        return { contextFound: false, memories: '', error: error.message };
+    }
+}
 
     async storeMemory(userId, content, metadata = {}) {
         memoryLogger.log(`💾 Storing memory for user ${userId}, content: "${content.substring(0, 50)}..."`);
@@ -532,4 +542,4 @@ class MemoryAPIV2 {
 console.log('[MEMORY V2] 📦 Creating Memory System V2 instance...');
 const memorySystemV2Instance = new MemoryAPIV2();
 console.log('[MEMORY V2] ✅ Memory System V2 ready for export');
-module.exports = memorySystemV2Instance;
+export default memorySystemV2Instance;
