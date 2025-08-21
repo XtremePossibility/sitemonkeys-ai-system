@@ -358,7 +358,7 @@ class ExtractionEngine {
             contextFound: true,
             memories: formattedMemories,
             totalTokens: this.calculateTokens(memories),
-            categoriesUsed: [...new Set(memories.map(m => m.category_name))]
+            categoriesUsed: [...new Set(memories.map(m => m.category))]
         };
     }
 
@@ -540,7 +540,7 @@ async checkSchemaExists() {
 
                 -- indexes (canonical)
                 CREATE INDEX IF NOT EXISTS idx_pm_user_cat_rel_created    
-                    ON persistent_memories (user_id, category_name, relevance_score DESC, created_at DESC);
+                    ON persistent_memories (user_id, category, relevance_score DESC, created_at DESC);
                 CREATE INDEX IF NOT EXISTS idx_pm_last_accessed
                     ON persistent_memories (user_id, last_accessed DESC);
             `);
@@ -565,7 +565,7 @@ async checkSchemaExists() {
                 if (categoryConfig.subcategories) {
                     for (const subcategory of categoryConfig.subcategories) {
                         await client.query(`        
-                            INSERT INTO memory_categories (user_id, category_name, subcategory_name, max_tokens, is_dynamic)  
+                            INSERT INTO memory_categories (user_id, category, subcategory, max_tokens, is_dynamic)  
                              VALUES ($1, $2, $3, $4, $5)    
                              ON CONFLICT (user_id, category, subcategory) DO NOTHING
                         `, [userId, categoryName, subcategory, categoryConfig.maxTokens, !!categoryConfig.aiManaged]);
@@ -573,7 +573,7 @@ async checkSchemaExists() {
                 } else {
                     // Dynamic category
                     await client.query(`  
-                        INSERT INTO memory_categories (user_id, category_name, subcategory_name, max_tokens, is_dynamic)
+                        INSERT INTO memory_categories (user_id, category, subcategory, max_tokens, is_dynamic)
                         VALUES ($1, $2, $3, $4, $5)  
                         ON CONFLICT (user_id, category, subcategory) DO NOTHING
                     `, [userId, categoryName, null, categoryConfig.maxTokens, true]);
@@ -704,7 +704,7 @@ async checkSchemaExists() {
             const capacityCheck = await client.query(`  
                 SELECT current_tokens, max_tokens     
                 FROM memory_categories     
-                WHERE user_id = $1 AND category_name = $2 AND subcategory_name = $3
+                WHERE user_id = $1 AND category = $2 AND subcategory = $3
             `, [userId, categoryName, subcategoryName]);
 
             if (capacityCheck.rows.length === 0) {
@@ -724,7 +724,7 @@ async checkSchemaExists() {
             // Store memory
             const insertResult = await client.query(`  
                 INSERT INTO persistent_memories     
-                (user_id, category_name, subcategory_name, content, token_count, relevance_score, metadata)
+                (user_id, category, subcategory, content, token_count, relevance_score, metadata)
                 VALUES ($1, $2, $3, $4, $5, $6, $7) 
                 RETURNING id
             `, [userId, categoryName, subcategoryName, content, tokenCount, relevanceScore, JSON.stringify(metadata)]);
@@ -733,7 +733,7 @@ async checkSchemaExists() {
             await client.query(`  
                 UPDATE memory_categories     
                 SET current_tokens = current_tokens + $1, updated_at = CURRENT_TIMESTAMP    
-                WHERE user_id = $2 AND category_name = $3 AND subcategory_name = $4
+                WHERE user_id = $2 AND category = $3 AND subcategory = $4
             `, [tokenCount, userId, categoryName, subcategoryName]);
 
             await client.query('COMMIT');
@@ -773,7 +773,7 @@ async checkSchemaExists() {
         
         await client.query(`  
             INSERT INTO memory_categories     
-            (user_id, category_name, subcategory_name, max_tokens, is_dynamic)   
+            (user_id, category, subcategory, max_tokens, is_dynamic)   
             VALUES ($1, $2, $3, $4, $5)    
             ON CONFLICT (user_id, category, subcategory) DO NOTHING
         `, [userId, categoryName, subcategoryName, maxTokens, isDynamic]);
@@ -783,10 +783,10 @@ async checkSchemaExists() {
         const deletedTokens = await client.query(`
             WITH deleted AS (
                 DELETE FROM persistent_memories
-                WHERE user_id = $1 AND category_name = $2 AND subcategory_name = $3
+                WHERE user_id = $1 AND category = $2 AND subcategory = $3
                 AND id IN (
                     SELECT id FROM persistent_memories
-                    WHERE user_id = $1 AND category_name = $2 AND subcategory_name = $3
+                    WHERE user_id = $1 AND category = $2 AND subcategory = $3
                     ORDER BY relevance_score ASC, usage_frequency ASC, created_at ASC
                     LIMIT 10
                 )
@@ -801,7 +801,7 @@ async checkSchemaExists() {
             UPDATE memory_categories
             SET current_tokens = GREATEST(current_tokens - $1, 0),
                 updated_at = CURRENT_TIMESTAMP
-            WHERE user_id = $2 AND category_name = $3 AND subcategory_name = $4
+            WHERE user_id = $2 AND category = $3 AND subcategory = $4
         `, [freedTokens, userId, categoryName, subcategoryName]);
 
         persistentLogger.log(`🧹 Made space in ${categoryName}/${subcategoryName}: freed ${freedTokens} tokens`);
