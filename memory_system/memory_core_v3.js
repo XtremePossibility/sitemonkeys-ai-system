@@ -220,12 +220,12 @@ class ExtractionEngine {
             SELECT id, content, token_count, relevance_score, usage_frequency, 
                    last_accessed, created_at, metadata
             FROM memory_entries 
-            WHERE user_id = $1 AND category_name = $2
+            WHERE user_id = $1 AND category = $2
         `;
         const params = [userId, categoryName];
 
         if (subcategoryName) {
-            query += ` AND subcategory_name = $3`;
+            query += ` AND subcategory = $3`;
             params.push(subcategoryName);
         }
 
@@ -311,7 +311,7 @@ class ExtractionEngine {
             contextFound: true,
             memories: formattedMemories,
             totalTokens: this.calculateTokens(memories),
-            categoriesUsed: [...new Set(memories.map(m => m.category_name))]
+            categoriesUsed: [...new Set(memories.map(m => m.category))]
         };
     }
 
@@ -408,15 +408,15 @@ class MemoryAPIV2 {
                 CREATE TABLE IF NOT EXISTS memory_categories (
                     id SERIAL PRIMARY KEY,
                     user_id VARCHAR(255) NOT NULL,
-                    category_name VARCHAR(100) NOT NULL,
-                    subcategory_name VARCHAR(100),
+                    category VARCHAR(100) NOT NULL,
+                    subcategory VARCHAR(100),
                     current_tokens INTEGER DEFAULT 0,
                     max_tokens INTEGER DEFAULT 50000,
                     is_dynamic BOOLEAN DEFAULT FALSE,
                     dynamic_focus VARCHAR(255),
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    UNIQUE(user_id, category_name, subcategory_name)
+                    UNIQUE(user_id, category, subcategory)
                 )
             `);
 
@@ -425,8 +425,8 @@ class MemoryAPIV2 {
                 CREATE TABLE IF NOT EXISTS memory_entries (
                     id SERIAL PRIMARY KEY,
                     user_id VARCHAR(255) NOT NULL,
-                    category_name VARCHAR(100) NOT NULL,
-                    subcategory_name VARCHAR(100),
+                    category VARCHAR(100) NOT NULL,
+                    subcategory VARCHAR(100),
                     content TEXT NOT NULL,
                     token_count INTEGER NOT NULL,
                     relevance_score DECIMAL(3,2) DEFAULT 0.50,
@@ -453,7 +453,7 @@ class MemoryAPIV2 {
             // Create performance indexes
             await client.query(`
                 CREATE INDEX IF NOT EXISTS idx_memory_relevance 
-                ON memory_entries(user_id, category_name, relevance_score DESC, created_at DESC)
+                ON memory_entries(user_id, category, relevance_score DESC, created_at DESC)
             `);
             
             memoryLogger.log('✅ Database schema and indexes created');
