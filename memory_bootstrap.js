@@ -49,11 +49,11 @@ class MemoryBootstrap {
             console.log('[MEMORY] 📝 Step 1: Attempting to import PersistentMemoryAPI...');
 
 /// Fix the class name import issue
-const PersistentMemoryAPI = (await import('./memory_system/memory_core_v3.js')).default;
+const persistentMemoryInstance = (await import('./memory_system/memory_core_v3.js')).default;
 console.log('[MEMORY] ✅ Step 1: PersistentMemoryAPI imported successfully');
             
             console.log('[MEMORY] 📝 Step 2: Creating PersistentMemoryAPI instance...');
-            this.persistentMemory = new PersistentMemoryAPI();
+            this.persistentMemory = persistentMemoryInstance;
             console.log('[MEMORY] ✅ Step 2: PersistentMemoryAPI instance created');
             
             console.log('[MEMORY] 📝 Step 3: Calling initialize() method...');
