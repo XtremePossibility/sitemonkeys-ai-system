@@ -529,7 +529,7 @@ class MemoryAPIV2 {
 }
 
 // Export façade delegating to the real persistent engine (ESM), no new Pool, no mocks.
-export default = (function () {
+export default (function () {
   let enginePromise = null;
   async function getEngine() {
     if (!enginePromise) {
