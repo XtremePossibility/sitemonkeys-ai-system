@@ -55,8 +55,14 @@ class MemoryBootstrap {
             const memApi = apiModule.default || apiModule;   // default export for CJS façade
             this.persistentMemory = memApi;
             console.log('[MEMORY_BOOTSTRAP] ✅ Façade imported successfully');
-            const healthCheck = await this.persistentMemory.getSystemHealth?.()
-                             || await this.persistentMemory.healthCheck?.();
+            let healthCheck;
+            if (this.persistentMemory && typeof this.persistentMemory.getSystemHealth === 'function') {
+              healthCheck = await this.persistentMemory.getSystemHealth();
+            } else if (this.persistentMemory && typeof this.persistentMemory.healthCheck === 'function') {
+              healthCheck = await this.persistentMemory.healthCheck();
+            } else {
+              healthCheck = { overall: false, error: 'No health check method available' };
+            }
             this.isHealthy = !!(healthCheck && (healthCheck.overall === true || healthCheck.status === 'healthy'));
             
         } catch (error) {
