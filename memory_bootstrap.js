@@ -50,16 +50,14 @@ class MemoryBootstrap {
         try {
             console.log('[MEMORY_BOOTSTRAP] 📝 Step 1: Attempting to import PersistentMemoryAPI...');
 
-            // CRITICAL FIX: Correct import path (singular, not plural)
-            const { default: PersistentMemoryAPI } = await import('./memory_system/persistent_memory.js');
-            console.log('[MEMORY_BOOTSTRAP] ✅ Step 1: PersistentMemoryAPI imported successfully');
-              
-            console.log('[MEMORY_BOOTSTRAP] 📝 Step 2: Creating PersistentMemoryAPI instance...');
-            this.persistentMemory = new PersistentMemoryAPI();
-            console.log('[MEMORY_BOOTSTRAP] ✅ Step 2: PersistentMemoryAPI instance created');
-              
-            console.log('[MEMORY_BOOTSTRAP] 📝 Step 3: Calling initialize() method...');
-            const success = await this.persistentMemory.initialize();
+            // ✅ import the façade (CJS) which correctly loads/initializes the engine
+            const apiModule = await import('./memory_system/memory_api.js');
+            const memApi = apiModule.default || apiModule;   // default export for CJS façade
+            this.persistentMemory = memApi;
+            console.log('[MEMORY_BOOTSTRAP] ✅ Façade imported successfully');
+            const healthCheck = await this.persistentMemory.getSystemHealth?.()
+                             || await this.persistentMemory.healthCheck?.();
+            this.isHealthy = !!(healthCheck && (healthCheck.overall === true || healthCheck.status === 'healthy'));
             console.log(`[MEMORY_BOOTSTRAP] 📊 Step 3: initialize() returned: ${success} (type: ${typeof success})`);
               
             if (success && success !== false) {
