@@ -196,11 +196,6 @@ class ExtractionEngine {
         this.minRelevanceThreshold = 0.3;
     }
 
-    // In extractRelevantMemories method, add at the top:
-    async extractRelevantMemories(userId, query, categoryRouting, dbClient) {
-        this.currentQuery = query; // Store current query for content filtering
-        // ... rest stays the same
-    }
     async extractRelevantMemories(userId, query, categoryRouting, dbClient) {
         try {
             const extractionPlan = this.planExtraction(query, categoryRouting);
@@ -291,8 +286,9 @@ class ExtractionEngine {
     console.log(`[EXTRACTION] 📊 Params: ${JSON.stringify(params)}`);
 
     const result = await dbClient.query(query, params);
-    // ... rest of method stays the same
-}
+    console.log(`[EXTRACTION] 🎯 Returning ${selectedMemories.length} memories (${currentTokens} tokens)`);
+        return selectedMemories;
+    }
         // DEBUG: Log what we're searching for
         console.log(`[EXTRACTION] 🔍 Searching for userId: "${userId}", category: "${categoryName}", subcategory: "${subcategoryName}"`);
         
