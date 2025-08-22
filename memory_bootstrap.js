@@ -59,10 +59,6 @@ class MemoryBootstrap {
                              || await this.persistentMemory.healthCheck?.();
             this.isHealthy = !!(healthCheck && (healthCheck.overall === true || healthCheck.status === 'healthy'));
             
-            } else {
-                console.log('[MEMORY_BOOTSTRAP] ⚠️ Persistent memory initialize() returned false - falling back to in-memory storage');
-                this.isHealthy = false;
-            }
         } catch (error) {
             console.error('[MEMORY_BOOTSTRAP] ❌ DETAILED ERROR during persistent memory initialization:');
             console.error('[MEMORY_BOOTSTRAP] ❌ Error message:', error.message);
