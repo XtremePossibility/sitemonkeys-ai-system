@@ -1677,9 +1677,16 @@ app.get('/api/memory-status', async (req, res) => {
 
 // START SERVER
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`🚀 Caring Family Intelligence System running on port ${PORT}`);
-  console.log(`💙 ${FAMILY_PHILOSOPHY.core_mission}`);
-  console.log(`✨ ${FAMILY_PHILOSOPHY.one_and_done_philosophy}`);
-  console.log(`📁 Vault endpoint: /api/load-vault`);
+
+// CRITICAL FIX: Actually call the startServer function!
+startServer().then(() => {
+  app.listen(PORT, () => {
+    console.log(`🚀 Caring Family Intelligence System running on port ${PORT}`);
+    console.log(`💙 ${FAMILY_PHILOSOPHY.core_mission}`);
+    console.log(`✨ ${FAMILY_PHILOSOPHY.one_and_done_philosophy}`);
+    console.log(`📁 Vault endpoint: /api/load-vault`);
+  });
+}).catch(error => {
+  console.error('Failed to start server:', error);
+  process.exit(1);
 });
