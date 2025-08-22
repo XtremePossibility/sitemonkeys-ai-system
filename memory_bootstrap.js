@@ -106,15 +106,14 @@ class MemoryBootstrap {
                     const result = await self.persistentMemory.storeMemory(userId, conversation);
                     console.log('[MEMORY_BOOTSTRAP] 📊 Persistent storage result:', JSON.stringify(result));
                     if (result && result.success) {
-                        return { success: true, id: result.memoryId };  // ← FIXED
-                  }
-                  else {    
+                        return { success: true, id: result.memoryId };
+                    } else {
                         console.log('[MEMORY_BOOTSTRAP] ⚠️ Persistent storage failed, falling back');
-                   }
-                   else {
+                    }
+                } else {
                     console.log('[MEMORY_BOOTSTRAP] ⚠️ System not healthy or no persistentMemory - using fallback');
                 }
-                  
+
                 // Fall back to the actual fallback storage method
                 console.log('[MEMORY_BOOTSTRAP] 🔄 Using fallback storage');
                 const fallbackResult = await self.fallbackStore(userId, conversation);
