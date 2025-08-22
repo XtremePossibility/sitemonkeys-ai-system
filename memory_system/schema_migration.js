@@ -1,59 +1,73 @@
-// schema_migration.js - Run this ONCE to fix all table issues
-import pg from 'pg';
-const { Pool } = pg;
+// memory_system/schema_migration.js
+// SAFE SCHEMA ALIGNMENT – NO DROPS, NO DATA LOSS
+
+import { getDbPool } from './db_singleton.js';
+
+const log = (...a) => console.log('[SCHEMA_MIGRATION]', ...a);
 
 export async function unifyDatabaseSchema() {
-    const pool = new Pool({
-        connectionString: process.env.DATABASE_URL,
-        ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
-    });
-    
-    const client = await pool.connect();
-    
-    try {
-        await client.query('BEGIN');
-        
-        // Drop conflicting tables
-        await client.query('DROP TABLE IF EXISTS memory_entries CASCADE');
-        
-        // Create unified table with correct schema
-        await client.query(`
-            CREATE TABLE IF NOT EXISTS persistent_memories (
-                id SERIAL PRIMARY KEY,
-                user_id VARCHAR(255) NOT NULL,
-                category VARCHAR(100) NOT NULL,
-                subcategory VARCHAR(100),
-                content TEXT NOT NULL,
-                metadata JSONB DEFAULT '{}',
-                relevance_score DECIMAL(3,2) DEFAULT 0.50,
-                token_count INTEGER NOT NULL DEFAULT 0,
-                usage_frequency INTEGER DEFAULT 0,
-                created_at TIMESTAMP DEFAULT NOW(),
-                updated_at TIMESTAMP DEFAULT NOW(),
-                last_accessed TIMESTAMP DEFAULT NOW(),
-                emotional_weight DECIMAL(3,2) DEFAULT 0.0,
-                user_priority BOOLEAN DEFAULT FALSE,
-                is_question BOOLEAN DEFAULT FALSE
-            );
-        `);
-        
-        // Create indexes for performance
-        await client.query('CREATE INDEX IF NOT EXISTS idx_user_category ON persistent_memories(user_id, category)');
-        await client.query('CREATE INDEX IF NOT EXISTS idx_relevance ON persistent_memories(relevance_score DESC)');
-        await client.query('CREATE INDEX IF NOT EXISTS idx_created ON persistent_memories(created_at DESC)');
-        
-        await client.query('COMMIT');
-        console.log('✅ Database schema unified successfully');
-        
-    } catch (error) {
-        await client.query('ROLLBACK');
-        console.error('❌ Schema migration failed:', error);
-        throw error;
-    } finally {
-        client.release();
-        await pool.end();
+  const pool = await getDbPool();
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
+    // Only run if persistent_memories exists
+    const exists = await client.query(`
+      SELECT 1 FROM information_schema.tables
+      WHERE table_name = 'persistent_memories' LIMIT 1
+    `);
+    if (exists.rowCount === 0) {
+      log('persistent_memories not found; nothing to migrate.');
+      await client.query('COMMIT');
+      return { success: true, changed: false };
     }
+
+    // Rename columns if needed (idempotent)
+    await client.query(`
+      DO $$
+      BEGIN
+        IF EXISTS (SELECT 1 FROM information_schema.columns
+                   WHERE table_name='persistent_memories' AND column_name='category')
+           AND NOT EXISTS (SELECT 1 FROM information_schema.columns
+                           WHERE table_name='persistent_memories' AND column_name='category_name') THEN
+          EXECUTE 'ALTER TABLE persistent_memories RENAME COLUMN category TO category_name';
+        END IF;
+
+        IF EXISTS (SELECT 1 FROM information_schema.columns
+                   WHERE table_name='persistent_memories' AND column_name='subcategory')
+           AND NOT EXISTS (SELECT 1 FROM information_schema.columns
+                           WHERE table_name='persistent_memories' AND column_name='subcategory_name') THEN
+          EXECUTE 'ALTER TABLE persistent_memories RENAME COLUMN subcategory TO subcategory_name';
+        END IF;
+      END $$;
+    `);
+
+    // Ensure expected index
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_pm_user_cat_rel_created
+        ON persistent_memories (user_id, category_name, relevance_score DESC, created_at DESC);
+    `);
+
+    await client.query('COMMIT');
+    log('Schema alignment complete (no drops).');
+    return { success: true, changed: true };
+
+  } catch (e) {
+    await client.query('ROLLBACK');
+    console.error('[SCHEMA_MIGRATION] failed:', e);
+    throw e;
+  } finally {
+    client.release();
+  }
 }
 
-// Run migration
-unifyDatabaseSchema().catch(console.error);
+// Allow manual one-off invoke if run via `node memory_system/schema_migration.js`
+if (import.meta.url === `file://${process.argv[1]}`) {
+  unifyDatabaseSchema().then(r => {
+    console.log('Result:', r);
+    process.exit(0);
+  }).catch(e => {
+    console.error('Error:', e);
+    process.exit(1);
+  });
+}
