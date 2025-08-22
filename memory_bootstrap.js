@@ -106,7 +106,7 @@ class MemoryBootstrap {
                     const result = await self.persistentMemory.storeMemory(userId, conversation);
                     console.log('[MEMORY_BOOTSTRAP] 📊 Persistent storage result:', JSON.stringify(result));
                     if (result && result.success) {
-                        return result;
+                        return { success: true, id: result.memoryId };
                     } else {
                         console.log('[MEMORY_BOOTSTRAP] ⚠️ Persistent storage failed, falling back');
                     }
