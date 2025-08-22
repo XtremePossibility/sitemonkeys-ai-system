@@ -107,11 +107,11 @@ class MemoryBootstrap {
                     console.log('[MEMORY_BOOTSTRAP] 📊 Persistent storage result:', JSON.stringify(result));
                     if (result && result.success) {
                         return { success: true, id: result.memoryId };  // ← FIXED
-                    }
-                    } else 
+                  }
+                  else {    
                         console.log('[MEMORY_BOOTSTRAP] ⚠️ Persistent storage failed, falling back');
-                    }
-                } else {
+                   }
+                   else {
                     console.log('[MEMORY_BOOTSTRAP] ⚠️ System not healthy or no persistentMemory - using fallback');
                 }
                   
