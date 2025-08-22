@@ -245,6 +245,48 @@ class ExtractionEngine {
     }
 
     async extractFromCategory(userId, categoryName, subcategoryName, maxTokens, dbClient) {
+    // DEBUG: Log what we're searching for
+    console.log(`[EXTRACTION] 🔍 Searching for userId: "${userId}", category: "${categoryName}", subcategory: "${subcategoryName}"`);
+    
+    // Extract key words from the current query for content matching
+    const queryWords = this.currentQuery ? this.currentQuery.toLowerCase().split(' ').filter(w => w.length > 2) : [];
+    const contentFilter = queryWords.slice(0, 3).join(' '); // Use first 3 meaningful words
+    
+    let query = `
+        SELECT id, category_name, subcategory_name, content, token_count, relevance_score, usage_frequency,     
+               last_accessed, created_at, metadata    
+        FROM persistent_memories     
+        WHERE user_id = $1 AND category_name = $2
+    `;
+    const params = [userId, categoryName];
+
+    if (subcategoryName && subcategoryName !== 'null' && subcategoryName !== null) {
+        query += ` AND subcategory_name = $3`;
+        params.push(subcategoryName);
+    }
+
+    // Add content relevance filtering if we have query words
+    if (contentFilter) {
+        const paramIndex = params.length + 1;
+        query += ` AND (content ILIKE '%' || $${paramIndex} || '%' OR $${paramIndex} = '')`;
+        params.push(contentFilter);
+    }
+
+    query += ` 
+        ORDER BY 
+            CASE WHEN content ILIKE '%' || $${params.length} || '%' THEN 1 ELSE 0 END DESC,
+            relevance_score DESC, 
+            usage_frequency DESC,
+            created_at DESC 
+        LIMIT 20
+    `;
+
+    console.log(`[EXTRACTION] 📊 Query: ${query}`);
+    console.log(`[EXTRACTION] 📊 Params: ${JSON.stringify(params)}`);
+
+    const result = await dbClient.query(query, params);
+    // ... rest of method stays the same
+}
         // DEBUG: Log what we're searching for
         console.log(`[EXTRACTION] 🔍 Searching for userId: "${userId}", category: "${categoryName}", subcategory: "${subcategoryName}"`);
         
