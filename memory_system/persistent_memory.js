@@ -191,10 +191,16 @@ class RoutingIntelligence {
 class ExtractionEngine {
     constructor() {
         console.log('[PERSISTENT] 🔍 Initializing extraction engine...');
+        this.currentQuery = null;
         this.maxExtractionTokens = 2400;
         this.minRelevanceThreshold = 0.3;
     }
 
+    // In extractRelevantMemories method, add at the top:
+    async extractRelevantMemories(userId, query, categoryRouting, dbClient) {
+        this.currentQuery = query; // Store current query for content filtering
+        // ... rest stays the same
+    }
     async extractRelevantMemories(userId, query, categoryRouting, dbClient) {
         try {
             const extractionPlan = this.planExtraction(query, categoryRouting);
