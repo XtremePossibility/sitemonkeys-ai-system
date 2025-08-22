@@ -5,7 +5,7 @@
 // surgical extraction, and self-provisioning infrastructure.
 // ================================================================
 
-const { Pool } = require('pg');
+import { Pool } from 'pg';
 
 // Memory system logger with distinctive prefix
 const memoryLogger = {
@@ -529,7 +529,7 @@ class MemoryAPIV2 {
 }
 
 // Export façade delegating to the real persistent engine (ESM), no new Pool, no mocks.
-module.exports = (function () {
+export default = (function () {
   let enginePromise = null;
   async function getEngine() {
     if (!enginePromise) {
