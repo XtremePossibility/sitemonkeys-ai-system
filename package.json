@@ -19,7 +19,6 @@
   },
   "scripts": {
     "fix-database": "node fix_database.js",
-    "start": "node server.js"
     "start": "node --trace-warnings server.js"
   },
   "engines": {
