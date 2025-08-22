@@ -108,7 +108,7 @@ class MemoryBootstrap {
                     if (result && result.success) {
                         return { success: true, id: result.memoryId };  // ← FIXED
                     }
-                    } else {
+                    } else 
                         console.log('[MEMORY_BOOTSTRAP] ⚠️ Persistent storage failed, falling back');
                     }
                 } else {
