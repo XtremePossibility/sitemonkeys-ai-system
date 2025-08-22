@@ -433,7 +433,7 @@ class PersistentMemoryAPI {
                     this.initialized = false; throw new Error('DATABASE_URL missing');
                 }
                 console.log('[PERSISTENT] 🔌 Connecting to database...');
-                this.pool = getDbPool();
+                this.pool = await getDbPool();
 
                 // Test connection
                 const client = await this.pool.connect();
