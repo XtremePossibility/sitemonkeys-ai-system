@@ -58,21 +58,7 @@ class MemoryBootstrap {
             const healthCheck = await this.persistentMemory.getSystemHealth?.()
                              || await this.persistentMemory.healthCheck?.();
             this.isHealthy = !!(healthCheck && (healthCheck.overall === true || healthCheck.status === 'healthy'));
-            console.log(`[MEMORY_BOOTSTRAP] 📊 Step 3: initialize() returned: ${success} (type: ${typeof success})`);
-              
-            if (success && success !== false) {
-                // Additional health verification using the correct method
-                console.log('[MEMORY_BOOTSTRAP] 📝 Step 4: Verifying system health...');
-                const healthCheck = await this.persistentMemory.getSystemHealth();
-                console.log('[MEMORY_BOOTSTRAP] 🔍 Health check result:', JSON.stringify(healthCheck));
-                
-                if (healthCheck.overall) {
-                    this.isHealthy = true;
-                    console.log('[MEMORY_BOOTSTRAP] ✅ Persistent memory system ready and healthy');
-                } else {
-                    console.log('[MEMORY_BOOTSTRAP] ⚠️ Health check failed - falling back to in-memory storage');
-                    this.isHealthy = false;
-                }
+            
             } else {
                 console.log('[MEMORY_BOOTSTRAP] ⚠️ Persistent memory initialize() returned false - falling back to in-memory storage');
                 this.isHealthy = false;
