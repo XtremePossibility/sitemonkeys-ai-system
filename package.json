@@ -18,7 +18,8 @@
     "#lib/*": "./lib/*"
   },
   "scripts": {
-    "start": "node --trace-warnings server.js"
+    "fix-database": "node fix_database.js",
+    "start": "node server.js"
   },
   "engines": {
     "node": ">=14.0.0"
