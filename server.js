@@ -660,7 +660,10 @@ app.post('/api/chat', async (req, res) => {
     
     try {
         console.log('\n🚀 [CHAT] New conversation request received');
-     
+        console.log('\n🚀 [CHAT] New conversation request received');
+        const requestId = Math.random().toString(36).substr(2, 9);
+        console.log(`🔍 [${requestId}] REQUEST START - Message: "${message.substr(0, 50)}..."`);
+      
     const {
       message,
       conversation_history = [],
@@ -713,6 +716,8 @@ if (memorySystem && typeof memorySystem.getRelevantContext === 'function') {
         console.log('[CHAT] 📋 Retrieving memory context...');
         memoryContext = await memorySystem.getRelevantContext('user', message, 2400);
         console.log(`[CHAT] ✅ Memory context retrieved: ${memoryContext.memories ? memoryContext.memories.length : 0} characters`);
+        console.log(`[CHAT] ✅ Memory context retrieved: ${memoryContext.memories ? memoryContext.memories.length : 0} characters`);
+        console.log(`🔍 [${requestId}] Memory status: ${memoryContext ? 'FOUND' : 'NONE'}`);
     } catch (error) {
         console.error('[CHAT] ⚠️ Memory retrieval failed:', error);
         memoryContext = '';
@@ -753,6 +758,8 @@ console.log('[CHAT] ✅ Memory systems retrieved from bootstrap');
     // OPTIMAL PERSONALITY SELECTION
     const personality = selectCaringPersonality(expertDomain, careNeeds, protectiveAlerts);
     const prideMotivation = calculatePrideLevel(protectiveAlerts, solutionOpportunities, careNeeds);
+    const prideMotivation = calculatePrideLevel(protectiveAlerts, solutionOpportunities, careNeeds);
+    console.log(`🔍 [${requestId}] Selected personality: ${personality}`);  
 
     conversationCount++;
 
@@ -783,6 +790,8 @@ const systemPrompt = buildMasterSystemPrompt({
 // BUILD CONVERSATION PROMPT
 const fullPrompt = buildConversationPrompt(systemPrompt, message, conversation_history, expertDomain);
 
+console.log(`🔍 [${requestId}] About to call ${personality} personality`);
+const apiResponse = await makeIntelligentAPICall(fullPrompt, personality, prideMotivation, {      
 // ENHANCED API CALL
 const apiResponse = await makeIntelligentAPICall(fullPrompt, personality, prideMotivation, {
   vaultContent,
@@ -1327,6 +1336,8 @@ function buildConversationPrompt(systemPrompt, message, conversationHistory, exp
 async function makeIntelligentAPICall(prompt, personality, prideMotivation, context = {}) {
   const { vaultContent, vaultHealthy, mode, memoryContext } = context;
   const maxTokens = Math.floor(1000 + (prideMotivation * 500));
+  const maxTokens = Math.floor(1000 + (prideMotivation * 500));
+  console.log(`🔍 [API] ENTERING makeIntelligentAPICall with personality: ${personality}`);
 
   if (personality === 'claude') {
     if (!process.env.ANTHROPIC_API_KEY) {
