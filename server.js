@@ -3,7 +3,11 @@
 // Ready for immediate Railway deployment
 //Redeploy
 // FAST DIRECT OPENAI - NO RATE LIMITING DELAYS
+// FAST DIRECT OPENAI WITH MINIMAL SPACING
 const callOpenAI = async (payload) => {
+  // Small delay to prevent rapid-fire requests
+  await new Promise(resolve => setTimeout(resolve, 1200));
+  
   const response = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
     headers: {
