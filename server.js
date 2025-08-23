@@ -662,7 +662,6 @@ app.post('/api/chat', async (req, res) => {
         console.log('\n🚀 [CHAT] New conversation request received');
         console.log('\n🚀 [CHAT] New conversation request received');
         const requestId = Math.random().toString(36).substr(2, 9);
-        console.log(`🔍 [${requestId}] REQUEST START - Message: "${message.substr(0, 50)}..."`);
       
     const {
       message,
@@ -671,6 +670,7 @@ app.post('/api/chat', async (req, res) => {
       claude_requested = false,
       vault_content = null
     } = req.body;
+      console.log(`🔍 [${requestId}] REQUEST START - Message: "${message.substr(0, 50)}..."`);
 
     if (!message || typeof message !== 'string') {
       return res.status(400).json({ error: 'Message is required and must be a string' });
@@ -716,7 +716,6 @@ if (memorySystem && typeof memorySystem.getRelevantContext === 'function') {
         console.log('[CHAT] 📋 Retrieving memory context...');
         memoryContext = await memorySystem.getRelevantContext('user', message, 2400);
         console.log(`[CHAT] ✅ Memory context retrieved: ${memoryContext.memories ? memoryContext.memories.length : 0} characters`);
-        console.log(`[CHAT] ✅ Memory context retrieved: ${memoryContext.memories ? memoryContext.memories.length : 0} characters`);
         console.log(`🔍 [${requestId}] Memory status: ${memoryContext ? 'FOUND' : 'NONE'}`);
     } catch (error) {
         console.error('[CHAT] ⚠️ Memory retrieval failed:', error);
@@ -757,7 +756,6 @@ console.log('[CHAT] ✅ Memory systems retrieved from bootstrap');
 
     // OPTIMAL PERSONALITY SELECTION
     const personality = selectCaringPersonality(expertDomain, careNeeds, protectiveAlerts);
-    const prideMotivation = calculatePrideLevel(protectiveAlerts, solutionOpportunities, careNeeds);
     const prideMotivation = calculatePrideLevel(protectiveAlerts, solutionOpportunities, careNeeds);
     console.log(`🔍 [${requestId}] Selected personality: ${personality}`);  
 
@@ -1335,7 +1333,6 @@ function buildConversationPrompt(systemPrompt, message, conversationHistory, exp
 
 async function makeIntelligentAPICall(prompt, personality, prideMotivation, context = {}) {
   const { vaultContent, vaultHealthy, mode, memoryContext } = context;
-  const maxTokens = Math.floor(1000 + (prideMotivation * 500));
   const maxTokens = Math.floor(1000 + (prideMotivation * 500));
   console.log(`🔍 [API] ENTERING makeIntelligentAPICall with personality: ${personality}`);
 
