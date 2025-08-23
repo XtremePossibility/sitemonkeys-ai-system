@@ -2,7 +2,6 @@
 // Preserves all breakthrough insights from this conversation
 // Ready for immediate Railway deployment
 //Redeploy
-import { callOpenAI } from './api/lib/openaiCall.js';
 import { generateRoxyResponse, generateEliResponse, validateResponseQuality } from './api/lib/personalities.js';
 import express from 'express';
 import cors from 'cors';
@@ -1358,40 +1357,7 @@ async function makeIntelligentAPICall(prompt, personality, prideMotivation, cont
         chat: {
           completions: {
             create: async (params) => {
-              // FIND THIS CODE:
-const openaiWrapper = {
-  chat: {
-    completions: {
-      create: async (params) => {
-        const response = await fetch('https://api.openai.com/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
-          },
-          body: JSON.stringify(params)
-        });
-
-        if (!response.ok) {
-          throw new Error(`OpenAI API error: ${response.status}`);
-        }
-
-        return await response.json();
-      }
-    }
-  }
-};
-
-// REPLACE WITH:
-const openaiWrapper = {
-  chat: {
-    completions: {
-      create: async (params) => {
-        return await callOpenAI(params);
-      }
-    }
-  }
-};
+              const response = await fetch('https://api.openai.com/v1/chat/completions', {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
@@ -1416,40 +1382,7 @@ const openaiWrapper = {
         return await generateEliResponse(message, mode, vaultContent, memoryArray, openaiWrapper);
       } else {
         // Fallback to direct OpenAI call
-        // FIND THIS CODE:
-const openaiWrapper = {
-  chat: {
-    completions: {
-      create: async (params) => {
         const response = await fetch('https://api.openai.com/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
-          },
-          body: JSON.stringify(params)
-        });
-
-        if (!response.ok) {
-          throw new Error(`OpenAI API error: ${response.status}`);
-        }
-
-        return await response.json();
-      }
-    }
-  }
-};
-
-// REPLACE WITH:
-const openaiWrapper = {
-  chat: {
-    completions: {
-      create: async (params) => {
-        return await callOpenAI(params);
-      }
-    }
-  }
-};
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
