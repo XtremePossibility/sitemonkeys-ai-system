@@ -1,7 +1,7 @@
 // database_diagnostic.js
 // Run this to diagnose database connection issues
 // Usage: node database_diagnostic.js
-
+// Reload
 import { getDbPool } from './memory_system/db_singleton.js';
 import PersistentMemoryAPI from './memory_system/persistent_memory.js';
 
