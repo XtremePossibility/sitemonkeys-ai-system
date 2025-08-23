@@ -1,3 +1,4 @@
+// Redeploy
 // railway_env_check.js
 // Run this to check what Railway environment variables are actually available
 
