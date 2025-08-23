@@ -556,11 +556,40 @@ export default (function () {
       const eng = await getEngine();
       return eng.getRelevantContext(userId, query, maxTokens);
     },
-    async getSystemHealth() {
-      const eng = await getEngine();
-      if (typeof eng.getSystemHealth === 'function') return eng.getSystemHealth();
-      if (typeof eng.healthCheck === 'function') return eng.healthCheck();
-      return { status: 'unknown' };
+    // EXACT REPLACEMENT for your current getSystemHealth method in memory_api.js
+
+async getSystemHealth() {
+  try {
+    const eng = await getEngine();
+    let health;
+    
+    if (typeof eng.getSystemHealth === 'function') {
+      health = await eng.getSystemHealth();
+    } else if (typeof eng.healthCheck === 'function') {
+      health = await eng.healthCheck();
+    } else {
+      health = { status: 'unknown' };
     }
+    
+    // CRITICAL FIX: Normalize response format for memory_bootstrap.js compatibility
+    return {
+      overall: health.overall || health.initialized || (health.status === 'healthy'),
+      status: health.status || (health.overall ? 'healthy' : 'unhealthy'),
+      initialized: health.initialized || health.overall || false,
+      database: health.database || { healthy: false },
+      timestamp: health.timestamp || new Date().toISOString()
+    };
+    
+  } catch (error) {
+    console.error('[MEMORY_API] Health check error:', error);
+    return {
+      overall: false,
+      status: 'unhealthy', 
+      initialized: false,
+      error: error.message,
+      timestamp: new Date().toISOString()
+    };
+  }
+}
   };
 })();
