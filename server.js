@@ -758,17 +758,43 @@ const systemPrompt = buildMasterSystemPrompt({
   memoryContext  // ADD THIS
 });
 
-// ADD MEMORY CONTEXT TO CONVERSATION PROMPT
-let enhancedPrompt = buildConversationPrompt(systemPrompt, message, conversation_history, expertDomain);
+// BUILD CONVERSATION PROMPT
+const fullPrompt = buildConversationPrompt(systemPrompt, message, conversation_history, expertDomain);
 
-    // ENHANCED API CALL
-    const apiResponse = await makeIntelligentAPICall(fullPrompt, personality, prideMotivation, {
-      vaultContent,
-      vaultHealthy,
-      mode,
-      memoryContext
-    });
+// ENHANCED API CALL
+const apiResponse = await makeIntelligentAPICall(fullPrompt, personality, prideMotivation, {
+  vaultContent,
+  vaultHealthy,
+  mode,
+  memoryContext
+});
+        
+// Validate the response before enhancement
+const validationResult = validateResponseQuality(apiResponse.response, personality, mode);
 
+if (!validationResult.valid || validationResult.enforcement_score < 70) {
+  console.log('[ENFORCEMENT] Response failed validation:', validationResult.issues);
+  
+  // Apply mode-specific fallback corrections
+  let correctedResponse = apiResponse.response;
+  
+  if (mode === 'business_validation' && validationResult.issues.some(issue => issue.includes('survival analysis'))) {
+    correctedResponse += `\n\n[ENFORCEMENT CORRECTION APPLIED]\n🎯 **SURVIVAL IMPACT:** MEDIUM - Analysis incomplete, requires financial validation\n💰 **CASH FLOW ANALYSIS:** Impact assessment needed - recommend conservative approach\n⚠️ **TOP 3 RISKS:** 1) Insufficient analysis → Get more data 2) Execution risk → Start small 3) Market risk → Validate assumptions`;
+  }
+  
+  if (mode === 'truth_general' && validationResult.issues.some(issue => issue.includes('confidence indicators'))) {
+    correctedResponse += `\n\n[ENFORCEMENT CORRECTION APPLIED]\n📊 **CONFIDENCE:** Low - Key claims require verification\n⚠️ **ASSUMPTIONS DETECTED:** Analysis contains unverified elements\n🔍 **TO VERIFY:** Seek primary sources for factual validation`;
+  }
+  
+  apiResponse.response = correctedResponse;
+  
+  // Log enforcement action
+  console.log('[ENFORCEMENT] Applied fallback corrections for:', validationResult.issues);
+}
+
+// COMPREHENSIVE RESPONSE ENHANCEMENT
+let enhancedResponse = apiResponse.response;
+        
     // COMPREHENSIVE RESPONSE ENHANCEMENT
     let enhancedResponse = apiResponse.response;
 
@@ -1113,27 +1139,6 @@ Care Level Required: ${careNeeds.level.toUpperCase()}
 ${memoryContext.memories}
 --- End Memory Context ---
 
-`;
-  }
-
-CARING FAMILY PHILOSOPHY (Core Identity):
-${FAMILY_PHILOSOPHY.core_mission}
-
-FAMILY CHARACTERISTICS:
-- ${FAMILY_PHILOSOPHY.pride_source}
-- ${FAMILY_PHILOSOPHY.care_principle}
-- ${FAMILY_PHILOSOPHY.excellence_standard}
-- ${FAMILY_PHILOSOPHY.relationship_focus}
-- ${FAMILY_PHILOSOPHY.one_and_done_philosophy}
-
-YOUR EXPERT IDENTITY: ${expertDomain.title}
-Domain: ${expertDomain.domain}
-Expertise Frameworks: ${expertDomain.frameworks.join(', ')}
-Care Level Required: ${careNeeds.level.toUpperCase()}
-
-`;
-
-  // Personality-specific approach
   if (personality === 'eli') {
     prompt += `ELI'S CARING ANALYTICAL EXCELLENCE:
 - "${FAMILY_PHILOSOPHY.truth_foundation}"
@@ -1268,13 +1273,14 @@ function buildConversationPrompt(systemPrompt, message, conversationHistory, exp
   return fullPrompt;
 }
 
-async function makeIntelligentAPICall(prompt, personality, prideMotivation) {
+async function makeIntelligentAPICall(prompt, personality, prideMotivation, context = {}) {
+  const { vaultContent, vaultHealthy, mode, memoryContext } = context;
   const maxTokens = Math.floor(1000 + (prideMotivation * 500));
 
   if (personality === 'claude') {
     if (!process.env.ANTHROPIC_API_KEY) {
       console.warn('Claude API key missing, using GPT-4');
-      return await makeIntelligentAPICall(prompt, 'roxy', prideMotivation);
+      return await makeIntelligentAPICall(prompt, 'roxy', prideMotivation, context);
     }
 
     try {
@@ -1305,7 +1311,7 @@ async function makeIntelligentAPICall(prompt, personality, prideMotivation) {
       };
     } catch (error) {
       console.error('Claude API error:', error);
-      return await makeIntelligentAPICall(prompt, 'roxy', prideMotivation);
+      return await makeIntelligentAPICall(prompt, 'roxy', prideMotivation, context);
     }
   } else {
     if (!process.env.OPENAI_API_KEY) {
@@ -1313,32 +1319,67 @@ async function makeIntelligentAPICall(prompt, personality, prideMotivation) {
     }
 
     try {
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
-        },
-        body: JSON.stringify({
-          model: 'gpt-4o',
-          messages: [{ role: 'system', content: prompt }],
-          max_tokens: maxTokens,
-          temperature: 0.2 + (prideMotivation * 0.1),
-          top_p: 0.9
-        })
-      });
+      // Use personality-specific generation
+      const message = prompt.split('CURRENT REQUEST:')[1] || prompt;
+      const memoryArray = memoryContext ? [memoryContext] : [];
+      
+      // Create OpenAI client wrapper for personality functions
+      const openaiWrapper = {
+        chat: {
+          completions: {
+            create: async (params) => {
+              const response = await fetch('https://api.openai.com/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
+                },
+                body: JSON.stringify(params)
+              });
 
-      if (!response.ok) {
-        throw new Error(`OpenAI API error: ${response.status}`);
-      }
+              if (!response.ok) {
+                throw new Error(`OpenAI API error: ${response.status}`);
+              }
 
-      const data = await response.json();
-      return {
-        response: data.choices[0].message.content,
-        usage: data.usage
+              return await response.json();
+            }
+          }
+        }
       };
+
+      if (personality === 'roxy') {
+        return await generateRoxyResponse(message, mode, vaultContent, memoryArray, openaiWrapper);
+      } else if (personality === 'eli') {
+        return await generateEliResponse(message, mode, vaultContent, memoryArray, openaiWrapper);
+      } else {
+        // Fallback to direct OpenAI call
+        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
+          },
+          body: JSON.stringify({
+            model: 'gpt-4o',
+            messages: [{ role: 'system', content: prompt }],
+            max_tokens: maxTokens,
+            temperature: 0.2 + (prideMotivation * 0.1),
+            top_p: 0.9
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error(`OpenAI API error: ${response.status}`);
+        }
+
+        const data = await response.json();
+        return {
+          response: data.choices[0].message.content,
+          usage: data.usage
+        };
+      }
     } catch (error) {
-      console.error('OpenAI API error:', error);
+      console.error('API error:', error);
       throw error;
     }
   }
