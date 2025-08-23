@@ -2,6 +2,7 @@
 // Preserves all breakthrough insights from this conversation
 // Ready for immediate Railway deployment
 //Redeploy
+import { callOpenAI } from './api/lib/openaiCall.js';
 import { generateRoxyResponse, generateEliResponse, validateResponseQuality } from './api/lib/personalities.js';
 import express from 'express';
 import cors from 'cors';
@@ -1354,27 +1355,14 @@ async function makeIntelligentAPICall(prompt, personality, prideMotivation, cont
       
       // Create OpenAI client wrapper for personality functions
       const openaiWrapper = {
-        chat: {
-          completions: {
-            create: async (params) => {
-              const response = await fetch('https://api.openai.com/v1/chat/completions', {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                  'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
-                },
-                body: JSON.stringify(params)
-              });
-
-              if (!response.ok) {
-                throw new Error(`OpenAI API error: ${response.status}`);
-              }
-
-              return await response.json();
-            }
-          }
-        }
-      };
+  chat: {
+    completions: {
+      create: async (params) => {
+        return await callOpenAI(params);
+      }
+    }
+  }
+};
 
       if (personality === 'roxy') {
         return await generateRoxyResponse(message, mode, vaultContent, memoryArray, openaiWrapper);
@@ -1382,26 +1370,13 @@ async function makeIntelligentAPICall(prompt, personality, prideMotivation, cont
         return await generateEliResponse(message, mode, vaultContent, memoryArray, openaiWrapper);
       } else {
         // Fallback to direct OpenAI call
-        const response = await fetch('https://api.openai.com/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
-          },
-          body: JSON.stringify({
-            model: 'gpt-4o',
-            messages: [{ role: 'system', content: prompt }],
-            max_tokens: maxTokens,
-            temperature: 0.2 + (prideMotivation * 0.1),
-            top_p: 0.9
-          })
+        cconst data = await callOpenAI({
+          model: 'gpt-4o',
+          messages: [{ role: 'system', content: prompt }],
+          max_tokens: maxTokens,
+          temperature: 0.2 + (prideMotivation * 0.1),
+          top_p: 0.9
         });
-
-        if (!response.ok) {
-          throw new Error(`OpenAI API error: ${response.status}`);
-        }
-
-        const data = await response.json();
         return {
           response: data.choices[0].message.content,
           usage: data.usage
