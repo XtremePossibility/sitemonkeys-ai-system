@@ -793,10 +793,8 @@ if (!validationResult.valid || validationResult.enforcement_score < 70) {
 }
 
 // COMPREHENSIVE RESPONSE ENHANCEMENT
+// COMPREHENSIVE RESPONSE ENHANCEMENT
 let enhancedResponse = apiResponse.response;
-        
-    // COMPREHENSIVE RESPONSE ENHANCEMENT
-    let enhancedResponse = apiResponse.response;
 
     // 1. QUANTITATIVE ENFORCEMENT - Fix "green beans" problem
     if (quantitativeNeeds && !containsActualCalculations(enhancedResponse)) {
@@ -1139,6 +1137,38 @@ Care Level Required: ${careNeeds.level.toUpperCase()}
 ${memoryContext.memories}
 --- End Memory Context ---
 
+`;
+  }
+
+  // Mode-specific requirements (PREVENTIVE, not just validating after)
+  if (mode === 'business_validation') {
+    prompt += `🎯 **BUSINESS MODE REQUIREMENTS** (MANDATORY in your response):
+- Include SURVIVAL IMPACT: [High/Medium/Low - specific threat level]
+- Include CASH FLOW ANALYSIS: [specific $ impact and timeline]
+- End with TOP 3 RISKS: [risk] → [specific mitigation]
+
+`;
+  }
+
+  if (mode === 'truth_general') {
+    prompt += `🎯 **TRUTH MODE REQUIREMENTS** (MANDATORY in your response):
+- Include confidence levels: [High/Medium/Low/Unknown] for major claims
+- Flag assumptions with ⚠️ warnings and challenge them
+- End with VERIFICATION: [specific methods to verify key claims]
+
+`;
+  }
+
+  if (mode === 'site_monkeys') {
+    prompt += `🎯 **SITE MONKEYS MODE REQUIREMENTS** (MANDATORY in your response):
+- Include 🍌 emoji and Site Monkeys branding
+- Reference vault/business context when relevant
+- Maintain professional service standards
+
+`;
+  }
+
+  // Personality-specific approach
   if (personality === 'eli') {
     prompt += `ELI'S CARING ANALYTICAL EXCELLENCE:
 - "${FAMILY_PHILOSOPHY.truth_foundation}"
