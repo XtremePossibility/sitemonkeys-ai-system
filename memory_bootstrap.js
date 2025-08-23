@@ -72,6 +72,11 @@ class MemoryBootstrap {
             console.error('[MEMORY_BOOTSTRAP] ❌ Error code:', error.code);
             console.error('[MEMORY_BOOTSTRAP] ❌ Full error object:', JSON.stringify(error, Object.getOwnPropertyNames(error)));
             this.isHealthy = false;
+            console.log('[MEMORY_BOOTSTRAP] 🔍 Health check evaluation:');
+            console.log('[MEMORY_BOOTSTRAP] 📊 Raw health check:', JSON.stringify(healthCheck));
+            console.log('[MEMORY_BOOTSTRAP] 📊 Overall:', healthCheck?.overall);
+            console.log('[MEMORY_BOOTSTRAP] 📊 Status:', healthCheck?.status);
+            console.log('[MEMORY_BOOTSTRAP] 📊 Logic result:', !!(healthCheck && (healthCheck.overall === true || healthCheck.status === 'healthy')));
         }
 
         // Set up global.memorySystem interface for your chat.js AFTER INITIALIZATION
