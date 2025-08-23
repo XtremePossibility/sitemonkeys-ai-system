@@ -1369,8 +1369,8 @@ async function makeIntelligentAPICall(prompt, personality, prideMotivation, cont
       } else if (personality === 'eli') {
         return await generateEliResponse(message, mode, vaultContent, memoryArray, openaiWrapper);
       } else {
-        // Fallback to direct OpenAI call
-        cconst data = await callOpenAI({
+        // Fallback to direct OpenAI call  
+        const data = await callOpenAI({
           model: 'gpt-4o',
           messages: [{ role: 'system', content: prompt }],
           max_tokens: maxTokens,
