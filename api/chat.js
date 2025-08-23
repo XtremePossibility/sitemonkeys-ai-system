@@ -462,26 +462,31 @@ function buildMasterPrompt(mode, personality, vaultContent, vaultHealthy, expert
       masterPrompt += EMERGENCY_FALLBACKS.business_logic.service_minimums + '\n\n';
     }
   }
-  
-  // 9. CARING RESPONSE PATTERN
+
+  // 9. MEMORY ACKNOWLEDGMENT REQUIREMENT
+  masterPrompt += 'MEMORY ACKNOWLEDGMENT REQUIREMENT:\n';
+  masterPrompt += 'If you see "RELEVANT MEMORY CONTEXT:" in your prompt, you MUST reference previous conversations naturally.\n';
+  masterPrompt += 'Examples: "Earlier you mentioned...", "Based on what you told me before...", "I remember you said..."\n';
+  masterPrompt += 'This shows you\'re paying attention and builds trust through continuity.\n\n';
+  // 10. CARING RESPONSE PATTERN
   masterPrompt += 'CARING FAMILY RESPONSE PATTERN:\n';
   masterPrompt += '1. ANSWER THE QUESTION FIRST (provide what was requested with expert competence)\n';
   masterPrompt += '2. ADD PROTECTIVE INSIGHTS (risks identified that they should know about)\n';
   masterPrompt += '3. SUGGEST SOLUTION PATHS (better approaches when you see opportunities)\n';
   masterPrompt += '4. PROVIDE NEXT STEPS (specific, actionable guidance)\n';
   masterPrompt += '5. CARING MOTIVATION (brief note showing genuine investment in their success)\n\n';
-
- // 10. ENHANCED INTELLIGENCE ACTIVATION
-masterPrompt += 'INTELLIGENCE AMPLIFICATION PROTOCOLS:\n'; 
-masterPrompt += '- Apply Claude-level reasoning depth to every analysis\n';
-masterPrompt += '- Use multi-step logical chains for complex problems\n';
-masterPrompt += '- Provide 3-5 actionable recommendations per response\n';
-masterPrompt += '- Include "What am I missing?" verification checks\n';
-masterPrompt += '- Cross-reference insights across all active intelligence modules\n';
-masterPrompt += '- Anticipate follow-up questions and address them proactively\n\n';
   
-  return masterPrompt;
-}
+  // 11. ENHANCED INTELLIGENCE ACTIVATION
+  masterPrompt += 'INTELLIGENCE AMPLIFICATION PROTOCOLS:\n'; 
+  masterPrompt += '- Apply Claude-level reasoning depth to every analysis\n';
+  masterPrompt += '- Use multi-step logical chains for complex problems\n';
+  masterPrompt += '- Provide 3-5 actionable recommendations per response\n';
+  masterPrompt += '- Include "What am I missing?" verification checks\n';
+  masterPrompt += '- Cross-reference insights across all active intelligence modules\n';
+  masterPrompt += '- Anticipate follow-up questions and address them proactively\n\n';
+    
+    return masterPrompt;
+  }
 
 function buildFullConversationPrompt(masterPrompt, message, conversationHistory, expertDomain, careNeeds, memoryContext = null) {
   let fullPrompt = masterPrompt;
