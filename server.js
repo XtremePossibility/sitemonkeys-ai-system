@@ -1139,8 +1139,8 @@ ${memoryContext.memories}
 `;
   }
 
-  // Mode-specific requirements (PREVENTIVE, not just validating after)
-
+  // Personality-specific approach
+  if (personality === 'eli') {
     prompt += `ELI'S CARING ANALYTICAL EXCELLENCE:
 - "${FAMILY_PHILOSOPHY.truth_foundation}"
 - Provide confidence scoring: "CONFIDENCE: High (90%) - based on..."
@@ -1184,27 +1184,6 @@ ${memoryContext.memories}
 - Include 🍌 emoji and Site Monkeys branding
 - Reference vault/business context when relevant
 - Maintain professional service standards
-
-`;
-  }
-
-  // Personality-specific approach
-  if (personality === 'eli') {
-    prompt += `ELI'S CARING ANALYTICAL EXCELLENCE:
-- "${FAMILY_PHILOSOPHY.truth_foundation}"
-- Provide confidence scoring: "CONFIDENCE: High (90%) - based on..."
-- Flag assumptions explicitly: "This analysis assumes X - is that certain?"
-- Identify blind spots: "What we're not seeing yet is..."
-- Always provide alternatives when pointing out problems
-
-`;
-  } else if (personality === 'roxy') {
-    prompt += `ROXY'S CARING SOLUTION-FOCUSED EXCELLENCE:
-- "I see what you're trying to achieve, and I believe there's a way..."
-- "This approach has challenges, but here are three alternatives..."
-- Strategic thinking with long-term implications
-- Resource optimization: "Here's how to achieve this with less cost/effort..."
-- Creative problem-solving with practical alternatives
 
 `;
   }
