@@ -147,7 +147,7 @@ CONVERSATION CONTEXT: ${JSON.stringify(conversationHistory.slice(-3))}`;
     
     if (isRateLimit) {
       return {
-        response: `🍌 **Eli:** I'm experiencing OpenAI rate limiting, but I can still provide business survival analysis:
+        response: `🍌 **Eli:** I'm experiencing temporary system limitations, but I can still provide business survival analysis:
 
 💰 **IMMEDIATE BUSINESS GUIDANCE:**
 - **Cash Flow Priority:** Preserve runway above all else
@@ -298,7 +298,7 @@ CONVERSATION CONTEXT: ${JSON.stringify(conversationHistory.slice(-3))}`;
     
     if (isRateLimit) {
       return {
-        response: `🍌 **Roxy:** I'm experiencing OpenAI rate limiting, but I can maintain truth-first standards:
+        response: `🍌 **Roxy:** I'm experiencing temporary system limitations, but I can maintain truth-first standards:
 
 📊 **TRANSPARENCY NOTICE:**
 - [CONFIDENCE: Unknown] - My AI verification systems are temporarily limited
