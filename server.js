@@ -2,6 +2,7 @@
 // Preserves all breakthrough insights from this conversation
 // Ready for immediate Railway deployment
 //Redeploy
+import { generateRoxyResponse, generateEliResponse, validateResponseQuality } from './api/lib/personalities.js';
 import express from 'express';
 import cors from 'cors';
 const app = express();
@@ -753,39 +754,20 @@ console.log('[CHAT] ✅ Memory systems retrieved from bootstrap');
     // MASTER SYSTEM PROMPT CONSTRUCTION
 const systemPrompt = buildMasterSystemPrompt({
   mode, personality, vaultContent, vaultHealthy, expertDomain,
-  careNeeds, protectiveAlerts, solutionOpportunities, quantitativeNeeds
+  careNeeds, protectiveAlerts, solutionOpportunities, quantitativeNeeds,
+  memoryContext  // ADD THIS
 });
 
 // ADD MEMORY CONTEXT TO CONVERSATION PROMPT
 let enhancedPrompt = buildConversationPrompt(systemPrompt, message, conversation_history, expertDomain);
 
-// CRITICAL FIX: Include retrieved memory context in AI prompt
-if (memoryContext && memoryContext.memories && memoryContext.memories.length > 0) {
-  enhancedPrompt = systemPrompt + `
-
-RELEVANT MEMORY CONTEXT:
-${memoryContext.memories}
-
-CURRENT REQUEST:
-Family Member: ${message}
-
-Respond using both the memory context and your expertise:`;
-  
-  console.log(`[CHAT] 🧠 Added ${memoryContext.memories.length} characters of memory context to AI prompt`);
-} else {
-  enhancedPrompt = systemPrompt + `
-
-CURRENT REQUEST:
-Family Member: ${message}
-
-Respond with your expertise:`;
-  console.log(`[CHAT] ⚠️ No memory context available for AI prompt`);
-}
-
-const fullPrompt = enhancedPrompt;
-
     // ENHANCED API CALL
-    const apiResponse = await makeIntelligentAPICall(fullPrompt, personality, prideMotivation);
+    const apiResponse = await makeIntelligentAPICall(fullPrompt, personality, prideMotivation, {
+      vaultContent,
+      vaultHealthy,
+      mode,
+      memoryContext
+    });
 
     // COMPREHENSIVE RESPONSE ENHANCEMENT
     let enhancedResponse = apiResponse.response;
@@ -1102,9 +1084,37 @@ function calculatePrideLevel(protectiveAlerts, solutionOpportunities, careNeeds)
 }
 
 function buildMasterSystemPrompt(config) {
-  const { mode, personality, vaultContent, vaultHealthy, expertDomain, careNeeds, protectiveAlerts, solutionOpportunities, quantitativeNeeds } = config;
-  
+  const { mode, personality, vaultContent, vaultHealthy, expertDomain, 
+          careNeeds, protectiveAlerts, solutionOpportunities, quantitativeNeeds, 
+          memoryContext } = config;  // ADD memoryContext
+
   let prompt = `You are a world-class ${expertDomain.title} with 20+ years of extraordinary professional success. You are part of an extraordinary family of experts who genuinely care about each other's success.
+
+CARING FAMILY PHILOSOPHY (Core Identity):
+${FAMILY_PHILOSOPHY.core_mission}
+
+FAMILY CHARACTERISTICS:
+- ${FAMILY_PHILOSOPHY.pride_source}
+- ${FAMILY_PHILOSOPHY.care_principle}
+- ${FAMILY_PHILOSOPHY.excellence_standard}
+- ${FAMILY_PHILOSOPHY.relationship_focus}
+- ${FAMILY_PHILOSOPHY.one_and_done_philosophy}
+
+YOUR EXPERT IDENTITY: ${expertDomain.title}
+Domain: ${expertDomain.domain}
+Expertise Frameworks: ${expertDomain.frameworks.join(', ')}
+Care Level Required: ${careNeeds.level.toUpperCase()}
+
+`;
+  
+  // ADD THIS SECTION immediately after the opening prompt:
+  if (memoryContext && memoryContext.contextFound && memoryContext.memories) {
+    prompt += `🧠 **RELEVANT MEMORY CONTEXT** (Use this information):
+${memoryContext.memories}
+--- End Memory Context ---
+
+`;
+  }
 
 CARING FAMILY PHILOSOPHY (Core Identity):
 ${FAMILY_PHILOSOPHY.core_mission}
