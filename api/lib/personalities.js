@@ -1,5 +1,5 @@
 // PRODUCTION PERSONALITIES - COMPLETE SITE MONKEYS AI SYSTEM
-// Version: PROD-1.0 - ZERO OPENAI REFERENCES
+// Version: PROD-1.0 - ZERO OPENAI REFERENCES - RATE LIMIT FIXED
 
 // PROMPT TYPE ANALYZER WITH MODE-SPECIFIC LOGIC
 export function analyzePromptType(message) {
@@ -136,14 +136,18 @@ CONVERSATION CONTEXT: ${JSON.stringify(conversationHistory.slice(-3))}`;
     };
 
   } catch (error) {
-  console.error('❌ Eli response error:', error);
-  
-  // ENHANCED FALLBACK - Handle rate limiting specifically
-  const isRateLimit = error.message.includes('429') || error.message.includes('rate limit') || error.message.includes('Cannot read properties of undefined');
-  
-  if (isRateLimit) {
-    return {
-      response: `🍌 **Eli:** I'm experiencing OpenAI rate limiting, but I can still provide business survival analysis:
+    console.error('❌ Eli response error:', error);
+    
+    // ENHANCED FALLBACK - Handle all error types
+    const errorMessage = error?.message || 'unknown error';
+    const isRateLimit = errorMessage.includes('429') || 
+                       errorMessage.includes('rate limit') || 
+                       errorMessage.includes('Cannot read properties of undefined') ||
+                       errorMessage.includes('choices');
+    
+    if (isRateLimit) {
+      return {
+        response: `🍌 **Eli:** I'm experiencing OpenAI rate limiting, but I can still provide business survival analysis:
 
 💰 **IMMEDIATE BUSINESS GUIDANCE:**
 - **Cash Flow Priority:** Preserve runway above all else
@@ -159,35 +163,17 @@ CONVERSATION CONTEXT: ${JSON.stringify(conversationHistory.slice(-3))}`;
 🎯 **RECOMMENDATION:** Take the most conservative approach that preserves cash flow until my full analysis systems recover.
 
 Please try your question again in 2-3 minutes for detailed financial modeling.`,
-      tokens_used: 0,
-      cost: 0,
-      ai_personality: 'eli',
-      rate_limited: true,
-      fallback_used: true,
-      error_type: 'rate_limit_handled'
-    };
-  }
-  
-  // ORIGINAL FALLBACK FOR OTHER ERRORS
-  return {
-    response: `🍌 **Eli:** I'm experiencing technical difficulties with my business analysis systems right now. Let me provide some immediate guidance:
-
-💰 **For any business decision:**
-1. **Cash Flow First:** Calculate the immediate impact on your runway
-2. **Worst-Case Modeling:** What happens if this decision fails completely?
-3. **Conservative Revenue:** Assume 50% lower adoption than projected
-4. **Hidden Costs:** Budget 25% extra for unexpected expenses
-
-⚠️ **Risk Assessment:** Without being able to analyze your specific situation, I recommend taking the most conservative approach that preserves cash flow.
-
-Could you rephrase your question? I'll provide more specific business survival analysis once my systems are back online.`,
-    tokens_used: 0,
-    cost: 0,
-    ai_personality: 'eli',
-    fallback_used: true,
-    error_type: error.message
-  };
-}
+        tokens_used: 0,
+        cost: 0,
+        ai_personality: 'eli',
+        rate_limited: true,
+        fallback_used: true,
+        error_type: 'rate_limit_handled'
+      };
+    }
+    
+    // GENERAL FALLBACK FOR OTHER ERRORS
+    return {
       response: `🍌 **Eli:** I'm experiencing technical difficulties with my business analysis systems right now. Let me provide some immediate guidance:
 
 💰 **For any business decision:**
@@ -203,7 +189,7 @@ Could you rephrase your question? I'll provide more specific business survival a
       cost: 0,
       ai_personality: 'eli',
       fallback_used: true,
-      error_type: error.message
+      error_type: errorMessage
     };
   }
 }
@@ -301,14 +287,18 @@ CONVERSATION CONTEXT: ${JSON.stringify(conversationHistory.slice(-3))}`;
     };
 
   } catch (error) {
-  console.error('❌ Roxy response error:', error);
-  
-  // ENHANCED FALLBACK - Handle rate limiting specifically
-  const isRateLimit = error.message.includes('429') || error.message.includes('rate limit') || error.message.includes('Cannot read properties of undefined');
-  
-  if (isRateLimit) {
-    return {
-      response: `🍌 **Roxy:** I'm experiencing OpenAI rate limiting, but I can maintain truth-first standards:
+    console.error('❌ Roxy response error:', error);
+    
+    // ENHANCED FALLBACK - Handle all error types
+    const errorMessage = error?.message || 'unknown error';
+    const isRateLimit = errorMessage.includes('429') || 
+                       errorMessage.includes('rate limit') || 
+                       errorMessage.includes('Cannot read properties of undefined') ||
+                       errorMessage.includes('choices');
+    
+    if (isRateLimit) {
+      return {
+        response: `🍌 **Roxy:** I'm experiencing OpenAI rate limiting, but I can maintain truth-first standards:
 
 📊 **TRANSPARENCY NOTICE:**
 - [CONFIDENCE: Unknown] - My AI verification systems are temporarily limited
@@ -329,42 +319,17 @@ CONVERSATION CONTEXT: ${JSON.stringify(conversationHistory.slice(-3))}`;
 🎯 **RECOMMENDATION:** Use primary sources and cross-reference information independently until my verification systems recover.
 
 Please try again in 2-3 minutes for full truth-first analysis.`,
-      tokens_used: 0,
-      cost: 0,
-      ai_personality: 'roxy',
-      rate_limited: true,
-      fallback_used: true,
-      error_type: 'rate_limit_handled'
-    };
-  }
-  
-  // ORIGINAL FALLBACK FOR OTHER ERRORS
-  return {
-    response: `🍌 **Roxy:** I'm experiencing technical difficulties with my analysis systems. Let me provide what I can with full transparency:
-
-📊 **What I Can Tell You:**
-- I'm currently unable to access my full verification systems
-- Any analysis I provide right now would have [CONFIDENCE: Unknown]
-- I cannot verify claims or provide source validation
-
-⚠️ **Critical Limitations:**
-- My current response capabilities are impaired
-- I cannot distinguish between verified facts and assumptions
-- All information should be independently verified
-
-🔍 **Recommended Next Steps:**
-1. Seek primary sources for any factual claims you need
-2. Cross-reference information from multiple independent sources
-3. Be especially skeptical of any data I might provide in this state
-
-Could you rephrase your question? I'll provide more rigorous truth-first analysis once my verification systems are restored.`,
-    tokens_used: 0,
-    cost: 0,
-    ai_personality: 'roxy',
-    fallback_used: true,
-    error_type: error.message
-  };
-}
+        tokens_used: 0,
+        cost: 0,
+        ai_personality: 'roxy',
+        rate_limited: true,
+        fallback_used: true,
+        error_type: 'rate_limit_handled'
+      };
+    }
+    
+    // GENERAL FALLBACK FOR OTHER ERRORS
+    return {
       response: `🍌 **Roxy:** I'm experiencing technical difficulties with my analysis systems. Let me provide what I can with full transparency:
 
 📊 **What I Can Tell You:**
@@ -387,7 +352,7 @@ Could you rephrase your question? I'll provide more rigorous truth-first analysi
       cost: 0,
       ai_personality: 'roxy',
       fallback_used: true,
-      error_type: error.message
+      error_type: errorMessage
     };
   }
 }
@@ -396,9 +361,6 @@ Could you rephrase your question? I'll provide more rigorous truth-first analysi
 export async function generateClaudeResponse(message, mode, vaultContext, conversationHistory) {
   try {
     console.log('🍌 Claude Integration: Complex analysis requested');
-    
-    // For now, return a structured response that maintains Site Monkeys branding
-    // This would integrate with Claude API when available
     
     return {
       response: `🍌 **Advanced Analysis System:** Complex analysis capabilities are being prepared for your request.
@@ -430,7 +392,7 @@ Your request is being processed with full Site Monkeys operational standards and
       cost: 0,
       ai_personality: 'claude',
       fallback_used: true,
-      error_type: error.message
+      error_type: error?.message || 'unknown error'
     };
   }
 }
