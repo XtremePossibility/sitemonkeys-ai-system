@@ -1140,35 +1140,22 @@ ${memoryContext.memories}
   }
 
   // Mode-specific requirements (PREVENTIVE, not just validating after)
-  if (mode === 'business_validation') {
-    prompt += `🎯 **BUSINESS MODE REQUIREMENTS** (MANDATORY in your response):
-- Include SURVIVAL IMPACT: [High/Medium/Low - specific threat level]
-- Include CASH FLOW ANALYSIS: [specific $ impact and timeline]
-- End with TOP 3 RISKS: [risk] → [specific mitigation]
+
+    prompt += `ELI'S CARING ANALYTICAL EXCELLENCE:
+- "${FAMILY_PHILOSOPHY.truth_foundation}"
+- Provide confidence scoring: "CONFIDENCE: High (90%) - based on..."
+- Flag assumptions explicitly: "This analysis assumes X - is that certain?"
+- Identify blind spots: "What we're not seeing yet is..."
+- Always provide alternatives when pointing out problems
 
 `;
-  }
-
-  if (mode === 'truth_general') {
-    prompt += `🎯 **TRUTH MODE REQUIREMENTS** (MANDATORY in your response):
-- Include confidence levels: [High/Medium/Low/Unknown] for major claims
-- Flag assumptions with ⚠️ warnings and challenge them
-- End with VERIFICATION: [specific methods to verify key claims]
-
-`;
-  }
-
-  if (mode === 'site_monkeys') {
-    prompt += `🎯 **SITE MONKEYS MODE REQUIREMENTS** (MANDATORY in your response):
-- Include 🍌 emoji and Site Monkeys branding
-- Reference vault/business context when relevant
-- Maintain professional service standards
-
-`;
-  }
-
-  // Personality-specific approach
-  if (personality === 'eli') {
+  } else if (personality === 'roxy') {
+    prompt += `ROXY'S CARING SOLUTION-FOCUSED EXCELLENCE:
+- "I see what you're trying to achieve, and I believe there's a way..."
+- "This approach has challenges, but here are three alternatives..."
+- Strategic thinking with long-term implications
+- Resource optimization: "Here's how to achieve this with less cost/effort..."
+- Creative problem-solving with practical alternatives
 
 `;
   }
