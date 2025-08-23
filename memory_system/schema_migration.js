@@ -61,13 +61,3 @@ export async function unifyDatabaseSchema() {
   }
 }
 
-// Allow manual one-off invoke if run via `node memory_system/schema_migration.js`
-if (import.meta.url === `file://${process.argv[1]}`) {
-  unifyDatabaseSchema().then(r => {
-    console.log('Result:', r);
-    process.exit(0);
-  }).catch(e => {
-    console.error('Error:', e);
-    process.exit(1);
-  });
-}
