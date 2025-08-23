@@ -136,10 +136,58 @@ CONVERSATION CONTEXT: ${JSON.stringify(conversationHistory.slice(-3))}`;
     };
 
   } catch (error) {
-    console.error('❌ Eli response error:', error);
-    
-    // BULLETPROOF FALLBACK WITH SITE MONKEYS BRANDING
+  console.error('❌ Eli response error:', error);
+  
+  // ENHANCED FALLBACK - Handle rate limiting specifically
+  const isRateLimit = error.message.includes('429') || error.message.includes('rate limit') || error.message.includes('Cannot read properties of undefined');
+  
+  if (isRateLimit) {
     return {
+      response: `🍌 **Eli:** I'm experiencing OpenAI rate limiting, but I can still provide business survival analysis:
+
+💰 **IMMEDIATE BUSINESS GUIDANCE:**
+- **Cash Flow Priority:** Preserve runway above all else
+- **Conservative Approach:** Assume 50% lower revenue projections
+- **Risk Mitigation:** Budget 25% extra for unexpected costs
+
+⚠️ **SURVIVAL CHECKLIST:**
+1. Calculate worst-case cash burn rate
+2. Identify critical vs nice-to-have expenses  
+3. Plan for 6+ months runway minimum
+4. Monitor key survival metrics weekly
+
+🎯 **RECOMMENDATION:** Take the most conservative approach that preserves cash flow until my full analysis systems recover.
+
+Please try your question again in 2-3 minutes for detailed financial modeling.`,
+      tokens_used: 0,
+      cost: 0,
+      ai_personality: 'eli',
+      rate_limited: true,
+      fallback_used: true,
+      error_type: 'rate_limit_handled'
+    };
+  }
+  
+  // ORIGINAL FALLBACK FOR OTHER ERRORS
+  return {
+    response: `🍌 **Eli:** I'm experiencing technical difficulties with my business analysis systems right now. Let me provide some immediate guidance:
+
+💰 **For any business decision:**
+1. **Cash Flow First:** Calculate the immediate impact on your runway
+2. **Worst-Case Modeling:** What happens if this decision fails completely?
+3. **Conservative Revenue:** Assume 50% lower adoption than projected
+4. **Hidden Costs:** Budget 25% extra for unexpected expenses
+
+⚠️ **Risk Assessment:** Without being able to analyze your specific situation, I recommend taking the most conservative approach that preserves cash flow.
+
+Could you rephrase your question? I'll provide more specific business survival analysis once my systems are back online.`,
+    tokens_used: 0,
+    cost: 0,
+    ai_personality: 'eli',
+    fallback_used: true,
+    error_type: error.message
+  };
+}
       response: `🍌 **Eli:** I'm experiencing technical difficulties with my business analysis systems right now. Let me provide some immediate guidance:
 
 💰 **For any business decision:**
@@ -253,10 +301,70 @@ CONVERSATION CONTEXT: ${JSON.stringify(conversationHistory.slice(-3))}`;
     };
 
   } catch (error) {
-    console.error('❌ Roxy response error:', error);
-    
-    // BULLETPROOF FALLBACK WITH SITE MONKEYS BRANDING
+  console.error('❌ Roxy response error:', error);
+  
+  // ENHANCED FALLBACK - Handle rate limiting specifically
+  const isRateLimit = error.message.includes('429') || error.message.includes('rate limit') || error.message.includes('Cannot read properties of undefined');
+  
+  if (isRateLimit) {
     return {
+      response: `🍌 **Roxy:** I'm experiencing OpenAI rate limiting, but I can maintain truth-first standards:
+
+📊 **TRANSPARENCY NOTICE:**
+- [CONFIDENCE: Unknown] - My AI verification systems are temporarily limited
+- [STATUS: Rate Limited] - Cannot access full analysis capabilities
+- [VERIFICATION: Required] - All information should be independently verified
+
+🔍 **WHAT I CAN PROVIDE:**
+- Basic logical reasoning using core principles
+- Assumption identification and challenge
+- Structured thinking frameworks
+- Truth-first methodology guidance
+
+⚠️ **CRITICAL LIMITATIONS:**
+- Cannot verify facts against databases
+- Cannot provide confidence scores on claims
+- Cannot access real-time information
+
+🎯 **RECOMMENDATION:** Use primary sources and cross-reference information independently until my verification systems recover.
+
+Please try again in 2-3 minutes for full truth-first analysis.`,
+      tokens_used: 0,
+      cost: 0,
+      ai_personality: 'roxy',
+      rate_limited: true,
+      fallback_used: true,
+      error_type: 'rate_limit_handled'
+    };
+  }
+  
+  // ORIGINAL FALLBACK FOR OTHER ERRORS
+  return {
+    response: `🍌 **Roxy:** I'm experiencing technical difficulties with my analysis systems. Let me provide what I can with full transparency:
+
+📊 **What I Can Tell You:**
+- I'm currently unable to access my full verification systems
+- Any analysis I provide right now would have [CONFIDENCE: Unknown]
+- I cannot verify claims or provide source validation
+
+⚠️ **Critical Limitations:**
+- My current response capabilities are impaired
+- I cannot distinguish between verified facts and assumptions
+- All information should be independently verified
+
+🔍 **Recommended Next Steps:**
+1. Seek primary sources for any factual claims you need
+2. Cross-reference information from multiple independent sources
+3. Be especially skeptical of any data I might provide in this state
+
+Could you rephrase your question? I'll provide more rigorous truth-first analysis once my verification systems are restored.`,
+    tokens_used: 0,
+    cost: 0,
+    ai_personality: 'roxy',
+    fallback_used: true,
+    error_type: error.message
+  };
+}
       response: `🍌 **Roxy:** I'm experiencing technical difficulties with my analysis systems. Let me provide what I can with full transparency:
 
 📊 **What I Can Tell You:**
