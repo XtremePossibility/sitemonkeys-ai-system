@@ -12,20 +12,39 @@ console.log('[SERVER] 🚀 Initializing memory systems at application startup...
 
 // CRITICAL FIX: Move async initialization inside an async function
 async function initializeMemorySystem() {
+    console.log('[SERVER] 🚀 Starting memory system initialization...');
+    
     try {
-        await memoryBootstrap.initialize();
-        console.log('[SERVER] ✅ Memory bootstrap initialized successfully');
-        console.log('[SERVER] Memory system available:', !!memoryBootstrap.getMemorySystem());
-    } catch (initError) {
-        console.error('[SERVER] ❌ MEMORY BOOTSTRAP INITIALIZATION FAILED:', {
-            message: initError.message,
-            stack: initError.stack,
-            name: initError.name
+        // Wait for memory bootstrap with timeout
+        const timeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Memory init timeout')), 30000)
+        );
+        
+        const initResult = await Promise.race([
+            memoryBootstrap.initialize(),
+            timeoutPromise
+        ]);
+        
+        console.log(`[SERVER] ✅ Memory bootstrap completed successfully: ${initResult}`);
+        
+        // Verify memory system is working
+        const memSystem = memoryBootstrap.getMemorySystem();
+        console.log('[SERVER] 📊 Memory system verification:', {
+            available: !!memSystem,
+            healthy: memoryBootstrap.isHealthy,
+            ready: memoryBootstrap.isReady()
         });
-        // Don't crash the server - let it run with memory system disabled
-        console.log('[SERVER] ⚠️ Continuing with memory system disabled');
+        
+    } catch (initError) {
+        console.error('[SERVER] ❌ Memory system initialization error:', {
+            message: initError.message,
+            stack: initError.stack?.substring(0, 500)
+        });
+        
+        console.log('[SERVER] 🔄 Server will continue with fallback memory only');
     }
-    console.log('[SERVER] 📊 Memory bootstrap initialization complete');
+    
+    console.log('[SERVER] 📊 Memory system initialization phase complete');
 }
 
 // Wrap entire server startup in async function
