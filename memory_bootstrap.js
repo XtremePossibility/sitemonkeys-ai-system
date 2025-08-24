@@ -45,7 +45,8 @@ class MemoryBootstrap {
   async initialize() {
     console.log('[MEMORY_BOOTSTRAP] 🚀 Initializing Site Monkeys Memory System...');
 
-    // Initialize persistent memory with ENHANCED error handling
+    try {
+        // Initialize persistent memory with ENHANCED error handling
         try {
             console.log('[MEMORY_BOOTSTRAP] 📝 Step 1: Attempting to import persistent memory...');
 
@@ -86,20 +87,6 @@ class MemoryBootstrap {
             console.error('[MEMORY_BOOTSTRAP] ❌ Full error object:', JSON.stringify(error, Object.getOwnPropertyNames(error)));
             this.isHealthy = false;
         }
-            
-        } catch (error) {
-            console.error('[MEMORY_BOOTSTRAP] ❌ DETAILED ERROR during persistent memory initialization:');
-            console.error('[MEMORY_BOOTSTRAP] ❌ Error message:', error.message);
-            console.error('[MEMORY_BOOTSTRAP] ❌ Error stack:', error.stack);
-            console.error('[MEMORY_BOOTSTRAP] ❌ Error code:', error.code);
-            console.error('[MEMORY_BOOTSTRAP] ❌ Full error object:', JSON.stringify(error, Object.getOwnPropertyNames(error)));
-            this.isHealthy = false;
-            console.log('[MEMORY_BOOTSTRAP] 🔍 Health check evaluation:');
-            console.log('[MEMORY_BOOTSTRAP] 📊 Raw health check:', JSON.stringify(healthCheck));
-            console.log('[MEMORY_BOOTSTRAP] 📊 Overall:', healthCheck?.overall);
-            console.log('[MEMORY_BOOTSTRAP] 📊 Status:', healthCheck?.status);
-            console.log('[MEMORY_BOOTSTRAP] 📊 Logic result:', !!(healthCheck && (healthCheck.overall === true || healthCheck.status === 'healthy')));
-        }
 
         // Set up global.memorySystem interface for your chat.js AFTER INITIALIZATION
         this.setupGlobalInterface();
@@ -116,7 +103,7 @@ class MemoryBootstrap {
         this.setupGlobalInterface();
         return false;
     }
-}
+  }
 
   setupGlobalInterface() {
     // Fix: Capture 'this' context to avoid arrow function binding issues
@@ -405,7 +392,7 @@ class MemoryBootstrap {
     }
   }
 
-/**
+  /**
    * Get memory system instance (for server.js compatibility)
    * YOUR SERVER.JS IS CALLING THIS METHOD
    */
