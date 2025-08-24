@@ -5,22 +5,70 @@
 // FAST DIRECT OPENAI - NO RATE LIMITING DELAYS
 // FAST DIRECT OPENAI WITH MINIMAL SPACING
 // FAST DIRECT OPENAI WITH MINIMAL SPACING  
+// BULLETPROOF OPENAI WITH REQUEST DEDUPLICATION
+let lastRequestTime = 0;
+let activeRequests = new Map();
+
 const callOpenAI = async (payload) => {
-  // Small delay to prevent rapid-fire requests
-  await new Promise(resolve => setTimeout(resolve, 3000));
+  // Create request signature to prevent duplicates
+  const requestSignature = JSON.stringify(payload).substring(0, 100);
   
-  const response = await fetch('https://api.openai.com/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
-    },
-    body: JSON.stringify(payload)
-  });
-  
-  if (!response.ok) {
-    throw new Error(`OpenAI API error: ${response.status}`);
+  // Check if identical request is already in progress
+  if (activeRequests.has(requestSignature)) {
+    console.log('🔄 Duplicate request detected, waiting for existing request...');
+    return await activeRequests.get(requestSignature);
   }
+  
+  // Aggressive rate limiting - minimum 5 seconds between ANY requests
+  const now = Date.now();
+  const timeSinceLastRequest = now - lastRequestTime;
+  const minDelay = 5000; // 5 seconds minimum
+  
+  if (timeSinceLastRequest < minDelay) {
+    const waitTime = minDelay - timeSinceLastRequest;
+    console.log(`⏳ Rate limit protection: waiting ${waitTime}ms`);
+    await new Promise(resolve => setTimeout(resolve, waitTime));
+  }
+  
+  // Create the API call promise
+  const apiCall = async () => {
+    try {
+      console.log('📡 Making OpenAI API call...');
+      lastRequestTime = Date.now();
+      
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
+        },
+        body: JSON.stringify(payload),
+        timeout: 30000 // 30 second timeout
+      });
+      
+      if (!response.ok) {
+        throw new Error(`OpenAI API error: ${response.status} - ${response.statusText}`);
+      }
+      
+      const result = await response.json();
+      console.log('✅ OpenAI API call successful');
+      return result;
+      
+    } catch (error) {
+      console.error('❌ OpenAI API call failed:', error.message);
+      throw error;
+    } finally {
+      // Remove from active requests
+      activeRequests.delete(requestSignature);
+    }
+  };
+  
+  // Store the promise to prevent duplicates
+  const promise = apiCall();
+  activeRequests.set(requestSignature, promise);
+  
+  return await promise;
+};
   
   return await response.json();
 };
@@ -28,7 +76,22 @@ import { generateRoxyResponse, generateEliResponse, validateResponseQuality } fr
 import express from 'express';
 import cors from 'cors';
 const app = express();
-import memoryBootstrap from './memory_bootstrap.js';
+// SAFE MEMORY BOOTSTRAP WITH ERROR HANDLING
+let memoryBootstrap = null;
+try {
+  const memoryModule = await import('./memory_bootstrap.js');
+  memoryBootstrap = memoryModule.default;
+} catch (error) {
+  console.warn('⚠️ Memory bootstrap unavailable:', error.message);
+  // Create fallback memory bootstrap
+  memoryBootstrap = {
+    initialize: async () => console.log('Memory system disabled'),
+    isReady: () => false,
+    getMemorySystem: () => null,
+    getVaultLoader: () => null,
+    getStatus: () => ({ status: 'disabled', reason: 'Import failed' })
+  };
+}
 
 // ===== APPLICATION STARTUP MEMORY INITIALIZATION =====
 console.log('[SERVER] 🚀 Initializing memory systems at application startup...');
@@ -62,6 +125,32 @@ async function startServer() {
 // Enable CORS and JSON parsing
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
+
+// PREVENT DUPLICATE FRONTEND REQUESTS
+const activeChats = new Map();
+
+app.use('/api/chat', (req, res, next) => {
+  if (req.method === 'POST') {
+    const requestKey = req.body.message?.substring(0, 50) || 'unknown';
+    
+    if (activeChats.has(requestKey)) {
+      return res.status(429).json({ 
+        error: 'Request already in progress', 
+        message: 'Please wait for the current request to complete' 
+      });
+    }
+    
+    activeChats.set(requestKey, true);
+    
+    // Clean up after response
+    const originalSend = res.send;
+    res.send = function(data) {
+      activeChats.delete(requestKey);
+      return originalSend.call(this, data);
+    };
+  }
+  next();
+});
 
 import path from 'path';
 import { fileURLToPath } from 'url';
