@@ -1,3 +1,11 @@
+// ================================================================
+// COMPLETE MEMORY SYSTEM FIX - ALL SYNTAX ERRORS RESOLVED
+// NO OPTIONAL CHAINING - RAILWAY COMPATIBLE
+// ================================================================
+
+// FILE 1: memory_bootstrap.js - COMPLETE REPLACEMENT
+// Replace the ENTIRE memory_bootstrap.js file with this:
+
 // memory_bootstrap.js  
 // PRODUCTION-GRADE BOOTSTRAP - Site Monkeys AI System
 // Sets up global.memorySystem as expected by chat handler
@@ -15,9 +23,6 @@ class MemoryBootstrap {
     this.initStarted = false;
   }
 
-  /**
-   * AUTOMATIC INITIALIZATION - called when first accessed
-   */
   async ensureInitialized() {
     if (this.isHealthy) {
       return true; // Already initialized and healthy
@@ -39,9 +44,6 @@ class MemoryBootstrap {
     return false;
   }
 
-  /**
-   * Initialize memory system and set up global.memorySystem
-   */
   async initialize() {
     console.log('[MEMORY_BOOTSTRAP] 🚀 Initializing Site Monkeys Memory System...');
 
@@ -59,7 +61,7 @@ class MemoryBootstrap {
             await this.persistentMemory.initialize();
             console.log('[MEMORY_BOOTSTRAP] ✅ Persistent memory initialized successfully');
             
-            // Health check with proper error handling - FIXED: No optional chaining
+            // Health check with proper error handling - NO OPTIONAL CHAINING
             let healthCheck;
             try {
               if (this.persistentMemory && typeof this.persistentMemory.getSystemHealth === 'function') {
@@ -106,18 +108,16 @@ class MemoryBootstrap {
   }
 
   setupGlobalInterface() {
-    // Fix: Capture 'this' context to avoid arrow function binding issues
     const self = this;
     global.memorySystem = {
-        // Your chat.js expects this exact method signature
         retrieveMemory: async (userId, message) => {
-            await self.ensureInitialized(); // Auto-initialize if needed
+            await self.ensureInitialized();
             console.log(`[MEMORY_BOOTSTRAP] 🔍 Retrieve called - isHealthy: ${self.isHealthy}`);
             return await self.retrieveMemoryForChat(userId, message);
         },
           
         storeMemory: async (userId, conversation) => {
-            await self.ensureInitialized(); // Auto-initialize if needed
+            await self.ensureInitialized();
             console.log(`[MEMORY_BOOTSTRAP] 💾 Store called - isHealthy: ${self.isHealthy}, has persistentMemory: ${!!self.persistentMemory}`);
             try {
                 // First try persistent memory if available
@@ -169,10 +169,7 @@ class MemoryBootstrap {
     };
   }
 
-  /**
-   * Retrieve memory in the format your chat.js expects
-   * CRITICAL FIX: Handle the object returned by getRelevantContext properly - NO OPTIONAL CHAINING
-   */
+  // FIXED: NO OPTIONAL CHAINING ANYWHERE
   async retrieveMemoryForChat(userId, message) {
     try {
       if (this.isHealthy && this.persistentMemory) {
@@ -181,7 +178,7 @@ class MemoryBootstrap {
           
         console.log('[MEMORY_BOOTSTRAP] 📊 Memory result type:', typeof memoryResult);
         console.log('[MEMORY_BOOTSTRAP] 📊 Memory result keys:', Object.keys(memoryResult || {}));
-        // FIXED: Replaced optional chaining with conditional check
+        // FIXED: NO OPTIONAL CHAINING
         console.log('[MEMORY_BOOTSTRAP] 📊 Context found:', memoryResult && memoryResult.contextFound);
           
         // CRITICAL FIX: memoryResult is already an object with contextFound and memories
@@ -191,7 +188,7 @@ class MemoryBootstrap {
             contextFound: true,
             memories: memoryResult.memories, // This is already formatted as a string
             totalTokens: memoryResult.totalTokens || 0,
-            // FIXED: Replaced optional chaining with conditional check
+            // FIXED: NO OPTIONAL CHAINING
             memoryCount: (memoryResult.categoriesUsed && memoryResult.categoriesUsed.length) ? memoryResult.categoriesUsed.length : 1
           };
         } else {
@@ -211,9 +208,6 @@ class MemoryBootstrap {
     }
   }
 
-  /**
-   * Store memory in the format your chat.js expects
-   */
   async storeMemoryForChat(userId, conversationData) {
     try {
       if (this.isHealthy && this.persistentMemory) {
@@ -244,9 +238,6 @@ class MemoryBootstrap {
     }
   }
 
-  /**
-   * Fallback memory retrieval for when persistent memory fails
-   */
   async fallbackRetrieve(userId, message) {
     try {
       console.log(`[MEMORY_BOOTSTRAP] 🔍 Fallback retrieve for user: ${userId}`);
@@ -305,9 +296,6 @@ class MemoryBootstrap {
     }
   }
 
-  /**
-   * Fallback memory storage for when persistent memory fails
-   */
   async fallbackStore(userId, conversationData) {
     try {
       console.log(`[MEMORY_BOOTSTRAP] 🔄 Fallback store called for user: ${userId}`);
@@ -341,9 +329,6 @@ class MemoryBootstrap {
     }
   }
 
-  /**
-   * Get memory statistics
-   */
   async getMemoryStats(userId) {
     try {
       if (this.isHealthy && this.persistentMemory) {
@@ -363,9 +348,6 @@ class MemoryBootstrap {
     }
   }
 
-  /**
-   * Health check for memory system
-   */
   async healthCheck() {
     try {
       if (this.persistentMemory) {
@@ -394,10 +376,6 @@ class MemoryBootstrap {
     }
   }
 
-  /**
-   * Get memory system instance (for server.js compatibility)
-   * YOUR SERVER.JS IS CALLING THIS METHOD
-   */
   getMemorySystem() {
     const self = this;
     // Always trigger initialization when accessed
@@ -422,10 +400,6 @@ class MemoryBootstrap {
     };
   }
 
-  /**
-   * Get vault loader (for server.js compatibility)   
-   * YOUR SERVER.JS IS CALLING THIS METHOD
-   */
   getVaultLoader() {
     return {
       isReady: () => true,
@@ -437,17 +411,10 @@ class MemoryBootstrap {
     };
   }
 
-  /**
-   * Check if system is ready (for server.js compatibility)
-   * YOUR SERVER.JS IS CALLING THIS METHOD    
-   */
   isReady() {
     return this.isHealthy || this.fallbackMemory.size >= 0; // Always ready (fallback mode works)
   }
     
-  /**
-   * Graceful shutdown
-   */
   async shutdown() {
     console.log('[MEMORY_BOOTSTRAP] 🔄 Shutting down memory system...');
       
@@ -477,3 +444,7 @@ const memoryBootstrap = new MemoryBootstrap();
 memoryBootstrap.setupGlobalInterface();
 
 export default memoryBootstrap;
+
+// ================================================================
+// END FILE 1: memory_bootstrap.js
+// ================================================================
