@@ -7,35 +7,23 @@
 // FAST DIRECT OPENAI WITH MINIMAL SPACING  
 // BULLETPROOF OPENAI WITH REQUEST DEDUPLICATION
 // BULLETPROOF SEQUENTIAL OPENAI - ONLY ONE REQUEST AT A TIME
-let isAPIBusy = false;
-let requestQueue = [];
+let lastRequestTime = 0;
 
 const callOpenAI = async (payload) => {
-  return new Promise((resolve, reject) => {
-    // Add to queue
-    requestQueue.push({ payload, resolve, reject });
-    
-    // Process queue if not busy
-    if (!isAPIBusy) {
-      processQueue();
-    }
-  });
-};
-
-async function processQueue() {
-  if (requestQueue.length === 0) {
-    isAPIBusy = false;
-    return;
+  // Simple rate limiting - wait 10 seconds between any requests
+  const now = Date.now();
+  const timeSinceLastRequest = now - lastRequestTime;
+  const minDelay = 10000; // 10 seconds
+  
+  if (timeSinceLastRequest < minDelay) {
+    const waitTime = minDelay - timeSinceLastRequest;
+    console.log(`⏳ Rate limit protection: waiting ${waitTime}ms`);
+    await new Promise(resolve => setTimeout(resolve, waitTime));
   }
   
-  isAPIBusy = true;
-  const { payload, resolve, reject } = requestQueue.shift();
-  
   try {
-    console.log(`🔵 Processing OpenAI request (${requestQueue.length} remaining in queue)`);
-    
-    // Always wait 10 seconds - no exceptions
-    await new Promise(r => setTimeout(r, 10000));
+    console.log('📡 Making OpenAI API call...');
+    lastRequestTime = Date.now();
     
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -51,13 +39,14 @@ async function processQueue() {
     }
     
     const result = await response.json();
-    console.log('✅ OpenAI request successful');
-    resolve(result);
+    console.log('✅ OpenAI API call successful');
+    return result;
     
   } catch (error) {
-    console.error('❌ OpenAI request failed:', error.message);
-    reject(error);
+    console.error('❌ OpenAI API call failed:', error.message);
+    throw error;
   }
+};
   
   // Process next in queue after delay
   setTimeout(processQueue, 1000);
@@ -100,7 +89,6 @@ async function processQueue() {
   const promise = apiCall();
   activeRequests.set(requestSignature, promise);
   
-  return await promise;
 };
 import { generateRoxyResponse, generateEliResponse, validateResponseQuality } from './api/lib/personalities.js';
 import express from 'express';
