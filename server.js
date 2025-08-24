@@ -2,117 +2,10 @@
 // Preserves all breakthrough insights from this conversation
 // Ready for immediate Railway deployment
 //Redeploy
-// FAST DIRECT OPENAI - NO RATE LIMITING DELAYS
-// FAST DIRECT OPENAI WITH MINIMAL SPACING
-// FAST DIRECT OPENAI WITH MINIMAL SPACING  
-// BULLETPROOF OPENAI WITH REQUEST DEDUPLICATION
-// BULLETPROOF SEQUENTIAL OPENAI - ONLY ONE REQUEST AT A TIME
-let lastRequestTime = 0;
-
-const callOpenAI = async (payload) => {
-  // Simple rate limiting - wait 10 seconds between any requests
-  const now = Date.now();
-  const timeSinceLastRequest = now - lastRequestTime;
-  const minDelay = 10000; // 10 seconds
-  
-  if (timeSinceLastRequest < minDelay) {
-    const waitTime = minDelay - timeSinceLastRequest;
-    console.log(`⏳ Rate limit protection: waiting ${waitTime}ms`);
-    await new Promise(resolve => setTimeout(resolve, waitTime));
-  }
-  
-  try {
-    console.log('📡 Making OpenAI API call...');
-    lastRequestTime = Date.now();
-    
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
-      },
-      body: JSON.stringify(payload)
-    });
-    
-    if (!response.ok) {
-      throw new Error(`OpenAI API error: ${response.status}`);
-    }
-    
-    const result = await response.json();
-    console.log('✅ OpenAI API call successful');
-    return result;
-    
-  } catch (error) {
-    console.error('❌ OpenAI API call failed:', error.message);
-    throw error;
-  }
-};
-  
-  // Process next in queue after delay
-  setTimeout(processQueue, 1000);
-}
-  
-  // Create the API call promise
-  const apiCall = async () => {
-    try {
-      console.log('📡 Making OpenAI API call...');
-      lastRequestTime = Date.now();
-      
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
-        },
-        body: JSON.stringify(payload),
-        timeout: 30000 // 30 second timeout
-      });
-      
-      if (!response.ok) {
-        throw new Error(`OpenAI API error: ${response.status} - ${response.statusText}`);
-      }
-      
-      const result = await response.json();
-      console.log('✅ OpenAI API call successful');
-      return result;
-      
-    } catch (error) {
-      console.error('❌ OpenAI API call failed:', error.message);
-      throw error;
-    } finally {
-      // Remove from active requests
-      activeRequests.delete(requestSignature);
-    }
-  };
-  
-  // Store the promise to prevent duplicates
-  const promise = apiCall();
-  activeRequests.set(requestSignature, promise);
-  
-};
-import { generateRoxyResponse, generateEliResponse, validateResponseQuality } from './api/lib/personalities.js';
 import express from 'express';
 import cors from 'cors';
 const app = express();
-// SAFE MEMORY BOOTSTRAP WITH ERROR HANDLING
-let memoryBootstrap = {
-  initialize: async () => console.log('Memory system disabled'),
-  isReady: () => false,
-  getMemorySystem: () => null,
-  getVaultLoader: () => null,
-  getStatus: () => ({ status: 'disabled', reason: 'Import failed' })
-};
-
-// Try to load memory bootstrap
-(async () => {
-  try {
-    const memoryModule = await import('./memory_bootstrap.js');
-    memoryBootstrap = memoryModule.default;
-    console.log('✅ Memory bootstrap loaded successfully');
-  } catch (error) {
-    console.warn('⚠️ Memory bootstrap unavailable, using fallback');
-  }
-})();
+import memoryBootstrap from './memory_bootstrap.js';
 
 // ===== APPLICATION STARTUP MEMORY INITIALIZATION =====
 console.log('[SERVER] 🚀 Initializing memory systems at application startup...');
@@ -146,46 +39,6 @@ async function startServer() {
 // Enable CORS and JSON parsing
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
-
-// PREVENT DUPLICATE FRONTEND REQUESTS - MORE AGGRESSIVE
-const activeChats = new Map();
-const clientRateLimit = new Map();
-
-app.use('/api/chat', (req, res, next) => {
-  if (req.method === 'POST') {
-    const clientId = req.ip || 'unknown';
-    const now = Date.now();
-    
-    // Check if client made request in last 10 seconds
-    const lastRequest = clientRateLimit.get(clientId);
-    if (lastRequest && (now - lastRequest) < 10000) {
-      return res.status(429).json({ 
-        error: 'Too fast', 
-        message: 'Please wait 10 seconds between requests'
-      });
-    }
-    
-    const requestKey = req.body.message?.substring(0, 30) || 'unknown';
-    
-    if (activeChats.has(requestKey)) {
-      return res.status(429).json({ 
-        error: 'Request in progress', 
-        message: 'Please wait for current request to complete' 
-      });
-    }
-    
-    clientRateLimit.set(clientId, now);
-    activeChats.set(requestKey, true);
-    
-    // Clean up after response
-    const originalSend = res.send;
-    res.send = function(data) {
-      activeChats.delete(requestKey);
-      return originalSend.call(this, data);
-    };
-  }
-  next();
-});
 
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -784,8 +637,7 @@ app.post('/api/chat', async (req, res) => {
     
     try {
         console.log('\n🚀 [CHAT] New conversation request received');
-        const requestId = Math.random().toString(36).substr(2, 9);
-      
+     
     const {
       message,
       conversation_history = [],
@@ -793,7 +645,6 @@ app.post('/api/chat', async (req, res) => {
       claude_requested = false,
       vault_content = null
     } = req.body;
-      console.log(`🔍 [${requestId}] REQUEST START - Message: "${message.substr(0, 50)}..."`);
 
     if (!message || typeof message !== 'string') {
       return res.status(400).json({ error: 'Message is required and must be a string' });
@@ -839,7 +690,6 @@ if (memorySystem && typeof memorySystem.getRelevantContext === 'function') {
         console.log('[CHAT] 📋 Retrieving memory context...');
         memoryContext = await memorySystem.getRelevantContext('user', message, 2400);
         console.log(`[CHAT] ✅ Memory context retrieved: ${memoryContext.memories ? memoryContext.memories.length : 0} characters`);
-        console.log(`🔍 [${requestId}] Memory status: ${memoryContext ? 'FOUND' : 'NONE'}`);
     } catch (error) {
         console.error('[CHAT] ⚠️ Memory retrieval failed:', error);
         memoryContext = '';
@@ -880,7 +730,6 @@ console.log('[CHAT] ✅ Memory systems retrieved from bootstrap');
     // OPTIMAL PERSONALITY SELECTION
     const personality = selectCaringPersonality(expertDomain, careNeeds, protectiveAlerts);
     const prideMotivation = calculatePrideLevel(protectiveAlerts, solutionOpportunities, careNeeds);
-    console.log(`🔍 [${requestId}] Selected personality: ${personality}`);  
 
     conversationCount++;
 
@@ -904,47 +753,42 @@ console.log('[CHAT] ✅ Memory systems retrieved from bootstrap');
     // MASTER SYSTEM PROMPT CONSTRUCTION
 const systemPrompt = buildMasterSystemPrompt({
   mode, personality, vaultContent, vaultHealthy, expertDomain,
-  careNeeds, protectiveAlerts, solutionOpportunities, quantitativeNeeds,
-  memoryContext  // ADD THIS
+  careNeeds, protectiveAlerts, solutionOpportunities, quantitativeNeeds
 });
 
-// BUILD CONVERSATION PROMPT
-const fullPrompt = buildConversationPrompt(systemPrompt, message, conversation_history, expertDomain);
+// ADD MEMORY CONTEXT TO CONVERSATION PROMPT
+let enhancedPrompt = buildConversationPrompt(systemPrompt, message, conversation_history, expertDomain);
 
-console.log(`🔍 [${requestId}] About to call ${personality} personality`);      
-// ENHANCED API CALL
-const apiResponse = await makeIntelligentAPICall(fullPrompt, personality, prideMotivation, {
-  vaultContent,
-  vaultHealthy,
-  mode,
-  memoryContext
-});
-        
-// Validate the response before enhancement
-const validationResult = validateResponseQuality(apiResponse.response, personality, mode);
+// CRITICAL FIX: Include retrieved memory context in AI prompt
+if (memoryContext && memoryContext.memories && memoryContext.memories.length > 0) {
+  enhancedPrompt = systemPrompt + `
 
-if (!validationResult.valid || validationResult.enforcement_score < 70) {
-  console.log('[ENFORCEMENT] Response failed validation:', validationResult.issues);
+RELEVANT MEMORY CONTEXT:
+${memoryContext.memories}
+
+CURRENT REQUEST:
+Family Member: ${message}
+
+Respond using both the memory context and your expertise:`;
   
-  // Apply mode-specific fallback corrections
-  let correctedResponse = apiResponse.response;
-  
-  if (mode === 'business_validation' && validationResult.issues.some(issue => issue.includes('survival analysis'))) {
-    correctedResponse += `\n\n[ENFORCEMENT CORRECTION APPLIED]\n🎯 **SURVIVAL IMPACT:** MEDIUM - Analysis incomplete, requires financial validation\n💰 **CASH FLOW ANALYSIS:** Impact assessment needed - recommend conservative approach\n⚠️ **TOP 3 RISKS:** 1) Insufficient analysis → Get more data 2) Execution risk → Start small 3) Market risk → Validate assumptions`;
-  }
-  
-  if (mode === 'truth_general' && validationResult.issues.some(issue => issue.includes('confidence indicators'))) {
-    correctedResponse += `\n\n[ENFORCEMENT CORRECTION APPLIED]\n📊 **CONFIDENCE:** Low - Key claims require verification\n⚠️ **ASSUMPTIONS DETECTED:** Analysis contains unverified elements\n🔍 **TO VERIFY:** Seek primary sources for factual validation`;
-  }
-  
-  apiResponse.response = correctedResponse;
-  
-  // Log enforcement action
-  console.log('[ENFORCEMENT] Applied fallback corrections for:', validationResult.issues);
+  console.log(`[CHAT] 🧠 Added ${memoryContext.memories.length} characters of memory context to AI prompt`);
+} else {
+  enhancedPrompt = systemPrompt + `
+
+CURRENT REQUEST:
+Family Member: ${message}
+
+Respond with your expertise:`;
+  console.log(`[CHAT] ⚠️ No memory context available for AI prompt`);
 }
 
-// COMPREHENSIVE RESPONSE ENHANCEMENT
-let enhancedResponse = apiResponse.response;
+const fullPrompt = enhancedPrompt;
+
+    // ENHANCED API CALL
+    const apiResponse = await makeIntelligentAPICall(fullPrompt, personality, prideMotivation);
+
+    // COMPREHENSIVE RESPONSE ENHANCEMENT
+    let enhancedResponse = apiResponse.response;
 
     // 1. QUANTITATIVE ENFORCEMENT - Fix "green beans" problem
     if (quantitativeNeeds && !containsActualCalculations(enhancedResponse)) {
@@ -1258,10 +1102,8 @@ function calculatePrideLevel(protectiveAlerts, solutionOpportunities, careNeeds)
 }
 
 function buildMasterSystemPrompt(config) {
-  const { mode, personality, vaultContent, vaultHealthy, expertDomain, 
-          careNeeds, protectiveAlerts, solutionOpportunities, quantitativeNeeds, 
-          memoryContext } = config;  // ADD memoryContext
-
+  const { mode, personality, vaultContent, vaultHealthy, expertDomain, careNeeds, protectiveAlerts, solutionOpportunities, quantitativeNeeds } = config;
+  
   let prompt = `You are a world-class ${expertDomain.title} with 20+ years of extraordinary professional success. You are part of an extraordinary family of experts who genuinely care about each other's success.
 
 CARING FAMILY PHILOSOPHY (Core Identity):
@@ -1280,15 +1122,6 @@ Expertise Frameworks: ${expertDomain.frameworks.join(', ')}
 Care Level Required: ${careNeeds.level.toUpperCase()}
 
 `;
-  
-  // ADD THIS SECTION immediately after the opening prompt:
-  if (memoryContext && memoryContext.contextFound && memoryContext.memories) {
-    prompt += `🧠 **RELEVANT MEMORY CONTEXT** (Use this information):
-${memoryContext.memories}
---- End Memory Context ---
-
-`;
-  }
 
   // Personality-specific approach
   if (personality === 'eli') {
@@ -1307,34 +1140,6 @@ ${memoryContext.memories}
 - Strategic thinking with long-term implications
 - Resource optimization: "Here's how to achieve this with less cost/effort..."
 - Creative problem-solving with practical alternatives
-
-`;
-  }
-
-  // Mode-specific requirements (PREVENTIVE, not just validating after)
-  if (mode === 'business_validation') {
-    prompt += `🎯 **BUSINESS MODE REQUIREMENTS** (MANDATORY in your response):
-- Include SURVIVAL IMPACT: [High/Medium/Low - specific threat level]
-- Include CASH FLOW ANALYSIS: [specific $ impact and timeline]
-- End with TOP 3 RISKS: [risk] → [specific mitigation]
-
-`;
-  }
-
-  if (mode === 'truth_general') {
-    prompt += `🎯 **TRUTH MODE REQUIREMENTS** (MANDATORY in your response):
-- Include confidence levels: [High/Medium/Low/Unknown] for major claims
-- Flag assumptions with ⚠️ warnings and challenge them
-- End with VERIFICATION: [specific methods to verify key claims]
-
-`;
-  }
-
-  if (mode === 'site_monkeys') {
-    prompt += `🎯 **SITE MONKEYS MODE REQUIREMENTS** (MANDATORY in your response):
-- Include 🍌 emoji and Site Monkeys branding
-- Reference vault/business context when relevant
-- Maintain professional service standards
 
 `;
   }
@@ -1453,15 +1258,13 @@ function buildConversationPrompt(systemPrompt, message, conversationHistory, exp
   return fullPrompt;
 }
 
-async function makeIntelligentAPICall(prompt, personality, prideMotivation, context = {}) {
-  const { vaultContent, vaultHealthy, mode, memoryContext } = context;
+async function makeIntelligentAPICall(prompt, personality, prideMotivation) {
   const maxTokens = Math.floor(1000 + (prideMotivation * 500));
-  console.log(`🔍 [API] ENTERING makeIntelligentAPICall with personality: ${personality}`);
 
   if (personality === 'claude') {
     if (!process.env.ANTHROPIC_API_KEY) {
       console.warn('Claude API key missing, using GPT-4');
-      return await makeIntelligentAPICall(prompt, 'roxy', prideMotivation, context);
+      return await makeIntelligentAPICall(prompt, 'roxy', prideMotivation);
     }
 
     try {
@@ -1492,7 +1295,7 @@ async function makeIntelligentAPICall(prompt, personality, prideMotivation, cont
       };
     } catch (error) {
       console.error('Claude API error:', error);
-      return await makeIntelligentAPICall(prompt, 'roxy', prideMotivation, context);
+      return await makeIntelligentAPICall(prompt, 'roxy', prideMotivation);
     }
   } else {
     if (!process.env.OPENAI_API_KEY) {
@@ -1500,41 +1303,32 @@ async function makeIntelligentAPICall(prompt, personality, prideMotivation, cont
     }
 
     try {
-      // Use personality-specific generation
-      const message = prompt.split('CURRENT REQUEST:')[1] || prompt;
-      const memoryArray = memoryContext ? [memoryContext] : [];
-      
-      // Create OpenAI client wrapper for personality functions
-      const openaiWrapper = {
-  chat: {
-    completions: {
-      create: async (params) => {
-        return await callOpenAI(params);
-      }
-    }
-  }
-};
-
-      if (personality === 'roxy') {
-        return await generateRoxyResponse(message, mode, vaultContent, memoryArray, openaiWrapper);
-      } else if (personality === 'eli') {
-        return await generateEliResponse(message, mode, vaultContent, memoryArray, openaiWrapper);
-      } else {
-        // Fallback to direct OpenAI call  
-        const data = await callOpenAI({
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
+        },
+        body: JSON.stringify({
           model: 'gpt-4o',
           messages: [{ role: 'system', content: prompt }],
           max_tokens: maxTokens,
           temperature: 0.2 + (prideMotivation * 0.1),
           top_p: 0.9
-        });
-        return {
-          response: data.choices[0].message.content,
-          usage: data.usage
-        };
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`OpenAI API error: ${response.status}`);
       }
+
+      const data = await response.json();
+      return {
+        response: data.choices[0].message.content,
+        usage: data.usage
+      };
     } catch (error) {
-      console.error('API error:', error);
+      console.error('OpenAI API error:', error);
       throw error;
     }
   }
