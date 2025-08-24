@@ -1309,24 +1309,41 @@ async function makeIntelligentAPICall(prompt, personality, prideMotivation) {
       return await makeIntelligentAPICall(prompt, 'roxy', prideMotivation);
     }
 
-    try {
-      const payload = {
-        model: 'gpt-4o',
-        messages: [{ role: 'system', content: prompt }],
-        max_tokens: maxTokens,
-        temperature: 0.2 + (prideMotivation * 0.1),
-        top_p: 0.9
-      };
+    } else {
+    if (!process.env.OPENAI_API_KEY) {
+      throw new Error('OpenAI API key not configured');
+    }
 
-      const data = await callOpenAI(payload);
+    try {
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o',
+          messages: [{ role: 'system', content: prompt }],
+          max_tokens: maxTokens,
+          temperature: 0.2 + (prideMotivation * 0.1),
+          top_p: 0.9
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`OpenAI API error: ${response.status}`);
+      }
+
+      const data = await response.json();
       return {
         response: data.choices[0].message.content,
         usage: data.usage
       };
     } catch (error) {
-      console.error('Claude API error:', error);
-      return await makeIntelligentAPICall(prompt, 'roxy', prideMotivation);
+      console.error('OpenAI API error:', error);
+      throw error;
     }
+  }
   try {
       const payload = {
         model: 'gpt-4o',
