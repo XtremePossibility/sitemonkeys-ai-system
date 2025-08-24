@@ -45,8 +45,7 @@ class MemoryBootstrap {
   async initialize() {
     console.log('[MEMORY_BOOTSTRAP] 🚀 Initializing Site Monkeys Memory System...');
 
-    try {
-        // Initialize persistent memory with ENHANCED error handling
+    // Initialize persistent memory with ENHANCED error handling
         try {
             console.log('[MEMORY_BOOTSTRAP] 📝 Step 1: Attempting to import persistent memory...');
 
@@ -57,7 +56,9 @@ class MemoryBootstrap {
             
             // Initialize the persistent memory system
             await this.persistentMemory.initialize();
-            console.log('[MEMORY_BOOTSTRAP] ✅ Façade imported successfully');
+            console.log('[MEMORY_BOOTSTRAP] ✅ Persistent memory initialized successfully');
+            
+            // Health check with proper error handling
             let healthCheck;
             try {
               if (this.persistentMemory && typeof this.persistentMemory.getSystemHealth === 'function') {
@@ -76,13 +77,15 @@ class MemoryBootstrap {
               this.isHealthy = false;
               healthCheck = { overall: false, error: healthError.message };
             }
-                          healthCheck = await this.persistentMemory.getSystemHealth();
-            } else if (this.persistentMemory && typeof this.persistentMemory.healthCheck === 'function') {
-              healthCheck = await this.persistentMemory.healthCheck();
-            } else {
-              healthCheck = { overall: false, error: 'No health check method available' };
-            }
-            this.isHealthy = !!(healthCheck && (healthCheck.overall === true || healthCheck.status === 'healthy'));
+            
+        } catch (error) {
+            console.error('[MEMORY_BOOTSTRAP] ❌ DETAILED ERROR during persistent memory initialization:');
+            console.error('[MEMORY_BOOTSTRAP] ❌ Error message:', error.message);
+            console.error('[MEMORY_BOOTSTRAP] ❌ Error stack:', error.stack);
+            console.error('[MEMORY_BOOTSTRAP] ❌ Error code:', error.code);
+            console.error('[MEMORY_BOOTSTRAP] ❌ Full error object:', JSON.stringify(error, Object.getOwnPropertyNames(error)));
+            this.isHealthy = false;
+        }
             
         } catch (error) {
             console.error('[MEMORY_BOOTSTRAP] ❌ DETAILED ERROR during persistent memory initialization:');
