@@ -1327,12 +1327,7 @@ async function makeIntelligentAPICall(prompt, personality, prideMotivation) {
       console.error('Claude API error:', error);
       return await makeIntelligentAPICall(prompt, 'roxy', prideMotivation);
     }
-  } else {
-    if (!process.env.OPENAI_API_KEY) {
-      throw new Error('OpenAI API key not configured');
-    }
-
-    try {
+  try {
       const payload = {
         model: 'gpt-4o',
         messages: [{ role: 'system', content: prompt }],
@@ -1350,7 +1345,6 @@ async function makeIntelligentAPICall(prompt, personality, prideMotivation) {
       console.error('OpenAI API error:', error);
       throw error;
     }
-  }
 }
 
 // RESPONSE ENHANCEMENT FUNCTIONS (keeping all your existing functions)
