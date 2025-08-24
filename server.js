@@ -1309,32 +1309,51 @@ async function makeIntelligentAPICall(prompt, personality, prideMotivation) {
       return await makeIntelligentAPICall(prompt, 'roxy', prideMotivation);
     }
 
-    } else {
+    try {
+      const response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': process.env.ANTHROPIC_API_KEY,
+          'anthropic-version': '2023-06-01'
+        },
+        body: JSON.stringify({
+          model: 'claude-3-5-sonnet-20241022',
+          max_tokens: maxTokens,
+          system: prompt.split('CURRENT REQUEST:')[0],
+          messages: [{ role: 'user', content: prompt.split('CURRENT REQUEST:')[1] || prompt }],
+          temperature: 0.1 + (prideMotivation * 0.1)
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Claude API error: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return {
+        response: data.content[0].text,
+        usage: data.usage
+      };
+    } catch (error) {
+      console.error('Claude API error:', error);
+      return await makeIntelligentAPICall(prompt, 'roxy', prideMotivation);
+    }
+  } else {
     if (!process.env.OPENAI_API_KEY) {
       throw new Error('OpenAI API key not configured');
     }
 
     try {
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
-        },
-        body: JSON.stringify({
-          model: 'gpt-4o',
-          messages: [{ role: 'system', content: prompt }],
-          max_tokens: maxTokens,
-          temperature: 0.2 + (prideMotivation * 0.1),
-          top_p: 0.9
-        })
-      });
+      const payload = {
+        model: 'gpt-4o',
+        messages: [{ role: 'system', content: prompt }],
+        max_tokens: maxTokens,
+        temperature: 0.2 + (prideMotivation * 0.1),
+        top_p: 0.9
+      };
 
-      if (!response.ok) {
-        throw new Error(`OpenAI API error: ${response.status}`);
-      }
-
-      const data = await response.json();
+      const data = await callOpenAI(payload);
       return {
         response: data.choices[0].message.content,
         usage: data.usage
@@ -1344,6 +1363,7 @@ async function makeIntelligentAPICall(prompt, personality, prideMotivation) {
       throw error;
     }
   }
+}
   try {
       const payload = {
         model: 'gpt-4o',
