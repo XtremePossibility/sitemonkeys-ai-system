@@ -6,30 +6,61 @@
 // FAST DIRECT OPENAI WITH MINIMAL SPACING
 // FAST DIRECT OPENAI WITH MINIMAL SPACING  
 // BULLETPROOF OPENAI WITH REQUEST DEDUPLICATION
-let lastRequestTime = 0;
-let activeRequests = new Map();
+// BULLETPROOF SEQUENTIAL OPENAI - ONLY ONE REQUEST AT A TIME
+let isAPIBusy = false;
+let requestQueue = [];
 
 const callOpenAI = async (payload) => {
-  // Create request signature to prevent duplicates
-  const requestSignature = JSON.stringify(payload).substring(0, 100);
-  
-  // Check if identical request is already in progress
-  if (activeRequests.has(requestSignature)) {
-    console.log('🔄 Duplicate request detected, waiting for existing request...');
-    return await activeRequests.get(requestSignature);
+  return new Promise((resolve, reject) => {
+    // Add to queue
+    requestQueue.push({ payload, resolve, reject });
+    
+    // Process queue if not busy
+    if (!isAPIBusy) {
+      processQueue();
+    }
+  });
+};
+
+async function processQueue() {
+  if (requestQueue.length === 0) {
+    isAPIBusy = false;
+    return;
   }
   
- // BULLETPROOF rate limiting - prevent race conditions
-const now = Date.now();
-const minDelay = 8000;
-
-// ALWAYS update lastRequestTime IMMEDIATELY to prevent race conditions
-const actualWaitTime = Math.max(0, minDelay - (now - lastRequestTime));
-lastRequestTime = now + actualWaitTime; // Reserve the next slot
-
-if (actualWaitTime > 0) {
-  console.log(`⏳ Rate limit protection: waiting ${actualWaitTime}ms`);
-  await new Promise(resolve => setTimeout(resolve, actualWaitTime));
+  isAPIBusy = true;
+  const { payload, resolve, reject } = requestQueue.shift();
+  
+  try {
+    console.log(`🔵 Processing OpenAI request (${requestQueue.length} remaining in queue)`);
+    
+    // Always wait 10 seconds - no exceptions
+    await new Promise(r => setTimeout(r, 10000));
+    
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
+      },
+      body: JSON.stringify(payload)
+    });
+    
+    if (!response.ok) {
+      throw new Error(`OpenAI API error: ${response.status}`);
+    }
+    
+    const result = await response.json();
+    console.log('✅ OpenAI request successful');
+    resolve(result);
+    
+  } catch (error) {
+    console.error('❌ OpenAI request failed:', error.message);
+    reject(error);
+  }
+  
+  // Process next in queue after delay
+  setTimeout(processQueue, 1000);
 }
   
   // Create the API call promise
