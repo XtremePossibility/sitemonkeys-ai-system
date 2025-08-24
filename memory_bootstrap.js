@@ -53,7 +53,8 @@ class MemoryBootstrap {
             console.log('[MEMORY_BOOTSTRAP] 📝 Step 1: Attempting to import persistent memory...');
 
             // Import the correct persistent memory module
-            const persistentModule = await import('./memory_system/persistent_memory.js');
+            // const persistentModule = await import('./memory_system/persistent_memory.js');
+            console.log('[MEMORY_BOOTSTRAP] Skipping persistent memory import for debugging');
             const PersistentMemory = persistentModule.default || persistentModule.PersistentMemory;
             this.persistentMemory = new PersistentMemory();
             
