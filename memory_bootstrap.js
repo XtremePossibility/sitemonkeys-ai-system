@@ -48,12 +48,15 @@ class MemoryBootstrap {
     try {
         // Initialize persistent memory with ENHANCED error handling
         try {
-            console.log('[MEMORY_BOOTSTRAP] 📝 Step 1: Attempting to import PersistentMemoryAPI...');
+            console.log('[MEMORY_BOOTSTRAP] 📝 Step 1: Attempting to import persistent memory...');
 
-            // ✅ import the façade (CJS) which correctly loads/initializes the engine
-            const apiModule = await import('./memory_system/memory_api.js');
-            const memApi = apiModule.default || apiModule;   // default export for CJS façade
-            this.persistentMemory = memApi;
+            // Import the correct persistent memory module
+            const persistentModule = await import('./memory_system/persistent_memory.js');
+            const PersistentMemory = persistentModule.default || persistentModule.PersistentMemory;
+            this.persistentMemory = new PersistentMemory();
+            
+            // Initialize the persistent memory system
+            await this.persistentMemory.initialize();
             console.log('[MEMORY_BOOTSTRAP] ✅ Façade imported successfully');
             let healthCheck;
             if (this.persistentMemory && typeof this.persistentMemory.getSystemHealth === 'function') {
