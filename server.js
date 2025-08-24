@@ -62,6 +62,48 @@ import xml2js from 'xml2js';
 import zlib from 'zlib';
 import { promisify } from 'util';
 
+// BULLETPROOF OPENAI API CALLING WITH RATE LIMITING
+let lastRequestTime = 0;
+
+const callOpenAI = async (payload) => {
+  // Simple rate limiting - wait 10 seconds between any requests
+  const now = Date.now();
+  const timeSinceLastRequest = now - lastRequestTime;
+  const minDelay = 10000; // 10 seconds
+  
+  if (timeSinceLastRequest < minDelay) {
+    const waitTime = minDelay - timeSinceLastRequest;
+    console.log(`⏳ Rate limit protection: waiting ${waitTime}ms`);
+    await new Promise(resolve => setTimeout(resolve, waitTime));
+  }
+  
+  try {
+    console.log('📡 Making OpenAI API call...');
+    lastRequestTime = Date.now();
+    
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
+      },
+      body: JSON.stringify(payload)
+    });
+    
+    if (!response.ok) {
+      throw new Error(`OpenAI API error: ${response.status}`);
+    }
+    
+    const result = await response.json();
+    console.log('✅ OpenAI API call successful');
+    return result;
+    
+  } catch (error) {
+    console.error('❌ OpenAI API call failed:', error.message);
+    throw error;
+  }
+};
+
 const gzip = promisify(zlib.gzip);
 const gunzip = promisify(zlib.gunzip);
 
