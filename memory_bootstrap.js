@@ -59,7 +59,7 @@ class MemoryBootstrap {
             await this.persistentMemory.initialize();
             console.log('[MEMORY_BOOTSTRAP] ✅ Persistent memory initialized successfully');
             
-            // Health check with proper error handling
+            // Health check with proper error handling - FIXED: No optional chaining
             let healthCheck;
             try {
               if (this.persistentMemory && typeof this.persistentMemory.getSystemHealth === 'function') {
@@ -171,7 +171,7 @@ class MemoryBootstrap {
 
   /**
    * Retrieve memory in the format your chat.js expects
-   * CRITICAL FIX: Handle the object returned by getRelevantContext properly
+   * CRITICAL FIX: Handle the object returned by getRelevantContext properly - NO OPTIONAL CHAINING
    */
   async retrieveMemoryForChat(userId, message) {
     try {
@@ -181,7 +181,8 @@ class MemoryBootstrap {
           
         console.log('[MEMORY_BOOTSTRAP] 📊 Memory result type:', typeof memoryResult);
         console.log('[MEMORY_BOOTSTRAP] 📊 Memory result keys:', Object.keys(memoryResult || {}));
-        console.log('[MEMORY_BOOTSTRAP] 📊 Context found:', memoryResult?.contextFound);
+        // FIXED: Replaced optional chaining with conditional check
+        console.log('[MEMORY_BOOTSTRAP] 📊 Context found:', memoryResult && memoryResult.contextFound);
           
         // CRITICAL FIX: memoryResult is already an object with contextFound and memories
         if (memoryResult && memoryResult.contextFound) {
@@ -190,7 +191,8 @@ class MemoryBootstrap {
             contextFound: true,
             memories: memoryResult.memories, // This is already formatted as a string
             totalTokens: memoryResult.totalTokens || 0,
-            memoryCount: memoryResult.categoriesUsed ? memoryResult.categoriesUsed.length : 1
+            // FIXED: Replaced optional chaining with conditional check
+            memoryCount: (memoryResult.categoriesUsed && memoryResult.categoriesUsed.length) ? memoryResult.categoriesUsed.length : 1
           };
         } else {
           console.log('[MEMORY_BOOTSTRAP] ℹ️ No persistent memories found');
