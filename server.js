@@ -660,7 +660,6 @@ app.post('/api/chat', async (req, res) => {
     
     try {
         console.log('\n🚀 [CHAT] New conversation request received');
-        console.log('\n🚀 [CHAT] New conversation request received');
         const requestId = Math.random().toString(36).substr(2, 9);
       
     const {
@@ -788,8 +787,7 @@ const systemPrompt = buildMasterSystemPrompt({
 // BUILD CONVERSATION PROMPT
 const fullPrompt = buildConversationPrompt(systemPrompt, message, conversation_history, expertDomain);
 
-console.log(`🔍 [${requestId}] About to call ${personality} personality`);
-const apiResponse = await makeIntelligentAPICall(fullPrompt, personality, prideMotivation, {      
+console.log(`🔍 [${requestId}] About to call ${personality} personality`);      
 // ENHANCED API CALL
 const apiResponse = await makeIntelligentAPICall(fullPrompt, personality, prideMotivation, {
   vaultContent,
