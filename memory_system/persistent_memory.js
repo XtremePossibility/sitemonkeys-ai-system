@@ -673,11 +673,11 @@ class PersistentMemoryAPI {
             persistentLogger.log(`📋 Retrieved ${extraction.memories.length} memories (${extraction.tokenCount} tokens) for ${userId}`);
 
             // Respect the maxTokens soft cap
+            // CORRECTED VERSION:
             return {
                 ...formattedMemories,
-                totalTokens: MattotalTokens: Math.min(formattedMemories.totalTokens ? formattedMemories.totalTokens : 0, maxTokens)h.min(formattedMemories.totalTokens ?? 0, maxTokens)
+                totalTokens: Math.min(formattedMemories.totalTokens || 0, maxTokens)
             };
-
         } catch (error) {
             persistentLogger.error(`Error retrieving context for ${query}:`, error);
             return { contextFound: false, memories: '', error: error.message };
