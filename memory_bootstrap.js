@@ -59,8 +59,24 @@ class MemoryBootstrap {
             await this.persistentMemory.initialize();
             console.log('[MEMORY_BOOTSTRAP] ✅ Façade imported successfully');
             let healthCheck;
-            if (this.persistentMemory && typeof this.persistentMemory.getSystemHealth === 'function') {
-              healthCheck = await this.persistentMemory.getSystemHealth();
+            try {
+              if (this.persistentMemory && typeof this.persistentMemory.getSystemHealth === 'function') {
+                healthCheck = await this.persistentMemory.getSystemHealth();
+              } else if (this.persistentMemory && typeof this.persistentMemory.healthCheck === 'function') {
+                healthCheck = await this.persistentMemory.healthCheck();
+              } else {
+                healthCheck = { overall: false, error: 'No health check method available' };
+              }
+              
+              this.isHealthy = !!(healthCheck && (healthCheck.overall === true || healthCheck.status === 'healthy'));
+              console.log(`[MEMORY_BOOTSTRAP] 🔍 Health check result: ${this.isHealthy}`);
+              
+            } catch (healthError) {
+              console.log(`[MEMORY_BOOTSTRAP] ⚠️ Health check failed: ${healthError.message}`);
+              this.isHealthy = false;
+              healthCheck = { overall: false, error: healthError.message };
+            }
+                          healthCheck = await this.persistentMemory.getSystemHealth();
             } else if (this.persistentMemory && typeof this.persistentMemory.healthCheck === 'function') {
               healthCheck = await this.persistentMemory.healthCheck();
             } else {
