@@ -146,31 +146,9 @@ CONVERSATION CONTEXT: ${JSON.stringify(conversationHistory.slice(-3))}`;
                        errorMessage.includes('choices');
     
     if (isRateLimit) {
-      return {
-        response: `🍌 **Eli:** I'm experiencing temporary system limitations, but I can still provide business survival analysis:
-
-💰 **IMMEDIATE BUSINESS GUIDANCE:**
-- **Cash Flow Priority:** Preserve runway above all else
-- **Conservative Approach:** Assume 50% lower revenue projections
-- **Risk Mitigation:** Budget 25% extra for unexpected costs
-
-⚠️ **SURVIVAL CHECKLIST:**
-1. Calculate worst-case cash burn rate
-2. Identify critical vs nice-to-have expenses  
-3. Plan for 6+ months runway minimum
-4. Monitor key survival metrics weekly
-
-🎯 **RECOMMENDATION:** Take the most conservative approach that preserves cash flow until my full analysis systems recover.
-
-Please try your question again in 2-3 minutes for detailed financial modeling.`,
-        tokens_used: 0,
-        cost: 0,
-        ai_personality: 'eli',
-        rate_limited: true,
-        fallback_used: true,
-        error_type: 'rate_limit_handled'
-      };
-    }
+  // Let server rate limiting handle this properly
+  throw error;
+}
     
     // GENERAL FALLBACK FOR OTHER ERRORS
     return {
@@ -297,36 +275,9 @@ CONVERSATION CONTEXT: ${JSON.stringify(conversationHistory.slice(-3))}`;
                        errorMessage.includes('choices');
     
     if (isRateLimit) {
-      return {
-        response: `🍌 **Roxy:** I'm experiencing temporary system limitations, but I can maintain truth-first standards:
-
-📊 **TRANSPARENCY NOTICE:**
-- [CONFIDENCE: Unknown] - My AI verification systems are temporarily limited
-- [STATUS: Rate Limited] - Cannot access full analysis capabilities
-- [VERIFICATION: Required] - All information should be independently verified
-
-🔍 **WHAT I CAN PROVIDE:**
-- Basic logical reasoning using core principles
-- Assumption identification and challenge
-- Structured thinking frameworks
-- Truth-first methodology guidance
-
-⚠️ **CRITICAL LIMITATIONS:**
-- Cannot verify facts against databases
-- Cannot provide confidence scores on claims
-- Cannot access real-time information
-
-🎯 **RECOMMENDATION:** Use primary sources and cross-reference information independently until my verification systems recover.
-
-Please try again in 2-3 minutes for full truth-first analysis.`,
-        tokens_used: 0,
-        cost: 0,
-        ai_personality: 'roxy',
-        rate_limited: true,
-        fallback_used: true,
-        error_type: 'rate_limit_handled'
-      };
-    }
+  // Let server rate limiting handle this properly  
+  throw error;
+}
     
     // GENERAL FALLBACK FOR OTHER ERRORS
     return {
