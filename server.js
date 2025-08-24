@@ -69,29 +69,29 @@ const callOpenAI = async (payload) => {
   
   return await promise;
 };
-  
-  return await response.json();
-};
 import { generateRoxyResponse, generateEliResponse, validateResponseQuality } from './api/lib/personalities.js';
 import express from 'express';
 import cors from 'cors';
 const app = express();
 // SAFE MEMORY BOOTSTRAP WITH ERROR HANDLING
-let memoryBootstrap = null;
-try {
-  const memoryModule = await import('./memory_bootstrap.js');
-  memoryBootstrap = memoryModule.default;
-} catch (error) {
-  console.warn('⚠️ Memory bootstrap unavailable:', error.message);
-  // Create fallback memory bootstrap
-  memoryBootstrap = {
-    initialize: async () => console.log('Memory system disabled'),
-    isReady: () => false,
-    getMemorySystem: () => null,
-    getVaultLoader: () => null,
-    getStatus: () => ({ status: 'disabled', reason: 'Import failed' })
-  };
-}
+let memoryBootstrap = {
+  initialize: async () => console.log('Memory system disabled'),
+  isReady: () => false,
+  getMemorySystem: () => null,
+  getVaultLoader: () => null,
+  getStatus: () => ({ status: 'disabled', reason: 'Import failed' })
+};
+
+// Try to load memory bootstrap
+(async () => {
+  try {
+    const memoryModule = await import('./memory_bootstrap.js');
+    memoryBootstrap = memoryModule.default;
+    console.log('✅ Memory bootstrap loaded successfully');
+  } catch (error) {
+    console.warn('⚠️ Memory bootstrap unavailable, using fallback');
+  }
+})();
 
 // ===== APPLICATION STARTUP MEMORY INITIALIZATION =====
 console.log('[SERVER] 🚀 Initializing memory systems at application startup...');
