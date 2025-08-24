@@ -1,10 +1,19 @@
 // FORCE VAULT LOADING ON PAGE LOAD
+// VAULT LOADING ONLY ON DEMAND - NO AUTO-LOADING
 let vaultLoaded = false;
 
-async function loadVaultOnce() {
-  if (vaultLoaded) return;
+async function loadVaultOnDemand() {
+  if (vaultLoaded) return window.currentVaultContent || '';
   
-  console.log('🔄 Loading vault on page startup...');
+  // Only load vault in Site Monkeys mode
+  const currentMode = getCurrentMode();
+  if (currentMode !== 'site_monkeys') {
+    console.log('🚫 Vault loading blocked - not in Site Monkeys mode');
+    window.currentVaultContent = '';
+    return '';
+  }
+  
+  console.log('🔄 Loading vault on demand for Site Monkeys mode...');
   
   try {
     const vaultResponse = await fetch('/api/load-vault?refresh=true');
@@ -19,20 +28,17 @@ async function loadVaultOnce() {
     };
     
     vaultLoaded = true;
-    console.log('✅ Vault loaded on startup with length:', vaultContent.length);
+    console.log('✅ Vault loaded on demand with length:', vaultContent.length);
+    return vaultContent;
   } catch (error) {
-    console.error('❌ Failed to load vault on startup:', error);
+    console.error('❌ Failed to load vault on demand:', error);
+    return '';
   }
 }
 
-// FORCE LOAD IMMEDIATELY
-loadVaultOnce();
-
-// ALSO TRY ON DOM READY
-document.addEventListener('DOMContentLoaded', loadVaultOnce);
-
-// ALSO TRY ON WINDOW LOAD
-window.addEventListener('load', loadVaultOnce);
+// Initialize empty vault state
+window.currentVaultContent = '';
+window.vaultStatus = { loaded: false, healthy: false, tokens: 0 };
 // REFRESH VAULT BUTTON HANDLER
 async function improvedRefreshVault() {
   console.log('🔄 Refresh vault button clicked...');
@@ -80,9 +86,16 @@ async function sendMessage() {
 
   try {
     
-// ENSURE VAULT IS LOADED
-const vaultContent = window.currentVaultContent || '';
-console.log('🔍 Using cached vault with length:', vaultContent.length);
+// LOAD VAULT ONLY IF IN SITE MONKEYS MODE
+let vaultContent = '';
+const currentMode = getCurrentMode();
+if (currentMode === 'site_monkeys') {
+  vaultContent = await loadVaultOnDemand();
+  console.log('🔍 Site Monkeys mode - loaded vault with length:', vaultContent.length);
+} else {
+  console.log('🔍 Truth/Business mode - vault disabled');
+  vaultContent = '';
+}
 
 const requestPayload = {
   message: text,
