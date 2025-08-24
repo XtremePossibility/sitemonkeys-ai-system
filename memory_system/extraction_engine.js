@@ -22,7 +22,7 @@ class ExtractionEngine {
     try {
       // Route the query to determine relevant categories
       const routing = this.routingIntelligence.routeToCategory(query, options.context);
-      const primaryCategory = routing?.category;
+      const primaryCategory = routing?.const primaryCategory = routing && routing.category;category;
       
       if (!primaryCategory) {
         console.warn('Failed to route query, searching all categories');
