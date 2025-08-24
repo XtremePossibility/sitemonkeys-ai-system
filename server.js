@@ -19,16 +19,18 @@ const callOpenAI = async (payload) => {
     return await activeRequests.get(requestSignature);
   }
   
-  // Aggressive rate limiting - minimum 5 seconds between ANY requests
-  const now = Date.now();
-  const timeSinceLastRequest = now - lastRequestTime;
-  const minDelay = 8000; // 8 seconds minimum
-  
-  if (timeSinceLastRequest < minDelay) {
-    const waitTime = minDelay - timeSinceLastRequest;
-    console.log(`⏳ Rate limit protection: waiting ${waitTime}ms`);
-    await new Promise(resolve => setTimeout(resolve, waitTime));
-  }
+ // BULLETPROOF rate limiting - prevent race conditions
+const now = Date.now();
+const minDelay = 8000;
+
+// ALWAYS update lastRequestTime IMMEDIATELY to prevent race conditions
+const actualWaitTime = Math.max(0, minDelay - (now - lastRequestTime));
+lastRequestTime = now + actualWaitTime; // Reserve the next slot
+
+if (actualWaitTime > 0) {
+  console.log(`⏳ Rate limit protection: waiting ${actualWaitTime}ms`);
+  await new Promise(resolve => setTimeout(resolve, actualWaitTime));
+}
   
   // Create the API call promise
   const apiCall = async () => {
