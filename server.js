@@ -32,9 +32,11 @@ async function initializeMemorySystem() {
 async function startServer() {
     // Initialize memory systems first
     await initializeMemorySystem();
-    
-    // Continue with rest of server setup...
+    console.log('[SERVER] 🚀 Memory systems initialized, starting web server...');
 }
+
+// Initialize server immediately
+console.log('[SERVER] 🚀 Starting Site Monkeys AI System...');
 
 // Enable CORS and JSON parsing
 app.use(cors());
@@ -506,6 +508,18 @@ async function loadVaultContent() {
 // VAULT ENDPOINT - Main vault endpoint handles both GET and POST
 app.all('/api/load-vault', async (req, res) => {
     try {
+        // Check if request is for Site Monkeys mode only
+        const mode = req.body.mode || req.query.mode || 'site_monkeys';
+        if (mode !== 'site_monkeys') {
+            console.log(`🚫 Vault access denied for mode: ${mode}`);
+            return res.json({
+                status: "access_denied",
+                vault_content: "",
+                tokens: 0,
+                message: "Vault only available in Site Monkeys mode"
+            });
+        }
+        
         const isRefresh = req.query.refresh === 'true';
         
         if (isRefresh) {
@@ -1709,15 +1723,18 @@ app.get('/api/memory-status', async (req, res) => {
 // START SERVER
 const PORT = process.env.PORT || 3000;
 
-// CRITICAL FIX: Actually call the startServer function!
-startServer().then(() => {
-  app.listen(PORT, () => {
-    console.log(`🚀 Caring Family Intelligence System running on port ${PORT}`);
-    console.log(`💙 ${FAMILY_PHILOSOPHY.core_mission}`);
-    console.log(`✨ ${FAMILY_PHILOSOPHY.one_and_done_philosophy}`);
-    console.log(`📁 Vault endpoint: /api/load-vault`);
-  });
-}).catch(error => {
-  console.error('Failed to start server:', error);
-  process.exit(1);
-});
+// START SERVER WITH PROPER ERROR HANDLING
+(async () => {
+  try {
+    await startServer();
+    app.listen(PORT, () => {
+      console.log(`🚀 Caring Family Intelligence System running on port ${PORT}`);
+      console.log(`💙 ${FAMILY_PHILOSOPHY.core_mission}`);
+      console.log(`✨ ${FAMILY_PHILOSOPHY.one_and_done_philosophy}`);
+      console.log(`📁 Vault endpoint: /api/load-vault`);
+    });
+  } catch (error) {
+    console.error('❌ Failed to start server:', error);
+    process.exit(1);
+  }
+})();
