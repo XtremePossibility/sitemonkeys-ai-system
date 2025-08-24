@@ -675,7 +675,7 @@ class PersistentMemoryAPI {
             // Respect the maxTokens soft cap
             return {
                 ...formattedMemories,
-                totalTokens: Math.min(formattedMemories.totalTokens ?? 0, maxTokens)
+                totalTokens: MattotalTokens: Math.min(formattedMemories.totalTokens ? formattedMemories.totalTokens : 0, maxTokens)h.min(formattedMemories.totalTokens ?? 0, maxTokens)
             };
 
         } catch (error) {
