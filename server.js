@@ -22,7 +22,7 @@ const callOpenAI = async (payload) => {
   // Aggressive rate limiting - minimum 5 seconds between ANY requests
   const now = Date.now();
   const timeSinceLastRequest = now - lastRequestTime;
-  const minDelay = 5000; // 5 seconds minimum
+  const minDelay = 8000; // 8 seconds minimum
   
   if (timeSinceLastRequest < minDelay) {
     const waitTime = minDelay - timeSinceLastRequest;
@@ -126,20 +126,34 @@ async function startServer() {
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 
-// PREVENT DUPLICATE FRONTEND REQUESTS
+// PREVENT DUPLICATE FRONTEND REQUESTS - MORE AGGRESSIVE
 const activeChats = new Map();
+const clientRateLimit = new Map();
 
 app.use('/api/chat', (req, res, next) => {
   if (req.method === 'POST') {
-    const requestKey = req.body.message?.substring(0, 50) || 'unknown';
+    const clientId = req.ip || 'unknown';
+    const now = Date.now();
     
-    if (activeChats.has(requestKey)) {
+    // Check if client made request in last 10 seconds
+    const lastRequest = clientRateLimit.get(clientId);
+    if (lastRequest && (now - lastRequest) < 10000) {
       return res.status(429).json({ 
-        error: 'Request already in progress', 
-        message: 'Please wait for the current request to complete' 
+        error: 'Too fast', 
+        message: 'Please wait 10 seconds between requests'
       });
     }
     
+    const requestKey = req.body.message?.substring(0, 30) || 'unknown';
+    
+    if (activeChats.has(requestKey)) {
+      return res.status(429).json({ 
+        error: 'Request in progress', 
+        message: 'Please wait for current request to complete' 
+      });
+    }
+    
+    clientRateLimit.set(clientId, now);
     activeChats.set(requestKey, true);
     
     // Clean up after response
