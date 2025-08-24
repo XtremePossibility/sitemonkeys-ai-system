@@ -328,8 +328,8 @@ class ExtractionEngine {
       return {
         totalCategories: stats.length,
         mostUsedCategory: stats.reduce((max, cat) => 
-          cat.total_memories > (max?.total_memories || 0) ? cat : max, null
-        ),
+  cat.total_memories > ((max && max.total_memories) ? max.total_memories : 0) ? cat : max, null
+)
         avgTokensPerCategory: stats.length > 0 
           ? Math.round(stats.reduce((sum, cat) => sum + cat.total_tokens, 0) / stats.length) 
           : 0,
