@@ -190,10 +190,41 @@ class RoutingIntelligence {
 // ================================================================
 class ExtractionEngine {
     constructor() {
-        console.log('[PERSISTENT] 🔍 Initializing extraction engine...');
+        console.log('[PERSISTENT] 🔍 Initializing FIXED extraction engine...');
         this.currentQuery = null;
         this.maxExtractionTokens = 2400;
         this.minRelevanceThreshold = 0.3;
+        
+        // ✅ COMPREHENSIVE STOPWORD LIST
+        this.stopwords = new Set([
+            'a', 'an', 'the', 'this', 'that', 'these', 'those',
+            'in', 'on', 'at', 'by', 'for', 'with', 'to', 'of', 'from', 'up', 'about', 'into', 'through', 'during', 'before', 'after', 'above', 'below', 'between', 'under', 'over',
+            'i', 'you', 'he', 'she', 'it', 'we', 'they', 'me', 'him', 'her', 'us', 'them', 'my', 'your', 'his', 'her', 'its', 'our', 'their',
+            'and', 'or', 'but', 'so', 'yet', 'nor', 'if', 'when', 'where', 'while', 'until', 'since', 'because', 'although', 'though',
+            'is', 'are', 'was', 'were', 'be', 'been', 'being', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'could', 'should', 'may', 'might', 'must', 'can',
+            'what', 'how', 'why', 'where', 'when', 'who', 'which', 'whose',
+            'very', 'really', 'quite', 'just', 'only', 'also', 'still', 'already', 'always', 'never', 'often', 'sometimes', 'usually', 'here', 'there', 'now', 'then', 'today', 'yesterday', 'tomorrow',
+            'like', 'well', 'um', 'uh', 'oh', 'ah', 'yes', 'no', 'ok', 'okay'
+        ]);
+    }
+
+    // ✅ FIXED: Smart keyword extraction
+    extractSmartKeywords(query) {
+        if (!query || typeof query !== 'string') {
+            return [];
+        }
+
+        const words = query.toLowerCase()
+            .replace(/[^\w\s]/g, ' ')
+            .split(/\s+/)
+            .filter(word => 
+                word.length >= 3 && 
+                !this.stopwords.has(word) && 
+                !/^\d+$/.test(word) && 
+                word.length <= 20
+            );
+
+        return [...new Set(words)].slice(0, 6); // Limit to 6 keywords max
     }
 
     async extractRelevantMemories(userId, query, categoryRouting, dbClient) {
@@ -211,6 +242,7 @@ class ExtractionEngine {
                 extractionTime: Date.now()
             };
         } catch (error) {
+            console.error('[EXTRACTION] Error:', error);
             return {
                 success: false,
                 error: error.message,
@@ -232,8 +264,6 @@ class ExtractionEngine {
 
     async executeExtraction(userId, plan, dbClient) {
         const allMemories = [];
-
-        // Extract from primary category
         const primaryMemories = await this.extractFromCategory(
             userId, 
             plan.primary.category, 
@@ -242,80 +272,77 @@ class ExtractionEngine {
             dbClient
         );
         allMemories.push(...primaryMemories);
-
         return allMemories;
     }
 
+    // ✅ COMPLETELY FIXED: Smart extraction with proper keyword filtering
     async extractFromCategory(userId, categoryName, subcategoryName, maxTokens, dbClient) {
-    console.log(`[EXTRACTION] 🔍 Searching for userId: "${userId}", category: "${categoryName}", subcategory: "${subcategoryName}"`);
-    
-    // CRITICAL FIX: Extract keywords from current query for content matching
-    const queryWords = this.currentQuery ? 
-        this.currentQuery.toLowerCase().split(' ').filter(w => w.length > 2) : [];
-    console.log(`[EXTRACTION] 📝 Query keywords:`, queryWords);
-    
-    let query = `
-        SELECT id, category_name, subcategory_name, content, token_count, relevance_score, usage_frequency,     
-               last_accessed, created_at, metadata    
-        FROM persistent_memories     
-        WHERE user_id = $1 AND category_name = $2
-    `;
-    const params = [userId, categoryName];
-
-    if (subcategoryName && subcategoryName !== 'null' && subcategoryName !== null) {
-        query += ` AND subcategory_name = $3`;
-        params.push(subcategoryName);
-    }
-
-    // CRITICAL FIX: Add content matching to SQL query
-    if (queryWords.length > 0) {
-        const contentConditions = [];
-        queryWords.forEach(word => {
-            contentConditions.push(`content ILIKE '%' || $${params.length + 1} || '%'`);
-            params.push(word);
-        });
-        query += ` AND (${contentConditions.join(' OR ')})`;
-        console.log(`[EXTRACTION] 📊 Added content filters for: ${queryWords.join(', ')}`);
-    }
-
-    query += ` 
-        ORDER BY 
-            relevance_score DESC, 
-            usage_frequency DESC,
-            created_at DESC 
-        LIMIT 20
-    `;
-
-    console.log(`[EXTRACTION] 📊 Query: ${query}`);
-    console.log(`[EXTRACTION] 📊 Params: ${JSON.stringify(params)}`);
-
-    const result = await dbClient.query(query, params);
-    console.log(`[EXTRACTION] 📈 Found ${result.rows.length} memories in database`);
-    
-    // Smart token-aware selection
-    const selectedMemories = [];
-    let currentTokens = 0;
-
-    for (const memory of result.rows) {
-        if (currentTokens + memory.token_count <= maxTokens) {
-            await this.updateMemoryUsage(memory.id, dbClient);
-            
-            selectedMemories.push({
-                ...memory,
-                extractionReason: subcategoryName ? 'subcategory_match' : 'category_match'
-            });
-            
-            currentTokens += memory.token_count;
-            console.log(`[EXTRACTION] ✅ Selected memory ID ${memory.id} (${memory.token_count} tokens)`);
-            
-            if (currentTokens >= maxTokens) break;
-        }
-    }
-
-    console.log(`[EXTRACTION] 🎯 Returning ${selectedMemories.length} memories (${currentTokens} tokens)`);
-    return selectedMemories;
-}
+        console.log(`[EXTRACTION] 🔍 Smart search: userId="${userId}", category="${categoryName}", subcategory="${subcategoryName}"`);
         
+        // ✅ FIXED: Use smart keyword extraction
+        const queryWords = this.extractSmartKeywords(this.currentQuery);
+        console.log(`[EXTRACTION] 📝 Smart keywords extracted:`, queryWords);
+        
+        let query = `
+            SELECT id, category_name, subcategory_name, content, token_count, relevance_score, usage_frequency,     
+                   last_accessed, created_at, metadata    
+            FROM persistent_memories     
+            WHERE user_id = $1 AND category_name = $2
+        `;
+        const params = [userId, categoryName];
+
+        if (subcategoryName && subcategoryName !== 'null' && subcategoryName !== null) {
+            query += ` AND subcategory_name = $3`;
+            params.push(subcategoryName);
+        }
+
+        // ✅ FIXED: Only add content matching if we have meaningful keywords
+        if (queryWords.length > 0) {
+            const contentConditions = [];
+            queryWords.forEach(word => {
+                contentConditions.push(`content ILIKE '%' || $${params.length + 1} || '%'`);
+                params.push(word);
+            });
+            query += ` AND (${contentConditions.join(' OR ')})`;
+            console.log(`[EXTRACTION] 📊 Added content filters for: ${queryWords.join(', ')}`);
+        } else {
+            console.log(`[EXTRACTION] ℹ️ No meaningful keywords found, searching by category only`);
+        }
+
+        query += ` 
+            ORDER BY 
+                relevance_score DESC, 
+                usage_frequency DESC,
+                created_at DESC 
+            LIMIT 15
+        `;
+
+        const result = await dbClient.query(query, params);
+        console.log(`[EXTRACTION] 📈 Found ${result.rows.length} memories`);
+        
+        // Smart token-aware selection
+        const selectedMemories = [];
+        let currentTokens = 0;
+
+        for (const memory of result.rows) {
+            if (currentTokens + memory.token_count <= maxTokens) {
+                await this.updateMemoryUsage(memory.id, dbClient);
+                
+                selectedMemories.push({
+                    ...memory,
+                    extractionReason: subcategoryName ? 'subcategory_match' : 'category_match'
+                });
+                
+                currentTokens += memory.token_count;
+                console.log(`[EXTRACTION] ✅ Selected memory ID ${memory.id} (${memory.token_count} tokens)`);
+                
+                if (currentTokens >= maxTokens) break;
+            }
+        }
+
+        console.log(`[EXTRACTION] 🎯 Returning ${selectedMemories.length} memories (${currentTokens} tokens)`);
+        return selectedMemories;
+    }
 
     async updateMemoryUsage(memoryId, dbClient) {
         await dbClient.query(`
@@ -327,7 +354,7 @@ class ExtractionEngine {
     }
 
     optimizeExtraction(memories, query) {
-        const queryWords = query.toLowerCase().split(' ');
+        const queryWords = this.extractSmartKeywords(query);
         
         return memories
             .map(memory => ({
@@ -339,11 +366,12 @@ class ExtractionEngine {
 
     calculateFinalRelevance(memory, queryWords) {
         const content = memory.content.toLowerCase();
-        let relevance = memory.relevance_score;
+        let relevance = memory.relevance_score || 0.5;
         
-        // Boost for query word matches
-        const wordMatches = queryWords.filter(word => content.includes(word)).length;
-        relevance += (wordMatches / queryWords.length) * 0.3;
+        if (queryWords.length > 0) {
+            const wordMatches = queryWords.filter(word => content.includes(word)).length;
+            relevance += (wordMatches / queryWords.length) * 0.4;
+        }
         
         return Math.min(relevance, 1.0);
     }
@@ -352,29 +380,41 @@ class ExtractionEngine {
         return memories.reduce((total, memory) => total + memory.token_count, 0);
     }
 
+    // ✅ COMPLETELY FIXED: Memory formatting for AI injection
     formatForAI(memories) {
         if (!memories || memories.length === 0) {
-            return { contextFound: false, memories: '' };
+            console.log('[MEMORY FORMAT] ℹ️ No memories to format');
+            return { contextFound: false, memories: '', totalTokens: 0, categoriesUsed: [] };
         }
 
-        console.log(`[MEMORY FORMAT] 📝 Formatting ${memories.length} memories for AI`);
+        console.log(`[MEMORY FORMAT] 📝 Formatting ${memories.length} memories for AI context injection`);
         
+        // ✅ FIXED: Clean, structured formatting optimized for AI understanding
         const formattedMemories = memories
             .map((memory, index) => {
                 const timeAgo = this.formatTimeAgo(memory.created_at);
-                console.log(`[MEMORY FORMAT] Memory ${index + 1}: "${memory.content.substring(0, 100)}..."`);
-                return `[${timeAgo}] ${memory.content}`;
+                // Clean the content - remove any "User: " or "Assistant: " prefixes that cause confusion
+                const cleanContent = memory.content
+                    .replace(/^(User:\s*|Assistant:\s*)/gmi, '')
+                    .replace(/\n(User:\s*|Assistant:\s*)/gmi, '\n')
+                    .trim();
+                    
+                console.log(`[MEMORY FORMAT] Memory ${index + 1} (${timeAgo}): "${cleanContent.substring(0, 100)}${cleanContent.length > 100 ? '...' : ''}"`);
+                
+                return `[MEMORY from ${timeAgo}]: ${cleanContent}`;
             })
-            .join('\n\n');
+            .join('\n\n---\n\n');
 
-        console.log(`[MEMORY FORMAT] ✅ Final formatted memory length: ${formattedMemories.length} characters`);
-
-        return {
+        const result = {
             contextFound: true,
             memories: formattedMemories,
             totalTokens: this.calculateTokens(memories),
-            categoriesUsed: [...new Set(memories.map(m => m.category_name))]
+            categoriesUsed: [...new Set(memories.map(m => m.category_name))],
+            memoryCount: memories.length
         };
+
+        console.log(`[MEMORY FORMAT] ✅ Formatted for AI: ${result.memories.length} chars, ${result.totalTokens} tokens, ${result.memoryCount} memories`);
+        return result;
     }
 
     formatTimeAgo(timestamp) {
