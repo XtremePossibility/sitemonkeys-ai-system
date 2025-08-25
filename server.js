@@ -871,16 +871,7 @@ Family Member: ${message}
 
 Respond using conversation context and your expertise:`;
   console.log(`[CHAT] 🔗 Added conversation history to AI prompt`);
-} else {
-  enhancedPrompt = systemPrompt + `
 
-CURRENT REQUEST:
-Family Member: ${message}
-
-Respond with your expertise:`;
- 
-  
-  console.log(`[CHAT] 🧠 Added ${memoryContext.memories.length} characters of memory context to AI prompt`);
 } else {
   enhancedPrompt = systemPrompt + `
 
@@ -926,7 +917,6 @@ const fullPrompt = enhancedPrompt;
 if (memorySystem && typeof memorySystem.storeMemory === 'function') {
   try {
     console.log('[CHAT] 💾 Storing conversation in memory...');
-    const cleanResponse = finalResponse.replace(/^\d+\.\s*\*\*[A-Z]+\*\*:\s*/gm, '').trim();
     // Clean stored content - remove User:/Assistant: prefixes but keep content
 const cleanMessage = message.replace(/^User:\s*/i, '').trim();
 const cleanResponse = finalResponse.replace(/^Assistant:\s*/i, '').trim();
