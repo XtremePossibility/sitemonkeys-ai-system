@@ -246,12 +246,7 @@ class ExtractionEngine {
     }
 
     async extractFromCategory(userId, categoryName, subcategoryName, maxTokens, dbClient) {
-    // DEBUG: Log what we're searching for
     console.log(`[EXTRACTION] 🔍 Searching for userId: "${userId}", category: "${categoryName}", subcategory: "${subcategoryName}"`);
-    
-    // Extract key words from the current query for content matching
-    const queryWords = this.currentQuery ? this.currentQuery.toLowerCase().split(' ').filter(w => w.length > 2) : [];
-    const contentFilter = queryWords.slice(0, 3).join(' '); // Use first 3 meaningful words
     
     let query = `
         SELECT id, category_name, subcategory_name, content, token_count, relevance_score, usage_frequency,     
@@ -266,16 +261,8 @@ class ExtractionEngine {
         params.push(subcategoryName);
     }
 
-    // Add content relevance filtering if we have query words
-    if (contentFilter) {
-        const paramIndex = params.length + 1;
-        query += ` AND (content ILIKE '%' || $${paramIndex} || '%' OR $${paramIndex} = '')`;
-        params.push(contentFilter);
-    }
-
     query += ` 
         ORDER BY 
-            CASE WHEN content ILIKE '%' || $${params.length} || '%' THEN 1 ELSE 0 END DESC,
             relevance_score DESC, 
             usage_frequency DESC,
             created_at DESC 
@@ -286,9 +273,31 @@ class ExtractionEngine {
     console.log(`[EXTRACTION] 📊 Params: ${JSON.stringify(params)}`);
 
     const result = await dbClient.query(query, params);
-    console.log(`[EXTRACTION] 🎯 Returning ${selectedMemories.length} memories (${currentTokens} tokens)`);
-        return selectedMemories;
+    console.log(`[EXTRACTION] 📈 Found ${result.rows.length} memories in database`);
+    
+    // Smart token-aware selection
+    const selectedMemories = [];
+    let currentTokens = 0;
+
+    for (const memory of result.rows) {
+        if (currentTokens + memory.token_count <= maxTokens) {
+            await this.updateMemoryUsage(memory.id, dbClient);
+            
+            selectedMemories.push({
+                ...memory,
+                extractionReason: subcategoryName ? 'subcategory_match' : 'category_match'
+            });
+            
+            currentTokens += memory.token_count;
+            console.log(`[EXTRACTION] ✅ Selected memory ID ${memory.id} (${memory.token_count} tokens)`);
+            
+            if (currentTokens >= maxTokens) break;
+        }
     }
+
+    console.log(`[EXTRACTION] 🎯 Returning ${selectedMemories.length} memories (${currentTokens} tokens)`);
+    return selectedMemories;
+}
         // DEBUG: Log what we're searching for
         console.log(`[EXTRACTION] 🔍 Searching for userId: "${userId}", category: "${categoryName}", subcategory: "${subcategoryName}"`);
         
