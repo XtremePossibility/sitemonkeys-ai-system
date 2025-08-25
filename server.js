@@ -33,7 +33,7 @@ async function initializeMemorySystem() {
             available: !!memSystem,
             healthy: memoryBootstrap.isHealthy,
             ready: memoryBootstrap.isReady()
-        });;
+        });
         
     } catch (initError) {
         console.error('[SERVER] ❌ Memory system initialization error:', {
