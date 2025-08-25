@@ -198,6 +198,7 @@ class ExtractionEngine {
 
     async extractRelevantMemories(userId, query, categoryRouting, dbClient) {
         try {
+            this.currentQuery = query;
             const extractionPlan = this.planExtraction(query, categoryRouting);
             const extractedMemories = await this.executeExtraction(userId, extractionPlan, dbClient);
             const optimizedMemories = this.optimizeExtraction(extractedMemories, query);
