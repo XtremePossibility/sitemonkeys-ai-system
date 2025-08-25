@@ -892,11 +892,12 @@ const fullPrompt = enhancedPrompt;
 if (memorySystem && typeof memorySystem.storeMemory === 'function') {
   try {
     console.log('[CHAT] 💾 Storing conversation in memory...');
-    const conversationEntry = `User: ${message}\nAssistant: ${finalResponse}`;
+    const cleanResponse = finalResponse.replace(/^\d+\.\s*\*\*[A-Z]+\*\*:\s*/gm, '').trim();
+    const conversationEntry = `User: ${message}\nAssistant: ${cleanResponse}`;
     const storeResult = await memorySystem.storeMemory('user', conversationEntry);
     
     if (storeResult && storeResult.success) {
-      console.log(`[CHAT] ✅ Memory stored as ID ${storeResult.memoryId}`);
+      console.log(`[CHAT] ✅ Memory stored as ID ${storeResult.id}`);
     } else {
       console.log(`[CHAT] ⚠️ Memory storage failed: ${storeResult?.error || 'Unknown error'}`);
     }
