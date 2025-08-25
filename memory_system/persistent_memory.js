@@ -298,62 +298,7 @@ class ExtractionEngine {
     console.log(`[EXTRACTION] 🎯 Returning ${selectedMemories.length} memories (${currentTokens} tokens)`);
     return selectedMemories;
 }
-        // DEBUG: Log what we're searching for
-        console.log(`[EXTRACTION] 🔍 Searching for userId: "${userId}", category: "${categoryName}", subcategory: "${subcategoryName}"`);
         
-        let query = `
-            SELECT id, category_name, subcategory_name, content, token_count, relevance_score, usage_frequency,     
-                   last_accessed, created_at, metadata    
-            FROM persistent_memories     
-            WHERE user_id = $1 AND category_name = $2
-        `;
-        const params = [userId, categoryName];
-
-        if (subcategoryName && subcategoryName !== 'null' && subcategoryName !== null) {
-            query += ` AND subcategory_name = $3`;
-            params.push(subcategoryName);
-        }
-
-        query += ` 
-            ORDER BY 
-                relevance_score DESC, 
-                usage_frequency DESC,
-                created_at DESC 
-            LIMIT 20
-        `;
-
-        console.log(`[EXTRACTION] 📊 Query: ${query}`);
-        console.log(`[EXTRACTION] 📊 Params: ${JSON.stringify(params)}`);
-
-        const result = await dbClient.query(query, params);
-        
-        console.log(`[EXTRACTION] 📈 Found ${result.rows.length} memories in database`);
-        
-        // Smart token-aware selection
-        const selectedMemories = [];
-        let currentTokens = 0;
-
-        for (const memory of result.rows) {
-            if (currentTokens + memory.token_count <= maxTokens) {
-                // Update usage statistics
-                await this.updateMemoryUsage(memory.id, dbClient);
-                
-                selectedMemories.push({
-                    ...memory,
-                    extractionReason: subcategoryName ? 'subcategory_match' : 'category_match'
-                });
-                
-                currentTokens += memory.token_count;
-                
-                // Add break to stop processing once limit reached
-                if (currentTokens >= maxTokens) break;
-                console.log(`[EXTRACTION] ✅ Selected memory ID ${memory.id} (${memory.token_count} tokens)`);
-            }
-        }
-
-        console.log(`[EXTRACTION] 🎯 Returning ${selectedMemories.length} memories (${currentTokens} tokens)`);
-        return selectedMemories;
-    }
 
     async updateMemoryUsage(memoryId, dbClient) {
         await dbClient.query(`
