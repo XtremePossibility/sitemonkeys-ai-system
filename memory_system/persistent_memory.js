@@ -248,6 +248,11 @@ class ExtractionEngine {
     async extractFromCategory(userId, categoryName, subcategoryName, maxTokens, dbClient) {
     console.log(`[EXTRACTION] 🔍 Searching for userId: "${userId}", category: "${categoryName}", subcategory: "${subcategoryName}"`);
     
+    // CRITICAL FIX: Extract keywords from current query for content matching
+    const queryWords = this.currentQuery ? 
+        this.currentQuery.toLowerCase().split(' ').filter(w => w.length > 2) : [];
+    console.log(`[EXTRACTION] 📝 Query keywords:`, queryWords);
+    
     let query = `
         SELECT id, category_name, subcategory_name, content, token_count, relevance_score, usage_frequency,     
                last_accessed, created_at, metadata    
@@ -259,6 +264,17 @@ class ExtractionEngine {
     if (subcategoryName && subcategoryName !== 'null' && subcategoryName !== null) {
         query += ` AND subcategory_name = $3`;
         params.push(subcategoryName);
+    }
+
+    // CRITICAL FIX: Add content matching to SQL query
+    if (queryWords.length > 0) {
+        const contentConditions = [];
+        queryWords.forEach(word => {
+            contentConditions.push(`content ILIKE '%' || $${params.length + 1} || '%'`);
+            params.push(word);
+        });
+        query += ` AND (${contentConditions.join(' OR ')})`;
+        console.log(`[EXTRACTION] 📊 Added content filters for: ${queryWords.join(', ')}`);
     }
 
     query += ` 
