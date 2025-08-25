@@ -69,6 +69,26 @@ class RoutingIntelligence {
                     automation_workflows: ['automation', 'workflow', 'process', 'streamline'],
                     digital_organization: ['organization', 'digital', 'file', 'folder', 'storage']
                 }
+            },
+
+            // HOME & LIFESTYLE ROUTING (MISSING - ADD THIS ENTIRE SECTION)
+            home_lifestyle: {
+                keywords: [
+                    'home', 'house', 'apartment', 'living', 'lifestyle', 'daily', 'routine', 'household',
+                    'vehicle', 'vehicles', 'car', 'cars', 'truck', 'motorcycle', 'bike', 'boat', 'auto',
+                    'own', 'owned', 'have', 'possess', 'possession', 'belongings', 'stuff', 'things', 'personal',
+                    'hobby', 'hobbies', 'interest', 'interests', 'favorite', 'collection', 'gaming'
+                ],
+                contextPatterns: [
+                    'what i own', 'things i have', 'my stuff', 'vehicles i own', 'cars i have', 'told you about'
+                ],
+                subcategoryRouting: {
+                    living_environment: ['home', 'house', 'apartment', 'room', 'space', 'living'],
+                    daily_routines: ['routine', 'daily', 'morning', 'evening', 'schedule'],
+                    household_management: ['household', 'chores', 'cleaning', 'maintenance'],
+                    lifestyle_choices: ['lifestyle', 'choices', 'decisions', 'preferences'],
+                    personal_interests: ['interest', 'hobby', 'favorite', 'vehicle', 'car', 'own', 'possess', 'collection']
+                }
             }
         };
 
@@ -80,11 +100,7 @@ class RoutingIntelligence {
             'technology_tools',
             'personal_development',
             'home_lifestyle'
-
-            },
-
-            // HOME & LIFESTYLE ROUTING (MISSING - ADD THIS ENTIRE SECTION)
-            home_lifestyle: {
+            
                 keywords: [
                     'home', 'house', 'apartment', 'living', 'lifestyle', 'daily', 'routine', 'household',
                     'vehicle', 'vehicles', 'car', 'cars', 'truck', 'motorcycle', 'bike', 'boat', 'auto',
@@ -170,12 +186,12 @@ class RoutingIntelligence {
     }
 
         containsPersonalPossessionWords(query) {
-        const possessionPatterns = [
-            'what i own', 'things i have', 'my stuff', 'i own', 'i have',
-            'what vehicles', 'what cars', 'vehicles i own', 'cars i have', 'told you about'
-        ];
-        return possessionPatterns.some(pattern => query.includes(pattern));
-    }
+            const possessionPatterns = [
+                'what i own', 'things i have', 'my stuff', 'i own', 'i have',
+                'what vehicles', 'what cars', 'vehicles i own', 'cars i have', 'told you about'
+            ];
+            return possessionPatterns.some(pattern => query.includes(pattern));
+        }
 
     routeToSubcategory(query, categoryName) {
         const patterns = this.routingPatterns[categoryName];
