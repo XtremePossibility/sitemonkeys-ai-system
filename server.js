@@ -832,19 +832,53 @@ const systemPrompt = buildMasterSystemPrompt({
 });
 
 // ADD MEMORY CONTEXT TO CONVERSATION PROMPT
+// ADD CONVERSATION HISTORY TO PROMPT (BEFORE MEMORY)
+let conversationHistoryText = '';
+if (conversation_history && conversation_history.length > 0) {
+  const recentHistory = conversation_history.slice(-5); // Last 5 turns
+  conversationHistoryText = recentHistory.map(turn => 
+    `${turn.role === 'user' ? 'Family Member' : 'Assistant'}: ${turn.content}`
+  ).join('\n');
+  console.log(`[CHAT] 🔗 Added ${recentHistory.length} conversation context entries`);
+}
 let enhancedPrompt = buildConversationPrompt(systemPrompt, message, conversation_history, expertDomain);
 
 // CRITICAL FIX: Include retrieved memory context in AI prompt
 if (memoryContext && memoryContext.memories && memoryContext.memories.length > 0) {
   enhancedPrompt = systemPrompt + `
 
-RELEVANT MEMORY CONTEXT:
+${conversationHistoryText ? `RECENT CONVERSATION:\n${conversationHistoryText}\n\n` : ''}RELEVANT MEMORY CONTEXT:
 ${memoryContext.memories}
+
+Please acknowledge and use both the conversation history and memory context in your response.
 
 CURRENT REQUEST:
 Family Member: ${message}
 
-Respond using both the memory context and your expertise:`;
+Respond using conversation context, memory context, and your expertise:`;
+  
+  console.log(`[CHAT] 🧠 Added ${memoryContext.memories.length} characters of memory context to AI prompt`);
+} else if (conversationHistoryText) {
+  enhancedPrompt = systemPrompt + `
+
+RECENT CONVERSATION:
+${conversationHistoryText}
+
+Please acknowledge the conversation context in your response.
+
+CURRENT REQUEST:  
+Family Member: ${message}
+
+Respond using conversation context and your expertise:`;
+  console.log(`[CHAT] 🔗 Added conversation history to AI prompt`);
+} else {
+  enhancedPrompt = systemPrompt + `
+
+CURRENT REQUEST:
+Family Member: ${message}
+
+Respond with your expertise:`;
+ 
   
   console.log(`[CHAT] 🧠 Added ${memoryContext.memories.length} characters of memory context to AI prompt`);
 } else {
@@ -893,11 +927,15 @@ if (memorySystem && typeof memorySystem.storeMemory === 'function') {
   try {
     console.log('[CHAT] 💾 Storing conversation in memory...');
     const cleanResponse = finalResponse.replace(/^\d+\.\s*\*\*[A-Z]+\*\*:\s*/gm, '').trim();
-    const conversationEntry = `User: ${message}\nAssistant: ${cleanResponse}`;
-    const storeResult = await memorySystem.storeMemory('user', conversationEntry);
+    // Clean stored content - remove User:/Assistant: prefixes but keep content
+const cleanMessage = message.replace(/^User:\s*/i, '').trim();
+const cleanResponse = finalResponse.replace(/^Assistant:\s*/i, '').trim();
+const conversationEntry = `User: ${cleanMessage}\nAssistant: ${cleanResponse}`;
+const storeResult = await memorySystem.storeMemory('user', conversationEntry);
     
     if (storeResult && storeResult.success) {
       console.log(`[CHAT] ✅ Memory stored as ID ${storeResult.id}`);
+      console.log(`[CHAT] 📝 Sample stored: "${conversationEntry.substring(0, 100)}..."`);
     } else {
       console.log(`[CHAT] ⚠️ Memory storage failed: ${storeResult?.error || 'Unknown error'}`);
     }
