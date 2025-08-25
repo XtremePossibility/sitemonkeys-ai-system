@@ -93,32 +93,31 @@ class RoutingIntelligence {
         };
 
         this.fallbackChain = [
-            'health_wellness',
-            'relationships_social', 
-            'business_career',
-            'financial_management',
-            'technology_tools',
-            'personal_development',
-            'home_lifestyle'
-            
-                keywords: [
-                    'home', 'house', 'apartment', 'living', 'lifestyle', 'daily', 'routine', 'household',
-                    'vehicle', 'vehicles', 'car', 'cars', 'truck', 'motorcycle', 'bike', 'boat', 'auto',
-                    'own', 'owned', 'have', 'possess', 'possession', 'belongings', 'stuff', 'things', 'personal',
-                    'hobby', 'hobbies', 'interest', 'interests', 'favorite', 'collection', 'gaming'
-                ],
-                contextPatterns: [
-                    'what i own', 'things i have', 'my stuff', 'vehicles i own', 'cars i have', 'told you about'
-                ],
-                subcategoryRouting: {
-                    living_environment: ['home', 'house', 'apartment', 'room', 'space', 'living'],
-                    daily_routines: ['routine', 'daily', 'morning', 'evening', 'schedule'],
-                    household_management: ['household', 'chores', 'cleaning', 'maintenance'],
-                    lifestyle_choices: ['lifestyle', 'choices', 'decisions', 'preferences'],
-                    personal_interests: ['interest', 'hobby', 'favorite', 'vehicle', 'car', 'own', 'possess', 'collection']
-                }
-        ];
-    }
+    'health_wellness',
+    'relationships_social', 
+    'business_career',
+    'financial_management',
+    'technology_tools',
+    'personal_development',
+    'home_lifestyle'
+    
+        keywords: [
+            'home', 'house', 'apartment', 'living', 'lifestyle', 'daily', 'routine', 'household',
+            'vehicle', 'vehicles', 'car', 'cars', 'truck', 'motorcycle', 'bike', 'boat', 'auto',
+            'own', 'owned', 'have', 'possess', 'possession', 'belongings', 'stuff', 'things', 'personal',
+            'hobby', 'hobbies', 'interest', 'interests', 'favorite', 'collection', 'gaming'
+        ],
+        contextPatterns: [
+            'what i own', 'things i have', 'my stuff', 'vehicles i own', 'cars i have', 'told you about'
+        ],
+        subcategoryRouting: {
+            living_environment: ['home', 'house', 'apartment', 'room', 'space', 'living'],
+            daily_routines: ['routine', 'daily', 'morning', 'evening', 'schedule'],
+            household_management: ['household', 'chores', 'cleaning', 'maintenance'],
+            lifestyle_choices: ['lifestyle', 'choices', 'decisions', 'preferences'],
+            personal_interests: ['interest', 'hobby', 'favorite', 'vehicle', 'car', 'own', 'possess', 'collection']
+        }
+];
 
     routeToCategory(query, userId = null) {
         const normalizedQuery = query.toLowerCase();
