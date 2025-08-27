@@ -264,25 +264,30 @@ console.log('🔍 Using vault with length:', vaultContent.length);
 function updateTokenDisplay(tokenData) {
   console.log('💰 DISPLAY DEBUG:', tokenData);
   try {
-    // Find and update just the token count and cost values, preserving formatting
-    const allElements = document.querySelectorAll('*');
+    // Simple one-time update to avoid loops
+    const tokensText = document.evaluate(
+      "//text()[contains(., 'No Data TOKENS')]",
+      document,
+      null,
+      XPathResult.FIRST_ORDERED_NODE_TYPE,
+      null
+    ).singleNodeValue;
     
-    for (let element of allElements) {
-      // Update tokens display - preserve "TOKENS" text, just update the number
-      if (element.textContent && element.textContent.includes('TOKENS')) {
-        const currentTokens = tokenData.session_total_tokens || 0;
-        element.innerHTML = element.innerHTML.replace(/\d+\s*TOKENS/i, `${currentTokens} TOKENS`).replace(/No Data\s*TOKENS/i, `${currentTokens} TOKENS`);
-        element.style.color = '#00ff41';
-        console.log('[COST] Updated tokens to:', currentTokens);
-      }
-      
-      // Update cost display - preserve "EST. COST:" text, just update the amount
-      if (element.textContent && element.textContent.includes('EST. COST:')) {
-        const sessionCost = (tokenData.session_total_cost || 0).toFixed(4);
-        element.innerHTML = element.innerHTML.replace(/EST\.\s*COST:\s*\$[\d.]+/i, `EST. COST: $${sessionCost}`);
-        element.style.color = '#00ff41';
-        console.log('[COST] Updated cost to:', sessionCost);
-      }
+    const costText = document.evaluate(
+      "//text()[contains(., 'EST. COST: $0.00')]",
+      document,
+      null,
+      XPathResult.FIRST_ORDERED_NODE_TYPE,
+      null
+    ).singleNodeValue;
+    
+    if (tokensText) {
+      tokensText.textContent = `${tokenData.session_total_tokens || 0} TOKENS`;
+    }
+    
+    if (costText) {
+      const sessionCost = (tokenData.session_total_cost || 0).toFixed(4);
+      costText.textContent = `EST. COST: $${sessionCost}`;
     }
     
   } catch (error) {
