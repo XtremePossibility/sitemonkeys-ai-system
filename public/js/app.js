@@ -264,30 +264,21 @@ console.log('🔍 Using vault with length:', vaultContent.length);
 function updateTokenDisplay(tokenData) {
   console.log('💰 DISPLAY DEBUG:', tokenData);
   try {
-    // Simple one-time update to avoid loops
-    const tokensText = document.evaluate(
-      "//text()[contains(., 'No Data TOKENS')]",
-      document,
-      null,
-      XPathResult.FIRST_ORDERED_NODE_TYPE,
-      null
-    ).singleNodeValue;
+    // Target the exact elements by their IDs from the HTML
+    const tokenCountElement = document.getElementById('token-count');
+    const costEstimateElement = document.getElementById('cost-estimate');
     
-    const costText = document.evaluate(
-      "//text()[contains(., 'EST. COST: $0.00')]",
-      document,
-      null,
-      XPathResult.FIRST_ORDERED_NODE_TYPE,
-      null
-    ).singleNodeValue;
-    
-    if (tokensText) {
-      tokensText.textContent = `${tokenData.session_total_tokens || 0} TOKENS`;
+    if (tokenCountElement) {
+      tokenCountElement.textContent = tokenData.session_total_tokens || 0;
+      tokenCountElement.style.color = '#00ff41';
+      console.log('[COST] Updated token count');
     }
     
-    if (costText) {
+    if (costEstimateElement) {
       const sessionCost = (tokenData.session_total_cost || 0).toFixed(4);
-      costText.textContent = `EST. COST: $${sessionCost}`;
+      costEstimateElement.textContent = `$${sessionCost}`;
+      costEstimateElement.style.color = '#00ff41';
+      console.log('[COST] Updated cost estimate');
     }
     
   } catch (error) {
