@@ -262,53 +262,55 @@ console.log('🔍 Using vault with length:', vaultContent.length);
 
 // TOKEN AND COST DISPLAY FUNCTIONS
 function updateTokenDisplay(tokenData) {
-  console.log('💰 DISPLAY DEBUG:', tokenData); // ADD THIS LINE
+  console.log('💰 DISPLAY DEBUG:', tokenData);
   try {
-    // Update or create token display element
-    let tokenDisplay = document.getElementById('token-cost-display');
+    // Look for existing UI elements to integrate with
+    let tokenContainer = document.getElementById('token-cost-container');
     
-    if (!tokenDisplay) {
-      // Create token display element if it doesn't exist
-      tokenDisplay = document.createElement('div');
-      tokenDisplay.id = 'token-cost-display';
-      tokenDisplay.style.cssText = `
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        background: rgba(0,0,0,0.8);
+    if (!tokenContainer) {
+      // Create integrated token display in the UI layout
+      tokenContainer = document.createElement('div');
+      tokenContainer.id = 'token-cost-container';
+      tokenContainer.style.cssText = `
+        background: rgba(0,0,0,0.9);
         color: #00ff41;
-        padding: 10px;
-        border-radius: 8px;
+        padding: 8px 12px;
+        border-radius: 6px;
         font-family: monospace;
-        font-size: 12px;
-        z-index: 1000;
-        min-width: 200px;
+        font-size: 11px;
         border: 1px solid #333;
+        margin: 8px;
+        min-width: 180px;
       `;
-      document.body.appendChild(tokenDisplay);
+      
+      // Try to find the status area or system ready area to attach to
+      const statusArea = document.querySelector('.system-status') || 
+                        document.querySelector('[class*="status"]') ||
+                        document.querySelector('[class*="ready"]');
+      
+      if (statusArea && statusArea.parentElement) {
+        statusArea.parentElement.appendChild(tokenContainer);
+      } else {
+        // Fallback: add to the main container area
+        const mainContainer = document.querySelector('.container') || 
+                             document.querySelector('main') || 
+                             document.body;
+        mainContainer.appendChild(tokenContainer);
+      }
     }
     
-    // Format cost display
+    // Format cost display - compact version for UI integration
     const requestCost = (tokenData.request_cost || 0).toFixed(4);
     const sessionCost = (tokenData.session_total_cost || 0).toFixed(4);
-    const sessionDuration = tokenData.session_duration_minutes || 0;
     
-    tokenDisplay.innerHTML = `
-      <div style="border-bottom: 1px solid #333; margin-bottom: 8px; padding-bottom: 4px;">
-        <strong>💰 SESSION COSTS</strong>
-      </div>
-      <div>This Request: ${tokenData.request_tokens || 0} tokens</div>
-      <div>Request Cost: $${requestCost}</div>
-      <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #333;">
-        <strong>Session Total:</strong>
-      </div>
-      <div>Total Tokens: ${tokenData.session_total_tokens || 0}</div>
-      <div>Total Cost: $${sessionCost}</div>
-      <div>Requests: ${tokenData.session_request_count || 0}</div>
-      <div>Duration: ${sessionDuration}m</div>
+    tokenContainer.innerHTML = `
+      <div style="font-weight: bold; margin-bottom: 4px;">💰 SESSION COSTS</div>
+      <div>Request: ${tokenData.request_tokens || 0} tokens ($${requestCost})</div>
+      <div>Total: ${tokenData.session_total_tokens || 0} tokens ($${sessionCost})</div>
+      <div>Requests: ${tokenData.session_request_count || 0} | Duration: ${tokenData.session_duration_minutes || 0}m</div>
     `;
     
-    console.log(`[COST] UI Updated - Request: $${requestCost}, Session: $${sessionCost}`);
+    console.log(`[COST] UI Updated - Integrated display`);
     
   } catch (error) {
     console.warn('Token display update failed:', error);
