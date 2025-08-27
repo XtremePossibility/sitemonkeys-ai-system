@@ -129,8 +129,11 @@ console.log('🔍 Using vault with length:', vaultContent.length);
     console.log('🔍 TOKEN DEBUG:', data.token_usage);
     
     // EXTRACT AND DISPLAY TOKEN/COST DATA
-    if (data.token_usage) {
+    console.log('🔍 Checking token_usage:', !!data.token_usage, typeof data.token_usage);
+    if (data.token_usage && typeof data.token_usage === 'object') {
       updateTokenDisplay(data.token_usage);
+    } else {
+      console.log('❌ Token data missing or invalid:', data.token_usage);
     }
     
     let reply = data.response || 'No response received';
