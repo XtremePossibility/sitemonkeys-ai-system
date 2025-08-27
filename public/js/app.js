@@ -45,11 +45,6 @@ async function improvedRefreshVault() {
   try {
     const response = await fetch('/api/load-vault?refresh=true');
     const data = await response.json();
-
-    // EXTRACT AND DISPLAY TOKEN/COST DATA
-    if (data.token_usage) {
-      updateTokenDisplay(data.token_usage);
-    }
     
     // CACHE THE VAULT CONTENT FOR CHAT
     window.currentVaultContent = data.vault_content || '';
@@ -129,6 +124,12 @@ console.log('🔍 Using vault with length:', vaultContent.length);
     }
 
     const data = await response.json();
+    
+    // EXTRACT AND DISPLAY TOKEN/COST DATA
+    if (data.token_usage) {
+      updateTokenDisplay(data.token_usage);
+    }
+    
     let reply = data.response || 'No response received';
 
     // FIXED SYSTEM VERIFICATION - MATCHES BACKEND RESPONSE STRUCTURE
