@@ -5,7 +5,7 @@
 import express from 'express';
 import cors from 'cors';
 const app = express();
-import memoryBootstrap from './memory_bootstrap.js';
+import persistentMemory from './memory_system/persistent_memory.js';
 
 // ===== APPLICATION STARTUP MEMORY INITIALIZATION =====
 console.log('[SERVER] 🚀 Initializing memory systems at application startup...');
@@ -15,24 +15,21 @@ async function initializeMemorySystem() {
     console.log('[SERVER] 🚀 Starting memory system initialization...');
     
     try {
-        // Wait for memory bootstrap with timeout
         const timeoutPromise = new Promise((_, reject) => 
             setTimeout(() => reject(new Error('Memory init timeout')), 30000)
         );
         
         const initResult = await Promise.race([
-            memoryBootstrap.initialize(),
+            persistentMemory.ensureInitialized(),
             timeoutPromise
         ]);
         
-        console.log(`[SERVER] ✅ Memory bootstrap completed successfully: ${initResult}`);
+        console.log(`[SERVER] ✅ Memory system initialized successfully: ${initResult}`);
         
         // Verify memory system is working
-        const memSystem = memoryBootstrap.getMemorySystem();
         console.log('[SERVER] 📊 Memory system verification:', {
-            available: !!memSystem,
-            healthy: memoryBootstrap.isHealthy,
-            ready: memoryBootstrap.isReady()
+            available: !!global.memorySystem,
+            ready: persistentMemory.isReady()
         });
         
     } catch (initError) {
@@ -755,15 +752,12 @@ Quality-first approach with caring delivery`;
       vaultHealthy = false;
     }
 
-    // ===== MEMORY SYSTEM RETRIEVAL (NEW) =====
-const memorySystem = memoryBootstrap.getMemorySystem();      
-const vaultLoader = memoryBootstrap.getVaultLoader();
-// ===== MEMORY CONTEXT RETRIEVAL =====
+    // ===== MEMORY CONTEXT RETRIEVAL =====
 let memoryContext = '';
-if (memorySystem && typeof memorySystem.getRelevantContext === 'function') {
+if (global.memorySystem && typeof global.memorySystem.retrieveMemory === 'function') {
     try {
         console.log('[CHAT] 📋 Retrieving memory context...');
-        memoryContext = await memorySystem.getRelevantContext('user', message, 2400);
+        memoryContext = await global.memorySystem.retrieveMemory('user', message);
         console.log(`[CHAT] ✅ Memory context retrieved: ${memoryContext.memories ? memoryContext.memories.length : 0} characters`);
     } catch (error) {
         console.error('[CHAT] ⚠️ Memory retrieval failed:', error);
@@ -773,15 +767,15 @@ if (memorySystem && typeof memorySystem.getRelevantContext === 'function') {
     console.log('[CHAT] ⚠️ Memory system not available for context retrieval');
 }
         
-if (!memoryBootstrap.isReady()) {
+if (!persistentMemory.isReady()) {
   console.error('[CHAT] ❌ Memory systems not ready');
   return res.status(500).json({ 
     error: 'Memory systems not initialized',
-    details: memoryBootstrap.getStatus()
+    details: persistentMemory.getSystemStatus()
   });
 }
 
-console.log('[CHAT] ✅ Memory systems retrieved from bootstrap');
+console.log('[CHAT] ✅ Memory systems ready');
 
     // COMPREHENSIVE INTELLIGENCE ANALYSIS    
     const expertDomain = identifyExpertDomain(message);
@@ -914,17 +908,16 @@ const fullPrompt = enhancedPrompt;
     lastPersonality = personality;
 
 // ===== MEMORY STORAGE =====
-if (memorySystem && typeof memorySystem.storeMemory === 'function') {
+if (global.memorySystem && typeof global.memorySystem.storeMemory === 'function') {
   try {
     console.log('[CHAT] 💾 Storing conversation in memory...');
-    // Clean stored content - remove User:/Assistant: prefixes but keep content
-const cleanMessage = message.replace(/^User:\s*/i, '').trim();
-const cleanResponse = finalResponse.replace(/^Assistant:\s*/i, '').trim();
-const conversationEntry = `User: ${cleanMessage}\nAssistant: ${cleanResponse}`;
-const storeResult = await memorySystem.storeMemory('user', conversationEntry);
+    const cleanMessage = message.replace(/^User:\s*/i, '').trim();
+    const cleanResponse = finalResponse.replace(/^Assistant:\s*/i, '').trim();
+    const conversationEntry = `User: ${cleanMessage}\nAssistant: ${cleanResponse}`;
+    const storeResult = await global.memorySystem.storeMemory('user', conversationEntry);
     
     if (storeResult && storeResult.success) {
-      console.log(`[CHAT] ✅ Memory stored as ID ${storeResult.id}`);
+      console.log(`[CHAT] ✅ Memory stored as ID ${storeResult.memoryId}`);
       console.log(`[CHAT] 📝 Sample stored: "${conversationEntry.substring(0, 100)}..."`);
     } else {
       console.log(`[CHAT] ⚠️ Memory storage failed: ${storeResult?.error || 'Unknown error'}`);
@@ -1743,9 +1736,8 @@ app.get('/api/health', (req, res) => {
 // ===== MEMORY SYSTEM HEALTH CHECK =====
 app.get('/api/memory-status', async (req, res) => {
     try {
-        const memorySystem = memoryBootstrap.getMemorySystem();
-        if (memorySystem && typeof memorySystem.getSystemHealth === 'function') {
-            const health = memorySystem.getSystemHealth();
+        if (global.memorySystem && typeof global.memorySystem.healthCheck === 'function') {
+            const health = await global.memorySystem.healthCheck();
             res.json({
                 timestamp: new Date().toISOString(),
                 memory_system: health
@@ -1755,7 +1747,7 @@ app.get('/api/memory-status', async (req, res) => {
                 timestamp: new Date().toISOString(),
                 memory_system: {
                     status: 'not_initialized',
-                    error: 'Memory bootstrap not available'
+                    error: 'Memory system not available'
                 }
             });
         }
