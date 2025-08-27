@@ -45,6 +45,11 @@ async function improvedRefreshVault() {
   try {
     const response = await fetch('/api/load-vault?refresh=true');
     const data = await response.json();
+
+    // EXTRACT AND DISPLAY TOKEN/COST DATA
+    if (data.token_usage) {
+      updateTokenDisplay(data.token_usage);
+    }
     
     // CACHE THE VAULT CONTENT FOR CHAT
     window.currentVaultContent = data.vault_content || '';
@@ -245,5 +250,59 @@ console.log('🔍 Using vault with length:', vaultContent.length);
     errorBubble.innerHTML = `<img src="boy-mascot.png" class="avatar" alt="System"><div class="bubble-content"><strong>System:</strong> I encountered a technical error and I won't pretend it didn't happen. Error: ${error.message}. I'd rather be honest about system issues than give you unreliable information. Please try again.</div>`;
     box.appendChild(errorBubble);
     box.scrollTop = box.scrollHeight;
+  }
+}
+
+// TOKEN AND COST DISPLAY FUNCTIONS
+function updateTokenDisplay(tokenData) {
+  try {
+    // Update or create token display element
+    let tokenDisplay = document.getElementById('token-cost-display');
+    
+    if (!tokenDisplay) {
+      // Create token display element if it doesn't exist
+      tokenDisplay = document.createElement('div');
+      tokenDisplay.id = 'token-cost-display';
+      tokenDisplay.style.cssText = `
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: rgba(0,0,0,0.8);
+        color: #00ff41;
+        padding: 10px;
+        border-radius: 8px;
+        font-family: monospace;
+        font-size: 12px;
+        z-index: 1000;
+        min-width: 200px;
+        border: 1px solid #333;
+      `;
+      document.body.appendChild(tokenDisplay);
+    }
+    
+    // Format cost display
+    const requestCost = (tokenData.request_cost || 0).toFixed(4);
+    const sessionCost = (tokenData.session_total_cost || 0).toFixed(4);
+    const sessionDuration = tokenData.session_duration_minutes || 0;
+    
+    tokenDisplay.innerHTML = `
+      <div style="border-bottom: 1px solid #333; margin-bottom: 8px; padding-bottom: 4px;">
+        <strong>💰 SESSION COSTS</strong>
+      </div>
+      <div>This Request: ${tokenData.request_tokens || 0} tokens</div>
+      <div>Request Cost: $${requestCost}</div>
+      <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #333;">
+        <strong>Session Total:</strong>
+      </div>
+      <div>Total Tokens: ${tokenData.session_total_tokens || 0}</div>
+      <div>Total Cost: $${sessionCost}</div>
+      <div>Requests: ${tokenData.session_request_count || 0}</div>
+      <div>Duration: ${sessionDuration}m</div>
+    `;
+    
+    console.log(`[COST] UI Updated - Request: $${requestCost}, Session: $${sessionCost}`);
+    
+  } catch (error) {
+    console.warn('Token display update failed:', error);
   }
 }
