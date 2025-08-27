@@ -264,63 +264,42 @@ console.log('🔍 Using vault with length:', vaultContent.length);
 function updateTokenDisplay(tokenData) {
   console.log('💰 DISPLAY DEBUG:', tokenData);
   try {
-    // Target the specific vault status area where costs should be displayed
-    const vaultStatusArea = document.querySelector('[class*="vault"]') || 
-                           document.querySelector('[id*="vault"]') ||
-                           document.getElementById('vault-status') ||
-                           document.querySelector('.status-panel') ||
-                           document.querySelector('.cost-display');
+    // Target the specific text elements in the vault status panel
+    const allElements = document.querySelectorAll('*');
+    let tokensElement = null;
+    let costElement = null;
     
-    if (vaultStatusArea) {
-      // Look for existing cost elements to update
-      let costElement = vaultStatusArea.querySelector('.token-cost-info') ||
-                       vaultStatusArea.querySelector('[class*="cost"]') ||
-                       vaultStatusArea.querySelector('[class*="token"]');
-      
-      if (!costElement) {
-        // Create new cost element in the vault area
-        costElement = document.createElement('div');
-        costElement.className = 'token-cost-info';
-        costElement.style.cssText = `
-          color: #00ff41;
-          font-family: monospace;
-          font-size: 11px;
-          margin: 4px 0;
-        `;
-        vaultStatusArea.appendChild(costElement);
+    // Find elements containing the specific text we need to replace
+    for (let element of allElements) {
+      if (element.textContent && element.textContent.includes('No Data TOKENS')) {
+        tokensElement = element;
       }
-      
-      // Update with current costs
-      const requestCost = (tokenData.request_cost || 0).toFixed(4);
+      if (element.textContent && element.textContent.includes('EST. COST: $0.00')) {
+        costElement = element;
+      }
+    }
+    
+    // Update the tokens display
+    if (tokensElement) {
+      tokensElement.textContent = `${tokenData.session_total_tokens || 0} TOKENS`;
+      tokensElement.style.color = '#00ff41';
+      console.log('[COST] Updated tokens element');
+    }
+    
+    // Update the cost display  
+    if (costElement) {
       const sessionCost = (tokenData.session_total_cost || 0).toFixed(4);
-      
-      costElement.innerHTML = `
-        <div>Session: ${tokenData.session_total_tokens || 0} tokens</div>
-        <div>Cost: $${sessionCost}</div>
-        <div>Requests: ${tokenData.session_request_count || 0}</div>
-      `;
-      
-      console.log('[COST] Updated vault status area');
-      return;
+      costElement.textContent = `EST. COST: $${sessionCost}`;
+      costElement.style.color = '#00ff41';
+      console.log('[COST] Updated cost element');
     }
     
-    // If vault area not found, try to find any element with "cost" or "token" in the class/id
-    const existingCostArea = document.querySelector('#cost-display') ||
-                            document.querySelector('.cost-area') ||
-                            document.querySelector('[id*="token"]') ||
-                            document.querySelector('[class*="session"]');
-                            
-    if (existingCostArea) {
-      existingCostArea.innerHTML = `
-        <div style="color: #00ff41; font-family: monospace; font-size: 11px;">
-          Session: ${tokenData.session_total_tokens || 0} tokens ($${(tokenData.session_total_cost || 0).toFixed(4)})
-        </div>
-      `;
-      console.log('[COST] Updated existing cost area');
-      return;
+    // If we couldn't find the specific elements, log what we did find
+    if (!tokensElement || !costElement) {
+      console.warn('[COST] Could not find specific vault text elements');
+      console.log('Tokens element found:', !!tokensElement);
+      console.log('Cost element found:', !!costElement);
     }
-    
-    console.warn('[COST] Could not find designated cost display area');
     
   } catch (error) {
     console.warn('Token display update failed:', error);
