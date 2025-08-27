@@ -264,41 +264,25 @@ console.log('🔍 Using vault with length:', vaultContent.length);
 function updateTokenDisplay(tokenData) {
   console.log('💰 DISPLAY DEBUG:', tokenData);
   try {
-    // Target the specific text elements in the vault status panel
+    // Find and update just the token count and cost values, preserving formatting
     const allElements = document.querySelectorAll('*');
-    let tokensElement = null;
-    let costElement = null;
     
-    // Find elements containing the specific text we need to replace
     for (let element of allElements) {
-      if (element.textContent && element.textContent.includes('No Data TOKENS')) {
-        tokensElement = element;
+      // Update tokens display - preserve "TOKENS" text, just update the number
+      if (element.textContent && element.textContent.includes('TOKENS')) {
+        const currentTokens = tokenData.session_total_tokens || 0;
+        element.innerHTML = element.innerHTML.replace(/\d+\s*TOKENS/i, `${currentTokens} TOKENS`).replace(/No Data\s*TOKENS/i, `${currentTokens} TOKENS`);
+        element.style.color = '#00ff41';
+        console.log('[COST] Updated tokens to:', currentTokens);
       }
-      if (element.textContent && element.textContent.includes('EST. COST: $0.00')) {
-        costElement = element;
+      
+      // Update cost display - preserve "EST. COST:" text, just update the amount
+      if (element.textContent && element.textContent.includes('EST. COST:')) {
+        const sessionCost = (tokenData.session_total_cost || 0).toFixed(4);
+        element.innerHTML = element.innerHTML.replace(/EST\.\s*COST:\s*\$[\d.]+/i, `EST. COST: $${sessionCost}`);
+        element.style.color = '#00ff41';
+        console.log('[COST] Updated cost to:', sessionCost);
       }
-    }
-    
-    // Update the tokens display
-    if (tokensElement) {
-      tokensElement.textContent = `${tokenData.session_total_tokens || 0} TOKENS`;
-      tokensElement.style.color = '#00ff41';
-      console.log('[COST] Updated tokens element');
-    }
-    
-    // Update the cost display  
-    if (costElement) {
-      const sessionCost = (tokenData.session_total_cost || 0).toFixed(4);
-      costElement.textContent = `EST. COST: $${sessionCost}`;
-      costElement.style.color = '#00ff41';
-      console.log('[COST] Updated cost element');
-    }
-    
-    // If we couldn't find the specific elements, log what we did find
-    if (!tokensElement || !costElement) {
-      console.warn('[COST] Could not find specific vault text elements');
-      console.log('Tokens element found:', !!tokensElement);
-      console.log('Cost element found:', !!costElement);
     }
     
   } catch (error) {
