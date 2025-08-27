@@ -1,981 +1,726 @@
 // ================================================================
-// PERSISTENT MEMORY SYSTEM - UNIVERSAL USER CONVERSATIONS
+// persistent_memory.js - Main Orchestrator & Global Interface
+// Primary entry point and orchestration hub for Site Monkeys Memory System
 // ================================================================
 
-import { getDbPool } from './db_singleton.js';
+import coreSystem from './core.js';
+import intelligenceSystem from './intelligence.js';
 
-// Persistent memory logger with distinctive prefix
-const persistentLogger = {
-    log: (message) => console.log(`[PERSISTENT] ${new Date().toISOString()} ${message}`),
-    error: (message, error) => console.error(`[PERSISTENT ERROR] ${new Date().toISOString()} ${message}`, error),
-    warn: (message) => console.warn(`[PERSISTENT WARN] ${new Date().toISOString()} ${message}`)
-};
+class PersistentMemoryOrchestrator {
+  constructor() {
+    this.coreSystem = coreSystem;
+    this.intelligenceSystem = intelligenceSystem;
+    
+    // System state management
+    this.isInitialized = false;
+    this.initPromise = null;
+    this.initStarted = false;
+    this.isHealthy = false;
+    
+    // Fallback memory for complete system failure
+    this.fallbackMemory = new Map();
+    this.lastHealthCheck = null;
+    
+    // Performance monitoring
+    this.performanceStats = {
+      totalRequests: 0,
+      avgResponseTime: 0,
+      successRate: 0,
+      errorCount: 0,
+      fallbackUsage: 0,
+      lastReset: Date.now()
+    };
 
-// Force immediate logging to verify module load
-console.log('[PERSISTENT] 🚀 Universal Memory System loading...');
+    this.logger = {
+      log: (message) => console.log(`[PERSISTENT_MEMORY] ${new Date().toISOString()} ${message}`),
+      error: (message, error) => console.error(`[PERSISTENT_MEMORY ERROR] ${new Date().toISOString()} ${message}`, error),
+      warn: (message) => console.warn(`[PERSISTENT_MEMORY WARN] ${new Date().toISOString()} ${message}`)
+    };
 
-// ================================================================
-// ROUTING INTELLIGENCE - Smart Category Detection
-// ================================================================
-class RoutingIntelligence {
-    constructor() {
-        console.log('[PERSISTENT] 🧠 Initializing routing intelligence...');
-        this.routingPatterns = {
-            // HEALTH & WELLNESS ROUTING
-            health_wellness: {
-                keywords: ['health', 'medical', 'doctor', 'symptom', 'pain', 'illness', 'medication', 'fitness', 'exercise', 'diet', 'nutrition', 'mental health', 'therapy', 'anxiety', 'depression', 'wellness', 'sleep', 'energy'],
-                contextPatterns: ['feeling sick', 'health issue', 'medical appointment', 'workout routine', 'eating habits', 'stress levels'],
-                subcategoryRouting: {
-                    physical_health: ['symptom', 'pain', 'injury', 'physical'],
-                    mental_health: ['anxiety', 'depression', 'stress', 'therapy', 'emotional'],
-                    medical_history: ['doctor', 'appointment', 'diagnosis', 'treatment'],
-                    fitness_nutrition: ['exercise', 'workout', 'diet', 'nutrition', 'fitness'],
-                    wellness_practices: ['wellness', 'meditation', 'sleep', 'relaxation']
-                }
-            },
+    // Set up global interface immediately for compatibility
+    this.setupGlobalInterface();
+  }
 
-            // RELATIONSHIPS & SOCIAL ROUTING
-            relationships_social: {
-                keywords: ['family', 'spouse', 'partner', 'boyfriend', 'girlfriend', 'marriage', 'relationship', 'friend', 'social', 'colleague', 'coworker', 'conflict', 'communication', 'love', 'dating', 'children', 'parents'],
-                contextPatterns: ['relationship issue', 'family problem', 'social situation', 'communication breakdown'],
-                subcategoryRouting: {
-                    family_dynamics: ['family', 'parents', 'children', 'siblings', 'relatives'],
-                    romantic_relationships: ['spouse', 'partner', 'boyfriend', 'girlfriend', 'dating', 'marriage'],
-                    friendships: ['friend', 'social', 'friendship', 'social circle'],
-                    professional_relationships: ['colleague', 'coworker', 'boss', 'team', 'workplace relationship'],
-                    social_interactions: ['social', 'communication', 'conflict', 'interaction']
-                }
-            },
+  // ================================================================
+  // AUTO-INITIALIZATION SYSTEM
+  // ================================================================
 
-            // BUSINESS & CAREER ROUTING
-            business_career: {
-                keywords: ['work', 'job', 'career', 'business', 'company', 'project', 'meeting', 'boss', 'employee', 'salary', 'promotion', 'performance', 'deadline', 'client', 'customer', 'revenue', 'profit', 'strategy', 'consulting'],
-                contextPatterns: ['work issue', 'business problem', 'career decision', 'project deadline'],
-                subcategoryRouting: {
-                    work_performance: ['performance', 'productivity', 'deadline', 'task', 'efficiency'],
-                    career_planning: ['career', 'promotion', 'job search', 'professional development'],
-                    business_strategy: ['business', 'strategy', 'revenue', 'profit', 'growth', 'consulting'],
-                    professional_development: ['skills', 'training', 'learning', 'certification'],
-                    workplace_dynamics: ['team', 'boss', 'colleague', 'workplace culture']
-                }
-            },
-
-            // FINANCIAL MANAGEMENT ROUTING
-            financial_management: {
-                keywords: ['money', 'budget', 'expense', 'income', 'salary', 'cost', 'price', 'investment', 'savings', 'debt', 'loan', 'credit', 'financial', 'bank', 'tax', 'insurance', 'alan', 'backyard leisure', 'business partner', 'promissory note', 'payments', 'court battle'],
-                contextPatterns: ['financial issue', 'money problem', 'budget concern', 'investment decision', 'payment issue', 'legal battle'],
-                subcategoryRouting: {
-                    income_planning: ['salary', 'income', 'earnings', 'revenue', 'paycheck'],
-                    expense_tracking: ['expense', 'cost', 'spending', 'budget', 'bills'],
-                    investment_strategy: ['investment', 'stocks', 'portfolio', 'retirement', 'savings'],
-                    debt_management: ['debt', 'loan', 'credit', 'mortgage', 'payment', 'promissory note', 'alan', 'business partner'],
-                    financial_goals: ['financial goal', 'money goal', 'savings goal', 'financial planning']
-                }
-            },
-
-            // TECHNOLOGY & TOOLS ROUTING
-            technology_tools: {
-                keywords: ['software', 'app', 'tool', 'system', 'computer', 'phone', 'technology', 'digital', 'online', 'website', 'program', 'automation', 'workflow', 'productivity', 'jasper', 'ai'],
-                contextPatterns: ['tech issue', 'software problem', 'system error', 'app not working'],
-                subcategoryRouting: {
-                    software_systems: ['software', 'program', 'system', 'application'],
-                    productivity_tools: ['productivity', 'tool', 'workflow', 'efficiency'],
-                    tech_troubleshooting: ['error', 'bug', 'problem', 'not working', 'broken'],
-                    automation_workflows: ['automation', 'workflow', 'process', 'streamline'],
-                    digital_organization: ['organization', 'digital', 'file', 'folder', 'storage']
-                }
-            }
-        };
+  async ensureInitialized() {
+    if (this.isHealthy && this.isInitialized) {
+      return true; // Already initialized and healthy
     }
+      
+    if (this.initPromise) {
+      // Initialization already in progress, wait for it
+      return await this.initPromise;
+    }
+      
+    if (!this.initStarted) {
+      // Start initialization for the first time
+      this.logger.log('Auto-initializing Site Monkeys Memory System...');
+      this.initStarted = true;
+      this.initPromise = this.initialize();
+      return await this.initPromise;
+    }
+      
+    return false;
+  }
 
-    routeToCategory(query, userId = null) {
-        // CRITICAL FIX: Type-safe query handling
-        let queryString;
+  async initialize() {
+    this.logger.log('Initializing Persistent Memory System...');
+
+    try {
+      // Environment validation
+      if (!process.env.DATABASE_URL) {
+        throw new Error('DATABASE_URL environment variable not found');
+      }
+
+      // Step 1: Initialize Core System (Database & Infrastructure)
+      this.logger.log('Step 1: Initializing Core System...');
+      const coreInitialized = await this.coreSystem.initialize();
+      if (!coreInitialized) {
+        throw new Error('Core system initialization failed');
+      }
+      this.logger.log('Core System initialized successfully');
+
+      // Step 2: Initialize Intelligence System
+      this.logger.log('Step 2: Initializing Intelligence System...');
+      const intelligenceInitialized = await this.intelligenceSystem.initialize();
+      if (!intelligenceInitialized) {
+        throw new Error('Intelligence system initialization failed');
+      }
+      this.logger.log('Intelligence System initialized successfully');
+
+      // Step 3: Health verification across all subsystems
+      this.logger.log('Step 3: Performing comprehensive health verification...');
+      const healthStatus = await this.performComprehensiveHealthCheck();
+      this.isHealthy = healthStatus.overall;
+      
+      if (this.isHealthy) {
+        this.logger.log('All subsystems healthy - persistent mode active');
+      } else {
+        this.logger.warn('Some subsystems degraded - fallback capabilities activated');
+      }
+
+      // Step 4: Global interface is already set up in constructor
+      this.logger.log('Step 4: Global memory interface active');
+
+      this.isInitialized = true;
+      this.logger.log(`Persistent Memory System initialization complete - Mode: ${this.isHealthy ? 'persistent' : 'fallback'}`);
+      
+      // Schedule periodic health monitoring
+      setInterval(() => this.performPeriodicHealthCheck(), 300000); // Every 5 minutes
+      
+      return this.isHealthy;
+
+    } catch (error) {
+      this.logger.error('Critical initialization failure:', error);
+      this.isInitialized = false;
+      this.isHealthy = false;
+      
+      // Even on complete failure, ensure fallback capabilities
+      this.logger.log('Activating emergency fallback mode');
+      return false;
+    }
+  }
+
+  // ================================================================
+  // GLOBAL INTERFACE MANAGEMENT
+  // ================================================================
+
+  setupGlobalInterface() {
+    const self = this;
+    global.memorySystem = {
+      retrieveMemory: async (userId, message) => {
+        await self.ensureInitialized();
+        return await self.retrieveMemoryForChat(userId, message);
+      },
+          
+      storeMemory: async (userId, conversation) => {
+        await self.ensureInitialized();
+        return await self.storeMemoryForChat(userId, conversation);
+      },
+
+      getMemoryStats: async (userId) => {
+        await self.ensureInitialized();
+        return await self.getMemoryStats(userId);
+      },
+
+      healthCheck: async () => {
+        await self.ensureInitialized();
+        return await self.healthCheck();
+      }
+    };
+
+    this.logger.log('Global memory interface established');
+  }
+
+  // ================================================================
+  // MAIN ORCHESTRATION METHODS
+  // ================================================================
+
+  async retrieveMemoryForChat(userId, message) {
+    const startTime = Date.now();
+    
+    try {
+      this.logger.log(`Retrieve memory request: ${userId}, query: "${message.substring(0, 50)}..."`);
+
+      // System health check
+      if (!this.isHealthy) {
+        this.logger.warn('System not healthy, checking for recovery...');
+        await this.attemptSystemRecovery();
+      }
+
+      if (this.isHealthy) {
+        // Full system operation
+        this.logger.log('Using persistent memory system for retrieval');
         
-        if (typeof query === 'string') {
-            queryString = query;
-        } else if (query && typeof query === 'object') {
-            // Handle object inputs (like {message: "text"})
-            if (query.message) queryString = String(query.message);
-            else if (query.content) queryString = String(query.content);  
-            else if (query.text) queryString = String(query.text);
-            else queryString = JSON.stringify(query);
-        } else {
-            // Handle null, undefined, numbers, etc.
-            queryString = String(query || '');
-        }
+        // Step 1: Analyze and route the query
+        const routing = await this.intelligenceSystem.analyzeAndRoute(message, userId);
+        this.logger.log(`Query routed to: ${routing.primaryCategory}/${routing.subcategory} (confidence: ${routing.confidence.toFixed(3)})`);
 
-        if (!queryString || queryString.length === 0) {
-            console.log('[ROUTING ERROR] Empty query string, using default');
-            return {
-                primaryCategory: 'personal_development',
-                subcategory: 'general',
-                confidence: 0.1,
-                allScores: {}
-            };
-        }
+        // Step 2: Extract relevant memories
+        const memories = await this.intelligenceSystem.extractRelevantMemories(userId, message, routing);
+        this.logger.log(`Extracted ${memories.length} relevant memories`);
 
-        console.log(`[ROUTING] 🎯 Processing query: "${queryString.substring(0, 50)}..."`);
-        
-        const normalizedQuery = queryString.toLowerCase();
-        const routingScores = {};
-
-        // Score each category
-        for (const [categoryName, patterns] of Object.entries(this.routingPatterns)) {
-            let score = 0;
-
-            // Keyword matching
-            for (const keyword of patterns.keywords) {
-                if (normalizedQuery.includes(keyword)) {
-                    score += 2;
-                }
-            }
-
-            // Context pattern matching
-            for (const pattern of patterns.contextPatterns) {
-                if (normalizedQuery.includes(pattern)) {
-                    score += 3;
-                }
-            }
-
-            routingScores[categoryName] = score;
-        }
-
-        // Find best category
-        const bestCategory = Object.keys(routingScores).reduce((a, b) => 
-            routingScores[a] > routingScores[b] ? a : b
-        );
-
-        // Route to subcategory
-        const subcategory = this.routeToSubcategory(normalizedQuery, bestCategory);
-
-        const result = {
-            primaryCategory: bestCategory,
-            subcategory: subcategory,
-            confidence: Math.max(...Object.values(routingScores)) / 10,
-            allScores: routingScores
-        };
-
-        console.log(`[ROUTING] ✅ Routed to: ${bestCategory}/${subcategory} (confidence: ${result.confidence})`);
-        
-        return result;
-    }
-
-    routeToSubcategory(query, categoryName) {
-        const patterns = this.routingPatterns[categoryName];
-        if (!patterns || !patterns.subcategoryRouting) return null;
-
-        const subcategoryScores = {};
-        
-        for (const [subcategory, keywords] of Object.entries(patterns.subcategoryRouting)) {
-            let score = 0;
-            for (const keyword of keywords) {
-                if (query.includes(keyword)) {
-                    score += 1;
-                }
-            }
-            subcategoryScores[subcategory] = score;
-        }
-
-        const bestSubcategory = Object.keys(subcategoryScores).reduce((a, b) => 
-            subcategoryScores[a] > subcategoryScores[b] ? a : b
-        );
-
-        return subcategoryScores[bestSubcategory] > 0 ? bestSubcategory : Object.keys(patterns.subcategoryRouting)[0];
-    }
-}
-
-// ================================================================
-// EXTRACTION ENGINE - Surgical Token Extraction
-// ================================================================
-class ExtractionEngine {
-    constructor() {
-        console.log('[PERSISTENT] 🔍 Initializing FIXED extraction engine...');
-        this.currentQuery = null;
-        this.maxExtractionTokens = 2400;
-        this.minRelevanceThreshold = 0.3;
-        
-        // ✅ COMPREHENSIVE STOPWORD LIST
-        this.stopwords = new Set([
-            'a', 'an', 'the', 'this', 'that', 'these', 'those',
-            'in', 'on', 'at', 'by', 'for', 'with', 'to', 'of', 'from', 'up', 'about', 'into', 'through', 'during', 'before', 'after', 'above', 'below', 'between', 'under', 'over',
-            'i', 'you', 'he', 'she', 'it', 'we', 'they', 'me', 'him', 'her', 'us', 'them', 'my', 'your', 'his', 'her', 'its', 'our', 'their',
-            'and', 'or', 'but', 'so', 'yet', 'nor', 'if', 'when', 'where', 'while', 'until', 'since', 'because', 'although', 'though',
-            'is', 'are', 'was', 'were', 'be', 'been', 'being', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'could', 'should', 'may', 'might', 'must', 'can',
-            'what', 'how', 'why', 'where', 'when', 'who', 'which', 'whose',
-            'very', 'really', 'quite', 'just', 'only', 'also', 'still', 'already', 'always', 'never', 'often', 'sometimes', 'usually', 'here', 'there', 'now', 'then', 'today', 'yesterday', 'tomorrow',
-            'like', 'well', 'um', 'uh', 'oh', 'ah', 'yes', 'no', 'ok', 'okay'
-        ]);
-    }
-
-    // ✅ FIXED: Smart keyword extraction
-    extractSmartKeywords(query) {
-        if (!query || typeof query !== 'string') {
-            return [];
-        }
-
-        const words = query.toLowerCase()
-            .replace(/[^\w\s]/g, ' ')
-            .split(/\s+/)
-            .filter(word => 
-                word.length >= 3 && 
-                !this.stopwords.has(word) && 
-                !/^\d+$/.test(word) && 
-                word.length <= 20
-            );
-
-        return [...new Set(words)].slice(0, 6); // Limit to 6 keywords max
-    }
-
-    async extractRelevantMemories(userId, query, categoryRouting, dbClient) {
-        try {
-            this.currentQuery = query;
-            const extractionPlan = this.planExtraction(query, categoryRouting);
-            const extractedMemories = await this.executeExtraction(userId, extractionPlan, dbClient);
-            const optimizedMemories = this.optimizeExtraction(extractedMemories, query);
-            
-            return {
-                success: true,
-                memories: optimizedMemories,
-                tokenCount: this.calculateTokens(optimizedMemories),
-                categoriesSearched: [categoryRouting.primaryCategory],
-                extractionTime: Date.now()
-            };
-        } catch (error) {
-            console.error('[EXTRACTION] Error:', error);
-            return {
-                success: false,
-                error: error.message,
-                memories: [],
-                tokenCount: 0
-            };
-        }
-    }
-
-    planExtraction(query, categoryRouting) {
-        return {
-            primary: {
-                category: categoryRouting.primaryCategory,
-                subcategory: categoryRouting.subcategory,
-                tokenAllocation: this.maxExtractionTokens
-            }
-        };
-    }
-
-    async executeExtraction(userId, plan, dbClient) {
-        const allMemories = [];
-        const primaryMemories = await this.extractFromCategory(
-            userId, 
-            plan.primary.category, 
-            plan.primary.subcategory,
-            plan.primary.tokenAllocation,
-            dbClient
-        );
-        allMemories.push(...primaryMemories);
-        return allMemories;
-    }
-
-    // ✅ COMPLETELY FIXED: Smart extraction with proper keyword filtering
-    async extractFromCategory(userId, categoryName, subcategoryName, maxTokens, dbClient) {
-        console.log(`[EXTRACTION] 🔍 Smart search: userId="${userId}", category="${categoryName}", subcategory="${subcategoryName}"`);
-        
-        // ✅ FIXED: Use smart keyword extraction
-        const queryWords = this.extractSmartKeywords(this.currentQuery);
-        console.log(`[EXTRACTION] 📝 Smart keywords extracted:`, queryWords);
-        
-        let query = `
-            SELECT id, category_name, subcategory_name, content, token_count, relevance_score, usage_frequency,     
-                   last_accessed, created_at, metadata    
-            FROM persistent_memories     
-            WHERE user_id = $1 AND category_name = $2
-        `;
-        const params = [userId, categoryName];
-
-        if (subcategoryName && subcategoryName !== 'null' && subcategoryName !== null) {
-            query += ` AND subcategory_name = $3`;
-            params.push(subcategoryName);
-        }
-
-        // ✅ FIXED: Only add content matching if we have meaningful keywords
-        if (queryWords.length > 0) {
-            const contentConditions = [];
-            queryWords.forEach(word => {
-                contentConditions.push(`content ILIKE '%' || $${params.length + 1} || '%'`);
-                params.push(word);
-            });
-            query += ` AND (${contentConditions.join(' OR ')})`;
-            console.log(`[EXTRACTION] 📊 Added content filters for: ${queryWords.join(', ')}`);
-        } else {
-            console.log(`[EXTRACTION] ℹ️ No meaningful keywords found, searching by category only`);
-        }
-
-        query += ` 
-            ORDER BY 
-                relevance_score DESC, 
-                usage_frequency DESC,
-                created_at DESC 
-            LIMIT 15
-        `;
-
-        const result = await dbClient.query(query, params);
-        console.log(`[EXTRACTION] 📈 Found ${result.rows.length} memories`);
-        
-        // Smart token-aware selection
-        const selectedMemories = [];
-        let currentTokens = 0;
-
-        for (const memory of result.rows) {
-            if (currentTokens + memory.token_count <= maxTokens) {
-                await this.updateMemoryUsage(memory.id, dbClient);
-                
-                selectedMemories.push({
-                    ...memory,
-                    extractionReason: subcategoryName ? 'subcategory_match' : 'category_match'
-                });
-                
-                currentTokens += memory.token_count;
-                console.log(`[EXTRACTION] ✅ Selected memory ID ${memory.id} (${memory.token_count} tokens)`);
-                
-                if (currentTokens >= maxTokens) break;
-            }
-        }
-
-        console.log(`[EXTRACTION] 🎯 Returning ${selectedMemories.length} memories (${currentTokens} tokens)`);
-        return selectedMemories;
-    }
-
-    async updateMemoryUsage(memoryId, dbClient) {
-        await dbClient.query(`
-            UPDATE persistent_memories 
-            SET usage_frequency = usage_frequency + 1,
-                last_accessed = CURRENT_TIMESTAMP
-            WHERE id = $1
-        `, [memoryId]);
-    }
-
-    optimizeExtraction(memories, query) {
-        const queryWords = this.extractSmartKeywords(query);
-        
-        return memories
-            .map(memory => ({
-                ...memory,
-                finalRelevance: this.calculateFinalRelevance(memory, queryWords)
-            }))
-            .sort((a, b) => b.finalRelevance - a.finalRelevance);
-    }
-
-    calculateFinalRelevance(memory, queryWords) {
-        const content = memory.content.toLowerCase();
-        let relevance = memory.relevance_score || 0.5;
-        
-        if (queryWords.length > 0) {
-            const wordMatches = queryWords.filter(word => content.includes(word)).length;
-            relevance += (wordMatches / queryWords.length) * 0.4;
-        }
-        
-        return Math.min(relevance, 1.0);
-    }
-
-    calculateTokens(memories) {
-        return memories.reduce((total, memory) => total + memory.token_count, 0);
-    }
-
-    // ✅ COMPLETELY FIXED: Memory formatting for AI injection
-    formatForAI(memories) {
-        if (!memories || memories.length === 0) {
-            console.log('[MEMORY FORMAT] ℹ️ No memories to format');
-            return { contextFound: false, memories: '', totalTokens: 0, categoriesUsed: [] };
-        }
-
-        console.log(`[MEMORY FORMAT] 📝 Formatting ${memories.length} memories for AI context injection`);
-        
-        // ✅ FIXED: Clean, structured formatting optimized for AI understanding
-        const formattedMemories = memories
-            .map((memory, index) => {
-                const timeAgo = this.formatTimeAgo(memory.created_at);
-                // Clean the content - remove any "User: " or "Assistant: " prefixes that cause confusion
-                const cleanContent = memory.content
-                    .replace(/^(User:\s*|Assistant:\s*)/gmi, '')
-                    .replace(/\n(User:\s*|Assistant:\s*)/gmi, '\n')
-                    .trim();
-                    
-                console.log(`[MEMORY FORMAT] Memory ${index + 1} (${timeAgo}): "${cleanContent.substring(0, 100)}${cleanContent.length > 100 ? '...' : ''}"`);
-                
-                return `[MEMORY from ${timeAgo}]: ${cleanContent}`;
-            })
-            .join('\n\n---\n\n');
-
-        const result = {
+        // Step 3: Format response
+        if (memories.length > 0) {
+          const formattedMemories = this.formatMemoriesForChat(memories);
+          const totalTokens = memories.reduce((sum, m) => sum + (m.token_count || 0), 0);
+          
+          this.updatePerformanceStats(true, Date.now() - startTime);
+          
+          return {
             contextFound: true,
             memories: formattedMemories,
-            totalTokens: this.calculateTokens(memories),
-            categoriesUsed: [...new Set(memories.map(m => m.category_name))],
-            memoryCount: memories.length
+            totalTokens: totalTokens,
+            memoryCount: memories.length,
+            category: routing.primaryCategory,
+            subcategory: routing.subcategory,
+            confidence: routing.confidence
+          };
+        }
+      }
+
+      // Fallback retrieval
+      this.logger.log('Using fallback memory retrieval');
+      const fallbackResult = await this.fallbackRetrieve(userId, message);
+      this.updatePerformanceStats(fallbackResult.contextFound, Date.now() - startTime);
+      return fallbackResult;
+
+    } catch (error) {
+      this.logger.error('Error in retrieveMemoryForChat:', error);
+      this.updatePerformanceStats(false, Date.now() - startTime);
+      
+      // Emergency fallback
+      return await this.fallbackRetrieve(userId, message);
+    }
+  }
+
+  async storeMemoryForChat(userId, conversationData) {
+    const startTime = Date.now();
+    
+    try {
+      this.logger.log(`Store memory request: ${userId}, content length: ${conversationData.length}`);
+
+      // System health check
+      if (!this.isHealthy) {
+        await this.attemptSystemRecovery();
+      }
+
+      if (this.isHealthy) {
+        // Full system operation
+        this.logger.log('Using persistent memory system for storage');
+        
+        // Step 1: Calculate relevance score
+        const relevanceScore = await this.intelligenceSystem.calculateRelevanceScore(
+          conversationData, 
+          { source: 'chat_conversation', timestamp: Date.now() }
+        );
+
+        // Step 2: Analyze and route for categorization
+        const routing = await this.intelligenceSystem.analyzeAndRoute(conversationData, userId);
+        this.logger.log(`Memory categorized as: ${routing.primaryCategory}/${routing.subcategory}`);
+
+        // Step 3: Store in database via core system
+        const memoryObject = {
+          userId: userId,
+          content: conversationData,
+          category_name: routing.primaryCategory,
+          subcategory_name: routing.subcategory,
+          relevance_score: relevanceScore,
+          metadata: {
+            source: 'chat_conversation',
+            routing_confidence: routing.confidence,
+            timestamp: Date.now(),
+            emotional_weight: routing.semanticAnalysis?.emotionalWeight || 0,
+            intent: routing.semanticAnalysis?.intent || 'general'
+          }
         };
 
-        console.log(`[MEMORY FORMAT] ✅ Formatted for AI: ${result.memories.length} chars, ${result.totalTokens} tokens, ${result.memoryCount} memories`);
-        return result;
-    }
-
-    formatTimeAgo(timestamp) {
-        const days = Math.floor((Date.now() - new Date(timestamp)) / (1000 * 60 * 60 * 24));
-        if (days === 0) return 'today';
-        if (days === 1) return 'yesterday';
-        if (days < 7) return `${days} days ago`;
-        if (days < 30) return `${Math.floor(days/7)} weeks ago`;
-        return `${Math.floor(days/30)} months ago`;
-    }
-}
-
-// ================================================================
-// MAIN PERSISTENT MEMORY API - Universal System
-// ================================================================
-class PersistentMemoryAPI {
-    constructor() {
-        console.log('[PERSISTENT] 🏗️ Initializing Universal Memory API...');
-        this.pool = null;
-        this.router = new RoutingIntelligence();
-        this.extractor = new ExtractionEngine();
+        const result = await this.coreSystem.storeMemory(memoryObject);
         
-        this.categories = {
-            // 11 MAIN PREDETERMINED CATEGORIES (50K each)
-            health_wellness: { maxTokens: 50000, subcategories: ['physical_health', 'mental_health', 'medical_history', 'fitness_nutrition', 'wellness_practices'] },
-            relationships_social: { maxTokens: 50000, subcategories: ['family_dynamics', 'romantic_relationships', 'friendships', 'professional_relationships', 'social_interactions'] },
-            business_career: { maxTokens: 50000, subcategories: ['work_performance', 'career_planning', 'business_strategy', 'professional_development', 'workplace_dynamics'] },
-            financial_management: { maxTokens: 50000, subcategories: ['income_planning', 'expense_tracking', 'investment_strategy', 'debt_management', 'financial_goals'] },
-            personal_development: { maxTokens: 50000, subcategories: ['skill_building', 'goal_setting', 'habit_formation', 'learning_projects', 'self_improvement'] },
-            home_lifestyle: { maxTokens: 50000, subcategories: ['living_environment', 'daily_routines', 'household_management', 'lifestyle_choices', 'personal_interests'] },
-            technology_tools: { maxTokens: 50000, subcategories: ['software_systems', 'productivity_tools', 'tech_troubleshooting', 'automation_workflows', 'digital_organization'] },
-            legal_administrative: { maxTokens: 50000, subcategories: ['documents_compliance', 'legal_matters', 'administrative_tasks', 'official_procedures', 'regulatory_requirements'] },
-            travel_experiences: { maxTokens: 50000, subcategories: ['trip_planning', 'travel_experiences', 'location_insights', 'cultural_exploration', 'adventure_activities'] },
-            creative_projects: { maxTokens: 50000, subcategories: ['artistic_endeavors', 'creative_writing', 'design_projects', 'musical_activities', 'innovative_ideas'] },
-            emergency_contingency: { maxTokens: 50000, subcategories: ['crisis_management', 'emergency_planning', 'backup_systems', 'contingency_protocols', 'recovery_strategies'] },
-            
-            // 5 AI-MANAGED DYNAMIC CATEGORIES (50K each)
-            dynamic_category_1: { maxTokens: 50000, aiManaged: true, currentFocus: null },
-            dynamic_category_2: { maxTokens: 50000, aiManaged: true, currentFocus: null },
-            dynamic_category_3: { maxTokens: 50000, aiManaged: true, currentFocus: null },
-            dynamic_category_4: { maxTokens: 50000, aiManaged: true, currentFocus: null },
-            dynamic_category_5: { maxTokens: 50000, aiManaged: true, currentFocus: null }
+        if (result.success) {
+          this.logger.log(`Memory stored successfully: ID ${result.memoryId}, ${result.tokenCount} tokens`);
+          this.updatePerformanceStats(true, Date.now() - startTime);
+          
+          return {
+            success: true,
+            memoryId: result.memoryId,
+            tokenCount: result.tokenCount,
+            category: routing.primaryCategory,
+            subcategory: routing.subcategory,
+            relevanceScore: relevanceScore
+          };
+        }
+      }
+
+      // Fallback storage
+      this.logger.log('Using fallback memory storage');
+      const fallbackResult = await this.fallbackStore(userId, conversationData);
+      this.updatePerformanceStats(fallbackResult.success, Date.now() - startTime);
+      return fallbackResult;
+
+    } catch (error) {
+      this.logger.error('Error in storeMemoryForChat:', error);
+      this.updatePerformanceStats(false, Date.now() - startTime);
+      
+      // Emergency fallback
+      return await this.fallbackStore(userId, conversationData);
+    }
+  }
+
+  async getMemoryStats(userId) {
+    try {
+      await this.ensureInitialized();
+
+      if (this.isHealthy) {
+        // Get comprehensive stats from core system
+        const coreStats = await this.coreSystem.getUserStats(userId);
+        const routingStats = this.intelligenceSystem.getRoutingStats();
+        const extractionStats = this.intelligenceSystem.getExtractionStats();
+        
+        return {
+          user: coreStats,
+          routing: routingStats,
+          extraction: extractionStats,
+          system: {
+            mode: 'persistent',
+            healthy: this.isHealthy,
+            uptime: Date.now() - this.performanceStats.lastReset
+          },
+          performance: this.getPerformanceStats()
         };
+      } else {
+        // Fallback stats
+        const userMemories = this.fallbackMemory.get(userId) || [];
+        return {
+          user: {
+            userId: userId,
+            totalMemories: userMemories.length,
+            totalTokens: userMemories.reduce((sum, mem) => sum + Math.ceil(mem.content.length / 4), 0),
+            mode: 'fallback'
+          },
+          system: {
+            mode: 'fallback',
+            healthy: false,
+            fallbackMemories: this.fallbackMemory.size
+          }
+        };
+      }
+
+    } catch (error) {
+      this.logger.error('Error getting memory stats:', error);
+      return {
+        error: error.message,
+        system: { mode: 'error', healthy: false }
+      };
+    }
+  }
+
+  async healthCheck() {
+    try {
+      const healthStatus = await this.performComprehensiveHealthCheck();
+      
+      return {
+        overall: healthStatus.overall,
+        status: healthStatus.status,
+        initialized: this.isInitialized,
+        subsystems: {
+          core: healthStatus.core,
+          intelligence: healthStatus.intelligence,
+          orchestrator: healthStatus.orchestrator
+        },
+        performance: this.getPerformanceStats(),
+        lastCheck: new Date().toISOString()
+      };
+
+    } catch (error) {
+      this.logger.error('Health check failed:', error);
+      return {
+        overall: false,
+        status: 'unhealthy',
+        initialized: false,
+        error: error.message,
+        lastCheck: new Date().toISOString()
+      };
+    }
+  }
+
+  // ================================================================
+  // COMPREHENSIVE HEALTH MONITORING
+  // ================================================================
+
+  async performComprehensiveHealthCheck() {
+    try {
+      const healthStatus = {
+        overall: false,
+        status: 'unknown',
+        core: { healthy: false },
+        intelligence: { healthy: false },
+        orchestrator: { healthy: true }
+      };
+
+      // Core system health
+      try {
+        const coreHealth = await this.coreSystem.getSystemHealth();
+        healthStatus.core = {
+          healthy: coreHealth.overall,
+          database: coreHealth.database,
+          initialized: coreHealth.initialized,
+          details: coreHealth.details
+        };
+      } catch (error) {
+        this.logger.warn('Core health check failed:', error.message);
+        healthStatus.core = { healthy: false, error: error.message };
+      }
+
+      // Intelligence system health
+      try {
+        const intelligenceStats = this.intelligenceSystem.getRoutingStats();
+        healthStatus.intelligence = {
+          healthy: true,
+          totalRoutes: intelligenceStats.totalRoutes,
+          avgConfidence: intelligenceStats.avgConfidence,
+          cacheHitRate: intelligenceStats.cacheHitRate
+        };
+      } catch (error) {
+        this.logger.warn('Intelligence health check failed:', error.message);
+        healthStatus.intelligence = { healthy: false, error: error.message };
+      }
+
+      // Overall system status
+      healthStatus.overall = healthStatus.core.healthy && healthStatus.intelligence.healthy;
+      healthStatus.status = healthStatus.overall ? 'healthy' : 
+                           (healthStatus.core.healthy || healthStatus.intelligence.healthy) ? 'degraded' : 'unhealthy';
+
+      this.lastHealthCheck = Date.now();
+      return healthStatus;
+
+    } catch (error) {
+      this.logger.error('Comprehensive health check failed:', error);
+      return {
+        overall: false,
+        status: 'error',
+        error: error.message,
+        core: { healthy: false },
+        intelligence: { healthy: false },
+        orchestrator: { healthy: false }
+      };
+    }
+  }
+
+  async performPeriodicHealthCheck() {
+    try {
+      const healthStatus = await this.performComprehensiveHealthCheck();
+      const previousHealth = this.isHealthy;
+      this.isHealthy = healthStatus.overall;
+
+      // Log health status changes
+      if (previousHealth !== this.isHealthy) {
+        if (this.isHealthy) {
+          this.logger.log('System recovered - switching to persistent mode');
+        } else {
+          this.logger.warn('System degraded - fallback mode activated');
+        }
+      }
+
+    } catch (error) {
+      this.logger.error('Periodic health check failed:', error);
+      this.isHealthy = false;
+    }
+  }
+
+  async attemptSystemRecovery() {
+    try {
+      this.logger.log('Attempting system recovery...');
+      
+      // Try to reinitialize failed subsystems
+      if (!this.coreSystem.isInitialized) {
+        await this.coreSystem.initialize();
+      }
+      
+      if (!this.intelligenceSystem.isInitialized) {
+        await this.intelligenceSystem.initialize();
+      }
+
+      // Recheck health
+      const healthStatus = await this.performComprehensiveHealthCheck();
+      this.isHealthy = healthStatus.overall;
+      
+      if (this.isHealthy) {
+        this.logger.log('System recovery successful');
+      } else {
+        this.logger.warn('System recovery partially successful');
+      }
+
+    } catch (error) {
+      this.logger.error('System recovery failed:', error);
+      this.isHealthy = false;
+    }
+  }
+
+  // ================================================================
+  // FALLBACK SYSTEM OPERATIONS
+  // ================================================================
+
+  async fallbackRetrieve(userId, message) {
+    try {
+      this.logger.log(`Fallback retrieve for user: ${userId}`);
+      const userMemories = this.fallbackMemory.get(userId) || [];
         
-        this.initialized = false;
-        this._initPromise = null;
+      if (userMemories.length === 0) {
+        return {
+          contextFound: false,
+          memories: '',
+          totalTokens: 0,
+          memoryCount: 0,
+          mode: 'fallback'
+        };
+      }
+
+      // Simple keyword matching for fallback
+      const messageLower = message.toLowerCase();
+      const relevantMemories = userMemories
+        .filter(memory => {
+          const contentLower = memory.content.toLowerCase();
+          const words = messageLower.split(' ').filter(w => w.length > 3);
+          return words.some(word => contentLower.includes(word));
+        })
+        .slice(0, 3);
+
+      if (relevantMemories.length > 0) {
+        const formattedMemories = this.formatMemoriesForChat(relevantMemories);
+        const totalTokens = relevantMemories.reduce((sum, mem) => sum + (mem.token_count || 0), 0);
+
+        this.logger.log(`Found ${relevantMemories.length} fallback memories`);
+        return {
+          contextFound: true,
+          memories: formattedMemories,
+          totalTokens: totalTokens,
+          memoryCount: relevantMemories.length,
+          mode: 'fallback'
+        };
+      }
+
+      return {
+        contextFound: false,
+        memories: '',
+        totalTokens: 0,
+        memoryCount: 0,
+        mode: 'fallback'
+      };
+
+    } catch (error) {
+      this.logger.error('Fallback retrieval error:', error);
+      return {
+        contextFound: false,
+        memories: '',
+        totalTokens: 0,
+        memoryCount: 0,
+        mode: 'error'
+      };
+    }
+  }
+
+  async fallbackStore(userId, conversationData) {
+    try {
+      this.logger.log(`Fallback store for user: ${userId}`);
+        
+      if (!this.fallbackMemory.has(userId)) {
+        this.fallbackMemory.set(userId, []);
+      }
+
+      const userMemories = this.fallbackMemory.get(userId);
+      const newMemory = {
+        id: Date.now() + Math.random(),
+        content: conversationData,
+        timestamp: Date.now(),
+        token_count: Math.ceil(conversationData.length / 4),
+        category_name: 'fallback_general',
+        subcategory_name: 'General'
+      };
+        
+      userMemories.push(newMemory);
+
+      // Keep only last 50 memories per user
+      if (userMemories.length > 50) {
+        userMemories.splice(0, userMemories.length - 50);
+      }
+
+      this.fallbackMemory.set(userId, userMemories);
+      this.performanceStats.fallbackUsage++;
+        
+      this.logger.warn(`Stored in fallback memory - ID: ${newMemory.id}, Total: ${userMemories.length}`);
+      
+      return { 
+        success: true, 
+        memoryId: newMemory.id,
+        tokenCount: newMemory.token_count,
+        mode: 'fallback'
+      };
+
+    } catch (error) {
+      this.logger.error('Fallback storage error:', error);
+      return { success: false, error: error.message, mode: 'error' };
+    }
+  }
+
+  // ================================================================
+  // UTILITY METHODS
+  // ================================================================
+
+  formatMemoriesForChat(memories) {
+    if (!memories || memories.length === 0) {
+      return '';
     }
 
-    // NEW: boolean health for bootstrap compatibility
-    isHealthy() {
-        return !!this.pool && this.initialized === true;
-    }
+    return memories
+      .map(memory => {
+        const timeAgo = this.formatTimeAgo(memory.created_at || memory.timestamp);
+        return `[${timeAgo}] ${memory.content}`;
+      })
+      .join('\n\n');
+  }
 
-    async getSystemHealth() {
-        try {
-            if (!this.pool) {
-                return { overall: false, error: 'Database pool not initialized' };
-            }
-            const c = await this.pool.connect(); await c.query('SELECT 1'); c.release();
-            return { overall: this.initialized, database: { healthy: true }, initialized: this.initialized, timestamp: new Date().toISOString() };
-        } catch (e) { return { overall: false, error: e.message, timestamp: new Date().toISOString() }; }
-    }
-
-    async initialize() {
-        // Singleton init promise to avoid races
-        if (this._initPromise) return this._initPromise;
-        this._initPromise = (async () => {
-            try {
-                if (!process.env.DATABASE_URL) {
-                    persistentLogger.error('❌ DATABASE_URL environment variable not found');
-                    this.initialized = false; throw new Error('DATABASE_URL missing');
-                }
-                console.log('[PERSISTENT] 🔌 Connecting to database...');
-                this.pool = await getDbPool();
-
-                // Test connection
-                const client = await this.pool.connect();
-                await client.query('SELECT NOW()');
-                client.release();
-
-                persistentLogger.log('✅ Database connection established');
-
-                // Create database schema (non-fatal)
-                try {
-                    await this.createDatabaseSchema();
-                } catch (e) {
-                    console.error('[MEMORY][INIT] ensure schema failed, continuing:', e?.message, e?.code, e?.detail);
-                    // continue; objects may already exist
-                }
-
-                this.initialized = true;
-                persistentLogger.log('✅ Universal Memory API initialized successfully');
-                setInterval(() => this.performMaintenance(), 60 * 60 * 1000); // Every hour
-                return true;
-            } catch (error) {
-                this.initialized = false;
-                persistentLogger.error('❌ Universal Memory API initialization failed:', error);
-                throw error;
-            }
-        })();
-        return this._initPromise;
-    }
-
-    async createDatabaseSchema() {
-        const client = await this.pool.connect();
-        try {
-            console.log('[PERSISTENT] 📋 Creating enhanced database schema...');
-
-            await client.query(`
-                -- main memories
-                CREATE TABLE IF NOT EXISTS persistent_memories (    
-                    id SERIAL PRIMARY KEY,    
-                    user_id TEXT NOT NULL,    
-                    category_name VARCHAR(100) NOT NULL,    
-                    subcategory_name VARCHAR(100),
-                    content TEXT NOT NULL,
-                    token_count INTEGER NOT NULL,
-                    relevance_score DECIMAL(3,2) DEFAULT 0.50,
-                    usage_frequency INTEGER DEFAULT 0,
-                    last_accessed TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    metadata JSONB
-                );
-
-                -- categories (quota tracking)
-                CREATE TABLE IF NOT EXISTS memory_categories (    
-                    id SERIAL PRIMARY KEY,    
-                    user_id TEXT NOT NULL,    
-                    category_name VARCHAR(100) NOT NULL,    
-                    subcategory_name VARCHAR(100),
-                    current_tokens INTEGER DEFAULT 0,
-                    max_tokens INTEGER DEFAULT 50000,
-                    is_dynamic BOOLEAN DEFAULT FALSE,
-                    dynamic_focus VARCHAR(255),
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    UNIQUE(user_id, category_name, subcategory_name)
-                );
-
-                -- users (stats)
-                CREATE TABLE IF NOT EXISTS user_memory_profiles (
-                    user_id TEXT PRIMARY KEY,
-                    total_memories INTEGER DEFAULT 0,
-                    total_tokens INTEGER DEFAULT 0,
-                    active_categories TEXT[],
-                    memory_patterns JSONB,
-                    last_optimization TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                );
-
-                -- migrate from legacy memory_entries (if present, once)
-                DO $$ 
-                BEGIN
-                    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'memory_entries')
-                       AND NOT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'memory_entries_legacy') THEN
-                        INSERT INTO persistent_memories
-                            (user_id, category_name, subcategory_name, content, token_count, relevance_score, usage_frequency, last_accessed, created_at, metadata)
-                        SELECT
-                            user_id,
-                            category_name,
-                            subcategory_name,
-                            content,
-                            COALESCE(token_count, CEIL(LENGTH(content)::float / 4)::integer),
-                            COALESCE(relevance_score, 0.50),
-                            COALESCE(usage_frequency, 0),
-                            COALESCE(last_accessed, CURRENT_TIMESTAMP),
-                            COALESCE(created_at, CURRENT_TIMESTAMP),
-                            COALESCE(metadata, '{}'::jsonb)
-                        FROM memory_entries;
-                        EXECUTE 'ALTER TABLE memory_entries RENAME TO memory_entries_legacy';
-                    END IF;
-                END $$;
-            `);
-
-            await client.query(`
-                CREATE INDEX IF NOT EXISTS idx_pm_user_cat_rel_created
-                    ON persistent_memories (user_id, category_name, relevance_score DESC, created_at DESC);
-                CREATE INDEX IF NOT EXISTS idx_pm_last_accessed
-                    ON persistent_memories (user_id, last_accessed DESC);
-            `);
-
-            persistentLogger.log('✅ Enhanced database schema created');
-        } finally {
-            client.release();
-        }
-    }
-
-    async provisionUserMemory(userId) {
-        if (!this.initialized) {
-            persistentLogger.warn('Memory system not initialized, provisioning skipped');
-            return false;
-        }
-
-        const client = await this.pool.connect();
-        try {
-            // Create/ensure user profile with active categories
-            await client.query(`
-                INSERT INTO user_memory_profiles (user_id, active_categories, total_memories, total_tokens)
-                VALUES ($1, $2, 0, 0)
-                ON CONFLICT (user_id) DO NOTHING
-            `, [userId, Object.keys(this.categories)]);
-
-            // Initialize all categories for user
-            for (const [categoryName, categoryConfig] of Object.entries(this.categories)) {
-                if (categoryConfig.subcategories) {
-                    for (const subcategory of categoryConfig.subcategories) {
-                        await client.query(`        
-                            INSERT INTO memory_categories (user_id, category_name, subcategory_name, max_tokens, is_dynamic)  
-                             VALUES ($1, $2, $3, $4, $5)    
-                             ON CONFLICT (user_id, category_name, subcategory_name) DO NOTHING
-                        `, [userId, categoryName, subcategory, categoryConfig.maxTokens, !!categoryConfig.aiManaged]);
-                    }
-                } else {
-                    // Dynamic category
-                    await client.query(`  
-                        INSERT INTO memory_categories (user_id, category_name, subcategory_name, max_tokens, is_dynamic)
-                        VALUES ($1, $2, $3, $4, $5)  
-                        ON CONFLICT (user_id, category_name, subcategory_name) DO NOTHING
-                    `, [userId, categoryName, null, categoryConfig.maxTokens, true]);
-                }
-            }
-
-            persistentLogger.log(`✅ User memory space provisioned for ${userId}`);
-            return true;
-        } catch (error) {
-            persistentLogger.error(`❌ Failed to provision memory for ${userId}:`, error);
-            return false;
-        } finally {
-            client.release();
-        }
-    }
-
-    // Public API methods for memory_bootstrap.js compatibility
-    async storeConversationMemory(userId, content, metadata = {}) {
-        return this.storeMemory(userId, content, metadata);
-    }
-
-    async retrieveMemory(userId, query, maxTokens = 2400) {
-        return this.getRelevantContext(userId, query, maxTokens);
-    }
+  formatTimeAgo(timestamp) {
+    const now = Date.now();
+    const time = new Date(timestamp).getTime();
+    const days = Math.floor((now - time) / (1000 * 60 * 60 * 24));
     
-    // Main retrieval method
-    async getRelevantContext(userId, query, maxTokens = 2400) {
-        try {
-            if (!this.initialized) {
-                return { contextFound: false, memories: '', error: 'Memory system not initialized' };
-            }
+    if (days === 0) return 'today';
+    if (days === 1) return 'yesterday';
+    if (days < 7) return `${days} days ago`;
+    if (days < 30) return `${Math.floor(days/7)} weeks ago`;
+    return `${Math.floor(days/30)} months ago`;
+  }
 
-            // Ensure user memory space exists
-            await this.provisionUserMemory(userId);
+  // ================================================================
+  // PERFORMANCE MONITORING
+  // ================================================================
 
-            // Route query to appropriate categories
-            const routing = this.router.routeToCategory(query, userId);
+  updatePerformanceStats(success, responseTime) {
+    try {
+      this.performanceStats.totalRequests++;
+      
+      // Update average response time
+      const count = this.performanceStats.totalRequests;
+      const currentAvg = this.performanceStats.avgResponseTime;
+      this.performanceStats.avgResponseTime = ((currentAvg * (count - 1)) + responseTime) / count;
+      
+      // Update success rate
+      if (!success) {
+        this.performanceStats.errorCount++;
+      }
+      
+      this.performanceStats.successRate = 
+        ((this.performanceStats.totalRequests - this.performanceStats.errorCount) / 
+         this.performanceStats.totalRequests) * 100;
 
-            // Extract relevant memories
-            const client = await this.pool.connect();
-            const extraction = await this.extractor.extractRelevantMemories(userId, query, routing, client);
-            client.release();
-
-            if (!extraction.success) {
-                return { contextFound: false, memories: '', error: extraction.error };
-            }
-
-            // Format for AI consumption
-            const formattedMemories = this.extractor.formatForAI(extraction.memories);
-
-            persistentLogger.log(`📋 Retrieved ${extraction.memories.length} memories (${extraction.tokenCount} tokens) for ${userId}`);
-
-            // Respect the maxTokens soft cap
-            // CORRECTED VERSION:
-            return {
-                ...formattedMemories,
-                totalTokens: Math.min(formattedMemories.totalTokens || 0, maxTokens)
-            };
-        } catch (error) {
-            persistentLogger.error(`Error retrieving context for ${query}:`, error);
-            return { contextFound: false, memories: '', error: error.message };
-        }
+    } catch (error) {
+      this.logger.warn('Error updating performance stats:', error);
     }
-    
-    async storeMemory(userId, content, metadata = {}) {
-        try {
-            if (!this.initialized) {
-                return { success: false, error: 'Memory system not initialized' };
-            }
+  }
 
-            if (!content || content.trim().length === 0) {
-                return { success: false, error: 'Empty content cannot be stored' };
-            }
+  getPerformanceStats() {
+    return {
+      totalRequests: this.performanceStats.totalRequests,
+      avgResponseTime: Math.round(this.performanceStats.avgResponseTime),
+      successRate: Number(this.performanceStats.successRate.toFixed(2)),
+      errorCount: this.performanceStats.errorCount,
+      fallbackUsage: this.performanceStats.fallbackUsage,
+      uptime: Date.now() - this.performanceStats.lastReset,
+      mode: this.isHealthy ? 'persistent' : 'fallback'
+    };
+  }
 
-            // Ensure user memory space exists
-            await this.provisionUserMemory(userId);
+  // ================================================================
+  // SYSTEM LIFECYCLE MANAGEMENT
+  // ================================================================
 
-            // Route to appropriate category
-            const routing = this.router.routeToCategory(content, userId);
-            
-            // Store memory
-            const result = await this.storeMemoryInDatabase(
-                userId,
-                routing.primaryCategory,
-                routing.subcategory,
-                content,
-                {
-                    ...metadata,
-                    routingConfidence: routing.confidence,
-                    timestamp: new Date().toISOString(),
-                    allCategoryScores: routing.allScores
-                }
-            );
+  async shutdown() {
+    try {
+      this.logger.log('Shutting down Persistent Memory System...');
+      
+      // Shutdown subsystems in reverse order
+      if (this.intelligenceSystem) {
+        await this.intelligenceSystem.cleanup();
+      }
+      
+      if (this.coreSystem) {
+        await this.coreSystem.shutdown();
+      }
+      
+      // Clear fallback memory
+      this.fallbackMemory.clear();
+      
+      // Clean up global interface
+      if (global.memorySystem) {
+        delete global.memorySystem;
+      }
+      
+      this.isInitialized = false;
+      this.isHealthy = false;
+      
+      this.logger.log('Persistent Memory System shutdown completed');
 
-            if (result.success) {
-                persistentLogger.log(`💾 Stored memory ${result.memoryId} in ${routing.primaryCategory}/${routing.subcategory} for ${userId}`);
-            }
-
-            return result;
-
-        } catch (error) {
-            console.error(`[PERSISTENT ERROR] FULL STORAGE ERROR for ${userId}:`, {
-                message: error.message,
-                stack: error.stack,
-                code: error.code,
-                detail: error.detail,
-                constraint: error.constraint,
-                query: error.query
-            });
-            persistentLogger.error(`Error storing memory for ${userId}:`, error);
-            return { success: false, error: `Storage failed: ${error.message} (Code: ${error.code})` };
-        }
+    } catch (error) {
+      this.logger.error('Error during shutdown:', error);
     }
+  }
 
-    async storeMemoryInDatabase(userId, categoryName, subcategoryName, content, metadata = {}) {
-        if (!this.pool) {
-            return { success: false, error: 'Database pool not initialized' };
-        }
-        
-        const client = await this.pool.connect();
-        try {
-            await client.query('BEGIN');
-
-            // Calculate token count
-            const tokenCount = Math.ceil(content.length / 4);
-
-            // Check category capacity
-            const capacityCheck = await client.query(`  
-                SELECT current_tokens, max_tokens     
-                FROM memory_categories     
-                WHERE user_id = $1 AND category_name = $2 AND subcategory_name = $3
-            `, [userId, categoryName, subcategoryName]);
-
-            if (capacityCheck.rows.length === 0) {
-                // Create category if doesn't exist
-                await this.createCategoryIfNotExists(userId, categoryName, subcategoryName, client);
-            } else {
-                const { current_tokens, max_tokens } = capacityCheck.rows[0];
-                if (current_tokens + tokenCount > max_tokens) {
-                    // Trigger cleanup before storing
-                    await this.makeSpace(userId, categoryName, subcategoryName, tokenCount, client);
-                }
-            }
-
-            // Calculate relevance score
-            const relevanceScore = this.calculateInitialRelevance(content, metadata);
-
-            // Store memory
-            const insertResult = await client.query(`  
-                INSERT INTO persistent_memories     
-                (user_id, category_name, subcategory_name, content, token_count, relevance_score, metadata)
-                VALUES ($1, $2, $3, $4, $5, $6, $7) 
-                RETURNING id
-            `, [userId, categoryName, subcategoryName, content, tokenCount, relevanceScore, JSON.stringify(metadata)]);
-
-            // Update category token count
-            await client.query(`  
-                UPDATE memory_categories     
-                SET current_tokens = current_tokens + $1, updated_at = CURRENT_TIMESTAMP    
-                WHERE user_id = $2 AND category_name = $3 AND subcategory_name = $4
-            `, [tokenCount, userId, categoryName, subcategoryName]);
-
-            await client.query('COMMIT');
-            
-            return {
-                success: true,
-                memoryId: insertResult.rows[0].id,
-                tokenCount: tokenCount,
-                relevanceScore: relevanceScore
-            };
-
-        } catch (error) {
-            await client.query('ROLLBACK');
-            console.error('[PERSISTENT ERROR] DATABASE TRANSACTION FAILED:', {
-                userId: userId,
-                category: categoryName,
-                subcategory: subcategoryName,
-                error: {
-                    message: error.message,
-                    code: error.code,
-                    detail: error.detail,
-                    constraint: error.constraint,
-                    severity: error.severity,
-                    where: error.where,
-                    query: error.query
-                }
-            });
-            throw error;
-        } finally {
-            client.release();
-        }
+  cleanup() {
+    try {
+      this.fallbackMemory.clear();
+      this.intelligenceSystem?.cleanup();
+      this.coreSystem?.cleanup();
+      this.logger.log('System cleanup completed');
+    } catch (error) {
+      this.logger.error('Error during cleanup:', error);
     }
+  }
 
-    async createCategoryIfNotExists(userId, categoryName, subcategoryName, client) {
-        const maxTokens = 50000; // Standard category size
-        const isDynamic = categoryName.startsWith('dynamic_category_');
-        
-        await client.query(`  
-            INSERT INTO memory_categories     
-            (user_id, category_name, subcategory_name, max_tokens, is_dynamic)   
-            VALUES ($1, $2, $3, $4, $5)    
-            ON CONFLICT (user_id, category_name, subcategory_name) DO NOTHING
-        `, [userId, categoryName, subcategoryName, maxTokens, isDynamic]);
-    }
+  // ================================================================
+  // SYSTEM STATUS METHODS
+  // ================================================================
 
-    async makeSpace(userId, categoryName, subcategoryName, neededTokens, client) {
-        const deletedTokens = await client.query(`
-            WITH deleted AS (
-                DELETE FROM persistent_memories
-                WHERE user_id = $1 AND category_name = $2 AND subcategory_name = $3
-                AND id IN (
-                    SELECT id FROM persistent_memories
-                    WHERE user_id = $1 AND category_name = $2 AND subcategory_name = $3
-                    ORDER BY relevance_score ASC, usage_frequency ASC, created_at ASC
-                    LIMIT 10
-                )
-                RETURNING token_count
-            )
-            SELECT COALESCE(SUM(token_count), 0) AS freed_tokens FROM deleted
-        `, [userId, categoryName, subcategoryName]);
+  isReady() {
+    return this.isInitialized && (this.isHealthy || this.fallbackMemory.size >= 0);
+  }
 
-        const freedTokens = parseInt(deletedTokens.rows[0].freed_tokens || 0, 10);
-
-        await client.query(`
-            UPDATE memory_categories
-            SET current_tokens = GREATEST(current_tokens - $1, 0),
-                updated_at = CURRENT_TIMESTAMP
-            WHERE user_id = $2 AND category_name = $3 AND subcategory_name = $4
-        `, [freedTokens, userId, categoryName, subcategoryName]);
-
-        persistentLogger.log(`🧹 Made space in ${categoryName}/${subcategoryName}: freed ${freedTokens} tokens`);
-    }
-
-    calculateInitialRelevance(content, metadata) {
-        let relevance = 0.5; // Base relevance
-
-        // Boost for emotional content
-        const emotionalWords = ['excited', 'worried', 'happy', 'stressed', 'important', 'urgent', 'critical'];
-        const emotionalMatches = emotionalWords.filter(word => 
-            content.toLowerCase().includes(word)
-        ).length;
-        relevance += emotionalMatches * 0.05;
-
-        // Boost for questions (likely important for future reference)
-        if (content.includes('?')) {
-            relevance += 0.1;
-        }
-
-        // Metadata-based boosts
-        if (metadata.userMarkedImportant) {
-            relevance += 0.2;
-        }
-
-        return Math.min(relevance, 1.0);
-    }
-
-    // Health check method for memory_bootstrap.js compatibility
-    async healthCheck() {
-        try {
-            if (!this.pool) {
-                return { status: 'error', error: 'Database pool not initialized' };
-            }
-
-            const client = await this.pool.connect();
-            await client.query('SELECT 1');
-            client.release();
-            
-            return {
-                status: 'healthy',
-                initialized: this.initialized,
-                timestamp: new Date().toISOString()
-            };
-
-        } catch (error) {
-            return {
-                status: 'error',
-                error: error.message,
-                timestamp: new Date().toISOString()
-            };
-        }
-    }
-
-    async getMemoryStats(userId) {
-        try {
-            if (!this.initialized) {
-                return { totalMemories: 0, totalTokens: 0, error: 'Not initialized' };
-            }
-
-            const client = await this.pool.connect();
-            const stats = await client.query(`
-                SELECT 
-                    COUNT(*) as total_memories,
-                    COALESCE(SUM(token_count), 0) as total_tokens  
-                FROM persistent_memories   
-                WHERE user_id = $1
-            `, [userId]);
-            client.release();
-
-            return {
-                totalMemories: parseInt(stats.rows[0].total_memories),
-                totalTokens: parseInt(stats.rows[0].total_tokens),
-                mode: 'persistent'
-            };
-
-        } catch (error) {
-            persistentLogger.error(`Error getting stats for ${userId}:`, error);
-            return { totalMemories: 0, totalTokens: 0, error: error.message };
-        }
-    }
-
-    // Format method for extraction engine compatibility
-    formatForAI(memories, options = {}) {
-        return this.extractor.formatForAI(memories);
-    }
-
-    async performMaintenance() {
-        try {
-            persistentLogger.log('🔧 Starting scheduled maintenance...');
-            
-            // Database health check
-            const health = await this.getSystemHealth();
-            if (!health.overall) {
-                persistentLogger.warn('⚠️ Database health check failed during maintenance');
-            }
-            
-            persistentLogger.log('✅ Scheduled maintenance completed');
-
-        } catch (error) {
-            persistentLogger.error('❌ Maintenance failed:', error);
-        }
-    }
-
-    async shutdown() {
-        try {
-            if (this.pool) {
-                await this.pool.end();
-                persistentLogger.log('✅ Universal Memory API shutdown completed');
-            }
-        } catch (error) {
-            persistentLogger.error('❌ Error during shutdown:', error);
-        }
-    }
+  getSystemStatus() {
+    return {
+      initialized: this.isInitialized,
+      healthy: this.isHealthy,
+      mode: this.isHealthy ? 'persistent' : 'fallback',
+      uptime: Date.now() - this.performanceStats.lastReset,
+      lastHealthCheck: this.lastHealthCheck ? new Date(this.lastHealthCheck).toISOString() : null,
+      fallbackUsers: this.fallbackMemory.size
+    };
+  }
 }
 
-// Export the class, not an instance
-console.log('[PERSISTENT] 📦 Universal Memory System class ready for export');
+// Export instance, not class - ready for immediate use
+const persistentMemory = new PersistentMemoryOrchestrator();
 
-export default PersistentMemoryAPI;
+export default persistentMemory;
