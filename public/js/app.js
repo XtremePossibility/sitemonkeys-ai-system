@@ -264,53 +264,63 @@ console.log('🔍 Using vault with length:', vaultContent.length);
 function updateTokenDisplay(tokenData) {
   console.log('💰 DISPLAY DEBUG:', tokenData);
   try {
-    // Look for existing UI elements to integrate with
-    let tokenContainer = document.getElementById('token-cost-container');
+    // Target the specific vault status area where costs should be displayed
+    const vaultStatusArea = document.querySelector('[class*="vault"]') || 
+                           document.querySelector('[id*="vault"]') ||
+                           document.getElementById('vault-status') ||
+                           document.querySelector('.status-panel') ||
+                           document.querySelector('.cost-display');
     
-    if (!tokenContainer) {
-      // Create integrated token display in the UI layout
-      tokenContainer = document.createElement('div');
-      tokenContainer.id = 'token-cost-container';
-      tokenContainer.style.cssText = `
-        background: rgba(0,0,0,0.9);
-        color: #00ff41;
-        padding: 8px 12px;
-        border-radius: 6px;
-        font-family: monospace;
-        font-size: 11px;
-        border: 1px solid #333;
-        margin: 8px;
-        min-width: 180px;
+    if (vaultStatusArea) {
+      // Look for existing cost elements to update
+      let costElement = vaultStatusArea.querySelector('.token-cost-info') ||
+                       vaultStatusArea.querySelector('[class*="cost"]') ||
+                       vaultStatusArea.querySelector('[class*="token"]');
+      
+      if (!costElement) {
+        // Create new cost element in the vault area
+        costElement = document.createElement('div');
+        costElement.className = 'token-cost-info';
+        costElement.style.cssText = `
+          color: #00ff41;
+          font-family: monospace;
+          font-size: 11px;
+          margin: 4px 0;
+        `;
+        vaultStatusArea.appendChild(costElement);
+      }
+      
+      // Update with current costs
+      const requestCost = (tokenData.request_cost || 0).toFixed(4);
+      const sessionCost = (tokenData.session_total_cost || 0).toFixed(4);
+      
+      costElement.innerHTML = `
+        <div>Session: ${tokenData.session_total_tokens || 0} tokens</div>
+        <div>Cost: $${sessionCost}</div>
+        <div>Requests: ${tokenData.session_request_count || 0}</div>
       `;
       
-      // Try to find the status area or system ready area to attach to
-      const statusArea = document.querySelector('.system-status') || 
-                        document.querySelector('[class*="status"]') ||
-                        document.querySelector('[class*="ready"]');
-      
-      if (statusArea && statusArea.parentElement) {
-        statusArea.parentElement.appendChild(tokenContainer);
-      } else {
-        // Fallback: add to the main container area
-        const mainContainer = document.querySelector('.container') || 
-                             document.querySelector('main') || 
-                             document.body;
-        mainContainer.appendChild(tokenContainer);
-      }
+      console.log('[COST] Updated vault status area');
+      return;
     }
     
-    // Format cost display - compact version for UI integration
-    const requestCost = (tokenData.request_cost || 0).toFixed(4);
-    const sessionCost = (tokenData.session_total_cost || 0).toFixed(4);
+    // If vault area not found, try to find any element with "cost" or "token" in the class/id
+    const existingCostArea = document.querySelector('#cost-display') ||
+                            document.querySelector('.cost-area') ||
+                            document.querySelector('[id*="token"]') ||
+                            document.querySelector('[class*="session"]');
+                            
+    if (existingCostArea) {
+      existingCostArea.innerHTML = `
+        <div style="color: #00ff41; font-family: monospace; font-size: 11px;">
+          Session: ${tokenData.session_total_tokens || 0} tokens ($${(tokenData.session_total_cost || 0).toFixed(4)})
+        </div>
+      `;
+      console.log('[COST] Updated existing cost area');
+      return;
+    }
     
-    tokenContainer.innerHTML = `
-      <div style="font-weight: bold; margin-bottom: 4px;">💰 SESSION COSTS</div>
-      <div>Request: ${tokenData.request_tokens || 0} tokens ($${requestCost})</div>
-      <div>Total: ${tokenData.session_total_tokens || 0} tokens ($${sessionCost})</div>
-      <div>Requests: ${tokenData.session_request_count || 0} | Duration: ${tokenData.session_duration_minutes || 0}m</div>
-    `;
-    
-    console.log(`[COST] UI Updated - Integrated display`);
+    console.warn('[COST] Could not find designated cost display area');
     
   } catch (error) {
     console.warn('Token display update failed:', error);
