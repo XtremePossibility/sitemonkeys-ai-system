@@ -125,6 +125,9 @@ console.log('🔍 Using vault with length:', vaultContent.length);
 
     const data = await response.json();
     
+    // ADD THIS DEBUG LINE:
+    console.log('🔍 TOKEN DEBUG:', data.token_usage);
+    
     // EXTRACT AND DISPLAY TOKEN/COST DATA
     if (data.token_usage) {
       updateTokenDisplay(data.token_usage);
@@ -256,6 +259,7 @@ console.log('🔍 Using vault with length:', vaultContent.length);
 
 // TOKEN AND COST DISPLAY FUNCTIONS
 function updateTokenDisplay(tokenData) {
+  console.log('💰 DISPLAY DEBUG:', tokenData); // ADD THIS LINE
   try {
     // Update or create token display element
     let tokenDisplay = document.getElementById('token-cost-display');
