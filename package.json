@@ -19,7 +19,7 @@
   },
   "scripts": {
     "fix-database": "node fix_database.js",
-    "start": "node memory_system/schema_migration.js && node --trace-warnings server.js"
+    "start": "node --trace-warnings server.js"
   },
   "engines": {
     "node": ">=14.0.0"
