@@ -1,5 +1,6 @@
 // memory_system/category_manager.js
 // Category management system for Site Monkeys AI Memory System
+// Redeploy
 
 import DatabaseManager from './database_manager.js';
 
