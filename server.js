@@ -694,6 +694,42 @@ const SITE_MONKEYS_CONFIG = {
 // SYSTEM GLOBALS
 let lastPersonality = 'roxy';
 let conversationCount = 0;
+// SESSION TOKEN AND COST TRACKING
+let sessionStats = {
+  totalTokens: 0,
+  inputTokens: 0,
+  outputTokens: 0,
+  totalCost: 0,
+  requestCount: 0,
+  sessionStart: Date.now(),
+  lastReset: new Date().toISOString()
+};
+
+// CURRENT API PRICING (per 1M tokens)
+const API_PRICING = {
+  'gpt-4o': { input: 2.50, output: 10.00 },
+  'gpt-4': { input: 30.00, output: 60.00 },
+  'claude-3-5-sonnet-20241022': { input: 3.00, output: 15.00 }
+};
+
+function calculateCost(usage, model = 'gpt-4o') {
+  const pricing = API_PRICING[model] || API_PRICING['gpt-4o'];
+  const inputCost = (usage.prompt_tokens / 1000000) * pricing.input;
+  const outputCost = (usage.completion_tokens / 1000000) * pricing.output;
+  return inputCost + outputCost;
+}
+
+function updateSessionStats(usage, model = 'gpt-4o') {
+  if (usage && usage.total_tokens) {
+    sessionStats.totalTokens += usage.total_tokens;
+    sessionStats.inputTokens += usage.prompt_tokens || 0;
+    sessionStats.outputTokens += usage.completion_tokens || 0;
+    sessionStats.totalCost += calculateCost(usage, model);
+    sessionStats.requestCount += 1;
+    
+    console.log(`[COST] Session total: ${sessionStats.totalTokens} tokens, $${sessionStats.totalCost.toFixed(4)}, ${sessionStats.requestCount} requests`);
+  }
+}
 let familyMemory = {
   userGoals: [],
   successPatterns: [],
@@ -933,6 +969,16 @@ if (global.memorySystem && typeof global.memorySystem.storeMemory === 'function'
       response: finalResponse,
       mode_active: mode,
       personality_active: personality,
+      token_usage: {
+        request_tokens: apiResponse.usage?.total_tokens || 0,
+        request_input_tokens: apiResponse.usage?.prompt_tokens || 0,
+        request_output_tokens: apiResponse.usage?.completion_tokens || 0,
+        request_cost: apiResponse.cost || 0,
+        session_total_tokens: sessionStats.totalTokens,
+        session_total_cost: sessionStats.totalCost,
+        session_request_count: sessionStats.requestCount,
+        session_duration_minutes: Math.round((Date.now() - sessionStats.sessionStart) / 60000)
+      },
       caring_family_intelligence: {
         expert_domain: expertDomain.domain,
         expert_title: expertDomain.title,
@@ -1386,9 +1432,16 @@ async function makeIntelligentAPICall(prompt, personality, prideMotivation) {
       }
 
       const data = await response.json();
+      
+      // Update session tracking
+      if (data.usage) {
+        updateSessionStats(data.usage, 'claude-3-5-sonnet-20241022');
+      }
+      
       return {
         response: data.content[0].text,
-        usage: data.usage
+        usage: data.usage,
+        cost: data.usage ? calculateCost(data.usage, 'claude-3-5-sonnet-20241022') : 0
       };
     } catch (error) {
       console.error('Claude API error:', error);
@@ -1409,9 +1462,16 @@ async function makeIntelligentAPICall(prompt, personality, prideMotivation) {
       };
 
       const data = await callOpenAI(payload);
+      
+      // Update session tracking
+      if (data.usage) {
+        updateSessionStats(data.usage, 'gpt-4o');
+      }
+      
       return {
         response: data.choices[0].message.content,
-        usage: data.usage
+        usage: data.usage,
+        cost: data.usage ? calculateCost(data.usage, 'gpt-4o') : 0
       };
     } catch (error) {
       console.error('OpenAI API error:', error);
@@ -1712,6 +1772,41 @@ How can I help you move forward while we resolve this?
 
 💙 Your success matters to me, and I'll find a way to help you succeed.`;
 }
+
+// SESSION STATISTICS ENDPOINT
+app.get('/api/session-stats', (req, res) => {
+  res.json({
+    session_stats: {
+      ...sessionStats,
+      session_duration_minutes: Math.round((Date.now() - sessionStats.sessionStart) / 60000),
+      average_tokens_per_request: sessionStats.requestCount > 0 ? Math.round(sessionStats.totalTokens / sessionStats.requestCount) : 0,
+      average_cost_per_request: sessionStats.requestCount > 0 ? sessionStats.totalCost / sessionStats.requestCount : 0
+    },
+    pricing: API_PRICING,
+    timestamp: new Date().toISOString()
+  });
+});
+
+// RESET SESSION STATS ENDPOINT  
+app.post('/api/reset-session-stats', (req, res) => {
+  const oldStats = { ...sessionStats };
+  
+  sessionStats = {
+    totalTokens: 0,
+    inputTokens: 0,
+    outputTokens: 0,
+    totalCost: 0,
+    requestCount: 0,
+    sessionStart: Date.now(),
+    lastReset: new Date().toISOString()
+  };
+  
+  res.json({
+    message: 'Session stats reset successfully',
+    previous_session: oldStats,
+    new_session: sessionStats
+  });
+});
 
 // HEALTH CHECK ENDPOINT
 app.get('/api/health', (req, res) => {
