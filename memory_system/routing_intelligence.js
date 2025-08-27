@@ -1,1180 +1,930 @@
+// ===================================================================
 // memory_system/routing_intelligence.js
-// ULTIMATE ROUTING INTELLIGENCE: Maximum Sophistication + Bulletproof Reliability
-// Advanced semantic analysis with production-grade performance and safety
-
-console.log('[ROUTING] 🧠 Advanced Routing Intelligence loading...');
+// PRODUCTION VERSION: Advanced category routing with database integration
 
 class RoutingIntelligence {
-    constructor() {
-        // Performance-optimized routing patterns with semantic weighting
-        this.routingPatterns = {
-            health_wellness: {
-                keywords: new Set(['health', 'medical', 'doctor', 'symptom', 'pain', 'illness', 'medication', 'fitness', 'exercise', 'diet', 'nutrition', 'mental health', 'therapy', 'anxiety', 'depression', 'wellness', 'sleep', 'energy', 'hospital', 'nurse', 'treatment']),
-                contextPatterns: new Set(['feeling sick', 'health issue', 'medical appointment', 'workout routine', 'eating habits', 'stress levels', 'not feeling well', 'health concern']),
-                semanticClusters: {
-                    medical: ['doctor', 'hospital', 'diagnosis', 'treatment', 'medical', 'symptom', 'illness'],
-                    fitness: ['exercise', 'workout', 'fitness', 'gym', 'training', 'physical'],
-                    mental: ['anxiety', 'depression', 'stress', 'therapy', 'mental health', 'emotional'],
-                    wellness: ['wellness', 'healthy', 'wellbeing', 'self-care', 'nutrition']
-                },
-                weight: 1.0,
-                subcategoryRouting: {
-                    physical_health: new Set(['symptom', 'pain', 'injury', 'physical', 'body', 'hurt']),
-                    mental_health: new Set(['anxiety', 'depression', 'stress', 'therapy', 'emotional', 'mental']),
-                    medical_history: new Set(['doctor', 'appointment', 'diagnosis', 'treatment', 'medical']),
-                    fitness_nutrition: new Set(['exercise', 'workout', 'diet', 'nutrition', 'fitness', 'gym']),
-                    wellness_practices: new Set(['wellness', 'meditation', 'sleep', 'relaxation', 'mindfulness'])
-                }
-            },
+  constructor() {
+    // Advanced category mapping with comprehensive patterns
+    this.categoryMappings = new Map([
+      ['mental_emotional', {
+        keywords: new Set([
+          'stress', 'stressed', 'anxious', 'anxiety', 'worried', 'worry', 'feel', 'feeling', 'felt',
+          'emotion', 'emotional', 'mood', 'mental', 'psychology', 'therapy', 'counseling',
+          'identity', 'self-talk', 'mindset', 'attitude', 'perspective', 'overwhelmed',
+          'depressed', 'depression', 'bipolar', 'panic', 'fear', 'confidence', 'self-esteem'
+        ]),
+        patterns: [
+          /\b(i feel|feeling|stressed|worried|anxious|emotional|mood|mental health|self-talk|overwhelmed)\b/i,
+          /\b(therapy|counseling|psychology|mindset|attitude|perspective|identity)\b/i,
+          /\b(depressed|depression|panic|fear|confidence|self-esteem|self-worth)\b/i
+        ],
+        weight: 1.0,
+        priority: 'high'
+      }],
 
-            relationships_social: {
-                keywords: new Set(['family', 'spouse', 'partner', 'boyfriend', 'girlfriend', 'marriage', 'relationship', 'friend', 'social', 'colleague', 'coworker', 'conflict', 'communication', 'love', 'dating', 'children', 'parents', 'pets', 'pet', 'monkey', 'monkeys', 'dog', 'cat', 'animal', 'kids', 'child']),
-                contextPatterns: new Set(['relationship issue', 'family problem', 'social situation', 'communication breakdown', 'my pets', 'my monkey', 'my monkeys', 'pet names', 'family members', 'my kids', 'my children']),
-                semanticClusters: {
-                    family: ['family', 'parents', 'children', 'kids', 'spouse', 'marriage', 'relatives'],
-                    pets: ['pets', 'pet', 'monkey', 'monkeys', 'dog', 'cat', 'animal'],
-                    romantic: ['partner', 'boyfriend', 'girlfriend', 'dating', 'love', 'relationship'],
-                    social: ['friend', 'social', 'friendship', 'people', 'community'],
-                    professional: ['colleague', 'coworker', 'team', 'workplace']
-                },
-                weight: 1.0,
-                subcategoryRouting: {
-                    family_dynamics: new Set(['family', 'parents', 'children', 'siblings', 'relatives', 'pets', 'pet', 'monkey', 'monkeys', 'dog', 'cat', 'kids', 'child']),
-                    romantic_relationships: new Set(['spouse', 'partner', 'boyfriend', 'girlfriend', 'dating', 'marriage', 'love']),
-                    friendships: new Set(['friend', 'social', 'friendship', 'social circle', 'friends']),
-                    professional_relationships: new Set(['colleague', 'coworker', 'boss', 'team', 'workplace relationship']),
-                    social_interactions: new Set(['social', 'communication', 'conflict', 'interaction', 'people'])
-                }
-            },
+      ['health_wellness', {
+        keywords: new Set([
+          'health', 'healthy', 'medical', 'doctor', 'physician', 'symptom', 'symptoms', 'pain',
+          'illness', 'sick', 'disease', 'medication', 'medicine', 'treatment', 'diagnosis',
+          'fitness', 'exercise', 'workout', 'gym', 'diet', 'nutrition', 'food', 'eating',
+          'sleep', 'sleeping', 'tired', 'fatigue', 'energy', 'hospital', 'clinic'
+        ]),
+        patterns: [
+          /\b(health|medical|doctor|symptom|pain|illness|medication|fitness|exercise)\b/i,
+          /\b(diet|nutrition|sleep|energy|hospital|clinic|treatment|diagnosis)\b/i,
+          /\b(workout|gym|physical|body|weight|wellness)\b/i
+        ],
+        weight: 1.0,
+        priority: 'high'
+      }],
 
-            business_career: {
-                keywords: new Set(['work', 'job', 'career', 'business', 'company', 'project', 'meeting', 'boss', 'employee', 'salary', 'promotion', 'performance', 'deadline', 'client', 'customer', 'revenue', 'profit', 'strategy', 'site monkeys', 'site-monkeys', 'sitemonkeys', 'brand', 'agency', 'office', 'professional']),
-                contextPatterns: new Set(['work issue', 'business problem', 'career decision', 'project deadline', 'site monkeys business', 'brand strategy', 'work situation', 'job interview']),
-                semanticClusters: {
-                    work: ['work', 'job', 'employment', 'workplace', 'office', 'professional'],
-                    career: ['career', 'promotion', 'advancement', 'development', 'growth'],
-                    business: ['business', 'company', 'organization', 'enterprise', 'firm'],
-                    brand: ['site monkeys', 'site-monkeys', 'sitemonkeys', 'brand', 'agency'],
-                    performance: ['performance', 'productivity', 'efficiency', 'results', 'achievement']
-                },
-                weight: 1.0,
-                subcategoryRouting: {
-                    work_performance: new Set(['performance', 'productivity', 'deadline', 'task', 'efficiency', 'results']),
-                    career_planning: new Set(['career', 'promotion', 'job search', 'professional development', 'advancement']),
-                    business_strategy: new Set(['business', 'strategy', 'revenue', 'profit', 'growth', 'site monkeys', 'site-monkeys', 'sitemonkeys', 'brand']),
-                    professional_development: new Set(['skills', 'training', 'learning', 'certification', 'education']),
-                    workplace_dynamics: new Set(['team', 'boss', 'colleague', 'workplace culture', 'office'])
-                }
-            },
+      ['relationships_social', {
+        keywords: new Set([
+          'family', 'spouse', 'husband', 'wife', 'partner', 'relationship', 'marriage', 'married',
+          'boyfriend', 'girlfriend', 'children', 'child', 'kids', 'son', 'daughter', 'parents',
+          'mother', 'father', 'mom', 'dad', 'friend', 'friends', 'social', 'friendship',
+          'colleague', 'coworker', 'conflict', 'argument', 'communication', 'love', 'dating',
+          'divorce', 'breakup', 'reunion', 'pets', 'pet', 'dog', 'cat'
+        ]),
+        patterns: [
+          /\b(family|spouse|husband|wife|partner|relationship|marriage|children|kids)\b/i,
+          /\b(parents|mother|father|mom|dad|friend|social|dating|love)\b/i,
+          /\b(conflict|argument|communication|divorce|breakup|pets|pet)\b/i
+        ],
+        weight: 1.0,
+        priority: 'high'
+      }],
 
-            financial_management: {
-                keywords: new Set(['money', 'budget', 'expense', 'income', 'salary', 'cost', 'price', 'investment', 'savings', 'debt', 'loan', 'credit', 'financial', 'bank', 'tax', 'insurance', 'pay', 'payment', 'finance']),
-                contextPatterns: new Set(['financial issue', 'money problem', 'budget concern', 'investment decision', 'financial planning', 'money management']),
-                semanticClusters: {
-                    income: ['salary', 'income', 'earnings', 'revenue', 'paycheck', 'pay'],
-                    expenses: ['expense', 'cost', 'spending', 'budget', 'bills', 'payment'],
-                    investments: ['investment', 'stocks', 'portfolio', 'retirement', 'savings'],
-                    debt: ['debt', 'loan', 'credit', 'mortgage', 'borrowing'],
-                    planning: ['budget', 'financial planning', 'money management', 'goals']
-                },
-                weight: 1.0,
-                subcategoryRouting: {
-                    income_planning: new Set(['salary', 'income', 'earnings', 'revenue', 'paycheck', 'pay']),
-                    expense_tracking: new Set(['expense', 'cost', 'spending', 'budget', 'bills', 'payment']),
-                    investment_strategy: new Set(['investment', 'stocks', 'portfolio', 'retirement', 'savings']),
-                    debt_management: new Set(['debt', 'loan', 'credit', 'mortgage', 'payment']),
-                    financial_goals: new Set(['financial goal', 'money goal', 'savings goal', 'financial planning'])
-                }
-            },
+      ['work_career', {
+        keywords: new Set([
+          'work', 'working', 'job', 'career', 'profession', 'business', 'company', 'corporation',
+          'office', 'workplace', 'project', 'meeting', 'boss', 'manager', 'supervisor',
+          'employee', 'colleague', 'coworker', 'team', 'department', 'salary', 'wage', 'pay',
+          'promotion', 'performance', 'deadline', 'client', 'customer', 'interview'
+        ]),
+        patterns: [
+          /\b(work|job|career|business|company|office|project|meeting|boss)\b/i,
+          /\b(employee|colleague|team|salary|promotion|performance|deadline|client)\b/i,
+          /\b(interview|workplace|profession|manager|supervisor)\b/i
+        ],
+        weight: 1.0,
+        priority: 'medium'
+      }],
 
-            technology_tools: {
-                keywords: new Set(['software', 'app', 'tool', 'system', 'computer', 'phone', 'technology', 'digital', 'online', 'website', 'program', 'automation', 'workflow', 'productivity', 'tech', 'device', 'internet']),
-                contextPatterns: new Set(['tech issue', 'software problem', 'system error', 'app not working', 'computer problem', 'technical difficulty']),
-                semanticClusters: {
-                    software: ['software', 'program', 'application', 'app', 'system'],
-                    hardware: ['computer', 'phone', 'device', 'equipment', 'technology'],
-                    productivity: ['productivity', 'workflow', 'automation', 'efficiency', 'tools'],
-                    digital: ['digital', 'online', 'internet', 'website', 'web'],
-                    troubleshooting: ['error', 'problem', 'issue', 'bug', 'broken', 'fix']
-                },
-                weight: 1.0,
-                subcategoryRouting: {
-                    software_systems: new Set(['software', 'program', 'system', 'application', 'app']),
-                    productivity_tools: new Set(['productivity', 'tool', 'workflow', 'efficiency', 'automation']),
-                    tech_troubleshooting: new Set(['error', 'bug', 'problem', 'not working', 'broken', 'fix']),
-                    automation_workflows: new Set(['automation', 'workflow', 'process', 'streamline']),
-                    digital_organization: new Set(['organization', 'digital', 'file', 'folder', 'storage'])
-                }
-            },
+      ['money_income_debt', {
+        keywords: new Set([
+          'income', 'salary', 'wage', 'pay', 'paycheck', 'earnings', 'debt', 'loan', 'loans',
+          'credit', 'mortgage', 'payment', 'payments', 'bill', 'bills', 'owe', 'owing',
+          'financial crisis', 'money problems', 'broke', 'bankruptcy', 'foreclosure'
+        ]),
+        patterns: [
+          /\b(income|salary|wage|pay|paycheck|earnings|debt|loan|credit)\b/i,
+          /\b(mortgage|payment|bill|owe|financial crisis|money problems|broke)\b/i,
+          /\b(bankruptcy|foreclosure|financial trouble)\b/i
+        ],
+        weight: 1.0,
+        priority: 'high'
+      }],
 
-            home_lifestyle: {
-                keywords: new Set(['home', 'house', 'apartment', 'living', 'lifestyle', 'daily', 'routine', 'household', 'vehicle', 'vehicles', 'car', 'cars', 'truck', 'motorcycle', 'bike', 'boat', 'auto', 'own', 'owned', 'have', 'possess', 'possession', 'belongings', 'stuff', 'things', 'personal', 'hobby', 'hobbies', 'interest', 'interests', 'favorite', 'collection', 'gaming']),
-                contextPatterns: new Set(['what i own', 'things i have', 'my stuff', 'vehicles i own', 'cars i have', 'told you about', 'my belongings', 'personal items']),
-                semanticClusters: {
-                    possessions: ['own', 'owned', 'have', 'possess', 'belongings', 'stuff', 'things'],
-                    vehicles: ['vehicle', 'car', 'truck', 'motorcycle', 'bike', 'boat', 'auto'],
-                    home: ['home', 'house', 'apartment', 'living', 'household', 'residence'],
-                    lifestyle: ['lifestyle', 'routine', 'daily', 'personal', 'habits'],
-                    interests: ['hobby', 'interest', 'favorite', 'collection', 'gaming', 'entertainment']
-                },
-                weight: 1.0,
-                subcategoryRouting: {
-                    personal_possessions: new Set(['own', 'owned', 'have', 'possess', 'vehicle', 'car', 'truck', 'belongings', 'stuff']),
-                    hobbies_interests: new Set(['hobby', 'interest', 'favorite', 'collection', 'gaming', 'entertainment']),
-                    daily_routines: new Set(['routine', 'daily', 'lifestyle', 'household', 'habits']),
-                    home_environment: new Set(['home', 'house', 'apartment', 'living', 'residence']),
-                    personal_preferences: new Set(['personal', 'prefer', 'like', 'enjoy', 'favorite'])
-                }
-            },
+      ['money_spending_goals', {
+        keywords: new Set([
+          'budget', 'budgeting', 'spending', 'spend', 'purchase', 'buy', 'buying', 'savings',
+          'save', 'saving', 'financial goals', 'investment', 'investing', 'stocks', 'portfolio',
+          'retirement', 'wealth', 'money management', 'financial planning', 'emergency fund'
+        ]),
+        patterns: [
+          /\b(budget|spending|purchase|buy|savings|save|financial goals|investment)\b/i,
+          /\b(investing|stocks|portfolio|retirement|wealth|money management)\b/i,
+          /\b(financial planning|emergency fund|budgeting)\b/i
+        ],
+        weight: 1.0,
+        priority: 'medium'
+      }],
 
-            personal_development: {
-                keywords: new Set(['goal', 'goals', 'learn', 'learning', 'skill', 'skills', 'improve', 'improvement', 'growth', 'development', 'achievement', 'progress', 'challenge', 'motivation', 'habit', 'habits', 'self', 'personal growth']),
-                contextPatterns: new Set(['personal goal', 'learning objective', 'skill development', 'self improvement', 'personal growth', 'want to improve']),
-                semanticClusters: {
-                    goals: ['goal', 'goals', 'objective', 'target', 'achievement', 'aspiration'],
-                    learning: ['learn', 'learning', 'skill', 'skills', 'education', 'knowledge'],
-                    growth: ['growth', 'development', 'improvement', 'progress', 'evolution'],
-                    habits: ['habit', 'habits', 'routine', 'consistency', 'discipline'],
-                    motivation: ['motivation', 'inspiration', 'drive', 'ambition', 'purpose']
-                },
-                weight: 1.0,
-                subcategoryRouting: {
-                    goal_setting: new Set(['goal', 'goals', 'objective', 'target', 'achievement']),
-                    skill_building: new Set(['skill', 'skills', 'learn', 'learning', 'training', 'education']),
-                    habit_formation: new Set(['habit', 'habits', 'routine', 'consistency', 'discipline']),
-                    mindset_growth: new Set(['mindset', 'attitude', 'perspective', 'growth', 'development']),
-                    motivation_progress: new Set(['motivation', 'progress', 'improvement', 'development', 'achievement'])
-                }
-            }
-        };
+      ['goals_active_current', {
+        keywords: new Set([
+          'goal', 'goals', 'current goal', 'objective', 'target', 'aim', 'working on',
+          'trying to', 'project', 'task', 'deadline', 'this week', 'this month',
+          'priority', 'focus', 'achievement', 'accomplish', 'complete', 'finish'
+        ]),
+        patterns: [
+          /\b(goal|goals|current goal|objective|target|working on|trying to)\b/i,
+          /\b(this week|this month|priority|focus|achievement|accomplish)\b/i,
+          /\b(complete|finish|deadline|task|project)\b/i
+        ],
+        weight: 1.0,
+        priority: 'medium'
+      }],
 
-        // Advanced caching system for performance
-        this.routingCache = new Map();
-        this.semanticCache = new Map();
-        this.patternCache = new Map();
-        this.maxCacheSize = 1000;
-        
-        // Performance tracking
-        this.routingStats = {
-            totalRoutings: 0,
-            cacheHits: 0,
-            cacheMisses: 0,
-            avgRoutingTime: 0,
-            categoryDistribution: new Map(),
-            confidenceStats: { min: 1, max: 0, sum: 0 },
-            lastReset: Date.now()
-        };
+      ['goals_future_dreams', {
+        keywords: new Set([
+          'dream', 'dreams', 'someday', 'future', 'long-term', 'vision', 'aspiration',
+          'aspirations', 'bucket list', 'hope', 'wish', 'want to', 'plan to',
+          'eventually', 'retirement', 'legacy', 'life goals', 'ambition'
+        ]),
+        patterns: [
+          /\b(dream|someday|future|long-term|vision|aspiration|bucket list)\b/i,
+          /\b(hope|wish|want to|plan to|eventually|retirement|legacy)\b/i,
+          /\b(life goals|ambition|life dream|future plan)\b/i
+        ],
+        weight: 1.0,
+        priority: 'low'
+      }],
 
-        // Semantic analysis patterns
-        this.intentPatterns = {
-            memory_recall: new Set(['remember', 'recall', 'told you', 'mentioned', 'said before', 'discussed', 'talked about']),
-            information_request: new Set(['what', 'how', 'when', 'where', 'why', 'who', 'which', 'tell me', 'show me']),
-            personal_sharing: new Set(['my ', 'our ', 'i have', 'i own', 'we have', 'we own', 'i am', 'we are']),
-            problem_seeking: new Set(['problem', 'issue', 'trouble', 'difficulty', 'challenge', 'stuck', 'help'])
-        };
+      ['tools_tech_workflow', {
+        keywords: new Set([
+          'software', 'app', 'application', 'tool', 'tools', 'technology', 'tech', 'system',
+          'platform', 'website', 'digital', 'online', 'computer', 'laptop', 'phone',
+          'workflow', 'process', 'automation', 'productivity', 'efficiency', 'program'
+        ]),
+        patterns: [
+          /\b(software|app|tool|technology|system|platform|website|digital)\b/i,
+          /\b(computer|laptop|phone|workflow|automation|productivity|efficiency)\b/i,
+          /\b(program|application|online|process)\b/i
+        ],
+        weight: 1.0,
+        priority: 'low'
+      }],
 
-        // Advanced possessive detection patterns
-        this.possessivePatterns = [
-            /\b(my|our|his|her|their)\s+\w+/g,
-            /\b(i|we)\s+(have|own|possess|got)\b/g,
-            /\bwhat\s+(i|we)\s+(own|have|possess)\b/g,
-            /\b(things|stuff|items)\s+(i|we)\s+(have|own)\b/g
-        ];
+      ['daily_routines_habits', {
+        keywords: new Set([
+          'routine', 'routines', 'habit', 'habits', 'daily', 'morning', 'evening', 'night',
+          'schedule', 'consistency', 'regular', 'every day', 'weekly', 'pattern',
+          'ritual', 'practice', 'discipline', 'structure', 'organization'
+        ]),
+        patterns: [
+          /\b(routine|habit|daily|morning|evening|schedule|consistency)\b/i,
+          /\b(regular|every day|weekly|pattern|ritual|practice|discipline)\b/i,
+          /\b(structure|organization|time management)\b/i
+        ],
+        weight: 1.0,
+        priority: 'medium'
+      }],
 
-        // Entity extraction patterns
-        this.entityPatterns = {
-            pets: /\b(pet|pets|dog|cat|monkey|monkeys|animal|animals)\b/g,
-            family: /\b(family|children|kids|child|spouse|parent|parents|sibling|relative)\b/g,
-            vehicles: /\b(car|cars|truck|vehicle|vehicles|motorcycle|bike|boat|auto)\b/g,
-            business: /\b(site\s*monkeys?|business|company|brand|work|job)\b/g,
-            home: /\b(home|house|apartment|residence|living)\b/g
-        };
+      ['personal_life_interests', {
+        keywords: new Set([
+          'home', 'house', 'apartment', 'living', 'lifestyle', 'personal', 'hobby', 'hobbies',
+          'interest', 'interests', 'entertainment', 'fun', 'leisure', 'gaming', 'games',
+          'creative', 'art', 'music', 'reading', 'books', 'movies', 'tv', 'travel',
+          'vacation', 'sports', 'cooking', 'food', 'garden', 'gardening'
+        ]),
+        patterns: [
+          /\b(home|house|apartment|lifestyle|hobby|interest|entertainment|fun)\b/i,
+          /\b(gaming|creative|art|music|reading|movies|travel|vacation|sports)\b/i,
+          /\b(cooking|garden|personal|leisure|activity)\b/i
+        ],
+        weight: 1.0,
+        priority: 'low'
+      }]
+    ]);
 
-        // Fallback strategy with confidence weighting
-        this.fallbackChain = [
-            { category: 'relationships_social', confidence: 0.6 },
-            { category: 'personal_development', confidence: 0.5 },
-            { category: 'home_lifestyle', confidence: 0.4 },
-            { category: 'health_wellness', confidence: 0.3 }
-        ];
+    // Performance optimization
+    this.routingCache = new Map();
+    this.maxCacheSize = 1000;
+
+    // Advanced analytics
+    this.routingStats = {
+      totalRoutes: 0,
+      categoryDistribution: new Map(),
+      avgConfidence: 0,
+      avgProcessingTime: 0,
+      highConfidenceRoutes: 0,
+      lowConfidenceRoutes: 0,
+      overrideApplications: 0,
+      cacheHitRate: 0,
+      cacheHits: 0,
+      cacheMisses: 0,
+      lastReset: Date.now()
+    };
+  }
+
+  /**
+   * MAIN ROUTING METHOD - Production-ready with comprehensive analysis
+   */
+  async routeToCategory(query, userId = null) {
+    if (!query || typeof query !== 'string') {
+      return this.createFallbackResult('Invalid query input');
     }
 
-    /**
-     * MAIN ROUTING METHOD - Advanced semantic routing with bulletproof safety
-     */
-    routeToCategory(query, userId = null) {
-        const startTime = Date.now();
-        
-        try {
-            // Comprehensive input validation and normalization
-            const processedQuery = this.validateAndNormalizeQuery(query);
-            if (!processedQuery.valid) {
-                console.warn('[ROUTING] Invalid query, using fallback routing');
-                return this.getFallbackRouting(query, 'invalid_query');
-            }
+    const startTime = Date.now();
+    const normalizedQuery = query.toLowerCase().trim();
+    
+    try {
+      console.log(`[ROUTING] Processing query: "${query.substring(0, 50)}..."`);
 
-            const normalizedQuery = processedQuery.query;
-            const cacheKey = this.generateRoutingCacheKey(normalizedQuery, userId);
+      // Check cache first
+      const cacheKey = this.generateCacheKey(normalizedQuery, userId);
+      if (this.routingCache.has(cacheKey)) {
+        this.routingStats.cacheHits++;
+        const cached = this.routingCache.get(cacheKey);
+        console.log(`[ROUTING] Cache hit: ${cached.primaryCategory}`);
+        return cached;
+      }
 
-            // Check cache for performance
-            if (this.routingCache.has(cacheKey)) {
-                this.routingStats.cacheHits++;
-                const cached = this.routingCache.get(cacheKey);
-                console.log(`[ROUTING] ⚡ Cache hit for: "${this.truncateString(normalizedQuery, 40)}" -> ${cached.primaryCategory}`);
-                return cached;
-            }
+      this.routingStats.cacheMisses++;
 
-            this.routingStats.cacheMisses++;
-            console.log(`[ROUTING] 🔍 Analyzing: "${this.truncateString(normalizedQuery, 50)}"`);
+      // Advanced semantic analysis
+      const semanticAnalysis = await this.performAdvancedSemanticAnalysis(normalizedQuery);
 
-            // Perform advanced semantic analysis
-            const semanticAnalysis = await this.performAdvancedSemanticAnalysis(normalizedQuery, userId);
-            
-            // Calculate sophisticated category scores
-            const categoryScores = await this.calculateAdvancedCategoryScores(normalizedQuery, semanticAnalysis);
-            
-            // Determine best category with confidence
-            const routingResult = this.determineBestCategory(categoryScores, semanticAnalysis, normalizedQuery);
-            
-            // Route to subcategory with advanced logic
-            const subcategory = await this.routeToAdvancedSubcategory(normalizedQuery, routingResult.category, semanticAnalysis);
-            
-            // Check for dynamic category opportunities
-            const dynamicCategory = await this.checkAdvancedDynamicNeeds(normalizedQuery, userId, semanticAnalysis);
-            
-            // Apply sophisticated override logic
-            const finalResult = await this.applySophisticatedOverrides(
-                routingResult, subcategory, dynamicCategory, normalizedQuery, semanticAnalysis
-            );
+      // Calculate category scores with sophisticated algorithms
+      const categoryScores = await this.calculateAdvancedCategoryScores(
+        normalizedQuery, semanticAnalysis, userId
+      );
 
-            // Update analytics and cache
-            const processingTime = Date.now() - startTime;
-            this.updateRoutingAnalytics(finalResult, processingTime, semanticAnalysis);
-            this.cacheRoutingResult(cacheKey, finalResult);
+      // Determine best category with confidence metrics
+      const routingResult = this.determineBestCategoryWithConfidence(
+        categoryScores, semanticAnalysis, normalizedQuery
+      );
 
-            console.log(`[ROUTING] ✅ Routed to: ${finalResult.primaryCategory}/${finalResult.subcategory} (confidence: ${finalResult.confidence.toFixed(3)}, ${processingTime}ms)`);
+      // Apply sophisticated override logic
+      const finalResult = await this.applySophisticatedOverrides(
+        routingResult, normalizedQuery, semanticAnalysis, userId
+      );
 
-            return finalResult;
+      // Cache result
+      this.cacheResult(cacheKey, finalResult);
 
-        } catch (error) {
-            console.error('[ROUTING] Critical error in advanced routing:', error);
-            return this.getFallbackRouting(query, 'routing_error');
+      // Update analytics
+      this.updateRoutingAnalytics(finalResult, Date.now() - startTime);
+
+      console.log(`[ROUTING] Routed to: ${finalResult.primaryCategory} (confidence: ${finalResult.confidence.toFixed(3)}, ${Date.now() - startTime}ms)`);
+
+      return finalResult;
+
+    } catch (error) {
+      console.error('[ROUTING] Critical error in routing:', error);
+      return this.createFallbackResult('Routing error occurred');
+    }
+  }
+
+  /**
+   * ADVANCED SEMANTIC ANALYSIS
+   */
+  async performAdvancedSemanticAnalysis(query) {
+    const analysis = {
+      intent: 'general',
+      intentConfidence: 0.5,
+      emotionalWeight: 0,
+      emotionalTone: 'neutral',
+      personalContext: false,
+      memoryReference: false,
+      urgencyLevel: 0,
+      timeframe: 'general',
+      questionType: null,
+      entityTypes: new Set(),
+      contextClues: new Set(),
+      linguisticComplexity: 0
+    };
+
+    try {
+      // Advanced intent classification
+      const intentPatterns = {
+        memory_recall: {
+          patterns: [
+            /\b(remember|recall|told you|mentioned|discussed|said before|talked about)\b/i,
+            /\b(you know|as I said|like I mentioned|previously|earlier)\b/i
+          ],
+          weight: 0.9
+        },
+        information_seeking: {
+          patterns: [
+            /\b(what|how|when|where|why|who|which|tell me|show me|explain)\b/i,
+            /\?/,
+            /\b(can you|could you|would you|do you know|help me understand)\b/i
+          ],
+          weight: 0.8
+        },
+        problem_solving: {
+          patterns: [
+            /\b(problem|issue|trouble|difficulty|challenge|stuck|help|solve|fix)\b/i,
+            /\b(how do i|how can i|what should i|need help|struggling with)\b/i
+          ],
+          weight: 0.85
+        },
+        personal_sharing: {
+          patterns: [
+            /\b(my |our |i have|i own|we have|we own|i am|we are|personal|private)\b/i,
+            /\b(telling you|sharing|want to share|let you know)\b/i
+          ],
+          weight: 0.8
+        },
+        emotional_expression: {
+          patterns: [
+            /\b(feel|feeling|felt|emotion|emotional|mood)\b/i,
+            /\b(happy|sad|angry|worried|excited|frustrated|anxious|stressed|overwhelmed)\b/i
+          ],
+          weight: 0.75
+        },
+        decision_making: {
+          patterns: [
+            /\b(should i|which|decision|decide|choice|choose|option|options)\b/i,
+            /\b(thinking about|considering|wondering if|unsure)\b/i
+          ],
+          weight: 0.7
         }
-    }
+      };
 
-    /**
-     * COMPREHENSIVE INPUT VALIDATION
-     */
-    validateAndNormalizeQuery(query) {
-        try {
-            let queryString;
-            
-            // Handle various input types safely
-            if (typeof query === 'string') {
-                queryString = query.trim();
-            } else if (query && typeof query === 'object') {
-                // Handle object inputs with various property names
-                queryString = query.message || query.content || query.text || query.query || '';
-                if (typeof queryString !== 'string') {
-                    queryString = JSON.stringify(query);
-                }
-            } else {
-                queryString = String(query || '').trim();
-            }
-
-            // Validation checks
-            if (queryString.length === 0) {
-                return { valid: false, error: 'Empty query' };
-            }
-            if (queryString.length > 10000) {
-                return { valid: false, error: 'Query too long', query: queryString.substring(0, 10000) };
-            }
-
-            // Normalize the query
-            const normalized = queryString
-                .toLowerCase()
-                .replace(/\s+/g, ' ')
-                .trim();
-
-            return { valid: true, query: normalized, originalLength: queryString.length };
-
-        } catch (error) {
-            console.warn('[ROUTING] Error normalizing query:', error);
-            return { valid: false, error: 'Normalization failed' };
-        }
-    }
-
-    /**
-     * ADVANCED SEMANTIC ANALYSIS - Enhanced NLP processing
-     */
-    async performAdvancedSemanticAnalysis(query, userId) {
-        const cacheKey = `semantic_${this.generateHash(query)}`;
-        if (this.semanticCache.has(cacheKey)) {
-            return this.semanticCache.get(cacheKey);
-        }
-
-        const analysis = {
-            intent: 'general',
-            confidence: 0.5,
-            hasPossessive: false,
-            hasMemoryReference: false,
-            hasPersonalContext: false,
-            hasEmotionalContent: false,
-            entities: new Set(),
-            contextClues: new Set(),
-            linguisticFeatures: {},
-            processingTime: Date.now()
-        };
-
-        try {
-            // Intent classification with confidence scoring
-            analysis.intent = this.classifyIntent(query);
-            
-            // Possessive detection using advanced patterns
-            analysis.hasPossessive = this.detectPossessiveContent(query);
-            
-            // Memory reference detection
-            analysis.hasMemoryReference = this.detectMemoryReferences(query);
-            
-            // Personal context detection
-            analysis.hasPersonalContext = this.detectPersonalContext(query);
-            
-            // Emotional content analysis
-            analysis.hasEmotionalContent = this.detectEmotionalContent(query);
-            
-            // Advanced entity extraction
-            analysis.entities = await this.extractEntities(query);
-            
-            // Context clue identification
-            analysis.contextClues = this.identifyContextClues(query);
-            
-            // Linguistic feature analysis
-            analysis.linguisticFeatures = this.analyzeLinguisticFeatures(query);
-            
-            // Calculate overall confidence
-            analysis.confidence = this.calculateSemanticConfidence(analysis);
-
-            // Cache the analysis
-            this.cacheSemanticAnalysis(cacheKey, analysis);
-
-            return analysis;
-
-        } catch (error) {
-            console.warn('[ROUTING] Error in semantic analysis:', error);
-            analysis.error = error.message;
-            return analysis;
-        }
-    }
-
-    /**
-     * INTENT CLASSIFICATION with confidence scoring
-     */
-    classifyIntent(query) {
-        const intentScores = {};
-        
-        for (const [intent, patterns] of Object.entries(this.intentPatterns)) {
-            let score = 0;
-            for (const pattern of patterns) {
-                if (query.includes(pattern)) {
-                    score += pattern.length > 3 ? 2 : 1; // Longer patterns get higher weight
-                }
-            }
-            intentScores[intent] = score;
-        }
-
-        // Special pattern matching for better intent detection
-        if (query.includes('?')) intentScores.information_request = (intentScores.information_request || 0) + 2;
-        if (query.match(/^(what|how|when|where|why|who|which)/)) intentScores.information_request = (intentScores.information_request || 0) + 3;
-        if (query.includes('help') || query.includes('problem')) intentScores.problem_seeking = (intentScores.problem_seeking || 0) + 2;
-
-        const bestIntent = Object.keys(intentScores).reduce((a, b) => 
-            intentScores[a] > intentScores[b] ? a : b, 'general'
-        );
-
-        return intentScores[bestIntent] > 0 ? bestIntent : 'general';
-    }
-
-    /**
-     * ADVANCED POSSESSIVE DETECTION
-     */
-    detectPossessiveContent(query) {
-        for (const pattern of this.possessivePatterns) {
-            if (pattern.test(query)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /**
-     * MEMORY REFERENCE DETECTION
-     */
-    detectMemoryReferences(query) {
-        const memoryIndicators = ['remember', 'recall', 'told you', 'mentioned', 'said before', 'discussed', 'talked about', 'you know'];
-        return memoryIndicators.some(indicator => query.includes(indicator));
-    }
-
-    /**
-     * PERSONAL CONTEXT DETECTION
-     */
-    detectPersonalContext(query) {
-        const personalIndicators = ['my ', 'our ', 'personal', 'family', 'home', 'private'];
-        return personalIndicators.some(indicator => query.includes(indicator));
-    }
-
-    /**
-     * EMOTIONAL CONTENT DETECTION
-     */
-    detectEmotionalContent(query) {
-        const emotionalWords = ['feel', 'feeling', 'emotional', 'happy', 'sad', 'angry', 'worried', 'excited', 'frustrated', 'love', 'hate', 'stressed', 'anxious'];
-        return emotionalWords.some(word => query.includes(word));
-    }
-
-    /**
-     * ADVANCED ENTITY EXTRACTION
-     */
-    async extractEntities(query) {
-        const entities = new Set();
-        
-        for (const [entityType, pattern] of Object.entries(this.entityPatterns)) {
-            const matches = query.matchAll(pattern);
-            for (const match of matches) {
-                entities.add(entityType);
-            }
-        }
-
-        // Special entity detection logic
-        if (query.includes('monkey') || query.includes('monkeys')) {
-            if (this.detectPossessiveContent(query) || query.includes('pet')) {
-                entities.add('pets');
-            } else if (query.includes('site') || query.includes('business')) {
-                entities.add('business');
-            }
-        }
-
-        return entities;
-    }
-
-    /**
-     * CONTEXT CLUE IDENTIFICATION
-     */
-    identifyContextClues(query) {
-        const contextClues = new Set();
-        
-        const cluePatterns = {
-            urgency: ['urgent', 'emergency', 'asap', 'immediately', 'critical'],
-            frequency: ['always', 'often', 'usually', 'sometimes', 'rarely', 'never'],
-            time: ['today', 'yesterday', 'tomorrow', 'recently', 'lately', 'soon'],
-            location: ['here', 'there', 'home', 'work', 'office', 'outside'],
-            emotion: ['love', 'hate', 'like', 'dislike', 'enjoy', 'prefer'],
-            quantity: ['all', 'some', 'many', 'few', 'most', 'several']
-        };
-
-        for (const [clueType, patterns] of Object.entries(cluePatterns)) {
-            if (patterns.some(pattern => query.includes(pattern))) {
-                contextClues.add(clueType);
-            }
-        }
-
-        return contextClues;
-    }
-
-    /**
-     * LINGUISTIC FEATURE ANALYSIS
-     */
-    analyzeLinguisticFeatures(query) {
-        return {
-            length: query.length,
-            wordCount: query.split(' ').length,
-            hasQuestion: query.includes('?'),
-            hasNegation: /\b(not|no|never|don't|doesn't|won't|can't|shouldn't)\b/.test(query),
-            hasComparison: /\b(better|worse|more|less|compared|versus|vs)\b/.test(query),
-            hasTimeReference: /\b(when|time|date|day|week|month|year|today|tomorrow|yesterday)\b/.test(query),
-            complexityScore: this.calculateComplexityScore(query)
-        };
-    }
-
-    calculateComplexityScore(query) {
+      // Find best intent match
+      let maxIntentScore = 0;
+      for (const [intentType, config] of Object.entries(intentPatterns)) {
         let score = 0;
-        score += Math.min(query.length / 100, 2); // Length factor
-        score += Math.min(query.split(' ').length / 10, 2); // Word count factor
-        score += (query.match(/[,;:]/g) || []).length * 0.5; // Punctuation complexity
-        score += (query.match(/\b(and|or|but|however|therefore|because)\b/g) || []).length * 0.3; // Conjunction complexity
-        return Math.min(score, 5); // Cap at 5
-    }
-
-    /**
-     * SEMANTIC CONFIDENCE CALCULATION
-     */
-    calculateSemanticConfidence(analysis) {
-        let confidence = 0.3; // Base confidence
-
-        // Intent confidence boost
-        if (analysis.intent !== 'general') confidence += 0.2;
-        
-        // Possessive content boost
-        if (analysis.hasPossessive) confidence += 0.15;
-        
-        // Memory reference boost
-        if (analysis.hasMemoryReference) confidence += 0.25;
-        
-        // Entity detection boost
-        confidence += Math.min(analysis.entities.size * 0.1, 0.3);
-        
-        // Context clues boost
-        confidence += Math.min(analysis.contextClues.size * 0.05, 0.2);
-        
-        // Linguistic complexity boost
-        if (analysis.linguisticFeatures.complexityScore > 2) confidence += 0.1;
-
-        return Math.min(confidence, 1.0);
-    }
-
-    /**
-     * ADVANCED CATEGORY SCORING
-     */
-    async calculateAdvancedCategoryScores(query, semanticAnalysis) {
-        const categoryScores = {};
-        
-        for (const [categoryName, patterns] of Object.entries(this.routingPatterns)) {
-            let score = 0;
-            
-            // Keyword matching with semantic weighting
-            for (const keyword of patterns.keywords) {
-                if (query.includes(keyword)) {
-                    score += this.getSemanticKeywordWeight(keyword, semanticAnalysis, categoryName);
-                }
-            }
-            
-            // Context pattern matching
-            for (const contextPattern of patterns.contextPatterns) {
-                if (query.includes(contextPattern)) {
-                    score += 3.0; // High weight for context patterns
-                }
-            }
-            
-            // Semantic cluster matching
-            score += this.calculateSemanticClusterScore(query, patterns.semanticClusters, semanticAnalysis);
-            
-            // Intent alignment bonus
-            score += this.calculateIntentAlignmentBonus(semanticAnalysis.intent, categoryName);
-            
-            // Entity alignment bonus
-            score += this.calculateEntityAlignmentBonus(semanticAnalysis.entities, categoryName);
-            
-            categoryScores[categoryName] = score;
+        for (const pattern of config.patterns) {
+          if (pattern.test(query)) {
+            score = config.weight;
+            break;
+          }
         }
+        if (score > maxIntentScore) {
+          maxIntentScore = score;
+          analysis.intent = intentType;
+          analysis.intentConfidence = score;
+        }
+      }
 
-        return categoryScores;
+      // Advanced emotional analysis
+      const emotionalIndicators = {
+        high_stress: ['stressed', 'overwhelmed', 'panic', 'crisis', 'emergency'],
+        anxiety: ['anxious', 'worried', 'nervous', 'scared', 'fear'],
+        sadness: ['sad', 'depressed', 'down', 'upset', 'crying'],
+        anger: ['angry', 'mad', 'frustrated', 'furious', 'irritated'],
+        joy: ['happy', 'excited', 'thrilled', 'delighted', 'ecstatic'],
+        confusion: ['confused', 'lost', 'unclear', 'don\'t understand']
+      };
+
+      let maxEmotionalWeight = 0;
+      let dominantEmotion = 'neutral';
+      
+      for (const [emotion, indicators] of Object.entries(emotionalIndicators)) {
+        for (const indicator of indicators) {
+          if (query.includes(indicator)) {
+            const weight = emotion === 'high_stress' ? 0.9 : 
+                          emotion === 'anxiety' ? 0.8 : 
+                          emotion === 'anger' ? 0.7 : 0.6;
+            if (weight > maxEmotionalWeight) {
+              maxEmotionalWeight = weight;
+              dominantEmotion = emotion;
+            }
+          }
+        }
+      }
+
+      analysis.emotionalWeight = maxEmotionalWeight;
+      analysis.emotionalTone = dominantEmotion;
+
+      // Context analysis
+      analysis.personalContext = /\b(my|our|personal|private|family|i am|i have|we are|we have)\b/i.test(query);
+      analysis.memoryReference = /\b(remember|recall|told you|mentioned|discussed|said before)\b/i.test(query);
+      
+      // Urgency detection
+      analysis.urgencyLevel = /\b(urgent|emergency|asap|immediately|critical|important|now|today|right away)\b/i.test(query) ? 0.9 : 
+                             /\b(soon|quickly|fast|hurry|rush)\b/i.test(query) ? 0.6 : 0.0;
+
+      // Timeframe analysis
+      if (/\b(now|today|currently|right now|at the moment|immediate)\b/i.test(query)) {
+        analysis.timeframe = 'immediate';
+      } else if (/\b(this week|soon|upcoming|lately|recently|short-term)\b/i.test(query)) {
+        analysis.timeframe = 'short_term';
+      } else if (/\b(future|someday|eventually|long-term|planning|years from now)\b/i.test(query)) {
+        analysis.timeframe = 'long_term';
+      } else if (/\b(yesterday|last week|last month|in the past|previously)\b/i.test(query)) {
+        analysis.timeframe = 'past';
+      }
+
+      // Question type classification
+      if (query.includes('?')) {
+        if (/^what\b/i.test(query)) analysis.questionType = 'what';
+        else if (/^how\b/i.test(query)) analysis.questionType = 'how';
+        else if (/^why\b/i.test(query)) analysis.questionType = 'why';
+        else if (/^when\b/i.test(query)) analysis.questionType = 'when';
+        else if (/^where\b/i.test(query)) analysis.questionType = 'where';
+        else if (/^who\b/i.test(query)) analysis.questionType = 'who';
+        else analysis.questionType = 'general';
+      }
+
+      // Entity type detection
+      const entityPatterns = {
+        health: /\b(health|medical|doctor|symptom|pain|illness|medication|fitness)\b/gi,
+        work: /\b(work|job|career|business|office|meeting|project|boss|colleague)\b/gi,
+        family: /\b(family|spouse|children|parents|relationship|marriage|kids)\b/gi,
+        money: /\b(money|financial|budget|income|debt|investment|savings|salary)\b/gi,
+        home: /\b(home|house|apartment|living|lifestyle|routine|habit)\b/gi,
+        technology: /\b(software|app|tool|technology|system|computer|phone)\b/gi
+      };
+
+      for (const [entityType, pattern] of Object.entries(entityPatterns)) {
+        const matches = query.match(pattern);
+        if (matches && matches.length > 0) {
+          analysis.entityTypes.add(entityType);
+        }
+      }
+
+      // Context clues detection
+      const contextClues = {
+        planning: /\b(plan|planning|strategy|prepare|preparation)\b/gi,
+        learning: /\b(learn|learning|study|understand|knowledge|skill)\b/gi,
+        social: /\b(friend|social|people|community|group|team)\b/gi,
+        creative: /\b(creative|art|design|music|writing|craft)\b/gi,
+        physical: /\b(physical|body|exercise|movement|active)\b/gi
+      };
+
+      for (const [clueType, pattern] of Object.entries(contextClues)) {
+        if (pattern.test(query)) {
+          analysis.contextClues.add(clueType);
+        }
+      }
+
+      // Linguistic complexity
+      const words = query.split(/\s+/);
+      const uniqueWords = new Set(words.map(w => w.toLowerCase()));
+      const avgWordLength = words.reduce((sum, word) => sum + word.length, 0) / words.length;
+      
+      analysis.linguisticComplexity = Math.min(
+        (uniqueWords.size / words.length) * 0.5 + // Vocabulary diversity
+        (avgWordLength / 10) * 0.3 + // Word complexity
+        (words.length / 50) * 0.2, // Length complexity
+        1.0
+      );
+
+      return analysis;
+
+    } catch (error) {
+      console.error('[ROUTING] Error in semantic analysis:', error);
+      return analysis; // Return default analysis
+    }
+  }
+
+  /**
+   * CALCULATE ADVANCED CATEGORY SCORES
+   */
+  async calculateAdvancedCategoryScores(query, semanticAnalysis, userId) {
+    const scores = new Map();
+
+    for (const [categoryName, config] of this.categoryMappings) {
+      let score = 0;
+
+      // Base keyword matching with frequency weighting
+      let keywordMatches = 0;
+      for (const keyword of config.keywords) {
+        if (query.includes(keyword)) {
+          keywordMatches++;
+          score += 2.0 * config.weight; // Base keyword score
+        }
+      }
+
+      // Pattern matching with higher weight
+      for (const pattern of config.patterns) {
+        if (pattern.test(query)) {
+          score += 3.5 * config.weight; // Pattern match bonus
+        }
+      }
+
+      // Semantic enhancement based on analysis
+      score += this.calculateSemanticBoost(categoryName, semanticAnalysis);
+
+      // Entity alignment boost
+      score += this.calculateEntityAlignmentBoost(categoryName, semanticAnalysis);
+
+      // Context clues alignment
+      score += this.calculateContextCluesBoost(categoryName, semanticAnalysis);
+
+      // Priority-based weighting
+      if (config.priority === 'high' && semanticAnalysis.urgencyLevel > 0.5) {
+        score += 1.0;
+      }
+
+      // Keyword density bonus
+      if (keywordMatches > 1) {
+        score += Math.min(keywordMatches * 0.5, 2.0); // Multi-keyword bonus
+      }
+
+      scores.set(categoryName, Math.max(score, 0));
     }
 
-    /**
-     * SEMANTIC KEYWORD WEIGHTING
-     */
-    getSemanticKeywordWeight(keyword, semanticAnalysis, categoryName) {
-        let weight = 1.0;
-        
-        // Possessive context weighting
-        if (semanticAnalysis.hasPossessive) {
-            const possessiveKeywords = ['my', 'our', 'family', 'pet', 'home', 'personal'];
-            if (possessiveKeywords.includes(keyword)) weight *= 2.0;
-        }
-        
-        // Memory reference weighting
-        if (semanticAnalysis.hasMemoryReference) {
-            const memoryKeywords = ['remember', 'recall', 'told', 'mentioned'];
-            if (memoryKeywords.includes(keyword)) weight *= 1.8;
-        }
-        
-        // Entity alignment weighting
-        if (semanticAnalysis.entities.has('pets') && ['pet', 'monkey', 'dog', 'cat'].includes(keyword)) weight *= 2.5;
-        if (semanticAnalysis.entities.has('vehicles') && ['car', 'vehicle', 'truck'].includes(keyword)) weight *= 2.0;
-        if (semanticAnalysis.entities.has('business') && ['business', 'work', 'company'].includes(keyword)) weight *= 1.5;
-        
-        // Category-specific weighting
-        if (categoryName === 'relationships_social' && semanticAnalysis.hasPersonalContext) weight *= 1.3;
-        if (categoryName === 'home_lifestyle' && semanticAnalysis.hasPossessive) weight *= 1.4;
-        
-        return weight;
+    return scores;
+  }
+
+  /**
+   * SEMANTIC BOOST calculation
+   */
+  calculateSemanticBoost(categoryName, semanticAnalysis) {
+    let boost = 0;
+
+    // Intent-based boosting
+    const intentBoosts = {
+      memory_recall: {
+        'mental_emotional': 0.6, 'relationships_social': 0.5, 'personal_life_interests': 0.4
+      },
+      personal_sharing: {
+        'personal_life_interests': 0.7, 'relationships_social': 0.6, 'mental_emotional': 0.4
+      },
+      problem_solving: {
+        'work_career': 0.6, 'health_wellness': 0.5, 'mental_emotional': 0.5, 'tools_tech_workflow': 0.4
+      },
+      emotional_expression: {
+        'mental_emotional': 0.8, 'relationships_social': 0.5, 'health_wellness': 0.4
+      },
+      decision_making: {
+        'goals_active_current': 0.6, 'work_career': 0.4, 'money_spending_goals': 0.4
+      },
+      information_seeking: {
+        'tools_tech_workflow': 0.4, 'health_wellness': 0.3, 'work_career': 0.3
+      }
+    };
+
+    const categoryBoost = intentBoosts[semanticAnalysis.intent]?.[categoryName] || 0;
+    boost += categoryBoost;
+
+    // Emotional weight boosting
+    if (semanticAnalysis.emotionalWeight > 0.6) {
+      const emotionalBoosts = {
+        'mental_emotional': 1.0,
+        'relationships_social': 0.5,
+        'health_wellness': 0.4,
+        'work_career': 0.3
+      };
+      boost += (emotionalBoosts[categoryName] || 0) * semanticAnalysis.emotionalWeight;
     }
 
-    /**
-     * SEMANTIC CLUSTER SCORING
-     */
-    calculateSemanticClusterScore(query, clusters, semanticAnalysis) {
-        if (!clusters) return 0;
-        
-        let clusterScore = 0;
-        for (const [clusterName, clusterKeywords] of Object.entries(clusters)) {
-            let matches = 0;
-            for (const keyword of clusterKeywords) {
-                if (query.includes(keyword)) matches++;
-            }
-            if (matches > 0) {
-                clusterScore += Math.sqrt(matches) * 0.5; // Diminishing returns for multiple matches
-            }
-        }
-        return clusterScore;
+    // Urgency boosting
+    if (semanticAnalysis.urgencyLevel > 0.6) {
+      const urgencyBoosts = {
+        'health_wellness': 0.8,
+        'mental_emotional': 0.7,
+        'work_career': 0.5,
+        'money_income_debt': 0.6
+      };
+      boost += (urgencyBoosts[categoryName] || 0) * semanticAnalysis.urgencyLevel;
     }
 
-    /**
-     * INTENT ALIGNMENT BONUS
-     */
-    calculateIntentAlignmentBonus(intent, categoryName) {
-        const alignments = {
-            memory_recall: {
-                relationships_social: 0.5,
-                home_lifestyle: 0.4,
-                personal_development: 0.3
-            },
-            personal_sharing: {
-                home_lifestyle: 0.6,
-                relationships_social: 0.5,
-                personal_development: 0.3
-            },
-            information_request: {
-                health_wellness: 0.3,
-                technology_tools: 0.4,
-                financial_management: 0.3
-            },
-            problem_seeking: {
-                health_wellness: 0.4,
-                technology_tools: 0.5,
-                business_career: 0.3
-            }
+    // Timeframe-based boosting
+    const timeframeBoosts = {
+      immediate: {
+        'goals_active_current': 0.6, 'daily_routines_habits': 0.5, 'work_career': 0.4
+      },
+      short_term: {
+        'goals_active_current': 0.4, 'work_career': 0.3, 'health_wellness': 0.3
+      },
+      long_term: {
+        'goals_future_dreams': 0.7, 'work_career': 0.4, 'money_spending_goals': 0.4
+      },
+      past: {
+        'personal_life_interests': 0.4, 'relationships_social': 0.3
+      }
+    };
+
+    const timeframeBoost = timeframeBoosts[semanticAnalysis.timeframe]?.[categoryName] || 0;
+    boost += timeframeBoost;
+
+    return boost;
+  }
+
+  /**
+   * ENTITY ALIGNMENT BOOST
+   */
+  calculateEntityAlignmentBoost(categoryName, semanticAnalysis) {
+    const entityAlignments = {
+      health: {
+        'health_wellness': 1.0, 'mental_emotional': 0.4
+      },
+      work: {
+        'work_career': 1.0, 'goals_active_current': 0.3, 'tools_tech_workflow': 0.4
+      },
+      family: {
+        'relationships_social': 1.0, 'mental_emotional': 0.3, 'personal_life_interests': 0.3
+      },
+      money: {
+        'money_income_debt': 0.8, 'money_spending_goals': 0.8, 'work_career': 0.4
+      },
+      home: {
+        'personal_life_interests': 0.8, 'daily_routines_habits': 0.5, 'health_wellness': 0.3
+      },
+      technology: {
+        'tools_tech_workflow': 1.0, 'work_career': 0.4
+      }
+    };
+
+    let boost = 0;
+    for (const entityType of semanticAnalysis.entityTypes) {
+      boost += entityAlignments[entityType]?.[categoryName] || 0;
+    }
+
+    return boost;
+  }
+
+  /**
+   * CONTEXT CLUES BOOST
+   */
+  calculateContextCluesBoost(categoryName, semanticAnalysis) {
+    const clueAlignments = {
+      planning: {
+        'goals_active_current': 0.5, 'goals_future_dreams': 0.4, 'money_spending_goals': 0.3
+      },
+      learning: {
+        'personal_life_interests': 0.4, 'tools_tech_workflow': 0.3, 'work_career': 0.3
+      },
+      social: {
+        'relationships_social': 0.6, 'personal_life_interests': 0.3
+      },
+      creative: {
+        'personal_life_interests': 0.6, 'goals_future_dreams': 0.3
+      },
+      physical: {
+        'health_wellness': 0.6, 'daily_routines_habits': 0.4
+      }
+    };
+
+    let boost = 0;
+    for (const clueType of semanticAnalysis.contextClues) {
+      boost += clueAlignments[clueType]?.[categoryName] || 0;
+    }
+
+    return boost;
+  }
+
+  /**
+   * DETERMINE BEST CATEGORY with confidence metrics
+   */
+  determineBestCategoryWithConfidence(categoryScores, semanticAnalysis, query) {
+    const sortedCategories = Array.from(categoryScores.entries())
+      .sort(([,a], [,b]) => b - a);
+
+    if (sortedCategories.length === 0) {
+      return {
+        primaryCategory: 'personal_life_interests',
+        confidence: 0.3,
+        alternativeCategory: null,
+        reasoning: 'No category scores calculated'
+      };
+    }
+
+    const [bestCategory, bestScore] = sortedCategories[0];
+    const [secondCategory, secondScore] = sortedCategories[1] || ['', 0];
+    const [thirdCategory, thirdScore] = sortedCategories[2] || ['', 0];
+
+    // Advanced confidence calculation
+    let confidence = Math.min(bestScore / 12.0, 0.6); // Normalize base score
+
+    // Score separation bonus
+    const separation = bestScore - secondScore;
+    confidence += Math.min(separation / 8.0, 0.2);
+
+    // Semantic analysis confidence boost
+    confidence += semanticAnalysis.intentConfidence * 0.1;
+
+    // Clear winner bonus
+    if (bestScore > secondScore * 1.5) {
+      confidence += 0.1;
+    }
+
+    // Multiple indicators bonus
+    if (semanticAnalysis.entityTypes.size > 0) {
+      confidence += Math.min(semanticAnalysis.entityTypes.size * 0.05, 0.1);
+    }
+
+    // Linguistic complexity consideration
+    if (semanticAnalysis.linguisticComplexity > 0.6) {
+      confidence += 0.05;
+    }
+
+    // Personal context boost
+    if (semanticAnalysis.personalContext) {
+      confidence += 0.05;
+    }
+
+    // Emotional weight boost
+    if (semanticAnalysis.emotionalWeight > 0.5) {
+      confidence += 0.05;
+    }
+
+    return {
+      primaryCategory: bestCategory,
+      confidence: Math.max(0.2, Math.min(confidence, 1.0)),
+      alternativeCategory: secondCategory,
+      thirdChoice: thirdCategory,
+      scores: {
+        primary: bestScore,
+        secondary: secondScore,
+        tertiary: thirdScore
+      },
+      reasoning: `Primary: ${bestCategory} (${bestScore.toFixed(1)}) vs Secondary: ${secondCategory} (${secondScore.toFixed(1)})`
+    };
+  }
+
+  /**
+   * SOPHISTICATED OVERRIDES for edge cases and special situations
+   */
+  async applySophisticatedOverrides(routingResult, query, semanticAnalysis, userId) {
+    let { primaryCategory, confidence } = routingResult;
+    let reasoning = routingResult.reasoning;
+    let overrideApplied = false;
+
+    // High-urgency health override
+    if (semanticAnalysis.urgencyLevel > 0.7 && 
+        (query.includes('pain') || query.includes('emergency') || query.includes('hospital'))) {
+      if (primaryCategory !== 'health_wellness') {
+        primaryCategory = 'health_wellness';
+        confidence = Math.max(confidence, 0.9);
+        reasoning += '; Health emergency override applied';
+        overrideApplied = true;
+      }
+    }
+
+    // Mental health crisis override
+    if (semanticAnalysis.emotionalWeight > 0.8 && 
+        (query.includes('crisis') || query.includes('suicide') || query.includes('can\'t take it'))) {
+      if (primaryCategory !== 'mental_emotional') {
+        primaryCategory = 'mental_emotional';
+        confidence = Math.max(confidence, 0.95);
+        reasoning += '; Mental health crisis override applied';
+        overrideApplied = true;
+      }
+    }
+
+    // Financial crisis override
+    if ((query.includes('broke') || query.includes('bankruptcy') || query.includes('can\'t pay')) &&
+        !primaryCategory.startsWith('money_')) {
+      primaryCategory = 'money_income_debt';
+      confidence = Math.max(confidence, 0.85);
+      reasoning += '; Financial crisis override applied';
+      overrideApplied = true;
+    }
+
+    // Strong memory recall override
+    if (semanticAnalysis.memoryReference && semanticAnalysis.intentConfidence > 0.8) {
+      // Keep existing category but boost confidence
+      confidence = Math.max(confidence, 0.8);
+      reasoning += '; Memory recall confidence boost applied';
+    }
+
+    // Personal possession context override
+    const possessionPatterns = [
+      /\b(my|our)\s+(car|vehicle|house|home|apartment)\b/i,
+      /\b(things i own|stuff i have|personal belongings)\b/i,
+      /\b(what i have|what we have|what i own|what we own)\b/i
+    ];
+
+    for (const pattern of possessionPatterns) {
+      if (pattern.test(query) && primaryCategory !== 'personal_life_interests') {
+        primaryCategory = 'personal_life_interests';
+        confidence = Math.max(confidence, 0.8);
+        reasoning += '; Personal possession override applied';
+        overrideApplied = true;
+        break;
+      }
+    }
+
+    // Work-life balance context (spans multiple categories)
+    if (query.includes('work-life balance') || query.includes('work stress')) {
+      if (semanticAnalysis.emotionalWeight > 0.5) {
+        primaryCategory = 'mental_emotional';
+        confidence = Math.max(confidence, 0.8);
+        reasoning += '; Work-life balance emotional override applied';
+        overrideApplied = true;
+      }
+    }
+
+    // Relationship + money issues (complex situations)
+    if (semanticAnalysis.entityTypes.has('family') && semanticAnalysis.entityTypes.has('money')) {
+      if (query.includes('argue') || query.includes('fight') || query.includes('conflict')) {
+        primaryCategory = 'relationships_social';
+        confidence = Math.max(confidence, 0.8);
+        reasoning += '; Relationship-money conflict override applied';
+        overrideApplied = true;
+      }
+    }
+
+    // Low confidence fallback enhancement
+    if (confidence < 0.4 && !overrideApplied) {
+      // Use semantic analysis to make a better guess
+      if (semanticAnalysis.personalContext && semanticAnalysis.emotionalWeight > 0.3) {
+        primaryCategory = 'mental_emotional';
+        confidence = 0.5;
+        reasoning += '; Low confidence personal-emotional fallback applied';
+        overrideApplied = true;
+      } else if (semanticAnalysis.entityTypes.size > 0) {
+        // Use the most prominent entity type
+        const entityCategoryMap = {
+          'health': 'health_wellness',
+          'work': 'work_career',
+          'family': 'relationships_social',
+          'money': 'money_spending_goals',
+          'home': 'personal_life_interests'
         };
         
-        return alignments[intent]?.[categoryName] || 0;
-    }
-
-    /**
-     * ENTITY ALIGNMENT BONUS
-     */
-    calculateEntityAlignmentBonus(entities, categoryName) {
-        const alignments = {
-            pets: { relationships_social: 1.0 },
-            family: { relationships_social: 1.2 },
-            vehicles: { home_lifestyle: 1.0 },
-            business: { business_career: 1.5 },
-            home: { home_lifestyle: 1.0 }
-        };
-        
-        let bonus = 0;
-        for (const entity of entities) {
-            bonus += alignments[entity]?.[categoryName] || 0;
+        for (const entity of semanticAnalysis.entityTypes) {
+          if (entityCategoryMap[entity]) {
+            primaryCategory = entityCategoryMap[entity];
+            confidence = 0.6;
+            reasoning += `; Entity-based fallback (${entity}) applied`;
+            overrideApplied = true;
+            break;
+          }
         }
-        return bonus;
+      }
     }
 
-    /**
-     * DETERMINE BEST CATEGORY with confidence
-     */
-    determineBestCategory(categoryScores, semanticAnalysis, query) {
-        const sortedCategories = Object.entries(categoryScores)
-            .sort(([,a], [,b]) => b - a);
-        
-        const [bestCategory, bestScore] = sortedCategories[0];
-        const [secondCategory, secondScore] = sortedCategories[1] || ['', 0];
-        
-        // Calculate confidence based on score separation and semantic analysis
-        let confidence = this.calculateRoutingConfidence(bestScore, secondScore, semanticAnalysis);
-        
-        return {
-            category: bestCategory,
-            confidence: confidence,
-            score: bestScore,
-            alternativeCategory: secondCategory,
-            alternativeScore: secondScore
-        };
+    // Update statistics
+    if (overrideApplied) {
+      this.routingStats.overrideApplications++;
     }
 
-    /**
-     * ROUTING CONFIDENCE CALCULATION
-     */
-    calculateRoutingConfidence(bestScore, secondScore, semanticAnalysis) {
-        // Base confidence from score
-        let confidence = Math.min(bestScore / 8.0, 0.6); // Normalize to max 0.6
-        
-        // Separation bonus (how much better is first vs second)
-        const separation = bestScore - secondScore;
-        confidence += Math.min(separation / 10.0, 0.2);
-        
-        // Semantic analysis boost
-        confidence += semanticAnalysis.confidence * 0.3;
-        
-        // Special high-confidence patterns
-        if (semanticAnalysis.hasMemoryReference && semanticAnalysis.entities.size > 0) {
-            confidence = Math.max(confidence, 0.85);
-        }
-        
-        if (semanticAnalysis.hasPossessive && semanticAnalysis.hasPersonalContext) {
-            confidence = Math.max(confidence, 0.8);
-        }
-        
-        return Math.min(Math.max(confidence, 0.2), 1.0);
+    return {
+      ...routingResult,
+      primaryCategory,
+      confidence,
+      reasoning,
+      overrideApplied,
+      semanticAnalysis: {
+        intent: semanticAnalysis.intent,
+        emotionalWeight: semanticAnalysis.emotionalWeight,
+        personalContext: semanticAnalysis.personalContext,
+        urgencyLevel: semanticAnalysis.urgencyLevel
+      }
+    };
+  }
+
+  /**
+   * UTILITY METHODS
+   */
+  generateCacheKey(query, userId) {
+    return `${query.substring(0, 100)}_${userId || 'anon'}`;
+  }
+
+  cacheResult(key, result) {
+    if (this.routingCache.size >= this.maxCacheSize) {
+      const firstKey = this.routingCache.keys().next().value;
+      this.routingCache.delete(firstKey);
     }
+    this.routingCache.set(key, result);
+  }
 
-    /**
-     * ADVANCED SUBCATEGORY ROUTING
-     */
-    async routeToAdvancedSubcategory(query, categoryName, semanticAnalysis) {
-        const patterns = this.routingPatterns[categoryName];
-        if (!patterns || !patterns.subcategoryRouting) return null;
+  createFallbackResult(reason) {
+    return {
+      primaryCategory: 'personal_life_interests',
+      confidence: 0.3,
+      alternativeCategory: null,
+      reasoning: `Fallback: ${reason}`,
+      isFallback: true
+    };
+  }
 
-        const subcategoryScores = {};
-        
-        for (const [subcategory, keywords] of Object.entries(patterns.subcategoryRouting)) {
-            let score = 0;
-            
-            // Direct keyword matching
-            for (const keyword of keywords) {
-                if (query.includes(keyword)) {
-                    score += this.getSubcategoryKeywordWeight(keyword, semanticAnalysis);
-                }
-            }
-            
-            // Semantic alignment
-            score += this.calculateSubcategorySemanticAlignment(subcategory, semanticAnalysis);
-            
-            subcategoryScores[subcategory] = score;
-        }
+  /**
+   * ANALYTICS AND PERFORMANCE TRACKING
+   */
+  updateRoutingAnalytics(result, processingTime) {
+    try {
+      this.routingStats.totalRoutes++;
+      
+      // Update category distribution
+      const category = result.primaryCategory;
+      const current = this.routingStats.categoryDistribution.get(category) || 0;
+      this.routingStats.categoryDistribution.set(category, current + 1);
+      
+      // Update confidence statistics
+      const count = this.routingStats.totalRoutes;
+      const currentAvg = this.routingStats.avgConfidence;
+      this.routingStats.avgConfidence = ((currentAvg * (count - 1)) + result.confidence) / count;
+      
+      // Update processing time
+      const currentAvgTime = this.routingStats.avgProcessingTime;
+      this.routingStats.avgProcessingTime = ((currentAvgTime * (count - 1)) + processingTime) / count;
+      
+      // Track confidence levels
+      if (result.confidence > 0.8) {
+        this.routingStats.highConfidenceRoutes++;
+      } else if (result.confidence < 0.5) {
+        this.routingStats.lowConfidenceRoutes++;
+      }
+      
+      // Update cache hit rate
+      const totalRequests = this.routingStats.cacheHits + this.routingStats.cacheMisses;
+      this.routingStats.cacheHitRate = totalRequests > 0 ? 
+        this.routingStats.cacheHits / totalRequests : 0;
 
-        const bestSubcategory = Object.keys(subcategoryScores).reduce((a, b) => 
-            subcategoryScores[a] > subcategoryScores[b] ? a : b
-        );
-
-        return subcategoryScores[bestSubcategory] > 0 
-            ? bestSubcategory 
-            : Object.keys(patterns.subcategoryRouting)[0]; // Default to first subcategory
+    } catch (error) {
+      console.warn('[ROUTING] Error updating analytics:', error);
     }
+  }
 
-    getSubcategoryKeywordWeight(keyword, semanticAnalysis) {
-        let weight = 1.0;
-        
-        if (semanticAnalysis.hasPossessive && ['pet', 'vehicle', 'belongings'].includes(keyword)) {
-            weight *= 1.8;
-        }
-        
-        if (semanticAnalysis.hasEmotionalContent && ['family', 'relationship', 'social'].includes(keyword)) {
-            weight *= 1.3;
-        }
-        
-        return weight;
-    }
+  getRoutingStats() {
+    return {
+      totalRoutes: this.routingStats.totalRoutes,
+      categoryDistribution: Object.fromEntries(this.routingStats.categoryDistribution),
+      avgConfidence: Number(this.routingStats.avgConfidence.toFixed(3)),
+      avgProcessingTime: Math.round(this.routingStats.avgProcessingTime),
+      highConfidenceRoutes: this.routingStats.highConfidenceRoutes,
+      lowConfidenceRoutes: this.routingStats.lowConfidenceRoutes,
+      overrideApplications: this.routingStats.overrideApplications,
+      cacheHitRate: Number(this.routingStats.cacheHitRate.toFixed(3)),
+      uptime: Date.now() - this.routingStats.lastReset,
+      cacheSize: this.routingCache.size
+    };
+  }
 
-    calculateSubcategorySemanticAlignment(subcategory, semanticAnalysis) {
-        const alignments = {
-            family_dynamics: semanticAnalysis.entities.has('family') || semanticAnalysis.entities.has('pets') ? 0.5 : 0,
-            personal_possessions: semanticAnalysis.hasPossessive ? 0.6 : 0,
-            business_strategy: semanticAnalysis.entities.has('business') ? 0.7 : 0
-        };
-        
-        return alignments[subcategory] || 0;
-    }
-
-    /**
-     * ADVANCED DYNAMIC CATEGORY DETECTION
-     */
-    async checkAdvancedDynamicNeeds(query, userId, semanticAnalysis) {
-        const intensityMarkers = ['crisis', 'emergency', 'urgent', 'major', 'life-changing', 'critical', 'serious'];
-        const frequencyMarkers = ['again', 'still', 'continue', 'ongoing', 'persistent', 'always', 'constantly'];
-        const transitionMarkers = ['change', 'transition', 'moving', 'starting', 'ending', 'new', 'different'];
-        
-        const hasIntensity = intensityMarkers.some(marker => query.includes(marker));
-        const hasFrequency = frequencyMarkers.some(marker => query.includes(marker));
-        const hasTransition = transitionMarkers.some(marker => query.includes(marker));
-        
-        if (hasIntensity || hasFrequency || hasTransition) {
-            return this.suggestAdvancedDynamicCategory(query, semanticAnalysis, {
-                hasIntensity, hasFrequency, hasTransition
-            });
-        }
-        
-        return null;
-    }
-
-    /**
-     * ADVANCED DYNAMIC CATEGORY SUGGESTION
-     */
-    suggestAdvancedDynamicCategory(query, semanticAnalysis, markers) {
-        const focusPatterns = {
-            health_crisis: {
-                keywords: ['hospital', 'surgery', 'diagnosis', 'treatment', 'medical emergency', 'health crisis'],
-                confidence: 0.9
-            },
-            relationship_transition: {
-                keywords: ['divorce', 'breakup', 'marriage', 'moving in', 'separation', 'relationship change'],
-                confidence: 0.8
-            },
-            career_transition: {
-                keywords: ['job search', 'career change', 'new job', 'promotion', 'layoff', 'career shift'],
-                confidence: 0.85
-            },
-            financial_crisis: {
-                keywords: ['bankruptcy', 'debt crisis', 'financial emergency', 'money problems', 'financial trouble'],
-                confidence: 0.9
-            },
-            family_situation: {
-                keywords: ['pregnancy', 'new baby', 'elderly parent', 'family crisis', 'family change'],
-                confidence: 0.8
-            },
-            major_project: {
-                keywords: ['renovation', 'move', 'startup', 'big project', 'major change', 'life project'],
-                confidence: 0.7
-            }
-        };
-
-        for (const [focus, pattern] of Object.entries(focusPatterns)) {
-            if (pattern.keywords.some(keyword => query.includes(keyword))) {
-                let confidence = pattern.confidence;
-                
-                // Boost confidence based on markers
-                if (markers.hasIntensity) confidence += 0.1;
-                if (markers.hasFrequency) confidence += 0.05;
-                if (markers.hasTransition) confidence += 0.05;
-                
-                return {
-                    suggestedFocus: focus,
-                    confidence: Math.min(confidence, 1.0),
-                    reason: `Detected ${focus.replace('_', ' ')} patterns with ${Object.keys(markers).filter(k => markers[k]).join(', ')} markers`,
-                    semanticSupport: semanticAnalysis.confidence > 0.7
-                };
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * SOPHISTICATED OVERRIDE LOGIC
-     */
-    async applySophisticatedOverrides(routingResult, subcategory, dynamicCategory, query, semanticAnalysis) {
-        let { category, confidence } = routingResult;
-        
-        // Advanced monkey/pet disambiguation
-        if (query.includes('monkey') || query.includes('monkeys')) {
-            const contextResult = await this.resolveMonkeyContext(query, semanticAnalysis);
-            if (contextResult.override) {
-                category = contextResult.category;
-                confidence = Math.max(confidence, contextResult.confidence);
-                console.log(`[ROUTING] Monkey context resolved: ${contextResult.reasoning}`);
-            }
-        }
-        
-        // Possessive content override
-        if (confidence < 0.5 && semanticAnalysis.hasPossessive && semanticAnalysis.entities.has('pets')) {
-            category = 'relationships_social';
-            subcategory = 'family_dynamics';
-            confidence = Math.max(confidence, 0.8);
-            console.log('[ROUTING] Possessive pet content override applied');
-        }
-        
-        // Vehicle possessions override
-        if (semanticAnalysis.entities.has('vehicles') && semanticAnalysis.hasPossessive) {
-            if (category !== 'home_lifestyle') {
-                category = 'home_lifestyle';
-                subcategory = 'personal_possessions';
-                confidence = Math.max(confidence, 0.75);
-                console.log('[ROUTING] Vehicle possession override applied');
-            }
-        }
-        
-        // Business context override
-        if (semanticAnalysis.entities.has('business') && !semanticAnalysis.hasPossessive) {
-            if (category !== 'business_career') {
-                category = 'business_career';
-                subcategory = 'business_strategy';
-                confidence = Math.max(confidence, 0.8);
-                console.log('[ROUTING] Business context override applied');
-            }
-        }
-        
-        return {
-            primaryCategory: category,
-            subcategory: subcategory,
-            dynamicCategory: dynamicCategory,
-            confidence: confidence,
-            reasoning: this.generateRoutingReasoning(semanticAnalysis, routingResult),
-            processingMetadata: {
-                semanticAnalysisTime: Date.now() - semanticAnalysis.processingTime,
-                overridesApplied: true,
-                version: '3.0'
-            }
-        };
-    }
-
-    /**
-     * ADVANCED MONKEY CONTEXT RESOLUTION
-     */
-    async resolveMonkeyContext(query, semanticAnalysis) {
-        // Personal pet context
-        if (semanticAnalysis.hasPossessive || 
-            query.includes('my monkey') || 
-            query.includes('pet') ||
-            query.includes('children') ||
-            query.includes('family')) {
-            return {
-                override: true,
-                category: 'relationships_social',
-                confidence: 0.9,
-                reasoning: 'Personal pet/family context detected'
-            };
-        }
-        
-        // Business brand context
-        if (query.includes('site monkeys') || 
-            query.includes('site-monkeys') ||
-            query.includes('business') ||
-            query.includes('company') ||
-            query.includes('brand')) {
-            return {
-                override: true,
-                category: 'business_career',
-                confidence: 0.85,
-                reasoning: 'Business brand context detected'
-            };
-        }
-        
-        // Ambiguous - use other context clues
-        if (semanticAnalysis.hasPersonalContext) {
-            return {
-                override: true,
-                category: 'relationships_social',
-                confidence: 0.7,
-                reasoning: 'Personal context suggests pet reference'
-            };
-        }
-        
-        return { override: false };
-    }
-
-    /**
-     * ROUTING REASONING GENERATION
-     */
-    generateRoutingReasoning(semanticAnalysis, routingResult) {
-        const reasons = [];
-        
-        reasons.push(`Intent: ${semanticAnalysis.intent}`);
-        
-        if (semanticAnalysis.hasPossessive) reasons.push('possessive content');
-        if (semanticAnalysis.hasMemoryReference) reasons.push('memory reference');
-        if (semanticAnalysis.entities.size > 0) reasons.push(`entities: ${Array.from(semanticAnalysis.entities).join(', ')}`);
-        if (semanticAnalysis.contextClues.size > 0) reasons.push(`context: ${Array.from(semanticAnalysis.contextClues).join(', ')}`);
-        
-        reasons.push(`confidence: ${routingResult.confidence.toFixed(3)}`);
-        
-        return reasons.join('; ');
-    }
-
-    /**
-     * PERFORMANCE OPTIMIZATION METHODS
-     */
-    generateRoutingCacheKey(query, userId) {
-        return `routing_${this.generateHash(query)}_${userId || 'anonymous'}`;
-    }
-
-    generateHash(str) {
-        let hash = 0;
-        for (let i = 0; i < str.length; i++) {
-            const char = str.charCodeAt(i);
-            hash = ((hash << 5) - hash) + char;
-            hash = hash & hash; // Convert to 32-bit integer
-        }
-        return Math.abs(hash).toString(36);
-    }
-
-    cacheRoutingResult(cacheKey, result) {
-        if (this.routingCache.size >= this.maxCacheSize) {
-            const firstKey = this.routingCache.keys().next().value;
-            this.routingCache.delete(firstKey);
-        }
-        this.routingCache.set(cacheKey, result);
-    }
-
-    cacheSemanticAnalysis(cacheKey, analysis) {
-        if (this.semanticCache.size >= this.maxCacheSize) {
-            const firstKey = this.semanticCache.keys().next().value;
-            this.semanticCache.delete(firstKey);
-        }
-        this.semanticCache.set(cacheKey, analysis);
-    }
-
-    /**
-     * ANALYTICS AND MONITORING
-     */
-    updateRoutingAnalytics(result, processingTime, semanticAnalysis) {
-        setTimeout(() => {
-            try {
-                this.routingStats.totalRoutings++;
-                
-                // Update timing
-                const count = this.routingStats.totalRoutings;
-                this.routingStats.avgRoutingTime = ((this.routingStats.avgRoutingTime * (count - 1)) + processingTime) / count;
-                
-                // Update category distribution
-                const category = result.primaryCategory;
-                const current = this.routingStats.categoryDistribution.get(category) || 0;
-                this.routingStats.categoryDistribution.set(category, current + 1);
-                
-                // Update confidence stats
-                const confidence = result.confidence;
-                this.routingStats.confidenceStats.min = Math.min(this.routingStats.confidenceStats.min, confidence);
-                this.routingStats.confidenceStats.max = Math.max(this.routingStats.confidenceStats.max, confidence);
-                this.routingStats.confidenceStats.sum += confidence;
-                
-            } catch (error) {
-                console.warn('[ROUTING] Error updating analytics:', error);
-            }
-        }, 0);
-    }
-
-    /**
-     * FALLBACK ROUTING SYSTEM
-     */
-    getFallbackRouting(query, reason = 'unknown') {
-        console.log(`[ROUTING] Using fallback routing, reason: ${reason}`);
-        
-        try {
-            const queryString = String(query || '').toLowerCase();
-            
-            // Smart fallback based on simple patterns
-            if (queryString.includes('my ') && (queryString.includes('pet') || queryString.includes('family') || queryString.includes('children'))) {
-                return {
-                    primaryCategory: 'relationships_social',
-                    subcategory: 'family_dynamics',
-                    confidence: 0.6,
-                    reasoning: `Fallback: detected personal/family content (${reason})`,
-                    isFallback: true
-                };
-            }
-            
-            if (queryString.includes('health') || queryString.includes('medical') || queryString.includes('doctor')) {
-                return {
-                    primaryCategory: 'health_wellness',
-                    subcategory: 'physical_health',
-                    confidence: 0.5,
-                    reasoning: `Fallback: detected health content (${reason})`,
-                    isFallback: true
-                };
-            }
-            
-            // Use fallback chain
-            const fallback = this.fallbackChain[0];
-            return {
-                primaryCategory: fallback.category,
-                subcategory: 'goal_setting',
-                confidence: fallback.confidence,
-                reasoning: `Fallback: default categorization (${reason})`,
-                isFallback: true
-            };
-            
-        } catch (error) {
-            console.error('[ROUTING] Error in fallback routing:', error);
-            return {
-                primaryCategory: 'personal_development',
-                subcategory: 'goal_setting',
-                confidence: 0.3,
-                reasoning: `Emergency fallback due to error: ${error.message}`,
-                isFallback: true
-            };
-        }
-    }
-
-    /**
-     * UTILITY METHODS
-     */
-    truncateString(str, length) {
-        if (typeof str !== 'string') return '';
-        return str.length > length ? str.substring(0, length) + '...' : str;
-    }
-
-    getFallbackCategories(primaryCategory) {
-        return this.fallbackChain
-            .filter(f => f.category !== primaryCategory)
-            .map(f => f.category);
-    }
-
-    /**
-     * ANALYTICS AND HEALTH MONITORING
-     */
-    getRoutingStats() {
-        const uptime = Date.now() - this.routingStats.lastReset;
-        const avgConfidence = this.routingStats.totalRoutings > 0 
-            ? this.routingStats.confidenceStats.sum / this.routingStats.totalRoutings 
-            : 0;
-
-        return {
-            totalRoutings: this.routingStats.totalRoutings,
-            cacheHitRate: this.routingStats.totalRoutings > 0 
-                ? (this.routingStats.cacheHits / (this.routingStats.cacheHits + this.routingStats.cacheMisses)).toFixed(3)
-                : 0,
-            avgRoutingTime: Math.round(this.routingStats.avgRoutingTime),
-            categoryDistribution: Object.fromEntries(this.routingStats.categoryDistribution),
-            confidenceStats: {
-                min: this.routingStats.confidenceStats.min,
-                max: this.routingStats.confidenceStats.max,
-                avg: Number(avgConfidence.toFixed(3))
-            },
-            cacheStats: {
-                routingCacheSize: this.routingCache.size,
-                semanticCacheSize: this.semanticCache.size,
-                patternCacheSize: this.patternCache.size
-            },
-            uptime: uptime,
-            routingsPerMinute: uptime > 0 ? Number((this.routingStats.totalRoutings / (uptime / 60000)).toFixed(2)) : 0
-        };
-    }
-
-    getHealthStatus() {
-        const totalCacheSize = this.routingCache.size + this.semanticCache.size + this.patternCache.size;
-        const maxTotalCache = this.maxCacheSize * 3;
-        const memoryPressure = totalCacheSize / maxTotalCache;
-        
-        return {
-            status: memoryPressure < 0.7 ? 'healthy' : memoryPressure < 0.9 ? 'warning' : 'critical',
-            memoryPressure: Number(memoryPressure.toFixed(2)),
-            cacheUtilization: {
-                routing: Number((this.routingCache.size / this.maxCacheSize).toFixed(2)),
-                semantic: Number((this.semanticCache.size / this.maxCacheSize).toFixed(2)),
-                pattern: Number((this.patternCache.size / this.maxCacheSize).toFixed(2))
-            },
-            performance: {
-                avgRoutingTime: Math.round(this.routingStats.avgRoutingTime),
-                cacheHitRate: this.routingStats.totalRoutings > 0 
-                    ? Number((this.routingStats.cacheHits / (this.routingStats.cacheHits + this.routingStats.cacheMisses)).toFixed(3))
-                    : 0
-            },
-            lastCheck: new Date().toISOString()
-        };
-    }
-
-    /**
-     * CLEANUP AND MEMORY MANAGEMENT
-     */
-    cleanup() {
-        console.log('[ROUTING] Starting cleanup process...');
-        
-        this.routingCache.clear();
-        this.semanticCache.clear();
-        this.patternCache.clear();
-        
-        // Reset stats but keep core metrics
-        const coreStats = {
-            totalRoutings: this.routingStats.totalRoutings,
-            avgRoutingTime: this.routingStats.avgRoutingTime,
-            categoryDistribution: this.routingStats.categoryDistribution
-        };
-        
-        this.routingStats = {
-            ...coreStats,
-            cacheHits: 0,
-            cacheMisses: 0,
-            confidenceStats: { min: 1, max: 0, sum: 0 },
-            lastReset: Date.now()
-        };
-        
-        console.log('[ROUTING] Cleanup completed - all caches cleared, core stats preserved');
-    }
+  cleanup() {
+    this.routingCache.clear();
+    console.log('[ROUTING] Cache cleared');
+  }
 }
 
-export default RoutingIntelligence;
+export { RoutingIntelligence };
