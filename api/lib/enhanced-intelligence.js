@@ -48,8 +48,8 @@ export class EnhancedIntelligence {
       enhancement.intelligenceApplied.push('cross_domain');
     }
 
-    // 3. SCENARIO MODELING (Business Validation Mode)
-    if (mode === 'business_validation' || mode === 'site_monkeys') {
+    // 3. SCENARIO MODELING (All Modes)
+    if (mode === 'business_validation' || mode === 'site_monkeys' || mode === 'truth_general') {
       console.log('📊 Building scenario analysis');
       enhancement.scenarioAnalysis = await this.modelBusinessScenarios(query, vaultContext, memoryContext);
       enhancement.intelligenceApplied.push('scenarios');
@@ -434,13 +434,16 @@ export class EnhancedIntelligence {
   // ================================================================
 
   requiresReasoning(query, mode) {
-    return query.includes('why') || query.includes('how') || query.includes('because') ||
-           mode === 'business_validation' || query.length > 100;
+    return query.length > 50 ||
+           /\b(why|how|what|when|where|should|could|would|analyze|compare|evaluate|assess)\b/i.test(query) ||
+           mode === 'business_validation' || mode === 'site_monkeys' || mode === 'truth_general' ||
+           /\b(problem|issue|decision|choice|option|strategy|invest|business|work|stress)\b/i.test(query);
   }
 
   requiresCrossDomainAnalysis(query, memoryContext) {
-    return memoryContext && Object.keys(memoryContext).length > 1 || 
-           query.includes('impact') || query.includes('affect');
+    return (memoryContext && Array.isArray(memoryContext) && memoryContext.length > 0) ||
+           /\b(impact|affect|influence|relationship|connect|balance|integrate)\b/i.test(query) ||
+           /\b(work|business|health|personal|financial|social|stress|pivot|marketing)\b/i.test(query);
   }
 
   calculateIntelligenceConfidence(enhancement, baseConfidence) {
