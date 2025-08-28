@@ -919,26 +919,6 @@ const fullPrompt = enhancedPrompt;
     // ENHANCED API CALL
     const apiResponse = await makeIntelligentAPICall(fullPrompt, personality, prideMotivation);
 
-// *** ENHANCED INTELLIGENCE INTEGRATION ***
-console.log('🔍 DEBUG: About to apply enhanced intelligence in server.js');
-let finalResponse = apiResponse.response; // Default to original response
-
-try {
-  const enhancedIntelligence = new EnhancedIntelligence();
-  
-  const intelligenceEnhancement = await enhancedIntelligence.enhanceResponse(
-    apiResponse.response,
-    message,
-    mode,
-    memoryContext,
-    vaultContent,
-    0.8
-  );
-  
-  if (intelligenceEnhancement.enhancedResponse !== apiResponse.response) {
-    console.log('🎯 Intelligence enhancements applied:', intelligenceEnhancement.intelligenceApplied.join(', '));
-    finalResponse = intelligenceEnhancement.enhancedResponse; // Use enhanced version
-  }
 } catch (error) {
   console.error('🚨 Enhanced Intelligence ERROR:', error);
   // finalResponse stays as apiResponse.response - no degradation
@@ -946,7 +926,7 @@ try {
 
     // *** ADD ENHANCED INTELLIGENCE HERE ***
     console.log('🔍 DEBUG: About to apply enhanced intelligence in server.js');
-    let enhancedResponse = apiResponse.response;
+    let enhancedResponse = finalResponse; // Use finalResponse from Enhanced Intelligence
     
     try {
       // Import at top of server.js: import { EnhancedIntelligence } from './enhanced-intelligence.js';
