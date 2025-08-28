@@ -6,7 +6,6 @@ import express from 'express';
 import cors from 'cors';
 const app = express();
 import { exec } from 'child_process';
-import { EnhancedIntelligence } from './enhanced-intelligence.js';
 import persistentMemory from './memory_system/persistent_memory.js';
 
 // ===== APPLICATION STARTUP MEMORY INITIALIZATION =====
