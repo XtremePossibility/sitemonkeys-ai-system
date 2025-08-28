@@ -1224,6 +1224,392 @@ class IntelligenceSystem {
   }
 
   // ================================================================
+  // INTELLIGENCE-ENHANCED MEMORY EXTRACTION
+  // ================================================================
+
+  async extractIntelligentMemory(query, userId, intelligenceContext = null) {
+    console.log('🧠 INTELLIGENT MEMORY: Enhanced extraction with reasoning context');
+    
+    try {
+      // Standard memory extraction first
+      const baseExtraction = await this.extractRelevantMemories(userId, query, { primaryCategory: 'personal_life_interests' });
+      
+      // Enhance with intelligence context if available
+      const enhancedExtraction = {
+        memories: baseExtraction,
+        intelligenceEnhanced: true,
+        reasoningSupport: [],
+        crossDomainConnections: [],
+        scenarioRelevantMemories: [],
+        quantitativeContext: []
+      };
+
+      if (baseExtraction && baseExtraction.length > 0) {
+        // Add reasoning support analysis
+        enhancedExtraction.reasoningSupport = this.identifyReasoningSupportMemories(
+          baseExtraction, query
+        );
+
+        // Find cross-domain memory connections
+        enhancedExtraction.crossDomainConnections = await this.findCrossDomainMemoryConnections(
+          baseExtraction, 'personal_life_interests'
+        );
+
+        // Extract scenario-relevant historical context
+        enhancedExtraction.scenarioRelevantMemories = this.extractScenarioRelevantMemories(
+          baseExtraction, query
+        );
+
+        // Identify quantitative/numerical context from memory
+        enhancedExtraction.quantitativeContext = this.extractQuantitativeMemoryContext(
+          baseExtraction
+        );
+      }
+
+      // Intelligence-enhanced memory scoring
+      if (intelligenceContext) {
+        enhancedExtraction.memories = this.applyIntelligenceAwareScoring(
+          enhancedExtraction.memories, intelligenceContext
+        );
+      }
+
+      console.log(`🎯 Intelligent memory extraction complete. Enhanced features: ${Object.keys(enhancedExtraction).filter(k => enhancedExtraction[k] && enhancedExtraction[k].length > 0).join(', ')}`);
+
+      return enhancedExtraction;
+
+    } catch (error) {
+      this.logger.error('Intelligent memory extraction error:', error);
+      // Fallback to standard extraction
+      return await this.extractRelevantMemories(userId, query, { primaryCategory: 'personal_life_interests' });
+    }
+  }
+
+  // ================================================================
+  // REASONING SUPPORT IDENTIFICATION
+  // ================================================================
+
+  identifyReasoningSupportMemories(memories, query) {
+    const reasoningSupport = [];
+    
+    for (const memory of memories) {
+      const support = {
+        memory_id: memory.id,
+        content: memory.content,
+        supportType: 'general',
+        relevanceToReasoning: 0.5
+      };
+
+      // Identify premise support
+      if (this.supportsPremise(memory.content, query)) {
+        support.supportType = 'premise';
+        support.relevanceToReasoning = 0.8;
+      }
+      // Identify evidence support  
+      else if (this.providesEvidence(memory.content, query)) {
+        support.supportType = 'evidence';
+        support.relevanceToReasoning = 0.9;
+      }
+      // Identify counterexample support
+      else if (this.providesCounterexample(memory.content, query)) {
+        support.supportType = 'counterexample';
+        support.relevanceToReasoning = 0.7;
+      }
+      // Identify pattern support
+      else if (this.establishesPattern(memory.content, query)) {
+        support.supportType = 'pattern';
+        support.relevanceToReasoning = 0.6;
+      }
+
+      if (support.relevanceToReasoning > 0.5) {
+        reasoningSupport.push(support);
+      }
+    }
+
+    return reasoningSupport.sort((a, b) => b.relevanceToReasoning - a.relevanceToReasoning);
+  }
+
+  // ================================================================
+  // CROSS-DOMAIN MEMORY CONNECTIONS
+  // ================================================================
+
+  async findCrossDomainMemoryConnections(memories, primaryCategory) {
+    const connections = [];
+    const categoryMemoryMap = new Map();
+
+    // Group memories by category
+    for (const memory of memories) {
+      if (!categoryMemoryMap.has(memory.category_name)) {
+        categoryMemoryMap.set(memory.category_name, []);
+      }
+      categoryMemoryMap.get(memory.category_name).push(memory);
+    }
+
+    // Find meaningful cross-category connections
+    const categories = Array.from(categoryMemoryMap.keys());
+    for (let i = 0; i < categories.length; i++) {
+      for (let j = i + 1; j < categories.length; j++) {
+        const connection = this.analyzeCategoryConnection(
+          categories[i], categories[j], 
+          categoryMemoryMap.get(categories[i]), 
+          categoryMemoryMap.get(categories[j])
+        );
+        
+        if (connection.strength > 0.6) {
+          connections.push(connection);
+        }
+      }
+    }
+
+    return connections;
+  }
+
+  analyzeCategoryConnection(category1, category2, memories1, memories2) {
+    const connectionPatterns = {
+      'work_career-money_income_debt': { strength: 0.9, relationship: 'Career decisions directly impact financial stability' },
+      'health_wellness-work_career': { strength: 0.8, relationship: 'Health affects work performance and career decisions' },
+      'relationships_social-mental_emotional': { strength: 0.9, relationship: 'Social relationships strongly influence emotional wellbeing' },
+      'business-legal': { strength: 0.8, relationship: 'Business decisions require legal compliance consideration' },
+      'personal_life_interests-goals_active_current': { strength: 0.7, relationship: 'Personal interests influence goal setting and priorities' }
+    };
+
+    const key1 = `${category1}-${category2}`;
+    const key2 = `${category2}-${category1}`;
+    const pattern = connectionPatterns[key1] || connectionPatterns[key2];
+
+    if (pattern) {
+      return {
+        from: category1,
+        to: category2,
+        strength: pattern.strength,
+        relationship: pattern.relationship,
+        supportingMemories: {
+          category1: memories1.slice(0, 2),
+          category2: memories2.slice(0, 2)
+        }
+      };
+    }
+
+    // Default weak connection
+    return {
+      from: category1,
+      to: category2,
+      strength: 0.4,
+      relationship: 'Potential indirect relationship exists',
+      supportingMemories: {}
+    };
+  }
+
+  // ================================================================
+  // SCENARIO-RELEVANT MEMORY EXTRACTION
+  // ================================================================
+
+  extractScenarioRelevantMemories(memories, query) {
+    const scenarioMemories = {
+      successPatterns: [],
+      failurePatterns: [],
+      riskFactors: [],
+      decisionOutcomes: []
+    };
+
+    for (const memory of memories) {
+      const content = memory.content.toLowerCase();
+      
+      // Success patterns
+      if (content.includes('success') || content.includes('worked') || content.includes('achieved')) {
+        scenarioMemories.successPatterns.push({
+          memory_id: memory.id,
+          content: memory.content,
+          relevance: 0.8
+        });
+      }
+      
+      // Failure patterns
+      if (content.includes('failed') || content.includes('mistake') || content.includes('wrong')) {
+        scenarioMemories.failurePatterns.push({
+          memory_id: memory.id,
+          content: memory.content,
+          relevance: 0.9 // Failures are highly relevant for risk assessment
+        });
+      }
+      
+      // Risk factors
+      if (content.includes('risk') || content.includes('problem') || content.includes('issue')) {
+        scenarioMemories.riskFactors.push({
+          memory_id: memory.id,
+          content: memory.content,
+          relevance: 0.85
+        });
+      }
+      
+      // Decision outcomes
+      if (content.includes('decided') || content.includes('chose') || content.includes('resulted')) {
+        scenarioMemories.decisionOutcomes.push({
+          memory_id: memory.id,
+          content: memory.content,
+          relevance: 0.7
+        });
+      }
+    }
+
+    return scenarioMemories;
+  }
+
+  // ================================================================
+  // QUANTITATIVE MEMORY CONTEXT
+  // ================================================================
+
+  extractQuantitativeMemoryContext(memories) {
+    const quantitativeContext = [];
+    
+    for (const memory of memories) {
+      const numbers = this.extractNumbersFromMemory(memory.content);
+      if (numbers.length > 0) {
+        quantitativeContext.push({
+          memory_id: memory.id,
+          content: memory.content,
+          numbers: numbers,
+          context: this.categorizeNumbers(numbers, memory.content),
+          relevance: 0.8
+        });
+      }
+    }
+
+    return quantitativeContext;
+  }
+
+  extractNumbersFromMemory(text) {
+    const numberPattern = /\$?[\d,]+\.?\d*%?/g;
+    const matches = text.match(numberPattern) || [];
+    return matches.map(match => ({
+      raw: match,
+      value: parseFloat(match.replace(/[$,%]/g, '')),
+      type: this.classifyNumber(match)
+    }));
+  }
+
+  classifyNumber(numberString) {
+    if (numberString.includes('$')) return 'currency';
+    if (numberString.includes('%')) return 'percentage';
+    if (parseFloat(numberString) > 1900 && parseFloat(numberString) < 2100) return 'year';
+    return 'general';
+  }
+
+  categorizeNumbers(numbers, context) {
+    const contextLower = context.toLowerCase();
+    
+    if (contextLower.includes('revenue') || contextLower.includes('income') || contextLower.includes('profit')) {
+      return 'financial';
+    }
+    if (contextLower.includes('time') || contextLower.includes('hour') || contextLower.includes('day')) {
+      return 'temporal';
+    }
+    if (contextLower.includes('goal') || contextLower.includes('target')) {
+      return 'target';
+    }
+    
+    return 'general';
+  }
+
+  // ================================================================
+  // INTELLIGENCE-AWARE SCORING
+  // ================================================================
+
+  applyIntelligenceAwareScoring(memories, intelligenceContext) {
+    if (!memories || !intelligenceContext) return memories;
+
+    return memories.map(memory => {
+      let enhancedScore = memory.relevance_score || 0.5;
+      
+      // Boost for reasoning support
+      if (intelligenceContext.requiresReasoning && this.supportsReasoning(memory.content)) {
+        enhancedScore += 0.2;
+      }
+      
+      // Boost for cross-domain relevance
+      if (intelligenceContext.crossDomainAnalysis && this.supportsCrossDomain(memory.content)) {
+        enhancedScore += 0.15;
+      }
+      
+      // Boost for scenario planning
+      if (intelligenceContext.scenarioAnalysis && this.supportsScenarios(memory.content)) {
+        enhancedScore += 0.1;
+      }
+      
+      // Boost for quantitative context
+      if (intelligenceContext.quantitativeAnalysis && this.containsNumbers(memory.content)) {
+        enhancedScore += 0.1;
+      }
+
+      return {
+        ...memory,
+        relevance_score: Math.min(enhancedScore, 1.0),
+        intelligence_enhanced: true
+      };
+    });
+  }
+
+  // ================================================================
+  // HELPER FUNCTIONS FOR INTELLIGENCE INTEGRATION
+  // ================================================================
+
+  supportsPremise(content, query) {
+    // Simple heuristic - looks for supporting statements
+    return content.toLowerCase().includes('because') || 
+           content.toLowerCase().includes('since') ||
+           this.hasSharedKeywords(content, query);
+  }
+
+  providesEvidence(content, query) {
+    return content.toLowerCase().includes('data') ||
+           content.toLowerCase().includes('evidence') ||
+           content.toLowerCase().includes('example') ||
+           this.containsNumbers(content);
+  }
+
+  providesCounterexample(content, query) {
+    return content.toLowerCase().includes('however') ||
+           content.toLowerCase().includes('but') ||
+           content.toLowerCase().includes('except');
+  }
+
+  establishesPattern(content, query) {
+    return content.toLowerCase().includes('always') ||
+           content.toLowerCase().includes('usually') ||
+           content.toLowerCase().includes('pattern') ||
+           content.toLowerCase().includes('tend');
+  }
+
+  supportsReasoning(content) {
+    return content.includes('because') || content.includes('therefore') || 
+           content.includes('logic') || content.includes('reason');
+  }
+
+  supportsCrossDomain(content) {
+    const domains = ['business', 'personal', 'health', 'financial', 'legal', 'technical'];
+    let domainCount = 0;
+    for (const domain of domains) {
+      if (content.toLowerCase().includes(domain)) domainCount++;
+    }
+    return domainCount >= 2;
+  }
+
+  supportsScenarios(content) {
+    return content.includes('outcome') || content.includes('result') || 
+           content.includes('consequence') || content.includes('impact');
+  }
+
+  containsNumbers(content) {
+    return /\d/.test(content);
+  }
+
+  hasSharedKeywords(content, query) {
+    const contentWords = content.toLowerCase().split(/\s+/);
+    const queryWords = query.toLowerCase().split(/\s+/);
+    const sharedWords = contentWords.filter(word => queryWords.includes(word) && word.length > 3);
+    return sharedWords.length >= 2;
+  }
+
+  // ================================================================
   // UTILITY METHODS
   // ================================================================
 
