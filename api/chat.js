@@ -236,17 +236,53 @@ Would you like to proceed?`,
       });
     }
 
-    // *** MEMORY RETRIEVAL - CRITICAL FIX ***
-    let memoryContext = null;
-    try {
-      // Import memory system (this should already be available via server.js bootstrap)
-      if (global.memorySystem) {
-        memoryContext = await global.memorySystem.retrieveMemory(user_id, message);
-        console.log('[MEMORY] Retrieved context:', memoryContext?.contextFound ? 'SUCCESS' : 'NO_MATCH');
-      }
-    } catch (memoryError) {
-      console.error('[MEMORY] Retrieval failed:', memoryError);
+    // *** ENHANCED MEMORY RETRIEVAL WITH INTELLIGENCE ***
+let memoryContext = null;
+try {
+  console.log('[MEMORY] Starting intelligent memory retrieval');
+  
+  if (global.memorySystem) {
+    // Determine if intelligent memory extraction is available
+    if (global.memorySystem.extractIntelligentMemory) {
+      console.log('[MEMORY] Using intelligent memory extraction');
+      
+      // Build intelligence context for memory enhancement
+      const intelligenceContext = {
+        requiresReasoning: message.includes('why') || message.includes('how') || message.includes('because'),
+        crossDomainAnalysis: message.includes('impact') || message.includes('affect') || mode === 'business_validation',
+        scenarioAnalysis: mode === 'business_validation' || mode === 'site_monkeys',
+        quantitativeAnalysis: /\d/.test(message)
+      };
+      
+      memoryContext = await global.memorySystem.extractIntelligentMemory(
+        message, user_id, intelligenceContext
+      );
+      
+      console.log('[MEMORY] Intelligent extraction complete:', {
+        found: memoryContext?.contextFound || false,
+        memories: memoryContext?.memories?.length || 0,
+        reasoning_support: memoryContext?.reasoningSupport?.length || 0,
+        cross_domain: memoryContext?.crossDomainConnections?.length || 0,
+        enhanced: memoryContext?.intelligenceEnhanced || false
+      });
+      
+    } else {
+      // Fallback to standard memory retrieval
+      console.log('[MEMORY] Using standard memory retrieval');
+      memoryContext = await global.memorySystem.retrieveMemory(user_id, message);
+      
+      console.log('[MEMORY] Standard retrieval complete:', {
+        found: memoryContext?.contextFound || false,
+        memories: memoryContext?.memories?.length || 0
+      });
     }
+  } else {
+    console.log('[MEMORY] Memory system not available');
+  }
+} catch (memoryError) {
+  console.error('[MEMORY] Memory retrieval error:', memoryError);
+  memoryContext = null; // Continue without memory context
+}
 
     // *** MASTER SYSTEM PROMPT CONSTRUCTION ***
     const masterPrompt = buildMasterPrompt(mode, optimalPersonality, vaultContent, vaultHealthy, expertDomain, careNeeds, protectiveAlerts, solutionOpportunities);
@@ -376,7 +412,22 @@ Would you like to proceed?`,
       system_intelligence: getSystemIntelligenceStatus(intelligence),
       intelligence_status: intelligence,
       system_intelligence_active: intelligence.vaultIntelligenceActive,
-      session_data: sessionData
+      session_data: {
+  ...sessionData,
+  intelligence_capabilities: {
+    reasoning_engine: true,
+    cross_domain_synthesis: true,
+    scenario_modeling: mode === 'business_validation' || mode === 'site_monkeys',
+    quantitative_analysis: true,
+    enhanced_memory: memoryContext?.intelligenceEnhanced || false
+  },
+  memory_intelligence: memoryContext?.intelligenceEnhanced ? {
+    reasoning_support_memories: memoryContext.reasoningSupport?.length || 0,
+    cross_domain_connections: memoryContext.crossDomainConnections?.length || 0,
+    scenario_relevant_memories: Object.values(memoryContext.scenarioRelevantMemories || {}).reduce((sum, arr) => sum + arr.length, 0),
+    quantitative_context_memories: memoryContext.quantitativeContext?.length || 0
+  } : null
+}
     });
 
   } catch (error) {
