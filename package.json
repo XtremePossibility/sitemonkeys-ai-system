@@ -19,7 +19,9 @@
   },
   "scripts": {
     "fix-database": "node fix_database.js",
-    "start": "node --trace-warnings server.js"
+    "start": "node --trace-warnings server.js",
+    "test-intelligence": "node test-intelligence-system.js",
+    "validate-deployment": "node deploy-intelligence-upgrade.js"
   },
   "engines": {
     "node": ">=14.0.0"
