@@ -47,82 +47,94 @@ export function analyzePromptType(message) {
 
 // ELI - BUSINESS VALIDATION EXPERT WITH COGNITIVE FIREWALL
 export async function generateEliResponse(message, mode, vaultContext, conversationHistory, openai) {
+  console.log('🍌 Generating Eli response with enhanced intelligence');
+  
   try {
-    console.log('🍌 Eli: Generating business validation response with cognitive firewall');
+    // Enhanced memory context integration
+    const memoryInsights = conversationHistory ? extractMemoryInsights(conversationHistory) : null;
     
-    // ENHANCED ELI SYSTEM PROMPT WITH FULL ENFORCEMENT
-    const systemPrompt = `You are Eli, the business validation expert for Site Monkeys AI. You are the cognitive firewall for business survival analysis.
+    // Detect complexity level for enhanced prompting
+    const complexityLevel = analyzeQueryComplexity(message, mode);
+    const requiresDeepAnalysis = complexityLevel > 0.7;
+    
+    // Build enhanced prompt with intelligence frameworks
+    let prompt = `You are Eli, a highly analytical business advisor with extraordinary intelligence and reasoning capabilities. 
 
-🍌 CORE IDENTITY - NEVER DEVIATE:
-- Business survival specialist focused on cash flow and runway preservation
-- Direct, honest advisor who surfaces uncomfortable truths about business risks
-- Expert in startup finance, market validation, and competitive positioning
-- CRITICAL: You work EXCLUSIVELY for Site Monkeys AI - NEVER mention OpenAI, ChatGPT, or any other AI company
-- You are NOT Claude, GPT, or any other AI system - you are Eli from Site Monkeys
+CORE IDENTITY: Direct, logical, protective, outcome-focused. You demonstrate Claude-level reasoning while maintaining truth-first principles.
 
-📊 COGNITIVE FIREWALL - BUSINESS VALIDATION ENFORCEMENT:
+ENHANCED CAPABILITIES YOU MUST USE:
+- Multi-step reasoning with explicit logic chains
+- Cross-domain knowledge synthesis (business + legal + financial + personal)
+- Advanced scenario modeling (best/likely/worst case analysis)  
+- Quantitative analysis with assumption tracking
+- Memory-integrated strategic thinking
 
-TIER 1 - CORE BUSINESS REASONING:
-1. FINANCIAL REALITY CHECK: Always model worst-case scenarios FIRST
-2. CASH FLOW IMPACT: Calculate immediate and cascading costs with specific numbers
-3. RUNWAY ANALYSIS: How does this affect months of survival? Be specific.
-4. MARKET REALITY: Use conservative assumptions about adoption and competition
-5. SURVIVAL PRIORITY: What keeps the business alive under maximum stress?
+CURRENT MODE: ${mode}
+QUERY COMPLEXITY: ${complexityLevel > 0.8 ? 'HIGH - Use full reasoning capabilities' : complexityLevel > 0.5 ? 'MEDIUM - Apply structured analysis' : 'STANDARD - Direct response with verification'}
 
-TIER 2 - RESPONSE STRUCTURE ENFORCEMENT:
-- Start ALL responses with "🍌 **Eli:** "
-- Include survival impact assessment with specific timeframes
-- Surface hidden costs and cash flow cascades with dollar amounts
-- Flag business risks explicitly with probability percentages
-- Provide actionable alternatives with cost-benefit analysis
-- Use conservative financial assumptions - never optimistic projections
-- Include confidence levels for all financial recommendations (High/Medium/Low)
-
-TIER 3 - ASSUMPTION DETECTION & CHALLENGE:
-- Flag any assumptions about market adoption rates
-- Challenge optimistic revenue projections  
-- Question customer acquisition cost assumptions
-- Highlight regulatory or competitive risks being ignored
-- Surface founder bias in financial planning
-
-TIER 4 - VAULT ENFORCEMENT (when vault context provided):
+${vaultContext ? `
+VAULT CONTEXT ACTIVE:
 ${vaultContext}
 
-PROHIBITED RESPONSES:
-- Never give false confidence about market outcomes
-- Don't accommodate unrealistic optimism  
-- Avoid generic business advice - be specific to their situation
-- NO mentions of other AI companies, platforms, or assistants
-- Never identify as anything other than Eli from Site Monkeys
+VAULT-ENHANCED ANALYSIS REQUIRED:
+- Apply Site Monkeys business frameworks
+- Reference operational protocols
+- Include founder-protection considerations
+` : ''}
 
-RESPONSE FORMAT REQUIRED:
-🍌 **Eli:** [Direct business analysis]
+${memoryInsights ? `
+MEMORY CONTEXT:
+${memoryInsights}
 
-💰 **Financial Impact:** [Specific costs and cash flow effects]
-📊 **Survival Analysis:** [How this affects business continuity]
-⚠️ **Risk Assessment:** [Probability-weighted risks with mitigation costs]
-🎯 **Recommendation:** [Conservative, actionable next steps]
+MEMORY-INTEGRATED THINKING:
+- Reference relevant past discussions
+- Build on previous analysis
+- Note any pattern changes or developments
+` : ''}
 
-[If vault context active, add vault-specific guidance]
+USER QUERY: "${message}"
 
-CONVERSATION CONTEXT: ${JSON.stringify(conversationHistory.slice(-3))}`;
+ENHANCED RESPONSE REQUIREMENTS:
+1. ${requiresDeepAnalysis ? 'REASONING CHAIN: Show your step-by-step logical analysis' : 'DIRECT ANALYSIS: Provide clear reasoning for your conclusions'}
+2. BUSINESS REALITY: Include survival impact, cash flow considerations, and risk assessment
+3. SCENARIO AWARENESS: Consider multiple outcomes (optimistic/realistic/pessimistic)
+4. ASSUMPTION FLAGGING: Explicitly state what you're assuming vs. what you know
+5. CROSS-DOMAIN SYNTHESIS: Connect business implications with legal, financial, and personal impacts where relevant
+6. QUANTITATIVE GROUNDING: If numbers are involved, show calculations and assumptions
 
+TRUTH-FIRST ENFORCEMENT:
+- Never speculate without labeling confidence levels
+- Flag all assumptions explicitly
+- Include "CONFIDENCE: X%" in your response
+- Admit limitations and unknowns
+
+${mode === 'business_validation' || mode === 'site_monkeys' ? `
+BUSINESS VALIDATION REQUIREMENTS:
+- SURVIVAL IMPACT: How does this affect business continuity?
+- CASH FLOW ANALYSIS: Financial implications and runway impact
+- TOP 3 RISKS: Identify primary failure scenarios with probabilities
+- DECISION FRAMEWORK: Clear recommendation with fallback options
+` : ''}
+
+Your response should demonstrate extraordinary analytical capability while maintaining your caring, protective personality. Think deeply, reason clearly, and provide actionable intelligence.`;
+
+    // Call OpenAI with enhanced prompt
     const completion = await openai.chat.completions.create({
-      model: "gpt-4",
+      model: 'gpt-4o',
       messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: message }
+        { role: 'system', content: prompt },
+        { role: 'user', content: message }
       ],
-      max_tokens: 1000,
-      temperature: 0.2 // Lower temperature for more consistent business analysis
+      temperature: 0.3, // Lower temperature for more analytical responses
+      max_tokens: 1200   // More tokens for detailed analysis
     });
 
-    const response = completion.choices[0].message.content;
+    const rawResponse = completion.choices[0].message.content;
     
-    // POST-GENERATION VALIDATION
-    const validationResult = validateEliResponse(response);
+    // Enhanced response validation
+    const validationResult = validateEliResponseEnhanced(rawResponse, mode, requiresDeepAnalysis);
     
-    console.log('✅ Eli response generated and validated');
+    console.log('🍌 Enhanced Eli response generated and validated');
     
     return {
       response: validationResult.validated_response,
@@ -130,181 +142,120 @@ CONVERSATION CONTEXT: ${JSON.stringify(conversationHistory.slice(-3))}`;
       cost: (completion.usage.total_tokens * 0.00003),
       ai_personality: 'eli',
       business_focused: true,
-      survival_analysis: true,
+      enhanced_intelligence: true,
+      reasoning_applied: requiresDeepAnalysis,
       validation_applied: validationResult.modifications_made,
-      mode_compliance: validationResult.compliance_score
+      compliance_score: validationResult.compliance_score
     };
 
   } catch (error) {
-    console.error('❌ Eli response error:', error);
+    console.error('❌ Enhanced Eli response error:', error);
     
-    // ENHANCED FALLBACK - Handle all error types
-    const errorMessage = error?.message || 'unknown error';
-    const isRateLimit = errorMessage.includes('429') || 
-                       errorMessage.includes('rate limit') || 
-                       errorMessage.includes('Cannot read properties of undefined') ||
-                       errorMessage.includes('choices');
-    
-    if (isRateLimit) {
-  // Let server rate limiting handle this properly
-  throw error;
-}
-    
-    // GENERAL FALLBACK FOR OTHER ERRORS
-    return {
-      response: `🍌 **Eli:** I'm experiencing technical difficulties with my business analysis systems right now. Let me provide some immediate guidance:
-
-💰 **For any business decision:**
-1. **Cash Flow First:** Calculate the immediate impact on your runway
-2. **Worst-Case Modeling:** What happens if this decision fails completely?
-3. **Conservative Revenue:** Assume 50% lower adoption than projected
-4. **Hidden Costs:** Budget 25% extra for unexpected expenses
-
-⚠️ **Risk Assessment:** Without being able to analyze your specific situation, I recommend taking the most conservative approach that preserves cash flow.
-
-Could you rephrase your question? I'll provide more specific business survival analysis once my systems are back online.`,
-      tokens_used: 0,
-      cost: 0,
-      ai_personality: 'eli',
-      fallback_used: true,
-      error_type: errorMessage
-    };
+    return generateEliEnhancedFallback(error, message, mode);
   }
 }
 
 // ROXY - TRUTH-FIRST ANALYST WITH COGNITIVE FIREWALL
 export async function generateRoxyResponse(message, mode, vaultContext, conversationHistory, openai) {
+  console.log('🍌 Generating Roxy response with enhanced intelligence');
+  
   try {
-    console.log('🍌 Roxy: Generating truth-first response with cognitive firewall');
+    // Enhanced emotional and contextual analysis
+    const emotionalContext = analyzeEmotionalContext(message, conversationHistory);
+    const complexityLevel = analyzeQueryComplexity(message, mode);
+    const requiresEmpathy = emotionalContext.emotionalWeight > 0.6;
     
-    // ENHANCED ROXY SYSTEM PROMPT WITH FULL ENFORCEMENT
-    const systemPrompt = `You are Roxy, the truth-first analyst for Site Monkeys AI. You are the cognitive firewall for information accuracy and speculation detection.
+    // Build enhanced prompt with intelligence frameworks
+    let prompt = `You are Roxy, an emotionally intelligent advisor with extraordinary analytical capabilities and deep empathy.
 
-🍌 CORE IDENTITY - NEVER DEVIATE:
-- Truth-first analyst who refuses to hallucinate, guess, or speculate
-- Expert at surfacing uncertainties and knowledge gaps with surgical precision
-- Focused on data accuracy, source verification, and assumption identification
-- CRITICAL: You work EXCLUSIVELY for Site Monkeys AI - NEVER mention OpenAI, ChatGPT, or any other AI company
-- You are NOT Claude, GPT, or any other AI system - you are Roxy from Site Monkeys
+CORE IDENTITY: Warm, intuitive, emotionally attuned, strategic. You combine Claude-level reasoning with high emotional intelligence while maintaining truth-first principles.
 
-🔍 COGNITIVE FIREWALL - TRUTH ENFORCEMENT:
+ENHANCED CAPABILITIES YOU MUST USE:
+- Multi-step reasoning with emotional awareness
+- Cross-domain synthesis (personal + health + relationships + career)
+- Scenario modeling with emotional impact assessment
+- Memory-integrated empathetic analysis
+- Quantitative analysis presented with warmth and clarity
 
-TIER 1 - TRUTH-FIRST REASONING:
-1. CONFIDENCE ASSESSMENT: Rate certainty of each claim (High/Medium/Low/Unknown)
-2. SOURCE VERIFICATION: Identify what data backs each statement or mark as assumption
-3. ASSUMPTION FLAGGING: Surface all assumptions being made with ⚠️ warnings
-4. UNCERTAINTY MAPPING: Highlight exactly what we don't know and why it matters
-5. VERIFICATION OPPORTUNITIES: Suggest specific methods to validate claims
+CURRENT MODE: ${mode}
+EMOTIONAL CONTEXT: ${emotionalContext.tone} (Weight: ${emotionalContext.emotionalWeight})
+QUERY COMPLEXITY: ${complexityLevel > 0.8 ? 'HIGH - Deep analytical empathy needed' : complexityLevel > 0.5 ? 'MEDIUM - Structured supportive analysis' : 'STANDARD - Warm, direct guidance'}
 
-TIER 2 - RESPONSE STRUCTURE ENFORCEMENT:
-- Start ALL responses with "🍌 **Roxy:** "
-- Include confidence levels for all major claims using format: [CONFIDENCE: High/Medium/Low/Unknown]
-- Explicitly state "I don't know" when information is unavailable - this is REQUIRED
-- Flag assumptions with ⚠️ warnings and challenge them
-- Provide verification suggestions with specific next steps
-- Use structured format: [CLAIM] | [CONFIDENCE: Level] | [SOURCE/ASSUMPTION] | [TO_VERIFY: method]
-
-TIER 3 - SPECULATION DETECTION & BLOCKING:
-- Block all speculative language ("likely", "probably", "seems", "should be", "typically")
-- Replace speculation with explicit uncertainty statements
-- Challenge any claim that lacks verifiable data
-- Flag correlation vs causation errors
-- Highlight sampling bias and data limitations
-
-TIER 4 - VAULT ENFORCEMENT (when vault context provided):
+${vaultContext ? `
+VAULT CONTEXT ACTIVE:
 ${vaultContext}
 
-PROHIBITED RESPONSES:
-- Never guess or hallucinate information
-- Don't fill knowledge gaps with "likely scenarios"
-- Avoid accommodating language without data backing
-- NO mentions of other AI companies, platforms, or assistants
-- Never soften uncomfortable truths about data limitations
+VAULT-ENHANCED EMPATHY:
+- Apply Site Monkeys frameworks with emotional intelligence
+- Consider founder wellbeing and stress factors
+- Balance business objectives with personal impact
+` : ''}
 
-RESPONSE FORMAT REQUIRED:
-🍌 **Roxy:** [Direct truth analysis]
+${conversationHistory ? `
+MEMORY CONTEXT: Previous conversations inform this response
+RELATIONSHIP CONTINUITY: Build on established emotional rapport and previous insights
+` : ''}
 
-📊 **Confidence Breakdown:**
-- [CLAIM 1] | [CONFIDENCE: Level] | [SOURCE/ASSUMPTION]
-- [CLAIM 2] | [CONFIDENCE: Level] | [SOURCE/ASSUMPTION]
+USER QUERY: "${message}"
 
-⚠️ **Assumptions Detected:** [List with challenges]
-❓ **Key Unknowns:** [What critical information is missing]
-🔍 **To Verify:** [Specific verification methods]
+ENHANCED RESPONSE REQUIREMENTS:
+1. EMOTIONAL INTELLIGENCE: Acknowledge feelings, validate concerns, provide emotional support
+2. ${requiresEmpathy ? 'DEEP REASONING CHAIN: Show analytical thinking with emotional awareness' : 'SUPPORTIVE ANALYSIS: Provide clear reasoning with encouragement'}
+3. HOLISTIC PERSPECTIVE: Consider personal, emotional, and practical implications
+4. SCENARIO AWARENESS: Model emotional and practical outcomes
+5. ASSUMPTION FLAGGING: State assumptions with emotional sensitivity
+6. CROSS-DOMAIN SYNTHESIS: Connect personal implications with other life areas
 
-[If vault context active, add vault-specific truth standards]
+TRUTH-FIRST WITH EMPATHY:
+- Provide honest analysis while being emotionally supportive
+- Include "CONFIDENCE: X%" but frame sensitively
+- Admit limitations while offering emotional reassurance
+- Never dismiss feelings, but ground advice in reality
 
-CONVERSATION CONTEXT: ${JSON.stringify(conversationHistory.slice(-3))}`;
+${mode === 'truth_general' ? `
+TRUTH MODE REQUIREMENTS:
+- Prioritize accuracy while maintaining warmth
+- Challenge assumptions gently
+- Provide confidence levels with emotional intelligence
+- Acknowledge uncertainty with supportive guidance
+` : ''}
 
+Your response should demonstrate extraordinary emotional intelligence combined with analytical depth. Be caring, insightful, and provide wisdom that addresses both emotional and practical needs.`;
+
+    // Call OpenAI with enhanced prompt
     const completion = await openai.chat.completions.create({
-      model: "gpt-4",
+      model: 'gpt-4o',
       messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: message }
+        { role: 'system', content: prompt },
+        { role: 'user', content: message }
       ],
-      max_tokens: 1000,
-      temperature: 0.1 // Very low temperature for maximum accuracy
+      temperature: 0.4, // Slightly higher temperature for more empathetic responses
+      max_tokens: 1200
     });
 
-    const response = completion.choices[0].message.content;
+    const rawResponse = completion.choices[0].message.content;
     
-    // POST-GENERATION VALIDATION
-    const validationResult = validateRoxyResponse(response);
+    // Enhanced response validation
+    const validationResult = validateRoxyResponseEnhanced(rawResponse, mode, requiresEmpathy);
     
-    console.log('✅ Roxy response generated and validated');
+    console.log('🍌 Enhanced Roxy response generated and validated');
     
     return {
       response: validationResult.validated_response,
       tokens_used: completion.usage.total_tokens,
       cost: (completion.usage.total_tokens * 0.00003),
       ai_personality: 'roxy',
-      truth_focused: true,
-      confidence_analysis: true,
+      emotionally_intelligent: true,
+      enhanced_intelligence: true,
+      empathy_applied: requiresEmpathy,
       validation_applied: validationResult.modifications_made,
-      speculation_blocked: validationResult.speculation_blocks
+      emotional_context: emotionalContext
     };
 
   } catch (error) {
-    console.error('❌ Roxy response error:', error);
+    console.error('❌ Enhanced Roxy response error:', error);
     
-    // ENHANCED FALLBACK - Handle all error types
-    const errorMessage = error?.message || 'unknown error';
-    const isRateLimit = errorMessage.includes('429') || 
-                       errorMessage.includes('rate limit') || 
-                       errorMessage.includes('Cannot read properties of undefined') ||
-                       errorMessage.includes('choices');
-    
-    if (isRateLimit) {
-  // Let server rate limiting handle this properly  
-  throw error;
-}
-    
-    // GENERAL FALLBACK FOR OTHER ERRORS
-    return {
-      response: `🍌 **Roxy:** I'm experiencing technical difficulties with my analysis systems. Let me provide what I can with full transparency:
-
-📊 **What I Can Tell You:**
-- I'm currently unable to access my full verification systems
-- Any analysis I provide right now would have [CONFIDENCE: Unknown]
-- I cannot verify claims or provide source validation
-
-⚠️ **Critical Limitations:**
-- My current response capabilities are impaired
-- I cannot distinguish between verified facts and assumptions
-- All information should be independently verified
-
-🔍 **Recommended Next Steps:**
-1. Seek primary sources for any factual claims you need
-2. Cross-reference information from multiple independent sources
-3. Be especially skeptical of any data I might provide in this state
-
-Could you rephrase your question? I'll provide more rigorous truth-first analysis once my verification systems are restored.`,
-      tokens_used: 0,
-      cost: 0,
-      ai_personality: 'roxy',
-      fallback_used: true,
-      error_type: errorMessage
-    };
+    return generateRoxyEnhancedFallback(error, message, mode);
   }
 }
 
@@ -807,5 +758,182 @@ export function getPersonalitySystemStatus() {
     last_validation_check: new Date().toISOString(),
     site_monkeys_branding: 'ENFORCED',
     openai_references_blocked: 'ACTIVE'
+  };
+}
+
+function extractMemoryInsights(conversationHistory) {
+  if (!conversationHistory || conversationHistory.length === 0) return null;
+  
+  // Extract key themes and patterns from conversation history
+  const recentContext = conversationHistory.slice(-5).map(msg => msg.content).join(' ');
+  return `Recent conversation themes: ${recentContext.substring(0, 300)}...`;
+}
+
+function analyzeQueryComplexity(message, mode) {
+  let complexity = 0.3;
+  
+  // Length factor
+  complexity += Math.min(message.length / 500, 0.3);
+  
+  // Complexity indicators
+  if (/why|how|analyze|compare|evaluate|strategy|implications/i.test(message)) complexity += 0.2;
+  if (/because|therefore|if.*then|multiple|various|complex/i.test(message)) complexity += 0.2;
+  if (mode === 'business_validation' || mode === 'site_monkeys') complexity += 0.1;
+  
+  // Question marks and uncertainty
+  const questionMarks = (message.match(/\?/g) || []).length;
+  complexity += Math.min(questionMarks * 0.1, 0.2);
+  
+  return Math.min(complexity, 1.0);
+}
+
+function analyzeEmotionalContext(message, conversationHistory) {
+  const emotionalWords = {
+    stressed: 0.8, worried: 0.7, frustrated: 0.7, anxious: 0.8,
+    sad: 0.6, angry: 0.7, overwhelmed: 0.8, confused: 0.5,
+    excited: 0.5, happy: 0.4, proud: 0.3, confident: 0.2
+  };
+  
+  let maxWeight = 0;
+  let tone = 'neutral';
+  
+  for (const [emotion, weight] of Object.entries(emotionalWords)) {
+    if (message.toLowerCase().includes(emotion)) {
+      if (weight > maxWeight) {
+        maxWeight = weight;
+        tone = weight > 0.6 ? 'emotional' : 'mild_emotional';
+      }
+    }
+  }
+  
+  return { emotionalWeight: maxWeight, tone };
+}
+
+function validateEliResponseEnhanced(response, mode, requiresDeepAnalysis) {
+  let validated = response;
+  let modifications = 0;
+  let compliance_score = 100;
+  
+  // Enhanced validation for intelligence requirements
+  if (!response.includes('🍌 **Eli:**')) {
+    validated = '🍌 **Eli:** ' + validated;
+    modifications++;
+    compliance_score -= 5;
+  }
+  
+  // Check for reasoning chain if required
+  if (requiresDeepAnalysis && !response.includes('analysis') && !response.includes('reasoning')) {
+    validated += '\n\n🔗 **Analysis Framework:** This decision requires systematic evaluation of multiple factors and their interdependencies.';
+    modifications++;
+    compliance_score -= 10;
+  }
+  
+  // Business survival check for relevant modes
+  if ((mode === 'business_validation' || mode === 'site_monkeys') && 
+      !response.includes('survival') && !response.includes('cash flow') && !response.includes('runway')) {
+    validated += '\n\n💰 **Business Survival Analysis:** Consider cash flow impact, runway implications, and business continuity factors.';
+    modifications++;
+    compliance_score -= 15;
+  }
+  
+  // Confidence scoring
+  if (!response.includes('confidence') && !response.includes('CONFIDENCE')) {
+    validated += '\n\n🎯 **Confidence Level:** Analysis based on available information with standard business assumptions.';
+    modifications++;
+    compliance_score -= 10;
+  }
+  
+  return {
+    validated_response: validated,
+    modifications_made: modifications,
+    compliance_score: Math.max(compliance_score, 60)
+  };
+}
+
+function validateRoxyResponseEnhanced(response, mode, requiresEmpathy) {
+  let validated = response;
+  let modifications = 0;
+  let compliance_score = 100;
+  
+  // Enhanced validation for emotional intelligence
+  if (!response.includes('🍌 **Roxy:**')) {
+    validated = '🍌 **Roxy:** ' + validated;
+    modifications++;
+    compliance_score -= 5;
+  }
+  
+  // Check for emotional acknowledgment if required
+  if (requiresEmpathy && !response.toLowerCase().includes('understand') && !response.toLowerCase().includes('feel')) {
+    validated += '\n\n💝 **Emotional Support:** I understand this situation may feel challenging, and your feelings are completely valid.';
+    modifications++;
+    compliance_score -= 10;
+  }
+  
+  // Truth-first with empathy
+  if (mode === 'truth_general' && !response.includes('confidence') && !response.includes('CONFIDENCE')) {
+    validated += '\n\n🎯 **Confidence & Support:** My analysis is based on available information, and I want to ensure you have reliable guidance.';
+    modifications++;
+    compliance_score -= 10;
+  }
+  
+  return {
+    validated_response: validated,
+    modifications_made: modifications,
+    compliance_score: Math.max(compliance_score, 60)
+  };
+}
+
+function generateEliEnhancedFallback(error, message, mode) {
+  return {
+    response: `🍌 **Eli:** I'm experiencing technical difficulties with my enhanced analysis systems. Let me provide direct guidance:
+
+Based on your query, I can offer structured thinking even with limited processing capacity:
+
+**Direct Assessment:** Your question requires careful analysis that I'll approach systematically when my enhanced capabilities are restored.
+
+**Business Reality Check:** Any decisions should consider:
+- Financial impact and cash flow implications
+- Risk factors and mitigation strategies  
+- Timeline and resource requirements
+
+**Immediate Recommendation:** Proceed with gathering additional information before making critical decisions.
+
+**Confidence Level:** Limited due to technical constraints - seek multiple perspectives.
+
+I'll provide more comprehensive analysis once my enhanced reasoning systems are fully operational.`,
+    tokens_used: 0,
+    cost: 0,
+    ai_personality: 'eli',
+    enhanced_intelligence: false,
+    fallback_used: true,
+    error_type: error?.message || 'unknown error'
+  };
+}
+
+function generateRoxyEnhancedFallback(error, message, mode) {
+  return {
+    response: `🍌 **Roxy:** I'm having some technical challenges with my analysis systems, but I still want to support you:
+
+**What I can offer right now:**
+- A listening ear and validation of your concerns
+- Basic guidance based on general principles
+- Emotional support while you work through this decision
+
+**What's temporarily limited:**
+- My enhanced reasoning and cross-domain analysis
+- Detailed scenario modeling and quantitative insights
+- Integration with your conversation history
+
+**My recommendation:** While I can't provide my usual depth of analysis right now, trust your instincts and consider seeking input from multiple sources. Your feelings about this situation are valid and important data points.
+
+**Confidence Level:** Limited by technical constraints, but my care for your wellbeing remains constant.
+
+I'll be back with my full analytical and emotional intelligence capabilities soon. ❤️`,
+    tokens_used: 0,
+    cost: 0,
+    ai_personality: 'roxy',
+    enhanced_intelligence: false,
+    fallback_used: true,
+    error_type: error?.message || 'unknown error'
   };
 }
