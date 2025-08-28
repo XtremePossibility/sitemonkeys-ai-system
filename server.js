@@ -5,6 +5,7 @@
 import express from 'express';
 import cors from 'cors';
 const app = express();
+import { exec } from 'child_process';
 import persistentMemory from './memory_system/persistent_memory.js';
 
 // ===== APPLICATION STARTUP MEMORY INITIALIZATION =====
@@ -1853,6 +1854,38 @@ app.get('/api/memory-status', async (req, res) => {
             memory_system: { status: 'error' }
         });
     }
+});
+
+// ===== TEMPORARY INTELLIGENCE TESTING ENDPOINT =====
+app.get('/test-intelligence', async (req, res) => {
+  try {
+    console.log('[TEST] Running intelligence system test...');
+    
+    exec('npm run test-intelligence', (error, stdout, stderr) => {
+      if (error) {
+        console.error('[TEST] Test execution error:', error);
+        return res.send(`<pre>TEST EXECUTION ERROR:\n${error.message}\n\nSTDOUT:\n${stdout}\n\nSTDERR:\n${stderr}</pre>`);
+      }
+      
+      const output = `INTELLIGENCE SYSTEM TEST RESULTS
+===============================
+
+STDOUT:
+${stdout}
+
+STDERR:
+${stderr}
+
+Test completed at: ${new Date().toISOString()}
+===============================`;
+      
+      res.send(`<pre>${output}</pre>`);
+    });
+    
+  } catch (error) {
+    console.error('[TEST] Endpoint error:', error);
+    res.status(500).send(`<pre>ENDPOINT ERROR: ${error.message}</pre>`);
+  }
 });
 
 // START SERVER
