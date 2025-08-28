@@ -918,6 +918,31 @@ const fullPrompt = enhancedPrompt;
     // ENHANCED API CALL
     const apiResponse = await makeIntelligentAPICall(fullPrompt, personality, prideMotivation);
 
+    // *** ADD ENHANCED INTELLIGENCE HERE ***
+    console.log('🔍 DEBUG: About to apply enhanced intelligence in server.js');
+    let enhancedResponse = apiResponse.response;
+    
+    try {
+      // Import at top of server.js: import { EnhancedIntelligence } from './enhanced-intelligence.js';
+      const enhancedIntelligence = new EnhancedIntelligence();
+      
+      const intelligenceEnhancement = await enhancedIntelligence.enhanceResponse(
+        apiResponse.response,
+        message,
+        mode,
+        memoryContext,
+        vaultContent,
+        0.8
+      );
+      
+      if (intelligenceEnhancement.enhancedResponse !== apiResponse.response) {
+        console.log('🎯 Intelligence enhancements applied:', intelligenceEnhancement.intelligenceApplied.join(', '));
+        enhancedResponse = intelligenceEnhancement.enhancedResponse;
+      }
+    } catch (error) {
+      console.error('🚨 Enhanced Intelligence ERROR:', error);
+    }
+
     // COMPREHENSIVE RESPONSE ENHANCEMENT
     let enhancedResponse = apiResponse.response;
 
