@@ -67,6 +67,8 @@ import {
   integrateVaultLogic 
 } from './site-monkeys-enforcement.js';
 
+import { EnhancedIntelligence } from './lib/enhanced-intelligence.js';
+
 console.log('[DEBUG] All cognitive modules loaded successfully');
 
 function validateVaultStructure(content) {
@@ -81,6 +83,8 @@ function validateVaultStructure(content) {
 let lastPersonality = 'roxy';
 let conversationCount = 0;
 let systemDriftHistory = [];
+
+const intelligence = new EnhancedIntelligence();
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -310,12 +314,20 @@ try {
     // *** COMPREHENSIVE RESPONSE ENHANCEMENT & ENFORCEMENT ***
     let enhancedResponse = apiResponse.response;
     
-    // 0. ENHANCED REASONING PROCESSING (FEATURE FLAGGED)
-    if (process.env.ENABLE_ENHANCED_REASONING === 'true') {
-      enhancedResponse = applyEnhancedReasoning(
-        enhancedResponse, message, mode, expertDomain, memoryContext, vaultContent
-      );
-    }
+    // 0. ENHANCED REASONING PROCESSING (ALWAYS ACTIVE)
+try {
+  const enhancement = await intelligence.enhanceResponse(
+    enhancedResponse, message, mode, memoryContext, vaultContent, 0.8
+  );
+  enhancedResponse = enhancement.enhancedResponse;
+  console.log('[ENHANCED INTELLIGENCE] Applied:', enhancement.intelligenceApplied.join(', '));
+} catch (error) {
+  console.error('[ENHANCED INTELLIGENCE] Error:', error);
+  // Fallback to existing method
+  enhancedResponse = applyEnhancedReasoning(
+    enhancedResponse, message, mode, expertDomain, memoryContext, vaultContent
+  );
+}
     
     // 1. QUANTITATIVE REASONING ENFORCEMENT
     enhancedResponse = enforceQuantitativeAnalysis(enhancedResponse, message, expertDomain.domain, vaultContent);
