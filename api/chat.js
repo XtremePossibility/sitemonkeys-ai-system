@@ -2,7 +2,8 @@
 // COMPLETE MODULAR CARING FAMILY INTELLIGENCE SYSTEM
 // Orchestrates all cognitive modules for universal expert intelligence
 // MEMORY SYSTEMS NOW HANDLED BY SERVER.JS BOOTSTRAP
-import { detectPoliticalContent, applyPoliticalNeutrality } from './political-neutrality.js';
+
+console.log('[CHAT] 🚀 Chat system initializing...');
 console.log('[DEBUG] Chat imports starting...');
 
 // CORRECTED IMPORTS - Replace existing imports in chat.js
@@ -13,9 +14,6 @@ import { QUALITY_ENFORCEMENT } from './site-monkeys/quality-enforcement.js';
 import { AI_ARCHITECTURE } from './site-monkeys/ai-architecture.js';
 import { getVaultStatus, checkVaultTriggers, generateVaultContext, enforceVaultCompliance } from './lib/vault.js';
 import { integrateSystemIntelligence, enhancePromptWithIntelligence, getSystemIntelligenceStatus } from './lib/system-intelligence.js';
-import { ResponseObjectUnifier } from './lib/response-object-unifier.js';
-import { MasterModeCompliance } from './lib/master-mode-compliance.js';
-import { UnifiedResponseSchema } from './lib/unified-response-schema.js';
 import zlib from 'zlib';
 
 // NEW ENFORCEMENT MODULE IMPORTS (ADD THESE)
@@ -56,6 +54,19 @@ import {
   assessCrossContextNeeds 
 } from './protective-intelligence.js';
 
+import { 
+  detectPoliticalContent,
+  applyPoliticalNeutrality,
+  enforceEvidenceBasedStandards 
+} from './political-neutrality.js';
+
+import { 
+  detectSiteMonkeysViolations,
+  enforceSiteMonkeysStandards,
+  enforcePricingFloors,
+  integrateVaultLogic 
+} from './site-monkeys-enforcement.js';
+
 import { EnhancedIntelligence } from './lib/enhanced-intelligence.js';
 
 console.log('[DEBUG] All cognitive modules loaded successfully');
@@ -90,9 +101,6 @@ export default async function handler(req, res) {
     return;
   }
 
-  // Initialize unified response handler - ELIMINATES RACE CONDITION
-  const responseUnifier = new ResponseObjectUnifier();
-
   let vaultContent = '';
   let vaultTokens = 0;
   let vaultStatus = 'not_loaded';
@@ -109,7 +117,8 @@ export default async function handler(req, res) {
     } = req.body;
 
     if (!message || typeof message !== 'string') {
-      return res.status(400).json({ error: 'Message is required and must be a string' });
+      res.status(400).json({ error: 'Message is required and must be a string' });
+      return;
     }
 
     // *** VAULT LOADING (PRESERVED) ***
@@ -169,7 +178,7 @@ export default async function handler(req, res) {
     
     // 5. CROSS-CONTEXT INTELLIGENCE
     const crossContextNeeds = assessCrossContextNeeds(message, conversation_history, FAMILY_MEMORY.userGoals);
-
+    
     // 6. POLITICAL CONTENT DETECTION
     const politicalAnalysis = detectPoliticalContent(message);
     
@@ -333,33 +342,17 @@ try {
     // 4. PROTECTIVE INTELLIGENCE INTEGRATION
     enhancedResponse = applyProtectiveIntelligence(enhancedResponse, message, expertDomain.domain, conversation_history);
     
-    // ========== UNIFIED ENFORCEMENT PIPELINE - ELIMINATES CONFLICTS ==========
+    // 5. POLITICAL NEUTRALITY ENFORCEMENT
+    enhancedResponse = applyPoliticalNeutrality(enhancedResponse, message);
+    enhancedResponse = enforceEvidenceBasedStandards(enhancedResponse);
     
-    // Initialize single response object - eliminates race condition
-    responseUnifier.initializeResponseObject(enhancedResponse);
+    // 6. SITE MONKEYS BUSINESS LOGIC ENFORCEMENT
+    enhancedResponse = enforceSiteMonkeysStandards(enhancedResponse, mode, vaultContent, vaultHealthy);
+    enhancedResponse = enforcePricingFloors(enhancedResponse, mode);
+    enhancedResponse = integrateVaultLogic(enhancedResponse, vaultContent, vaultHealthy, mode);
     
-    // Apply unified enforcement chain - replaces all competing modifications
-    responseUnifier.applyPoliticalNeutrality(message);
-    responseUnifier.applyProductValidation();
-    responseUnifier.applySiteMonkeysStandards(mode, vaultContent);
-    
-    // Get processed response - single source of truth
-    const processedResponse = responseUnifier.getFinalResponse();
-    
-    // Master mode compliance - replaces all three competing validateModeCompliance functions
-    const complianceValidation = MasterModeCompliance.validateModeCompliance(
-      processedResponse.content, 
-      mode, 
-      {
-        fingerprint: generateModeFingerprint(mode, vaultHealthy),
-        vaultLoaded: vaultHealthy,
-        conversationHistory: conversation_history,
-        enforcementLevel: 'STANDARD'
-      }
-    );
-    
-    // Use corrected content if compliance corrections were applied
-    const finalResponse = complianceValidation.corrected_content || processedResponse.content;
+    // 7. SURVIVAL PROTECTION APPLICATION
+    const finalResponse = applySurvivalProtection(enhancedResponse, mode, vaultContent);
     
     // *** SYSTEM QUALITY ASSESSMENT ***
     const responseQuality = validateExpertQuality(finalResponse, expertDomain.domain, message);
@@ -392,34 +385,69 @@ try {
 
     const sessionData = formatSessionDataForUI();
 
-    // Build system data for unified schema
-    const systemData = {
-      content: finalResponse,
-      mode: mode,
-      personality: optimalPersonality,
-      expertDomain: expertDomain.domain,
-      careLevel: careNeeds.care_level,
-      prideMotivation: prideMotivation,
-      vaultStatus: vaultHealthy ? 'loaded' : 'not_loaded',
-      conversationHistory: conversation_history
-    };
-
-    // Build enforcement data for unified schema
-    const enforcementData = {
-      enforcement_metadata: processedResponse.enforcement_metadata,
-      compliance_validation: complianceValidation,
-      response_modifications: processedResponse.modifications,
-      conflicts_resolved: processedResponse.enforcement_metadata.conflicts_resolved
-    };
-
-    // UNIFIED RESPONSE SCHEMA - Eliminates schema warfare
-    const unifiedResponse = UnifiedResponseSchema.buildUnifiedResponse(
-      finalResponse,
-      systemData,
-      enforcementData
-    );
-
-    res.status(200).json(unifiedResponse);
+    res.status(200).json({
+      response: finalResponse,
+      mode_active: mode,
+      personality_active: optimalPersonality,
+      cognitive_intelligence: {
+        expert_domain: expertDomain.domain,
+        expert_title: expertDomain.title,
+        domain_confidence: expertDomain.confidence,
+        care_level: careNeeds.care_level,
+        pride_motivation: Math.round(prideMotivation * 100),
+        protective_alerts: protectiveAlerts.length,
+        solution_opportunities: solutionOpportunities.length,
+        family_care_score: FAMILY_MEMORY.careLevel,
+        expert_quality_score: responseQuality.expert_level,
+        overall_quality_score: responseQuality.quality_score,
+        quantitative_quality: calculationQuality.percentage,
+        business_survival_score: businessValidation.survival_score || 100
+      },
+      enforcement_applied: [
+        'caring_family_intelligence_active',
+        'universal_expert_activation_complete',
+        'quantitative_reasoning_enforced',
+        'business_survival_protected',
+        'expert_quality_validated',
+        'protective_intelligence_active',
+        'political_neutrality_enforced',
+        'truth_first_with_caring_delivery',
+        'pride_driven_excellence_active',
+        mode === 'site_monkeys' ? 'site_monkeys_business_logic_enforced' : 'general_business_logic_active',
+        vaultHealthy ? 'vault_intelligence_integrated' : 'emergency_fallback_active'
+      ],
+      drift_monitoring: {
+        system_stable: !driftMonitoring.intervention_needed,
+        trend: driftMonitoring.drift_trend,
+        average_quality: Math.round(driftMonitoring.average_quality_score)
+      },
+      vault_status: {
+        loaded: vaultStatus !== 'not_loaded',
+        tokens: vaultTokens,
+        status: vaultStatus,
+        healthy: vaultHealthy,
+        source: vaultStatus.includes('frontend') ? 'frontend' : vaultStatus.includes('kv') ? 'kv' : 'fallback'
+      },
+      system_intelligence: getSystemIntelligenceStatus(intelligence),
+      intelligence_status: intelligence,
+      system_intelligence_active: intelligence.vaultIntelligenceActive,
+      session_data: {
+  ...sessionData,
+  intelligence_capabilities: {
+    reasoning_engine: true,
+    cross_domain_synthesis: true,
+    scenario_modeling: mode === 'business_validation' || mode === 'site_monkeys',
+    quantitative_analysis: true,
+    enhanced_memory: memoryContext?.intelligenceEnhanced || false
+  },
+  memory_intelligence: memoryContext?.intelligenceEnhanced ? {
+    reasoning_support_memories: memoryContext.reasoningSupport?.length || 0,
+    cross_domain_connections: memoryContext.crossDomainConnections?.length || 0,
+    scenario_relevant_memories: Object.values(memoryContext.scenarioRelevantMemories || {}).reduce((sum, arr) => sum + arr.length, 0),
+    quantitative_context_memories: memoryContext.quantitativeContext?.length || 0
+  } : null
+}
+    });
 
   } catch (error) {
     console.error('Cognitive System Error:', error);
@@ -945,13 +973,6 @@ async function makeEnhancedAPICall(prompt, personality, prideMotivation) {
       throw error;
     }
   }
-}
-
-// *** UNIFIED ENFORCEMENT HELPER ***
-function generateModeFingerprint(mode, vaultHealthy) {
-  const timestamp = new Date().toISOString().slice(0, 10);
-  const vaultStatus = vaultHealthy ? 'VAULT' : 'STANDARD';
-  return `${mode.toUpperCase()}-${vaultStatus}-${timestamp}`;
 }
 
 // *** UTILITY FUNCTIONS ***
