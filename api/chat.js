@@ -14,6 +14,9 @@ import { QUALITY_ENFORCEMENT } from './site-monkeys/quality-enforcement.js';
 import { AI_ARCHITECTURE } from './site-monkeys/ai-architecture.js';
 import { getVaultStatus, checkVaultTriggers, generateVaultContext, enforceVaultCompliance } from './lib/vault.js';
 import { integrateSystemIntelligence, enhancePromptWithIntelligence, getSystemIntelligenceStatus } from './lib/system-intelligence.js';
+import { ResponseObjectUnifier } from './lib/response-object-unifier.js';
+import { MasterModeCompliance } from './lib/master-mode-compliance.js';
+import { UnifiedResponseSchema } from './lib/unified-response-schema.js';
 import zlib from 'zlib';
 
 // NEW ENFORCEMENT MODULE IMPORTS (ADD THESE)
@@ -54,19 +57,6 @@ import {
   assessCrossContextNeeds 
 } from './protective-intelligence.js';
 
-import { 
-  detectPoliticalContent,
-  applyPoliticalNeutrality,
-  enforceEvidenceBasedStandards 
-} from './political-neutrality.js';
-
-import { 
-  detectSiteMonkeysViolations,
-  enforceSiteMonkeysStandards,
-  enforcePricingFloors,
-  integrateVaultLogic 
-} from './site-monkeys-enforcement.js';
-
 import { EnhancedIntelligence } from './lib/enhanced-intelligence.js';
 
 console.log('[DEBUG] All cognitive modules loaded successfully');
@@ -101,6 +91,9 @@ export default async function handler(req, res) {
     return;
   }
 
+  // Initialize unified response handler - ELIMINATES RACE CONDITION
+  const responseUnifier = new ResponseObjectUnifier();
+
   let vaultContent = '';
   let vaultTokens = 0;
   let vaultStatus = 'not_loaded';
@@ -117,8 +110,7 @@ export default async function handler(req, res) {
     } = req.body;
 
     if (!message || typeof message !== 'string') {
-      res.status(400).json({ error: 'Message is required and must be a string' });
-      return;
+      return res.status(400).json({ error: 'Message is required and must be a string' });
     }
 
     // *** VAULT LOADING (PRESERVED) ***
