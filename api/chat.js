@@ -334,17 +334,33 @@ try {
     // 4. PROTECTIVE INTELLIGENCE INTEGRATION
     enhancedResponse = applyProtectiveIntelligence(enhancedResponse, message, expertDomain.domain, conversation_history);
     
-    // 5. POLITICAL NEUTRALITY ENFORCEMENT
-    enhancedResponse = applyPoliticalNeutrality(enhancedResponse, message);
-    enhancedResponse = enforceEvidenceBasedStandards(enhancedResponse);
+    // ========== UNIFIED ENFORCEMENT PIPELINE - ELIMINATES CONFLICTS ==========
     
-    // 6. SITE MONKEYS BUSINESS LOGIC ENFORCEMENT
-    enhancedResponse = enforceSiteMonkeysStandards(enhancedResponse, mode, vaultContent, vaultHealthy);
-    enhancedResponse = enforcePricingFloors(enhancedResponse, mode);
-    enhancedResponse = integrateVaultLogic(enhancedResponse, vaultContent, vaultHealthy, mode);
+    // Initialize single response object - eliminates race condition
+    responseUnifier.initializeResponseObject(enhancedResponse);
     
-    // 7. SURVIVAL PROTECTION APPLICATION
-    const finalResponse = applySurvivalProtection(enhancedResponse, mode, vaultContent);
+    // Apply unified enforcement chain - replaces all competing modifications
+    responseUnifier.applyPoliticalNeutrality(message);
+    responseUnifier.applyProductValidation();
+    responseUnifier.applySiteMonkeysStandards(mode, vaultContent);
+    
+    // Get processed response - single source of truth
+    const processedResponse = responseUnifier.getFinalResponse();
+    
+    // Master mode compliance - replaces all three competing validateModeCompliance functions
+    const complianceValidation = MasterModeCompliance.validateModeCompliance(
+      processedResponse.content, 
+      mode, 
+      {
+        fingerprint: generateModeFingerprint(mode, vaultHealthy),
+        vaultLoaded: vaultHealthy,
+        conversationHistory: conversation_history,
+        enforcementLevel: 'STANDARD'
+      }
+    );
+    
+    // Use corrected content if compliance corrections were applied
+    const finalResponse = complianceValidation.corrected_content || processedResponse.content;
     
     // *** SYSTEM QUALITY ASSESSMENT ***
     const responseQuality = validateExpertQuality(finalResponse, expertDomain.domain, message);
@@ -377,69 +393,34 @@ try {
 
     const sessionData = formatSessionDataForUI();
 
-    res.status(200).json({
-      response: finalResponse,
-      mode_active: mode,
-      personality_active: optimalPersonality,
-      cognitive_intelligence: {
-        expert_domain: expertDomain.domain,
-        expert_title: expertDomain.title,
-        domain_confidence: expertDomain.confidence,
-        care_level: careNeeds.care_level,
-        pride_motivation: Math.round(prideMotivation * 100),
-        protective_alerts: protectiveAlerts.length,
-        solution_opportunities: solutionOpportunities.length,
-        family_care_score: FAMILY_MEMORY.careLevel,
-        expert_quality_score: responseQuality.expert_level,
-        overall_quality_score: responseQuality.quality_score,
-        quantitative_quality: calculationQuality.percentage,
-        business_survival_score: businessValidation.survival_score || 100
-      },
-      enforcement_applied: [
-        'caring_family_intelligence_active',
-        'universal_expert_activation_complete',
-        'quantitative_reasoning_enforced',
-        'business_survival_protected',
-        'expert_quality_validated',
-        'protective_intelligence_active',
-        'political_neutrality_enforced',
-        'truth_first_with_caring_delivery',
-        'pride_driven_excellence_active',
-        mode === 'site_monkeys' ? 'site_monkeys_business_logic_enforced' : 'general_business_logic_active',
-        vaultHealthy ? 'vault_intelligence_integrated' : 'emergency_fallback_active'
-      ],
-      drift_monitoring: {
-        system_stable: !driftMonitoring.intervention_needed,
-        trend: driftMonitoring.drift_trend,
-        average_quality: Math.round(driftMonitoring.average_quality_score)
-      },
-      vault_status: {
-        loaded: vaultStatus !== 'not_loaded',
-        tokens: vaultTokens,
-        status: vaultStatus,
-        healthy: vaultHealthy,
-        source: vaultStatus.includes('frontend') ? 'frontend' : vaultStatus.includes('kv') ? 'kv' : 'fallback'
-      },
-      system_intelligence: getSystemIntelligenceStatus(intelligence),
-      intelligence_status: intelligence,
-      system_intelligence_active: intelligence.vaultIntelligenceActive,
-      session_data: {
-  ...sessionData,
-  intelligence_capabilities: {
-    reasoning_engine: true,
-    cross_domain_synthesis: true,
-    scenario_modeling: mode === 'business_validation' || mode === 'site_monkeys',
-    quantitative_analysis: true,
-    enhanced_memory: memoryContext?.intelligenceEnhanced || false
-  },
-  memory_intelligence: memoryContext?.intelligenceEnhanced ? {
-    reasoning_support_memories: memoryContext.reasoningSupport?.length || 0,
-    cross_domain_connections: memoryContext.crossDomainConnections?.length || 0,
-    scenario_relevant_memories: Object.values(memoryContext.scenarioRelevantMemories || {}).reduce((sum, arr) => sum + arr.length, 0),
-    quantitative_context_memories: memoryContext.quantitativeContext?.length || 0
-  } : null
-}
-    });
+    // Build system data for unified schema
+    const systemData = {
+      content: finalResponse,
+      mode: mode,
+      personality: optimalPersonality,
+      expertDomain: expertDomain.domain,
+      careLevel: careNeeds.care_level,
+      prideMotivation: prideMotivation,
+      vaultStatus: vaultHealthy ? 'loaded' : 'not_loaded',
+      conversationHistory: conversation_history
+    };
+
+    // Build enforcement data for unified schema
+    const enforcementData = {
+      enforcement_metadata: processedResponse.enforcement_metadata,
+      compliance_validation: complianceValidation,
+      response_modifications: processedResponse.modifications,
+      conflicts_resolved: processedResponse.enforcement_metadata.conflicts_resolved
+    };
+
+    // UNIFIED RESPONSE SCHEMA - Eliminates schema warfare
+    const unifiedResponse = UnifiedResponseSchema.buildUnifiedResponse(
+      finalResponse,
+      systemData,
+      enforcementData
+    );
+
+    res.status(200).json(unifiedResponse);
 
   } catch (error) {
     console.error('Cognitive System Error:', error);
@@ -965,6 +946,13 @@ async function makeEnhancedAPICall(prompt, personality, prideMotivation) {
       throw error;
     }
   }
+}
+
+// *** UNIFIED ENFORCEMENT HELPER ***
+function generateModeFingerprint(mode, vaultHealthy) {
+  const timestamp = new Date().toISOString().slice(0, 10);
+  const vaultStatus = vaultHealthy ? 'VAULT' : 'STANDARD';
+  return `${mode.toUpperCase()}-${vaultStatus}-${timestamp}`;
 }
 
 // *** UTILITY FUNCTIONS ***
