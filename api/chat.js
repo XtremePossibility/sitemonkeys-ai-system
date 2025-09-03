@@ -58,7 +58,7 @@ import {
 } from './protective-intelligence.js';
 
 import { EnhancedIntelligence } from './lib/enhanced-intelligence.js';
-import { detectPoliticalContent, applyPoliticalNeutrality, enforceEvidenceBasedStandards } from './political-neutrality.js';
+import { detectPoliticalContent, applyPoliticalNeutrality } from './political-neutrality.js';
 
 console.log('[DEBUG] All cognitive modules loaded successfully');
 
