@@ -2,8 +2,7 @@
 // COMPLETE MODULAR CARING FAMILY INTELLIGENCE SYSTEM
 // Orchestrates all cognitive modules for universal expert intelligence
 // MEMORY SYSTEMS NOW HANDLED BY SERVER.JS BOOTSTRAP
-
-console.log('[CHAT] 🚀 Chat system initializing...');
+import { detectPoliticalContent
 console.log('[DEBUG] Chat imports starting...');
 
 // CORRECTED IMPORTS - Replace existing imports in chat.js
@@ -58,7 +57,6 @@ import {
 } from './protective-intelligence.js';
 
 import { EnhancedIntelligence } from './lib/enhanced-intelligence.js';
-import { detectPoliticalContent, applyPoliticalNeutrality } from './political-neutrality.js';
 
 console.log('[DEBUG] All cognitive modules loaded successfully');
 
@@ -171,9 +169,6 @@ export default async function handler(req, res) {
     
     // 5. CROSS-CONTEXT INTELLIGENCE
     const crossContextNeeds = assessCrossContextNeeds(message, conversation_history, FAMILY_MEMORY.userGoals);
-    
-    // 6. POLITICAL CONTENT DETECTION
-    const politicalAnalysis = detectPoliticalContent(message);
     
     // *** EXPERT PERSONALITY SELECTION ***
     const optimalPersonality = selectCaringPersonality(expertDomain, careNeeds, protectiveAlerts);
