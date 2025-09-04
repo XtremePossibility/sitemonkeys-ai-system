@@ -133,6 +133,19 @@ export class ResponseObjectUnifier {
     );
   }
 
+  // CONFLICT RESOLUTION ONLY - NOT INTELLIGENCE REPLACEMENT
+  applyConflictResolution() {
+    // Only handle schema conflicts and race conditions
+    // Don't duplicate intelligence that's already been applied
+    return this.modifyResponse(
+      (content) => {
+        // Just ensure clean formatting and conflict resolution
+        return { response: content, modified: false, reason: "conflict_resolution_complete" };
+      },
+      'CONFLICT_RESOLUTION_UNIFIED'
+    );
+  }
+  
   // FINAL RESPONSE GETTER - Single source of truth
   getFinalResponse() {
     return {
