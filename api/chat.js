@@ -67,9 +67,18 @@ import {
   integrateVaultLogic 
 } from './site-monkeys-enforcement.js';
 
+import { ResponseObjectUnifier } from './response-object-unifier.js';
+import { MasterModeCompliance } from './master-mode-compliance.js';
+import { UnifiedResponseSchema } from './unified-response-schema.js';
 import { EnhancedIntelligence } from './lib/enhanced-intelligence.js';
 
 console.log('[DEBUG] All cognitive modules loaded successfully');
+
+function generateModeFingerprint(mode, vaultHealthy) {
+  const timestamp = new Date().toISOString().slice(0, 10);
+  const vaultCode = vaultHealthy ? 'V' : 'N';
+  return `${mode.toUpperCase()}-${vaultCode}-${timestamp}`;
+}
 
 function validateVaultStructure(content) {
   if (!content || typeof content !== 'string') return false;
