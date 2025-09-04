@@ -352,7 +352,33 @@ try {
     enhancedResponse = integrateVaultLogic(enhancedResponse, vaultContent, vaultHealthy, mode);
     
     // 7. SURVIVAL PROTECTION APPLICATION
-    const finalResponse = applySurvivalProtection(enhancedResponse, mode, vaultContent);
+    // 7. SURVIVAL PROTECTION APPLICATION  
+let finalResponse = applySurvivalProtection(enhancedResponse, mode, vaultContent);
+
+// 8. UNIFIED CONFLICT RESOLUTION - SUPPLEMENT TO EXISTING INTELLIGENCE
+const responseUnifier = new ResponseObjectUnifier();
+responseUnifier.initializeResponseObject(finalResponse);
+
+// Apply ONLY the conflict resolution, not intelligence replacement
+const conflictResolution = responseUnifier.getFinalResponse();
+finalResponse = conflictResolution.content;
+
+// Master mode compliance - replace the three competing functions ONLY
+const complianceValidation = MasterModeCompliance.validateModeCompliance(
+  finalResponse, 
+  mode, 
+  {
+    fingerprint: generateModeFingerprint(mode, vaultHealthy),
+    vaultLoaded: vaultHealthy,
+    conversationHistory: conversation_history,
+    enforcementLevel: 'STANDARD'
+  }
+);
+
+// Use corrected content if needed
+if (complianceValidation.corrected_content) {
+  finalResponse = complianceValidation.corrected_content;
+}
     
     // *** SYSTEM QUALITY ASSESSMENT ***
     const responseQuality = validateExpertQuality(finalResponse, expertDomain.domain, message);
