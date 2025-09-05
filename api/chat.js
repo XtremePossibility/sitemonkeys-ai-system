@@ -94,8 +94,16 @@ let lastPersonality = 'roxy';
 let conversationCount = 0;
 let systemDriftHistory = [];
 
-const completeIntelligence = new CompleteIntelligenceSystem();
-await completeIntelligence.initialize();
+let completeIntelligence = null;
+
+// Initialize the system asynchronously
+(async () => {
+  completeIntelligence = new CompleteIntelligenceSystem();
+  await completeIntelligence.initialize();
+  console.log('✅ Complete Intelligence System initialized');
+})().catch(err => {
+  console.error('❌ Complete Intelligence System failed to initialize:', err);
+});
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -327,7 +335,10 @@ try {
     
     // 0. ENHANCED REASONING PROCESSING (ALWAYS ACTIVE)
 try {
-  const enhancement = await completeIntelligence.validation.validateAndEnforce({
+  if (!completeIntelligence) {
+  throw new Error('Complete Intelligence System not initialized');
+}
+const enhancement = await completeIntelligence.validation.validateAndEnforce({
     aiInsight: { primary_insight: enhancedResponse },
     businessWisdom: { applicable_principles: [] },
     context: { memoryContext, vaultContent, mode },
