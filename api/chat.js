@@ -71,7 +71,6 @@ import { ResponseObjectUnifier } from './response-object-unifier.js';
 import { MasterModeCompliance } from './master-mode-compliance.js';
 import { UnifiedResponseSchema } from './unified-response-schema.js';
 import { EnhancedIntelligence } from './lib/enhanced-intelligence.js';
-import { intelligenceOrchestrator } from './lib/intelligence-orchestrator.js';
 
 console.log('[DEBUG] All cognitive modules loaded successfully');
 
@@ -298,72 +297,31 @@ try {
   memoryContext = null; // Continue without memory context
 }
 
-    // *** EXTRAORDINARY INTELLIGENCE PROCESSING ***
-    try {
-      console.log('[EXTRAORDINARY INTELLIGENCE] Activating intelligent processing...');
-      
-      // Prepare context for extraordinary intelligence
-      const intelligenceContext = {
-        business_context: mode === 'business_validation' || mode === 'site_monkeys',
-        business_critical: mode === 'site_monkeys',
-        expert_domain: expertDomain,
-        care_needs: careNeeds,
-        protective_alerts: protectiveAlerts,
-        solution_opportunities: solutionOpportunities,
-        vault: vaultContent,
-        vault_healthy: vaultHealthy,
-        memory: memoryContext,
-        user_id: user_id,
-        conversation_history: conversation_history
-      };
-      
-      // Process with extraordinary intelligence
-      const intelligenceResponse = await intelligenceOrchestrator.processWithExtraordinaryIntelligence(
-        intelligenceContext,
-        message,
-        mode,
-        req.body.attachments || []
-      );
-      
-      console.log('[EXTRAORDINARY INTELLIGENCE] Processing complete');
-      
-      // Extract response for compatibility with existing system
-      const apiResponse = {
-        response: intelligenceResponse.content,
-        usage: {
-          prompt_tokens: 1000, // Estimated
-          completion_tokens: Math.ceil(intelligenceResponse.content.length / 4)
-        }
-      };
-      
-      // Continue with existing token tracking and response formatting...
-      var enhancedResponse = intelligenceResponse.content;
-      
-    } catch (intelligenceError) {
-      console.error('[EXTRAORDINARY INTELLIGENCE] Error, falling back to existing system:', intelligenceError);
-      
-      // FALLBACK: Use existing system if intelligence fails
-      const masterPrompt = buildMasterPrompt(mode, optimalPersonality, vaultContent, vaultHealthy, expertDomain, careNeeds, protectiveAlerts, solutionOpportunities);
-      const basePrompt = buildFullConversationPrompt(masterPrompt, message, conversation_history, expertDomain, careNeeds, memoryContext);
-      const fullPrompt = basePrompt;
-      const apiResponse = await makeEnhancedAPICall(fullPrompt, optimalPersonality, prideMotivation);
-      var enhancedResponse = apiResponse.response;
-    }
+    // *** MASTER SYSTEM PROMPT CONSTRUCTION ***
+    const masterPrompt = buildMasterPrompt(mode, optimalPersonality, vaultContent, vaultHealthy, expertDomain, careNeeds, protectiveAlerts, solutionOpportunities);
+    const basePrompt = buildFullConversationPrompt(masterPrompt, message, conversation_history, expertDomain, careNeeds, memoryContext);
+    
+    // *** SYSTEM INTELLIGENCE INTEGRATION - FALLBACK SAFE ***
+    const intelligence = { vaultIntelligenceActive: vaultHealthy, status: 'active' };
+    const fullPrompt = basePrompt;
+    
+    // *** ENHANCED API CALL ***
+    const apiResponse = await makeEnhancedAPICall(fullPrompt, optimalPersonality, prideMotivation);
 
     let promptTokens, completionTokens;
 
     if (optimalPersonality === 'claude') {
-      promptTokens = apiResponse.usage?.input_tokens || 1000;
-      completionTokens = apiResponse.usage?.output_tokens || Math.ceil((enhancedResponse || apiResponse.response).length / 4);
+      promptTokens = apiResponse.usage?.input_tokens || Math.ceil(fullPrompt.length / 4);
+      completionTokens = apiResponse.usage?.output_tokens || Math.ceil(apiResponse.response.length / 4);
     } else {
-      promptTokens = apiResponse.usage?.prompt_tokens || 1000;
-      completionTokens = apiResponse.usage?.completion_tokens || Math.ceil((enhancedResponse || apiResponse.response).length / 4);
+      promptTokens = apiResponse.usage?.prompt_tokens || Math.ceil(fullPrompt.length / 4);
+      completionTokens = apiResponse.usage?.completion_tokens || Math.ceil(apiResponse.response.length / 4);
     }
 
     const trackingResult = trackApiCall(optimalPersonality, promptTokens, completionTokens, vaultTokens);
     
     // *** COMPREHENSIVE RESPONSE ENHANCEMENT & ENFORCEMENT ***
-    // enhancedResponse already set above from intelligence processing
+    let enhancedResponse = apiResponse.response;
     
     // 0. ENHANCED REASONING PROCESSING (ALWAYS ACTIVE)
 try {
@@ -511,12 +469,6 @@ if (complianceValidation.corrected_content) {
       session_data: {
   ...sessionData,
   intelligence_capabilities: {
-    extraordinary_intelligence: true,
-    genuine_ai_reasoning: true,
-    business_wisdom_integration: true,
-    multimodal_processing: true,
-    real_time_learning: true,
-    adaptive_intelligence: true,
     reasoning_engine: true,
     cross_domain_synthesis: true,
     scenario_modeling: mode === 'business_validation' || mode === 'site_monkeys',
