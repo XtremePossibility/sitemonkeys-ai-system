@@ -71,6 +71,7 @@ import { ResponseObjectUnifier } from './response-object-unifier.js';
 import { MasterModeCompliance } from './master-mode-compliance.js';
 import { UnifiedResponseSchema } from './unified-response-schema.js';
 import { EnhancedIntelligence } from './lib/enhanced-intelligence.js';
+import { CompleteIntelligenceSystem } from './lib/complete-intelligence-system.js';
 
 console.log('[DEBUG] All cognitive modules loaded successfully');
 
@@ -93,7 +94,8 @@ let lastPersonality = 'roxy';
 let conversationCount = 0;
 let systemDriftHistory = [];
 
-const intelligence = new EnhancedIntelligence();
+const completeIntelligence = new CompleteIntelligenceSystem();
+await completeIntelligence.initialize();
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -325,13 +327,16 @@ try {
     
     // 0. ENHANCED REASONING PROCESSING (ALWAYS ACTIVE)
 try {
-  const enhancement = await intelligence.enhanceResponse(
-    enhancedResponse, message, mode, memoryContext, vaultContent, 0.8
-  );
-  enhancedResponse = enhancement.enhancedResponse;
-  console.log('[ENHANCED INTELLIGENCE] Applied:', enhancement.intelligenceApplied.join(', '));
+  const enhancement = await completeIntelligence.validation.validateAndEnforce({
+    aiInsight: { primary_insight: enhancedResponse },
+    businessWisdom: { applicable_principles: [] },
+    context: { memoryContext, vaultContent, mode },
+    mode
+  });
+  enhancedResponse = enhancement.content;
+  console.log('[COMPLETE INTELLIGENCE] Applied with trust score:', enhancement.trustScore);
 } catch (error) {
-  console.error('[ENHANCED INTELLIGENCE] Error:', error);
+  console.error('[COMPLETE INTELLIGENCE] Error:', error);
   // Fallback to existing method
   enhancedResponse = applyEnhancedReasoning(
     enhancedResponse, message, mode, expertDomain, memoryContext, vaultContent
