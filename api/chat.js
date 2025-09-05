@@ -334,28 +334,11 @@ try {
     let enhancedResponse = apiResponse.response;
     
     // 0. ENHANCED REASONING PROCESSING (ALWAYS ACTIVE)
-try {
-  if (!completeIntelligence || !completeIntelligence.initialized) {
-    throw new Error('Complete Intelligence System not ready');
-  }
-  
-  // Use the correct method from CompleteIntelligenceSystem
-  const enhancement = await completeIntelligence.enhanceResponse(
-    enhancedResponse, 
-    message, 
-    mode, 
-    { memoryContext, vaultContent, expertDomain }
-  );
-  
-  enhancedResponse = enhancement.enhancedResponse || enhancement.response || enhancedResponse;
-  console.log('[COMPLETE INTELLIGENCE] Applied successfully:', enhancement.intelligenceApplied || 'intelligence enhanced');
-} catch (error) {
-  console.error('[COMPLETE INTELLIGENCE] Error:', error);
-  // Fallback to existing method
-  enhancedResponse = applyEnhancedReasoning(
-    enhancedResponse, message, mode, expertDomain, memoryContext, vaultContent
-  );
-}
+    // COMPLETE INTELLIGENCE INTEGRATION - TEMPORARILY DISABLED UNTIL METHODS READY
+    console.log('[COMPLETE INTELLIGENCE] System initialized but methods not ready, using existing enhancement');
+    enhancedResponse = applyEnhancedReasoning(
+      enhancedResponse, message, mode, expertDomain, memoryContext, vaultContent
+    );
     
     // 1. QUANTITATIVE REASONING ENFORCEMENT
     enhancedResponse = enforceQuantitativeAnalysis(enhancedResponse, message, expertDomain.domain, vaultContent);
