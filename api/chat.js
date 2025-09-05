@@ -71,7 +71,6 @@ import { ResponseObjectUnifier } from './response-object-unifier.js';
 import { MasterModeCompliance } from './master-mode-compliance.js';
 import { UnifiedResponseSchema } from './unified-response-schema.js';
 import { EnhancedIntelligence } from './lib/enhanced-intelligence.js';
-import { CompleteIntelligenceSystem } from './lib/complete-intelligence-system.js';
 
 console.log('[DEBUG] All cognitive modules loaded successfully');
 
@@ -94,16 +93,7 @@ let lastPersonality = 'roxy';
 let conversationCount = 0;
 let systemDriftHistory = [];
 
-let completeIntelligence = null;
-
-// Initialize the system asynchronously
-(async () => {
-  completeIntelligence = new CompleteIntelligenceSystem();
-  await completeIntelligence.initialize();
-  console.log('✅ Complete Intelligence System initialized');
-})().catch(err => {
-  console.error('❌ Complete Intelligence System failed to initialize:', err);
-});
+const intelligence = new EnhancedIntelligence();
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -334,11 +324,19 @@ try {
     let enhancedResponse = apiResponse.response;
     
     // 0. ENHANCED REASONING PROCESSING (ALWAYS ACTIVE)
-    // COMPLETE INTELLIGENCE INTEGRATION - TEMPORARILY DISABLED UNTIL METHODS READY
-    console.log('[COMPLETE INTELLIGENCE] System initialized but methods not ready, using existing enhancement');
-    enhancedResponse = applyEnhancedReasoning(
-      enhancedResponse, message, mode, expertDomain, memoryContext, vaultContent
-    );
+try {
+  const enhancement = await intelligence.enhanceResponse(
+    enhancedResponse, message, mode, memoryContext, vaultContent, 0.8
+  );
+  enhancedResponse = enhancement.enhancedResponse;
+  console.log('[ENHANCED INTELLIGENCE] Applied:', enhancement.intelligenceApplied.join(', '));
+} catch (error) {
+  console.error('[ENHANCED INTELLIGENCE] Error:', error);
+  // Fallback to existing method
+  enhancedResponse = applyEnhancedReasoning(
+    enhancedResponse, message, mode, expertDomain, memoryContext, vaultContent
+  );
+}
     
     // 1. QUANTITATIVE REASONING ENFORCEMENT
     enhancedResponse = enforceQuantitativeAnalysis(enhancedResponse, message, expertDomain.domain, vaultContent);
