@@ -335,17 +335,20 @@ try {
     
     // 0. ENHANCED REASONING PROCESSING (ALWAYS ACTIVE)
 try {
-  if (!completeIntelligence) {
-  throw new Error('Complete Intelligence System not initialized');
-}
-const enhancement = await completeIntelligence.validation.validateAndEnforce({
-    aiInsight: { primary_insight: enhancedResponse },
-    businessWisdom: { applicable_principles: [] },
-    context: { memoryContext, vaultContent, mode },
-    mode
-  });
-  enhancedResponse = enhancement.content;
-  console.log('[COMPLETE INTELLIGENCE] Applied with trust score:', enhancement.trustScore);
+  if (!completeIntelligence || !completeIntelligence.initialized) {
+    throw new Error('Complete Intelligence System not ready');
+  }
+  
+  // Use the correct method from CompleteIntelligenceSystem
+  const enhancement = await completeIntelligence.enhanceResponse(
+    enhancedResponse, 
+    message, 
+    mode, 
+    { memoryContext, vaultContent, expertDomain }
+  );
+  
+  enhancedResponse = enhancement.enhancedResponse || enhancement.response || enhancedResponse;
+  console.log('[COMPLETE INTELLIGENCE] Applied successfully:', enhancement.intelligenceApplied || 'intelligence enhanced');
 } catch (error) {
   console.error('[COMPLETE INTELLIGENCE] Error:', error);
   // Fallback to existing method
