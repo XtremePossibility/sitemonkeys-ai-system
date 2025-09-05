@@ -2,7 +2,6 @@
 // COMPLETE MODULAR CARING FAMILY INTELLIGENCE SYSTEM
 // Orchestrates all cognitive modules for universal expert intelligence
 // MEMORY SYSTEMS NOW HANDLED BY SERVER.JS BOOTSTRAP
-// Redeploy
 
 console.log('[CHAT] 🚀 Chat system initializing...');
 console.log('[DEBUG] Chat imports starting...');
