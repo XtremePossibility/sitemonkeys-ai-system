@@ -247,6 +247,77 @@ class CoreSystem {
     }
   }
 
+  async extractIntelligentMemory(message, userId, intelligenceContext) {
+    try {
+      // Get memories from multiple categories based on context
+      const memories = await this.getMemoriesByCategory(userId, 'relationships_social', 10);
+      
+      if (memories && memories.length > 0) {
+        const memoryText = memories.map(m => m.content).join('\n');
+        return {
+          contextFound: true,
+          memories: memoryText,
+          totalTokens: memories.reduce((sum, m) => sum + m.token_count, 0),
+          intelligenceEnhanced: true,
+          reasoningSupport: [],
+          crossDomainConnections: [],
+          scenarioRelevantMemories: {},
+          quantitativeContext: []
+        };
+      }
+      
+      return { contextFound: false, memories: '', totalTokens: 0 };
+    } catch (error) {
+      this.logger.error('extractIntelligentMemory error:', error);
+      return { contextFound: false, memories: '', totalTokens: 0 };
+    }
+  }
+
+  async retrieveMemory(userId, message) {
+    try {
+      const memories = await this.getMemoriesByCategory(userId, 'relationships_social', 5);
+      
+      if (memories && memories.length > 0) {
+        const memoryText = memories.map(m => m.content).join('\n');
+        return {
+          contextFound: true,
+          memories: memoryText,
+          totalTokens: memories.reduce((sum, m) => sum + m.token_count, 0)
+        };
+      }
+      
+      return { contextFound: false, memories: '', totalTokens: 0 };
+    } catch (error) {
+      this.logger.error('retrieveMemory error:', error);
+      return { contextFound: false, memories: '', totalTokens: 0 };
+    }
+  }
+
+  // ================================================================
+  // USER MANAGEMENT OPERATIONS
+  // ================================================================
+
+  async deleteMemory(userId, memoryId) {
+    try {
+      const query = `
+        DELETE FROM persistent_memories 
+        WHERE id = $1 AND user_id = $2
+        RETURNING id
+      `;
+      
+      const result = await this.executeQuery(query, [memoryId, userId]);
+      
+      return {
+        success: true,
+        deleted: result.rows.length > 0
+      };
+
+    } catch (error) {
+      this.logger.error('Error deleting memory:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
   // ================================================================
   // USER MANAGEMENT OPERATIONS
   // ================================================================
