@@ -282,7 +282,7 @@ try {
     } else {
       // Fallback to standard memory retrieval
       console.log('[MEMORY] Using standard memory retrieval');
-      memoryContext = await global.memorySystem.extractIntelligentMemory(message, user_id, intelligenceContext);
+      memoryContext = await global.memorySystem.retrieveMemory(user_id, message);
       
       console.log('[MEMORY] Standard retrieval complete:', {
         found: memoryContext?.contextFound || false,
@@ -896,7 +896,7 @@ function buildFullConversationPrompt(masterPrompt, message, conversationHistory,
 
   // CRITICAL FIX: Enable memory integration 
   if (memoryContext && memoryContext.contextFound) {
-    fullPrompt += 'PERSISTENT MEMORY CONTEXT:\n';
+    fullPrompt += 'RELEVANT MEMORY CONTEXT:\n';
     fullPrompt += memoryContext.memories + '\n\n';
     console.log('[MEMORY] Injected', memoryContext.totalTokens, 'tokens of memory context');
   }
