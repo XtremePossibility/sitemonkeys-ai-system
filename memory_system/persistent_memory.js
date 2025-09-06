@@ -141,6 +141,11 @@ class PersistentMemoryOrchestrator {
         return await self.storeMemoryForChat(userId, conversation);
       },
 
+      extractIntelligentMemory: async (message, userId, intelligenceContext) => {
+        await self.ensureInitialized();
+        return await self.extractIntelligentMemoryForChat(message, userId, intelligenceContext);
+      },
+
       getMemoryStats: async (userId) => {
         await self.ensureInitialized();
         return await self.getMemoryStats(userId);
@@ -152,7 +157,7 @@ class PersistentMemoryOrchestrator {
       }
     };
 
-    this.logger.log('Global memory interface established');
+    this.logger.log('Enhanced global memory interface established with intelligent extraction');
   }
 
   // ================================================================
@@ -601,6 +606,260 @@ class PersistentMemoryOrchestrator {
         return `[${timeAgo}] ${memory.content}`;
       })
       .join('\n\n');
+  }
+
+  async extractIntelligentMemoryForChat(message, userId, intelligenceContext) {
+    const startTime = Date.now();
+    
+    try {
+      this.logger.log(`Intelligent memory extraction: ${userId}, query: "${message.substring(0, 50)}..."`);
+      this.logger.log('Intelligence context:', JSON.stringify(intelligenceContext, null, 2));
+
+      if (!this.isHealthy) {
+        this.logger.warn('System not healthy, checking for recovery...');
+        await this.attemptSystemRecovery();
+      }
+
+      if (this.isHealthy && this.intelligenceSystem) {
+        try {
+          const routing = await this.intelligenceSystem.analyzeAndRoute(message, userId);
+          this.logger.log(`Intelligence routing: ${routing.primaryCategory}/${routing.subcategory} (confidence: ${routing.confidence.toFixed(3)})`);
+
+          const memories = await this.intelligenceSystem.extractRelevantMemories(userId, message, routing);
+          this.logger.log(`Intelligent extraction found: ${memories.length} memories`);
+
+          if (memories.length > 0) {
+            const enhancedResult = await this.applyIntelligenceEnhancements(
+              memories, message, intelligenceContext, routing
+            );
+
+            this.updatePerformanceStats(true, Date.now() - startTime);
+            return enhancedResult;
+          }
+        } catch (intelligenceError) {
+          this.logger.error('Intelligence system error, falling back:', intelligenceError);
+        }
+      }
+
+      this.logger.log('Using fallback memory retrieval for intelligent extraction');
+      const fallbackResult = await this.fallbackRetrieve(userId, message);
+      
+      const intelligentFallback = {
+        contextFound: fallbackResult.contextFound,
+        memories: fallbackResult.memories,
+        reasoningSupport: [],
+        crossDomainConnections: [],
+        scenarioRelevantMemories: {},
+        quantitativeContext: [],
+        intelligenceEnhanced: false,
+        fallbackMode: true
+      };
+
+      this.updatePerformanceStats(fallbackResult.contextFound, Date.now() - startTime);
+      return intelligentFallback;
+
+    } catch (error) {
+      this.logger.error('Error in extractIntelligentMemoryForChat:', error);
+      this.updatePerformanceStats(false, Date.now() - startTime);
+      
+      return {
+        contextFound: false,
+        memories: '',
+        reasoningSupport: [],
+        crossDomainConnections: [],
+        scenarioRelevantMemories: {},
+        quantitativeContext: [],
+        intelligenceEnhanced: false,
+        error: true
+      };
+    }
+  }
+
+  async applyIntelligenceEnhancements(memories, query, intelligenceContext, routing) {
+    try {
+      const formattedMemories = this.formatMemoriesForChat(memories);
+      const totalTokens = memories.reduce((sum, m) => sum + (m.token_count || 0), 0);
+
+      const reasoningSupport = [];
+      const crossDomainConnections = [];
+      const scenarioRelevantMemories = {};
+      const quantitativeContext = [];
+
+      if (intelligenceContext.requiresReasoning) {
+        for (const memory of memories) {
+          if (this.supportsReasoning(memory.content)) {
+            reasoningSupport.push({
+              memory_id: memory.id,
+              content: memory.content,
+              reasoning_type: this.identifyReasoningType(memory.content),
+              confidence: memory.relevance_score || 0.5
+            });
+          }
+        }
+        this.logger.log(`Reasoning support: ${reasoningSupport.length} memories`);
+      }
+
+      if (intelligenceContext.crossDomainAnalysis) {
+        const domains = this.identifyDomains(query);
+        for (const memory of memories) {
+          const memoryDomains = this.identifyDomains(memory.content);
+          const sharedDomains = domains.filter(d => memoryDomains.includes(d));
+          
+          if (sharedDomains.length > 0) {
+            crossDomainConnections.push({
+              memory_id: memory.id,
+              content: memory.content,
+              shared_domains: sharedDomains,
+              connection_strength: sharedDomains.length / Math.max(domains.length, memoryDomains.length)
+            });
+          }
+        }
+        this.logger.log(`Cross-domain connections: ${crossDomainConnections.length} found`);
+      }
+
+      if (intelligenceContext.scenarioAnalysis) {
+        const scenarios = ['success', 'failure', 'alternative'];
+        for (const scenario of scenarios) {
+          const scenarioMemories = memories.filter(m => 
+            this.isScenarioRelevant(m.content, scenario)
+          );
+          if (scenarioMemories.length > 0) {
+            scenarioRelevantMemories[scenario] = scenarioMemories.map(m => ({
+              memory_id: m.id,
+              content: m.content,
+              scenario_relevance: this.calculateScenarioRelevance(m.content, scenario)
+            }));
+          }
+        }
+        this.logger.log(`Scenario analysis: ${Object.keys(scenarioRelevantMemories).length} scenarios`);
+      }
+
+      if (intelligenceContext.quantitativeAnalysis) {
+        for (const memory of memories) {
+          const numbers = this.extractNumbers(memory.content);
+          if (numbers.length > 0) {
+            quantitativeContext.push({
+              memory_id: memory.id,
+              content: memory.content,
+              numbers: numbers,
+              quantitative_insights: this.analyzeNumbers(numbers, memory.content)
+            });
+          }
+        }
+        this.logger.log(`Quantitative context: ${quantitativeContext.length} memories with numbers`);
+      }
+
+      return {
+        contextFound: true,
+        memories: formattedMemories,
+        totalTokens: totalTokens,
+        memoryCount: memories.length,
+        category: routing.primaryCategory,
+        subcategory: routing.subcategory,
+        confidence: routing.confidence,
+        reasoningSupport: reasoningSupport,
+        crossDomainConnections: crossDomainConnections,
+        scenarioRelevantMemories: scenarioRelevantMemories,
+        quantitativeContext: quantitativeContext,
+        intelligenceEnhanced: true
+      };
+
+    } catch (error) {
+      this.logger.error('Error applying intelligence enhancements:', error);
+      return {
+        contextFound: memories.length > 0,
+        memories: this.formatMemoriesForChat(memories),
+        reasoningSupport: [],
+        crossDomainConnections: [],
+        scenarioRelevantMemories: {},
+        quantitativeContext: [],
+        intelligenceEnhanced: false
+      };
+    }
+  }
+
+  supportsReasoning(content) {
+    return content.includes('because') || content.includes('therefore') || 
+           content.includes('logic') || content.includes('reason') ||
+           content.includes('since') || content.includes('thus');
+  }
+
+  identifyReasoningType(content) {
+    if (content.includes('cause') || content.includes('because')) return 'causal';
+    if (content.includes('compare') || content.includes('versus')) return 'comparative';
+    if (content.includes('if') || content.includes('scenario')) return 'conditional';
+    if (content.includes('sequence') || content.includes('step')) return 'sequential';
+    return 'general';
+  }
+
+  identifyDomains(text) {
+    const domains = [];
+    const domainKeywords = {
+      'business': ['business', 'company', 'revenue', 'profit', 'market', 'strategy'],
+      'personal': ['personal', 'family', 'relationship', 'friend', 'life'],
+      'health': ['health', 'medical', 'doctor', 'symptoms', 'wellness'],
+      'financial': ['money', 'finance', 'budget', 'investment', 'cost'],
+      'career': ['career', 'job', 'work', 'employer', 'professional'],
+      'technical': ['technical', 'software', 'system', 'code', 'digital']
+    };
+
+    for (const [domain, keywords] of Object.entries(domainKeywords)) {
+      if (keywords.some(keyword => text.toLowerCase().includes(keyword))) {
+        domains.push(domain);
+      }
+    }
+
+    return domains;
+  }
+
+  isScenarioRelevant(content, scenario) {
+    const scenarioKeywords = {
+      'success': ['success', 'achieve', 'accomplish', 'win', 'positive', 'good'],
+      'failure': ['failure', 'fail', 'problem', 'issue', 'negative', 'bad'],
+      'alternative': ['alternative', 'option', 'different', 'instead', 'other']
+    };
+
+    const keywords = scenarioKeywords[scenario] || [];
+    return keywords.some(keyword => content.toLowerCase().includes(keyword));
+  }
+
+  calculateScenarioRelevance(content, scenario) {
+    const scenarioKeywords = {
+      'success': ['success', 'achieve', 'accomplish', 'win', 'positive'],
+      'failure': ['failure', 'fail', 'problem', 'issue', 'negative'],
+      'alternative': ['alternative', 'option', 'different', 'instead']
+    };
+
+    const keywords = scenarioKeywords[scenario] || [];
+    const matches = keywords.filter(keyword => content.toLowerCase().includes(keyword));
+    return matches.length / keywords.length;
+  }
+
+  extractNumbers(text) {
+    const numberRegex = /\b\d+(?:,\d{3})*(?:\.\d+)?\b/g;
+    const matches = text.match(numberRegex) || [];
+    return matches.map(match => parseFloat(match.replace(/,/g, '')));
+  }
+
+  analyzeNumbers(numbers, context) {
+    if (numbers.length === 0) return {};
+    
+    const insights = {
+      count: numbers.length,
+      sum: numbers.reduce((a, b) => a + b, 0),
+      average: numbers.reduce((a, b) => a + b, 0) / numbers.length,
+      max: Math.max(...numbers),
+      min: Math.min(...numbers)
+    };
+
+    if (context.toLowerCase().includes('revenue') || context.toLowerCase().includes('profit')) {
+      insights.financial_context = true;
+    }
+    if (context.toLowerCase().includes('time') || context.toLowerCase().includes('hour')) {
+      insights.temporal_context = true;
+    }
+
+    return insights;
   }
 
   formatTimeAgo(timestamp) {
