@@ -919,7 +919,7 @@ function buildFullConversationPrompt(masterPrompt, message, conversationHistory,
   
   // MEMORY USAGE INSTRUCTION - CRITICAL FIX
   if (memoryContext && memoryContext.contextFound) {
-    fullPrompt += `MEMORY USAGE REQUIRED: Reference the PERSISTENT MEMORY CONTEXT above when relevant. If you see previous conversations or information about this person, acknowledge it naturally (e.g., "Earlier you mentioned..." or "Based on our previous discussion..." or "I remember you told me..."). 
+   fullPrompt += "MEMORY USAGE REQUIRED: Reference the RELEVANT MEMORY CONTEXT above when relevant... 
 
 Respond with the expertise and caring dedication of a family member who genuinely wants to see them succeed:`;
   } else {
