@@ -919,7 +919,7 @@ function buildFullConversationPrompt(masterPrompt, message, conversationHistory,
   
   // MEMORY USAGE INSTRUCTION - CRITICAL FIX
   if (memoryContext && memoryContext.contextFound) {
-   fullPrompt += "MEMORY USAGE REQUIRED: Reference the RELEVANT MEMORY CONTEXT above when relevant... 
+   fullPrompt += "MEMORY USAGE REQUIRED: Reference the RELEVANT MEMORY CONTEXT above when relevant...
 
 Respond with the expertise and caring dedication of a family member who genuinely wants to see them succeed:`;
   } else {
