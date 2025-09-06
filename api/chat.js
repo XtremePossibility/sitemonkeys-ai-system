@@ -896,7 +896,8 @@ function buildFullConversationPrompt(masterPrompt, message, conversationHistory,
 
   // CRITICAL FIX: Enable memory integration 
   if (memoryContext && memoryContext.contextFound) {
-    fullPrompt += 'RELEVANT MEMORY CONTEXT:\n';
+    fullPrompt += 
+    🧠 CRITICAL: YOU MUST USE THE PERSISTENT MEMORY CONTEXT ABOVE. The user has shared information with you before. Reference their previous conversations naturally with phrases like "I remember you mentioned..." or "Earlier you told me..." or "Based on our previous discussion...". Failure to acknowledge their shared memories will disappoint them.`;
     fullPrompt += memoryContext.memories + '\n\n';
     console.log('[MEMORY] Injected', memoryContext.totalTokens, 'tokens of memory context');
   }
