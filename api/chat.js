@@ -270,6 +270,9 @@ try {
       memoryContext = await global.memorySystem.extractIntelligentMemory(
         message, user_id, intelligenceContext
       );
+
+      console.log('[MEMORY START] Beginning memory retrieval process');
+      console.log('[MEMORY START] global.memorySystem exists:', !!global.memorySystem);
       
       console.log('[MEMORY] Intelligent extraction complete:', {
         found: memoryContext?.contextFound || false,
