@@ -294,14 +294,14 @@ try {
   }
 
     } catch (memoryError) {
-  console.error('[MEMORY] Memory retrieval error:', memoryError);
-  memoryContext = null; // Continue without memory context
-}
-
-// *** MEMORY DEBUG - TEMPORARY DIAGNOSTIC ***
-console.log('[MEMORY DEBUG] Raw memory context:', JSON.stringify(memoryContext, null, 2));
-console.log('[MEMORY DEBUG] Memory found:', memoryContext?.contextFound);
-console.log('[MEMORY DEBUG] Memory content preview:', memoryContext?.memories?.substring(0, 500));
+      console.error('[MEMORY] Memory retrieval error:', memoryError);
+      memoryContext = null; // Continue without memory context
+    }
+    
+    // *** MEMORY DEBUG - TEMPORARY DIAGNOSTIC ***
+    console.log('[MEMORY DEBUG] Raw memory context:', JSON.stringify(memoryContext, null, 2));
+    console.log('[MEMORY DEBUG] Memory found:', memoryContext?.contextFound);
+    console.log('[MEMORY DEBUG] Memory content preview:', memoryContext?.memories?.substring(0, 500));
 
     // *** MASTER SYSTEM PROMPT CONSTRUCTION ***
     const masterPrompt = buildMasterPrompt(mode, optimalPersonality, vaultContent, vaultHealthy, expertDomain, careNeeds, protectiveAlerts, solutionOpportunities);
