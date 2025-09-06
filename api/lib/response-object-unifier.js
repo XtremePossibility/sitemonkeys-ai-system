@@ -67,6 +67,36 @@ export class ResponseObjectUnifier {
     );
   }
 
+  }
+
+  // MEMORY REFERENCE PRESERVATION - Protects memory acknowledgments during enforcement
+  applyMemoryPreservation(memoryContext) {
+    if (!memoryContext || !memoryContext.contextFound) return this.masterResponse;
+
+    return this.modifyResponse(
+      (content) => {
+        // Detect if AI naturally referenced memory
+        const memoryIndicators = ['remember', 'mentioned', 'told me', 'discussed', 'earlier', 'before', 'previously'];
+        const hasMemoryReference = memoryIndicators.some(indicator => 
+          content.toLowerCase().includes(indicator)
+        );
+
+        // If AI didn't reference memory but should have, add it
+        if (!hasMemoryReference && memoryContext.memories) {
+          const enhanced = `I remember from our previous conversations: ${memoryContext.memories.slice(0, 200)}...\n\n${content}`;
+          return { response: enhanced, modified: true, reason: "Memory reference added" };
+        }
+
+        return { response: content, modified: false };
+      },
+      'MEMORY_PRESERVATION_UNIFIED',
+      { memoryContext }
+    );
+  }
+
+  // AI-PROCESSORS.JS INTEGRATION - Replaces response.response modifications  
+  applyProductValidation() {
+
   // AI-PROCESSORS.JS INTEGRATION - Replaces response.response modifications  
   applyProductValidation() {
     return this.modifyResponse(
