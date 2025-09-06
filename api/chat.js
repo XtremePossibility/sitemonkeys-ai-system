@@ -282,7 +282,7 @@ try {
     } else {
       // Fallback to standard memory retrieval
       console.log('[MEMORY] Using standard memory retrieval');
-      memoryContext = await global.memorySystem.retrieveMemory(user_id, message);
+      memoryContext = await global.memorySystem.extractIntelligentMemory(message, user_id, intelligenceContext);
       
       console.log('[MEMORY] Standard retrieval complete:', {
         found: memoryContext?.contextFound || false,
