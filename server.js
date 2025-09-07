@@ -1364,6 +1364,8 @@ Incorporate these opportunities into your guidance where beneficial.
     prompt += `\n\nRELEVANT MEMORY FROM PREVIOUS CONVERSATIONS:
 ${memoryContext.memories}
 
+  console.log('[DEBUG] Memory content being added:', memoryContext.memories.substring(0, 500) + '...');
+
 CRITICAL: You have access to previous conversation context above. Reference this naturally with phrases like "Earlier you mentioned..." or "Based on what you told me before..." when relevant to maintain conversation continuity.
 
 `;
