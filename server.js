@@ -70,10 +70,6 @@ console.log('[SERVER] 🚀 Starting Site Monkeys AI System...');
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 
-import path from 'path';
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
-
 // Required for ESM to get __dirname
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -83,14 +79,6 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // ==================== VAULT LOADER INTEGRATION ====================
 // Adding vault functionality to existing server with ES module imports
-
-// Vault imports - all converted to ES modules
-import { google } from 'googleapis';
-import axios from 'axios';
-import JSZip from 'jszip';
-import xml2js from 'xml2js';
-import zlib from 'zlib';
-import { promisify } from 'util';
 
 // BULLETPROOF OPENAI API CALLING WITH RATE LIMITING
 let lastRequestTime = 0;
