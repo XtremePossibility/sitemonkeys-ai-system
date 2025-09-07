@@ -1247,7 +1247,7 @@ function calculatePrideLevel(protectiveAlerts, solutionOpportunities, careNeeds)
 }
 
 function buildMasterSystemPrompt(config) {
-  const { mode, personality, vaultContent, vaultHealthy, expertDomain, careNeeds, protectiveAlerts, solutionOpportunities, quantitativeNeeds } = config;
+  const { mode, personality, vaultContent, vaultHealthy, expertDomain, careNeeds, protectiveAlerts, solutionOpportunities, quantitativeNeeds, memoryContext } = config;
   
   let prompt = `You are a world-class ${expertDomain.title} with 20+ years of extraordinary professional success. You are part of an extraordinary family of experts who genuinely care about each other's success.
 
@@ -1358,6 +1358,19 @@ Address these risks proactively in your response with specific protective guidan
 Incorporate these opportunities into your guidance where beneficial.
 
 `;
+  }
+
+  // ADD MEMORY INTEGRATION HERE
+  if (memoryContext && memoryContext.memories && memoryContext.memories.length > 0) {
+    prompt += `\n\nRELEVANT MEMORY FROM PREVIOUS CONVERSATIONS:
+${memoryContext.memories}
+
+CRITICAL: You have access to previous conversation context above. Reference this naturally with phrases like "Earlier you mentioned..." or "Based on what you told me before..." when relevant to maintain conversation continuity.
+
+`;
+    console.log('[SYSTEM PROMPT] Memory context integrated for personality');
+  } else {
+    console.log('[SYSTEM PROMPT] No memory context available');
   }
 
   // Universal requirements
