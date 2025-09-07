@@ -1365,23 +1365,21 @@ Incorporate these opportunities into your guidance where beneficial.
       prompt += `\n\nRELEVANT MEMORY FROM PREVIOUS CONVERSATIONS:
   ${memoryContext.memories}
 
-  CRITICAL MEMORY INTERPRETATION INSTRUCTIONS (MANDATORY):
-IGNORE any previous responses that said "no memory found" or "no mention" - those were interpretation failures.
+  CONTEXTUAL MEMORY ANALYSIS:
+  You have access to previous conversation context above. Use your intelligence to find connections between user queries and retrieved memories.
 
-You MUST scan ALL memory content for relevant information regardless of how it was previously interpreted:
+  Apply natural language understanding:
+  - Consider synonyms, nicknames, and colloquial terms
+  - Look for semantic relationships, not just keyword matches
+  - Make logical inferences based on context
+  - Consider how people actually communicate (parents call kids "monkeys," "business" can mean work/revenue/company)
 
-- "monkeys" = children/kids (parents call children monkeys)
-- "business/company/work" = any revenue/SaaS/business info  
-- "vehicles/cars" = any transportation info
-- "partner" = business partner or romantic partner
+  When you find relevant information, reference it naturally. If memories seem related but you're uncertain, ask for clarification rather than claiming no memory exists.
 
-If memory contains children's names (like Emerald, Holly, John, Jordan) and user asks about "monkeys" → "Yes, you mean your children Emerald, Holly, John, and Jordan!"
-
-NEVER defer to previous AI responses that claimed no memory. Re-examine the actual memory content yourself.
-
-Reference naturally with phrases like "Earlier you mentioned..." or "Based on what you told me before..." when making these connections.
-
-`;
+  Trust your reasoning ability to make intelligent connections.
+    
+  `;
+ 
     
     console.log('[SYSTEM PROMPT] Memory context integrated for personality');
   } else {
