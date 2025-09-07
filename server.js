@@ -859,8 +859,7 @@ console.log('[CHAT] ✅ Memory systems ready');
     // MASTER SYSTEM PROMPT CONSTRUCTION
 const systemPrompt = buildMasterSystemPrompt({
   mode, personality, vaultContent, vaultHealthy, expertDomain,
-  careNeeds, protectiveAlerts, solutionOpportunities, quantitativeNeeds,
-  memoryContext: memoryContext  // ADD THIS LINE
+  careNeeds, protectiveAlerts, solutionOpportunities, quantitativeNeeds
 });
 
 // ADD MEMORY CONTEXT TO CONVERSATION PROMPT
@@ -1247,7 +1246,7 @@ function calculatePrideLevel(protectiveAlerts, solutionOpportunities, careNeeds)
 }
 
 function buildMasterSystemPrompt(config) {
-  const { mode, personality, vaultContent, vaultHealthy, expertDomain, careNeeds, protectiveAlerts, solutionOpportunities, quantitativeNeeds, memoryContext  } = config;
+  const { mode, personality, vaultContent, vaultHealthy, expertDomain, careNeeds, protectiveAlerts, solutionOpportunities, quantitativeNeeds } = config;
   
   let prompt = `You are a world-class ${expertDomain.title} with 20+ years of extraordinary professional success. You are part of an extraordinary family of experts who genuinely care about each other's success.
 
@@ -1359,21 +1358,6 @@ Incorporate these opportunities into your guidance where beneficial.
 
 `;
   }
-
-  // ADD MEMORY INTEGRATION HERE
-  if (memoryContext && memoryContext.hasMemory) {
-    prompt += `\n\nRELEVANT MEMORY FROM PREVIOUS CONVERSATIONS:
-${memoryContext.formattedMemory}
-
-CRITICAL: You have access to previous conversation context above. Reference this naturally with phrases like "Earlier you mentioned..." or "Based on what you told me before..." when relevant to maintain conversation continuity.
-
-`;
-    console.log('[SYSTEM PROMPT] Memory context integrated for personality');
-  } else if (memoryContext && memoryContext.personalityPrompt) {
-    prompt += `\n\n${memoryContext.personalityPrompt}
-
-`;
-    console.log('[SYSTEM PROMPT] No-memory prompt added for personality');
 
   // Universal requirements
   prompt += `POLITICAL NEUTRALITY (ABSOLUTE):
