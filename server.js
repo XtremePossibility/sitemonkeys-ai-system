@@ -4,9 +4,20 @@
 //Redeploy
 import express from 'express';
 import cors from 'cors';
-const app = express();
 import { exec } from 'child_process';
 import persistentMemory from './memory_system/persistent_memory.js';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+import { google } from 'googleapis';
+import axios from 'axios';
+import JSZip from 'jszip';
+import xml2js from 'xml2js';
+import zlib from 'zlib';
+import { promisify } from 'util';
+
+// NOW declare your variables:
+const app = express();
 
 // ===== APPLICATION STARTUP MEMORY INITIALIZATION =====
 console.log('[SERVER] 🚀 Initializing memory systems at application startup...');
