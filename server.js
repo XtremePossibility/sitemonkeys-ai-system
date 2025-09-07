@@ -657,7 +657,7 @@ const EXPERT_DOMAINS = {
     personality: 'eli',
     frameworks: ['jurisdiction_awareness', 'risk_assessment', 'regulatory_compliance']
   },
-  medical_advisory: {I
+  medical_advisory: {
     triggers: ['medical', 'health', 'diagnosis', 'treatment', 'doctor', 'patient', 'symptoms', 'healthcare'],
     title: 'Healthcare Professional & Medical Advisor',
     personality: 'roxy',
