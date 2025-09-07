@@ -657,7 +657,7 @@ const EXPERT_DOMAINS = {
     personality: 'eli',
     frameworks: ['jurisdiction_awareness', 'risk_assessment', 'regulatory_compliance']
   },
-  medical_advisory: {
+  medical_advisory: {I
     triggers: ['medical', 'health', 'diagnosis', 'treatment', 'doctor', 'patient', 'symptoms', 'healthcare'],
     title: 'Healthcare Professional & Medical Advisor',
     personality: 'roxy',
@@ -1360,10 +1360,6 @@ Incorporate these opportunities into your guidance where beneficial.
 `;
   }
 
-
-
-  }
-
   // ADD MEMORY INTEGRATION HERE
   if (memoryContext && memoryContext.hasMemory) {
     prompt += `\n\nRELEVANT MEMORY FROM PREVIOUS CONVERSATIONS:
@@ -1378,7 +1374,6 @@ CRITICAL: You have access to previous conversation context above. Reference this
 
 `;
     console.log('[SYSTEM PROMPT] No-memory prompt added for personality');
-  }
 
   // Universal requirements
   prompt += `POLITICAL NEUTRALITY (ABSOLUTE):
