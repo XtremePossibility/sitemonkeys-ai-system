@@ -1362,23 +1362,27 @@ Incorporate these opportunities into your guidance where beneficial.
 
   // ADD MEMORY INTEGRATION HERE
   if (memoryContext && memoryContext.memories && memoryContext.memories.length > 0) {
-        prompt += `\n\nRELEVANT MEMORY FROM PREVIOUS CONVERSATIONS:
-    ${memoryContext.memories}
-    
-    CRITICAL MEMORY INTERPRETATION INSTRUCTIONS:
-    You have access to previous conversation context above. You MUST make intelligent connections between retrieved memories and user queries:
-    
-    - If user asks about "monkeys" and memory contains children's names → Connect: "Yes, you mean your children [names]"
-    - If user asks about "business/company" and memory contains revenue/work info → Connect: "Yes, your SaaS business with $X MRR" 
-    - If user asks about "vehicles/cars" and memory contains vehicle info → Connect appropriately
-    - If user asks about "partner" and memory contains relationship/business info → Make the logical connection
-    
-    NEVER say "no memory found" if relevant information exists in a different form. Always interpret colloquialisms, nicknames, and contextual references. When unsure, ask: "Are you referring to [specific memory content]?"
-    
-    Reference naturally with phrases like "Earlier you mentioned..." or "Based on what you told me before..." when making these connections.
-    
-    `;
+      prompt += `\n\nRELEVANT MEMORY FROM PREVIOUS CONVERSATIONS:
+  ${memoryContext.memories}
 
+  CRITICAL MEMORY INTERPRETATION INSTRUCTIONS (MANDATORY):
+  IGNORE any previous responses that said "no memory found" or "no mention" - those were interpretation failures.
+
+  You MUST scan ALL memory content for relevant information regardless of how it was previously interpreted:
+
+  - "monkeys" = children/kids (parents call children monkeys)
+  - "business/company/work" = any revenue/SaaS/business info  
+  - "vehicles/cars" = any transportation info
+  - "partner" = business partner or romantic partner
+
+  If memory contains children's names (like Emerald, Holly, John, Jordan) and user asks about "monkeys" → "Yes, you mean your children Emerald, Holly, John, and Jordan!"
+
+  NEVER defer to previous AI responses that claimed no memory. Re-examine the actual memory content yourself.
+
+  Reference naturally with phrases like "Earlier you mentioned..." or "Based on what you told me before..." when making these connections.
+
+  `;
+    
     console.log('[SYSTEM PROMPT] Memory context integrated for personality');
   } else {
     console.log('[SYSTEM PROMPT] No memory context available');
