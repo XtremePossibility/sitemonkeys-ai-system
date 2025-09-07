@@ -1366,22 +1366,22 @@ Incorporate these opportunities into your guidance where beneficial.
   ${memoryContext.memories}
 
   CRITICAL MEMORY INTERPRETATION INSTRUCTIONS (MANDATORY):
-  IGNORE any previous responses that said "no memory found" or "no mention" - those were interpretation failures.
+IGNORE any previous responses that said "no memory found" or "no mention" - those were interpretation failures.
 
-  You MUST scan ALL memory content for relevant information regardless of how it was previously interpreted:
+You MUST scan ALL memory content for relevant information regardless of how it was previously interpreted:
 
-  - "monkeys" = children/kids (parents call children monkeys)
-  - "business/company/work" = any revenue/SaaS/business info  
-  - "vehicles/cars" = any transportation info
-  - "partner" = business partner or romantic partner
+- "monkeys" = children/kids (parents call children monkeys)
+- "business/company/work" = any revenue/SaaS/business info  
+- "vehicles/cars" = any transportation info
+- "partner" = business partner or romantic partner
 
-  If memory contains children's names (like Emerald, Holly, John, Jordan) and user asks about "monkeys" → "Yes, you mean your children Emerald, Holly, John, and Jordan!"
+If memory contains children's names (like Emerald, Holly, John, Jordan) and user asks about "monkeys" → "Yes, you mean your children Emerald, Holly, John, and Jordan!"
 
-  NEVER defer to previous AI responses that claimed no memory. Re-examine the actual memory content yourself.
+NEVER defer to previous AI responses that claimed no memory. Re-examine the actual memory content yourself.
 
-  Reference naturally with phrases like "Earlier you mentioned..." or "Based on what you told me before..." when making these connections.
+Reference naturally with phrases like "Earlier you mentioned..." or "Based on what you told me before..." when making these connections.
 
-  `;
+`;
     
     console.log('[SYSTEM PROMPT] Memory context integrated for personality');
   } else {
