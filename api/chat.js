@@ -71,6 +71,7 @@ import { ResponseObjectUnifier } from './response-object-unifier.js';
 import { MasterModeCompliance } from './master-mode-compliance.js';
 import { UnifiedResponseSchema } from './unified-response-schema.js';
 import { EnhancedIntelligence } from './lib/enhanced-intelligence.js';
+import { memoryIntelligenceBridge } from './lib/memory-intelligence-bridge.js';
 
 console.log('[DEBUG] All cognitive modules loaded successfully');
 
@@ -249,58 +250,58 @@ Would you like to proceed?`,
       });
     }
 
-    // *** ENHANCED MEMORY RETRIEVAL WITH INTELLIGENCE ***
+    // *** ENHANCED MEMORY RETRIEVAL WITH INTELLIGENCE INTEGRATION ***
 let memoryContext = null;
-try {
-  console.log('[MEMORY] Starting intelligent memory retrieval');
+let intelligenceContext = null;
+let integrationSuccess = false;
 
-  console.log('[MEMORY START] Beginning memory retrieval process');
-  console.log('[MEMORY START] global.memorySystem exists:', !!global.memorySystem);
-  console.log('[MEMORY START] extractIntelligentMemory exists:', !!global.memorySystem?.extractIntelligentMemory);
+try {
+  console.log('[MEMORY-INTELLIGENCE] Starting integrated retrieval...');
   
-  if (global.memorySystem) {
-    // Determine if intelligent memory extraction is available
-    if (global.memorySystem.extractIntelligentMemory) {
-      console.log('[MEMORY] Using intelligent memory extraction');
-      
-      // Build intelligence context for memory enhancement
-      const intelligenceContext = {
-        requiresReasoning: message.includes('why') || message.includes('how') || message.includes('because'),
-        crossDomainAnalysis: message.includes('impact') || message.includes('affect') || mode === 'business_validation',
-        scenarioAnalysis: mode === 'business_validation' || mode === 'site_monkeys',
-        quantitativeAnalysis: /\d/.test(message)
-      };
-      
-      memoryContext = await global.memorySystem.extractIntelligentMemory(
-        message, user_id, intelligenceContext
-      );
-      
-      console.log('[MEMORY] Intelligent extraction complete:', {
-        found: memoryContext?.contextFound || false,
-        memories: memoryContext?.memories?.length || 0,
-        reasoning_support: memoryContext?.reasoningSupport?.length || 0,
-        cross_domain: memoryContext?.crossDomainConnections?.length || 0,
-        enhanced: memoryContext?.intelligenceEnhanced || false
-      });
-      
-    } else {
-      // Fallback to standard memory retrieval
-      console.log('[MEMORY] Using standard memory retrieval');
-      memoryContext = await global.memorySystem.retrieveMemory(user_id, message);
-      
-      console.log('[MEMORY] Standard retrieval complete:', {
-        found: memoryContext?.contextFound || false,
-        memories: memoryContext?.memories?.length || 0
-      });
-    }
-  } else {
-    console.log('[MEMORY] Memory system not available');
+  // Initialize bridge if needed
+  if (!memoryIntelligenceBridge.initialized) {
+    memoryIntelligenceBridge.initialize();
   }
 
-    } catch (memoryError) {
-      console.error('[MEMORY] Memory retrieval error:', memoryError);
-      memoryContext = null; // Continue without memory context
+  // Use the bridge for integrated memory and intelligence
+  const integrationResult = await memoryIntelligenceBridge.integrateMemoryAndIntelligence(
+    message, 
+    user_id, 
+    optimalPersonality, 
+    mode, 
+    expertDomain
+  );
+
+  memoryContext = integrationResult.memoryContext;
+  intelligenceContext = integrationResult.intelligenceContext;
+  integrationSuccess = integrationResult.integrationSuccess;
+
+  console.log('[MEMORY-INTELLIGENCE] Integration result:', {
+    has_memory: memoryContext?.hasMemory || false,
+    memory_count: memoryContext?.memoryCount || 0,
+    intelligence_enhanced: intelligenceContext?.requiresReasoning || false,
+    integration_success: integrationSuccess
+  });
+
+} catch (memoryError) {
+  console.error('[MEMORY-INTELLIGENCE] Integration error:', memoryError);
+  
+  // Fallback to existing memory system
+  try {
+    if (global.memorySystem) {
+      console.log('[MEMORY-INTELLIGENCE] Falling back to standard memory...');
+      const fallbackMemory = await global.memorySystem.retrieveMemory(user_id, message);
+      memoryContext = memoryIntelligenceBridge.formatMemoryForPersonalities(fallbackMemory, optimalPersonality);
     }
+  } catch (fallbackError) {
+    console.error('[MEMORY-INTELLIGENCE] Fallback also failed:', fallbackError);
+    memoryContext = {
+      hasMemory: false,
+      formattedMemory: '',
+      personalityPrompt: memoryIntelligenceBridge.getErrorPrompt(optimalPersonality)
+    };
+  }
+}
     
     // *** MEMORY DEBUG - TEMPORARY DIAGNOSTIC ***
     console.log('[MEMORY DEBUG] Raw memory context:', JSON.stringify(memoryContext, null, 2));
@@ -308,7 +309,7 @@ try {
     console.log('[MEMORY DEBUG] Memory content preview:', memoryContext?.memories?.substring(0, 500));
 
     // *** MASTER SYSTEM PROMPT CONSTRUCTION ***
-    const masterPrompt = buildMasterPrompt(mode, optimalPersonality, vaultContent, vaultHealthy, expertDomain, careNeeds, protectiveAlerts, solutionOpportunities);
+    const masterPrompt = buildMasterPrompt(mode, optimalPersonality, vaultContent, vaultHealthy, expertDomain, careNeeds, protectiveAlerts, solutionOpportunities, memoryContext, intelligenceContext);
     const basePrompt = buildFullConversationPrompt(masterPrompt, message, conversation_history, expertDomain, careNeeds, memoryContext);
     
     // *** SYSTEM INTELLIGENCE INTEGRATION - FALLBACK SAFE ***
@@ -810,8 +811,33 @@ function calculateQuantitativeConfidence(message, numbers) {
 }
 
 // *** MASTER PROMPT CONSTRUCTION ***
-function buildMasterPrompt(mode, personality, vaultContent, vaultHealthy, expertDomain, careNeeds, protectiveAlerts, solutionOpportunities) {
+function buildMasterPrompt(mode, personality, vaultContent, vaultHealthy, expertDomain, careNeeds, protectiveAlerts, solutionOpportunities, memoryContext, intelligenceContext) {
   let masterPrompt = '';
+
+  // ADD MEMORY CONTEXT IF AVAILABLE
+if (memoryContext && memoryContext.hasMemory) {
+  masterPrompt += `${memoryContext.personalityPrompt}\n\n`;
+  
+  // Add intelligence context if enhanced
+  if (intelligenceContext) {
+    masterPrompt += `INTELLIGENCE CONTEXT:\n`;
+    if (intelligenceContext.requiresReasoning) {
+      masterPrompt += `- This query requires analytical reasoning\n`;
+    }
+    if (intelligenceContext.crossDomainAnalysis) {
+      masterPrompt += `- Cross-domain analysis may be relevant\n`;
+    }
+    if (intelligenceContext.scenarioAnalysis) {
+      masterPrompt += `- Scenario planning context applies\n`;
+    }
+    if (intelligenceContext.quantitativeAnalysis) {
+      masterPrompt += `- Quantitative analysis is relevant\n`;
+    }
+    masterPrompt += '\n';
+  }
+} else if (memoryContext && memoryContext.personalityPrompt) {
+  masterPrompt += `${memoryContext.personalityPrompt}\n\n`;
+}
 
   // 1. CARING FAMILY FOUNDATION
   masterPrompt += buildCaringExpertPrompt(expertDomain, careNeeds, calculatePrideMotivation(expertDomain, careNeeds, protectiveAlerts, solutionOpportunities), personality);
