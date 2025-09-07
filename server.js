@@ -889,6 +889,7 @@ Family Member: ${message}
 Respond using conversation context, memory context, and your expertise:`;
   
   console.log(`[CHAT] 🧠 Added ${memoryContext.memories.length} characters of memory context to AI prompt`);
+  console.log('[DEBUG] First 500 chars of memory:', memoryContext.memories.substring(0, 500));
 } else if (conversationHistoryText) {
   enhancedPrompt = systemPrompt + `
 
