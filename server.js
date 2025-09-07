@@ -859,7 +859,8 @@ console.log('[CHAT] ✅ Memory systems ready');
     // MASTER SYSTEM PROMPT CONSTRUCTION
 const systemPrompt = buildMasterSystemPrompt({
   mode, personality, vaultContent, vaultHealthy, expertDomain,
-  careNeeds, protectiveAlerts, solutionOpportunities, quantitativeNeeds
+  careNeeds, protectiveAlerts, solutionOpportunities, quantitativeNeeds,
+  memoryContext: memoryContext  // ADD THIS LINE
 });
 
 // ADD MEMORY CONTEXT TO CONVERSATION PROMPT
