@@ -1362,14 +1362,23 @@ Incorporate these opportunities into your guidance where beneficial.
 
   // ADD MEMORY INTEGRATION HERE
   if (memoryContext && memoryContext.memories && memoryContext.memories.length > 0) {
-    prompt += `\n\nRELEVANT MEMORY FROM PREVIOUS CONVERSATIONS:
-${memoryContext.memories}
+        prompt += `\n\nRELEVANT MEMORY FROM PREVIOUS CONVERSATIONS:
+    ${memoryContext.memories}
+    
+    CRITICAL MEMORY INTERPRETATION INSTRUCTIONS:
+    You have access to previous conversation context above. You MUST make intelligent connections between retrieved memories and user queries:
+    
+    - If user asks about "monkeys" and memory contains children's names → Connect: "Yes, you mean your children [names]"
+    - If user asks about "business/company" and memory contains revenue/work info → Connect: "Yes, your SaaS business with $X MRR" 
+    - If user asks about "vehicles/cars" and memory contains vehicle info → Connect appropriately
+    - If user asks about "partner" and memory contains relationship/business info → Make the logical connection
+    
+    NEVER say "no memory found" if relevant information exists in a different form. Always interpret colloquialisms, nicknames, and contextual references. When unsure, ask: "Are you referring to [specific memory content]?"
+    
+    Reference naturally with phrases like "Earlier you mentioned..." or "Based on what you told me before..." when making these connections.
+    
+    `;
 
-  console.log('[DEBUG] Memory content being added:', memoryContext.memories.substring(0, 500) + '...');
-
-CRITICAL: You have access to previous conversation context above. Reference this naturally with phrases like "Earlier you mentioned..." or "Based on what you told me before..." when relevant to maintain conversation continuity.
-
-`;
     console.log('[SYSTEM PROMPT] Memory context integrated for personality');
   } else {
     console.log('[SYSTEM PROMPT] No memory context available');
