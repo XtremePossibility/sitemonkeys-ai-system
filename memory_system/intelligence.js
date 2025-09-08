@@ -837,29 +837,62 @@ class IntelligenceSystem {
     this.logger.log(`Extracting from primary category: ${primaryCategory}`);
 
     return await this.coreSystem.withDbClient(async (client) => {
-      // INTELLIGENT INTENT-BASED QUERY
-      // When user asks "remember my X", find memories that CONTAIN info about X
-      
+      // QUERY BOTH TABLES WITH INTELLIGENT CONTENT-AWARE ORDERING
       let baseQuery = `
-        SELECT id, user_id, category_name, subcategory_name, content, token_count, 
-               relevance_score, usage_frequency, created_at, last_accessed, metadata,
-               CASE 
-                 -- Exclude AI failures completely
-                 WHEN content ILIKE '%no specific mention%' OR content ILIKE '%no recorded details%' OR content ILIKE '%I don''t have any%' THEN 0
-                 -- Exclude pure questions (no information provided)
-                 WHEN content ILIKE '%do you remember%' AND content NOT ILIKE '%I have%' AND content NOT ILIKE '%I own%' AND content NOT ILIKE '%I drive%' THEN 0.1
-                 -- Boost actual information
-                 WHEN content ILIKE '%I have%' OR content ILIKE '%I own%' OR content ILIKE '%I drive%' OR content ILIKE '%my name is%' THEN relevance_score + 0.5
-                 ELSE relevance_score
-               END as smart_relevance_score
-        FROM persistent_memories 
-        WHERE user_id = $1 AND category_name = $2
+        WITH unified_memories AS (
+          -- Main persistent memories table
+          SELECT id, user_id, category_name, subcategory_name, content, token_count, 
+                 relevance_score, usage_frequency, created_at, last_accessed, metadata,
+                 'persistent' as source_table
+          FROM persistent_memories 
+          WHERE user_id = $1 AND category_name = $2
+          
+          UNION ALL
+          
+          -- Legacy memories table  
+          SELECT id, user_id, category as category_name, subcategory as subcategory_name, 
+                 content, token_count, relevance_score, usage_frequency, created_at, 
+                 last_accessed, metadata, 'legacy' as source_table
+          FROM memory_entries_legacy 
+          WHERE user_id = $1 AND category = $2
+        ),
+        scored_memories AS (
+          SELECT *,
+            CASE 
+              -- HIGHEST PRIORITY: Informational content (answers with facts)
+              WHEN content ~* '\\b(i have|i own|my \\w+\\s+(is|are|was)|i drive|i work|i live)\\b' 
+                   AND content ~* '\\b[A-Z][a-z]+\\b' THEN relevance_score + 1.0
+              
+              -- HIGH PRIORITY: Content with specific details (names, numbers)  
+              WHEN content ~* '\\b[A-Z][a-z]+\\b.*\\b[A-Z][a-z]+\\b|\\d+' 
+                   AND NOT content ~* '\\b(do you remember|what did i tell|can you recall)\\b' 
+                   THEN relevance_score + 0.7
+              
+              -- MEDIUM PRIORITY: Mixed content (questions with information)
+              WHEN content ~* '\\b(i have|i own|my \\w+\\s+(is|are|was))\\b' 
+                   THEN relevance_score + 0.4
+              
+              -- HEAVY PENALTY: Pure questions without information
+              WHEN content ~* '\\b(do you remember|what did i tell|can you recall|remember anything)\\b' 
+                   AND NOT content ~* '\\b(i have|i own|my \\w+\\s+(is|are|was))\\b' 
+                   THEN relevance_score - 0.6
+              
+              -- ZERO SCORE: AI failure responses
+              WHEN content ~* 'no specific mention|no recorded details|I don''t have any|no mention of' 
+                   THEN 0
+              
+              ELSE relevance_score
+            END as content_intelligence_score
+          FROM unified_memories
+        )
+        SELECT * FROM scored_memories
+        WHERE content_intelligence_score > 0
       `;
       
       let queryParams = [userId, primaryCategory];
       let paramIndex = 3;
 
-      // Add semantic filters (keep existing logic)
+      // Add your existing semantic filters
       if (semanticAnalysis.emotionalWeight > 0.5) {
         baseQuery += ` AND (content ILIKE $${paramIndex} OR metadata->>'emotional_content' = 'true')`;
         queryParams.push(`%${semanticAnalysis.emotionalTone}%`);
@@ -872,23 +905,22 @@ class IntelligenceSystem {
         paramIndex += 2;
       }
 
-      // INTELLIGENT ORDERING - Prioritize informational content
+      // INTELLIGENT CONTENT-FIRST ORDERING
       baseQuery += `
         ORDER BY 
-        -- First priority: Actual informational content
-        CASE WHEN content ~* '\\b(i have|i own|my \\w+\\s+(is|are|was)|named|called)\\b' THEN 3 ELSE 0 END DESC,
-        -- Second priority: Smart relevance score  
-        smart_relevance_score DESC,
-        -- Third priority: Usage frequency
-        usage_frequency DESC,
-        -- LAST priority: Creation date (so old information beats new questions)
-        created_at ASC
-        LIMIT 15
+          content_intelligence_score DESC,
+          CASE WHEN content ~* '\\b(i have|i own|my \\w+\\s+(is|are|was))\\b' THEN 2 ELSE 0 END DESC,
+          CASE WHEN content ~* '\\b[A-Z][a-z]+\\b.*\\b[A-Z][a-z]+\\b|\\d+' THEN 1 ELSE 0 END DESC,
+          relevance_score DESC,
+          created_at DESC
+        LIMIT 20
       `;
 
       const result = await client.query(baseQuery, queryParams);
       
-      this.logger.log(`Retrieved ${result.rows.length} memories from primary category with intelligent intent filtering`);
+      this.logger.log(`Retrieved ${result.rows.length} memories from unified tables with content-intelligence ordering`);
+      this.logger.log(`Source breakdown: ${result.rows.filter(r => r.source_table === 'persistent').length} persistent, ${result.rows.filter(r => r.source_table === 'legacy').length} legacy`);
+      
       return result.rows;
     });
 
@@ -1162,22 +1194,44 @@ class IntelligenceSystem {
 
   applyIntelligentRanking(memories, semanticAnalysis) {
     return memories.sort((a, b) => {
+      // PRIORITY 1: Content intelligence score (if available from SQL)
+      if (a.content_intelligence_score && b.content_intelligence_score) {
+        const intelligenceDiff = b.content_intelligence_score - a.content_intelligence_score;
+        if (Math.abs(intelligenceDiff) > 0.1) {
+          return intelligenceDiff;
+        }
+      }
+      
+      // PRIORITY 2: Sophisticated score  
       const scoreDiff = b.sophisticatedScore - a.sophisticatedScore;
       if (Math.abs(scoreDiff) > 0.05) {
         return scoreDiff;
       }
 
+      // PRIORITY 3: Content type classification
+      const aContentType = this.classifyContentType(a.content);
+      const bContentType = this.classifyContentType(b.content);
+      
+      const typeScores = { 'informational': 3, 'mixed': 2, 'interrogative': 1, 'ai_failure': 0 };
+      const aTypeScore = typeScores[aContentType] || 0;
+      const bTypeScore = typeScores[bContentType] || 0;
+      
+      if (aTypeScore !== bTypeScore) {
+        return bTypeScore - aTypeScore;
+      }
+
+      // PRIORITY 4: Usage frequency (only if types are equal)
       const usageDiff = (b.usage_frequency || 0) - (a.usage_frequency || 0);
       if (Math.abs(usageDiff) > 2) {
         return usageDiff;
       }
 
+      // FINAL: Recency
       const aTime = new Date(a.last_accessed || a.created_at).getTime();
       const bTime = new Date(b.last_accessed || b.created_at).getTime();
       return bTime - aTime;
     });
   }
-
   async applyIntelligentTokenManagement(memories, tokenLimit) {
     if (!memories || memories.length === 0) return [];
 
