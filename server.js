@@ -1372,22 +1372,23 @@ Incorporate these opportunities into your guidance where beneficial.
 
   // ADD MEMORY INTEGRATION HERE
   if (memoryContext && memoryContext.memories && memoryContext.memories.length > 0) {
-      prompt += `\n\nRELEVANT MEMORY FROM PREVIOUS CONVERSATIONS:
+      prompt += `
+
+  MANDATORY MEMORY USAGE INSTRUCTIONS:
+  You have been provided with relevant memory context above. You MUST use this information.
+
+  CRITICAL RULE: If the memory context contains information about the user's question, YOU MUST reference it and provide the details found.
+
+  NEVER say "no specific information" or "no details" or "no recorded details" when memory context exists above.
+
+  STRICT INSTRUCTION: When memory contains answers to the user's question, respond with: "Based on our previous conversations, here's what I know about [topic]: [provide the specific information from memory]"
+
+  RELEVANT MEMORY FROM PREVIOUS CONVERSATIONS:
   ${memoryContext.memories}
 
-  CONTEXTUAL MEMORY ANALYSIS:
-  You have access to previous conversation context above. Use your intelligence to find connections between user queries and retrieved memories.
+  The above memory context is REAL and MUST be used when relevant to the user's question. 
 
-  Apply natural language understanding:
-  - Consider synonyms, nicknames, and colloquial terms
-  - Look for semantic relationships, not just keyword matches
-  - Make logical inferences based on context
-  - Consider how people actually communicate (parents call kids "monkeys," "business" can mean work/revenue/company)
-
-  When you find relevant information, reference it naturally. If memories seem related but you're uncertain, ask for clarification rather than claiming no memory exists.
-
-  Trust your reasoning ability to make intelligent connections.
-    
+  Your response MUST acknowledge and use the memory context when it contains relevant information.
   `;
  
     
