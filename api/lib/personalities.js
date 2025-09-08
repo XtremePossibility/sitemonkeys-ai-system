@@ -83,8 +83,11 @@ VAULT-ENHANCED ANALYSIS REQUIRED:
 ` : ''}
 
 ${memoryInsights ? `
-MEMORY CONTEXT:
+CRITICAL MEMORY CONTEXT - PRIORITIZE THIS INFORMATION:
 ${memoryInsights}
+
+INSTRUCTION: Use the specific details from the MEMORY CONTEXT above to answer the user's question. Do NOT provide generic responses when specific information is available in the memory context.
+` : ''}
 
 MEMORY-INTEGRATED THINKING:
 - Reference relevant past discussions
