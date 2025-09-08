@@ -1007,32 +1007,61 @@ class IntelligenceSystem {
   }
 
   calculateAdvancedTextSimilarity(memoryContent, query) {
-    if (!memoryContent || !query) return 0;
+  if (!memoryContent || !query) return 0;
 
-    const memoryWords = this.extractMeaningfulWords(memoryContent.toLowerCase());
-    const queryWords = this.extractMeaningfulWords(query.toLowerCase());
+  const memoryLower = memoryContent.toLowerCase();
+  const queryLower = query.toLowerCase();
 
-    if (memoryWords.length === 0 || queryWords.length === 0) return 0;
-
-    // Jaccard similarity
-    const memorySet = new Set(memoryWords);
-    const querySet = new Set(queryWords);
-    const intersection = new Set([...querySet].filter(x => memorySet.has(x)));
-    const union = new Set([...memoryWords, ...queryWords]);
-    const jaccardSimilarity = intersection.size / union.size;
-
-    // Cosine similarity approximation
-    let dotProduct = 0;
-    for (const word of intersection) {
-      dotProduct += 1;
-    }
-    const cosineSimilarity = dotProduct / Math.sqrt(memoryWords.length * queryWords.length);
-
-    // Substring match bonus
-    const substringBonus = memoryContent.toLowerCase().includes(query.toLowerCase()) ? 0.3 : 0;
-
-    return (jaccardSimilarity * 0.4) + (cosineSimilarity * 0.4) + (substringBonus * 0.2);
+  // TOPIC-AWARE MATCHING - Check for topic relevance first
+  const queryTopics = this.extractTopics(queryLower);
+  const memoryTopics = this.extractTopics(memoryLower);
+  
+  // If no topic overlap, heavily penalize
+  const topicOverlap = queryTopics.filter(topic => memoryTopics.includes(topic)).length;
+  if (queryTopics.length > 0 && topicOverlap === 0) {
+    return 0.1; // Very low score for different topics
   }
+
+  // Enhanced word matching
+  const memoryWords = this.extractMeaningfulWords(memoryLower);
+  const queryWords = this.extractMeaningfulWords(queryLower);
+
+  if (memoryWords.length === 0 || queryWords.length === 0) return 0;
+
+  // Calculate word similarity
+  const memorySet = new Set(memoryWords);
+  const querySet = new Set(queryWords);
+  const intersection = new Set([...querySet].filter(x => memorySet.has(x)));
+  
+  const jaccardSimilarity = intersection.size / Math.max(querySet.size, memorySet.size);
+  
+  // Topic boost for matching topics
+  const topicBoost = topicOverlap > 0 ? 0.4 : 0;
+  
+  // Exact phrase matching
+  const exactMatch = memoryLower.includes(queryLower) ? 0.3 : 0;
+
+  return Math.min(jaccardSimilarity + topicBoost + exactMatch, 1.0);
+}
+
+extractTopics(text) {
+  const topicPatterns = [
+    ['videogames', /\b(video game|gaming|game|franchise|xbox|playstation|nintendo|console)\b/g],
+    ['superheroes', /\b(superhero|marvel|dc|comic|hero|villain|deadpool|wolverine)\b/g],
+    ['business', /\b(business|company|revenue|profit|startup|entrepreneur)\b/g],
+    ['family', /\b(family|spouse|wife|husband|children|kids|marriage)\b/g],
+    ['pets', /\b(pet|pets|dog|cat|animal|monkey|monkeys)\b/g],
+    ['health', /\b(health|medical|doctor|fitness|exercise|diet)\b/g]
+  ];
+  
+  const topics = [];
+  for (const [topic, pattern] of topicPatterns) {
+    if (pattern.test(text)) {
+      topics.push(topic);
+    }
+  }
+  return topics;
+}
 
   calculateIntentAlignment(memory, semanticAnalysis) {
     const content = memory.content.toLowerCase();
