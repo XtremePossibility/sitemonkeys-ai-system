@@ -844,15 +844,12 @@ class IntelligenceSystem {
         SELECT id, user_id, category_name, subcategory_name, content, token_count, 
                relevance_score, usage_frequency, created_at, last_accessed, metadata,
                CASE 
-                 -- Boost informational content heavily
-                 WHEN content ~* '^User:.*\\b(i have|i own|my \\w+\\s+(is|are|was)|i drive|i work|i live)\\b' THEN relevance_score + 0.5
-                 -- Boost content with specific details (names, numbers, facts)
-                 WHEN content ~* '\\b[A-Z][a-z]+\\b.*\\b[A-Z][a-z]+\\b|\\d+' THEN relevance_score + 0.3
-                 -- Penalize question-only content
-                 WHEN content ~* '\\b(do you remember|what did i tell|can you recall|remember anything)\\b' 
-                      AND content !~* '\\b(i have|i own|my \\w+\\s+(is|are|was))\\b' THEN relevance_score - 0.4
-                 -- Heavily penalize AI failure responses
-                 WHEN content ~* 'no specific mention|no recorded details|I don''t have any' THEN 0
+                 -- Exclude AI failures completely
+                 WHEN content ILIKE '%no specific mention%' OR content ILIKE '%no recorded details%' OR content ILIKE '%I don''t have any%' THEN 0
+                 -- Exclude pure questions (no information provided)
+                 WHEN content ILIKE '%do you remember%' AND content NOT ILIKE '%I have%' AND content NOT ILIKE '%I own%' AND content NOT ILIKE '%I drive%' THEN 0.1
+                 -- Boost actual information
+                 WHEN content ILIKE '%I have%' OR content ILIKE '%I own%' OR content ILIKE '%I drive%' OR content ILIKE '%my name is%' THEN relevance_score + 0.5
                  ELSE relevance_score
                END as smart_relevance_score
         FROM persistent_memories 
