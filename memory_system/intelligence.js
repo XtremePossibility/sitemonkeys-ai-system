@@ -938,41 +938,49 @@ class IntelligenceSystem {
     return memories.map(memory => {
       let score = memory.relevance_score || 0.5;
       const scoringFactors = {};
+      const contentType = this.classifyContentType(memory.content);
+      
+      // IMMEDIATE EXCLUSION: AI failure responses
+      if (contentType === 'ai_failure') {
+        memory.sophisticatedScore = 0;
+        return memory;
+      }
+      
+      // Factor 1: Content Type Weighting (40% - Primary Factor)
+      let contentTypeScore = 0;
+      switch(contentType) {
+        case 'informational': contentTypeScore = 1.0; break;
+        case 'mixed': contentTypeScore = 0.7; break;
+        case 'interrogative': contentTypeScore = 0.1; break; // Heavy penalty
+      }
+      score += contentTypeScore * 0.40;
+      scoringFactors.contentType = contentTypeScore;
 
-      // Factor 1: Advanced text similarity (35% weight)
+      // Factor 2: Semantic Match (25%)
       const textSimilarity = this.calculateAdvancedTextSimilarity(memory.content, query);
-      score += textSimilarity * 0.35;
+      score += textSimilarity * 0.25;
       scoringFactors.textSimilarity = textSimilarity;
 
-      // Factor 2: Semantic intent alignment (25% weight)
-      const intentAlignment = this.calculateIntentAlignment(memory, semanticAnalysis);
-      score += intentAlignment * 0.25;
-      scoringFactors.intentAlignment = intentAlignment;
+      // Factor 3: Information Density (20%)
+      const informationDensity = this.calculateInformationDensity(memory.content);
+      score += informationDensity * 0.20;
+      scoringFactors.informationDensity = informationDensity;
 
-      // Factor 3: Emotional context matching (20% weight)
-      const emotionalMatch = this.calculateEmotionalContextMatch(memory, semanticAnalysis);
-      score += emotionalMatch * 0.20;
-      scoringFactors.emotionalMatch = emotionalMatch;
-
-      // Factor 4: Recency and usage boost (15% weight)
+      // Factor 4: Recency and usage boost (10% - Reduced)
       const recencyUsageScore = this.calculateRecencyUsageScore(memory);
-      score += recencyUsageScore * 0.15;
+      score += recencyUsageScore * 0.10;
       scoringFactors.recencyUsageScore = recencyUsageScore;
 
-      // Factor 5: Category confidence boost (5% weight)
-      const categoryBoost = memory.category_name === routing.primaryCategory ? 
-        routing.confidence * 0.05 : 0.02;
-      score += categoryBoost;
+      // Factor 5: Category confidence boost (5%)
+      const categoryBoost = memory.category_name === routing.primaryCategory ? 0.3 : 0;
+      score += categoryBoost * 0.05;
       scoringFactors.categoryBoost = categoryBoost;
 
-      const finalScore = Math.max(0.1, Math.min(score, 1.0));
+      // Final score assignment
+      memory.sophisticatedScore = Math.min(score, 2.0);
+      memory.scoringFactors = scoringFactors;
 
-      return {
-        ...memory,
-        sophisticatedScore: finalScore,
-        scoringBreakdown: scoringFactors,
-        originalRelevance: memory.relevance_score
-      };
+      return memory;
     });
   }
 
@@ -1057,6 +1065,29 @@ class IntelligenceSystem {
     return 0.3;
   }
 
+  classifyContentType(content) {
+    const questionPatterns = [
+      /do you remember/i, /what did i tell you/i, /did i mention/i,
+      /can you recall/i, /remember anything/i, /you remember/i
+    ];
+    
+    const informationPatterns = [
+      /my \w+ (is|are|was)/i, /i have \d+/i, /i drive a/i,
+      /i own/i, /my name is/i, /i work at/i, /i live in/i
+    ];
+    
+    const isQuestion = questionPatterns.some(pattern => pattern.test(content));
+    const isInformation = informationPatterns.some(pattern => pattern.test(content));
+    
+    if (content.includes('Assistant:') && content.includes('no specific mention')) {
+      return 'ai_failure';
+    }
+    
+    if (isQuestion && !isInformation) return 'interrogative';
+    if (isInformation && !isQuestion) return 'informational';
+    return 'mixed';
+  }
+
   calculateRecencyUsageScore(memory) {
     let score = 0;
 
@@ -1090,6 +1121,19 @@ class IntelligenceSystem {
     else if (usageFreq > 2) score += 0.1;
 
     return Math.min(score, 1.0);
+  }
+
+  calculateInformationDensity(content) {
+    const properNouns = (content.match(/[A-Z][a-z]+/g) || []).length;
+    const numbers = (content.match(/\d+/g) || []).length;
+    const specificWords = ['named', 'called', 'drive', 'own', 'have', 'work', 'live', 'married', 'daughter', 'son'].filter(word => 
+      content.toLowerCase().includes(word)
+    ).length;
+    
+    const totalWords = content.split(/\s+/).length;
+    const density = (properNouns + numbers + specificWords) / Math.max(totalWords, 1);
+    
+    return Math.min(density * 2, 1.0); // Scale to 0-1 range
   }
 
   extractMeaningfulWords(text) {
