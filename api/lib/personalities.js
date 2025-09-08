@@ -762,11 +762,21 @@ export function getPersonalitySystemStatus() {
 }
 
 function extractMemoryInsights(conversationHistory) {
-  if (!conversationHistory || conversationHistory.length === 0) return null;
+  if (!conversationHistory) return null;
   
-  // Extract key themes and patterns from conversation history
-  const recentContext = conversationHistory.slice(-5).map(msg => msg.content).join(' ');
-  return `Recent conversation themes: ${recentContext.substring(0, 300)}...`;
+  // Check if this is the new memory context format from intelligence system
+  if (typeof conversationHistory === 'string' && conversationHistory.includes('[') && conversationHistory.includes('User:')) {
+    // This is formatted memory context from the intelligence system
+    return `RETRIEVED MEMORY CONTEXT:\n${conversationHistory}`;
+  }
+  
+  // Fallback to old conversation history format
+  if (Array.isArray(conversationHistory) && conversationHistory.length > 0) {
+    const recentContext = conversationHistory.slice(-5).map(msg => msg.content).join(' ');
+    return `Recent conversation themes: ${recentContext.substring(0, 300)}...`;
+  }
+  
+  return null;
 }
 
 function analyzeQueryComplexity(message, mode) {
