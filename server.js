@@ -795,6 +795,16 @@ if (global.memorySystem && typeof global.memorySystem.retrieveMemory === 'functi
         console.log('[CHAT] 📋 Retrieving memory context...');
         memoryContext = await global.memorySystem.retrieveMemory('user', message);
         console.log(`[CHAT] ✅ Memory context retrieved: ${memoryContext.memories ? memoryContext.memories.length : 0} characters`);
+        
+        // FILTER OUT AI FAILURE RESPONSES
+        if (memoryContext && memoryContext.memories) {
+            const originalLength = memoryContext.memories.length;
+            memoryContext.memories = memoryContext.memories.replace(/Assistant: \*\*ANSWER THE QUESTION FIRST:\*\*[\s\S]*?no specific mention[\s\S]*?(?=User:|$)/g, '');
+            memoryContext.memories = memoryContext.memories.replace(/Assistant: [\s\S]*?no recorded details[\s\S]*?(?=User:|$)/g, '');
+            memoryContext.memories = memoryContext.memories.replace(/Assistant: [\s\S]*?there is no specific mention[\s\S]*?(?=User:|$)/g, '');
+            console.log(`[CHAT] 🧹 Filtered poison memories: ${originalLength} → ${memoryContext.memories.length} characters`);
+        }
+        
     } catch (error) {
         console.error('[CHAT] ⚠️ Memory retrieval failed:', error);
         memoryContext = '';
