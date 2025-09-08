@@ -832,61 +832,70 @@ class IntelligenceSystem {
   }
 
   async extractFromPrimaryCategory(userId, query, routing, semanticAnalysis) {
-    try {
-      const primaryCategory = routing.primaryCategory || 'personal_life_interests';
-      this.logger.log(`Extracting from primary category: ${primaryCategory}`);
+  try {
+    const primaryCategory = routing.primaryCategory || 'personal_life_interests';
+    this.logger.log(`Extracting from primary category: ${primaryCategory}`);
 
-      return await this.coreSystem.withDbClient(async (client) => {
-        // Dynamic query building based on semantic analysis
-        let baseQuery = `
-          SELECT id, user_id, category_name, subcategory_name, content, token_count, 
-                 relevance_score, usage_frequency, created_at, last_accessed, metadata
-          FROM persistent_memories 
-          WHERE user_id = $1 AND category_name = $2
-        `;
-        
-        let queryParams = [userId, primaryCategory];
-        let paramIndex = 3;
+    return await this.coreSystem.withDbClient(async (client) => {
+      // INTELLIGENT INTENT-BASED QUERY
+      // When user asks "remember my X", find memories that CONTAIN info about X
+      
+      let baseQuery = `
+        SELECT id, user_id, category_name, subcategory_name, content, token_count, 
+               relevance_score, usage_frequency, created_at, last_accessed, metadata,
+               CASE 
+                 -- Boost informational content heavily
+                 WHEN content ~* '^User:.*\\b(i have|i own|my \\w+\\s+(is|are|was)|i drive|i work|i live)\\b' THEN relevance_score + 0.5
+                 -- Boost content with specific details (names, numbers, facts)
+                 WHEN content ~* '\\b[A-Z][a-z]+\\b.*\\b[A-Z][a-z]+\\b|\\d+' THEN relevance_score + 0.3
+                 -- Penalize question-only content
+                 WHEN content ~* '\\b(do you remember|what did i tell|can you recall|remember anything)\\b' 
+                      AND content !~* '\\b(i have|i own|my \\w+\\s+(is|are|was))\\b' THEN relevance_score - 0.4
+                 -- Heavily penalize AI failure responses
+                 WHEN content ~* 'no specific mention|no recorded details|I don''t have any' THEN 0
+                 ELSE relevance_score
+               END as smart_relevance_score
+        FROM persistent_memories 
+        WHERE user_id = $1 AND category_name = $2
+      `;
+      
+      let queryParams = [userId, primaryCategory];
+      let paramIndex = 3;
 
-        // Add semantic filters
-        if (semanticAnalysis.emotionalWeight > 0.5) {
-          baseQuery += ` AND (content ILIKE $${paramIndex} OR metadata->>'emotional_content' = 'true')`;
-          queryParams.push(`%${semanticAnalysis.emotionalTone}%`);
-          paramIndex++;
-        }
+      // Add semantic filters (keep existing logic)
+      if (semanticAnalysis.emotionalWeight > 0.5) {
+        baseQuery += ` AND (content ILIKE $${paramIndex} OR metadata->>'emotional_content' = 'true')`;
+        queryParams.push(`%${semanticAnalysis.emotionalTone}%`);
+        paramIndex++;
+      }
 
-        if (semanticAnalysis.personalContext) {
-          baseQuery += ` AND (content ILIKE $${paramIndex} OR content ILIKE $${paramIndex + 1})`;
-          queryParams.push('%my %', '%personal%');
-          paramIndex += 2;
-        }
+      if (semanticAnalysis.personalContext) {
+        baseQuery += ` AND (content ILIKE $${paramIndex} OR content ILIKE $${paramIndex + 1})`;
+        queryParams.push('%my %', '%personal%');
+        paramIndex += 2;
+      }
 
-        if (semanticAnalysis.urgencyLevel > 0.5) {
-          baseQuery += ` AND (metadata->>'urgent' = 'true' OR content ILIKE $${paramIndex})`;
-          queryParams.push('%urgent%');
-          paramIndex++;
-        }
+      // INTELLIGENT ORDERING - Prioritize informational content
+      baseQuery += `
+        ORDER BY 
+          smart_relevance_score DESC,
+          CASE WHEN content ~* '^User:.*\\b(i have|i own|my \\w+\\s+(is|are|was))\\b' THEN 1 ELSE 0 END DESC,
+          usage_frequency DESC,
+          created_at DESC
+        LIMIT 15
+      `;
 
-        // Advanced ordering
-        baseQuery += `
-          ORDER BY 
-            CASE WHEN usage_frequency > 5 THEN relevance_score + 0.2 ELSE relevance_score END DESC,
-            CASE WHEN last_accessed > NOW() - INTERVAL '7 days' THEN 1 ELSE 0 END DESC,
-            created_at DESC
-          LIMIT 15
-        `;
+      const result = await client.query(baseQuery, queryParams);
+      
+      this.logger.log(`Retrieved ${result.rows.length} memories from primary category with intelligent intent filtering`);
+      return result.rows;
+    });
 
-        const result = await client.query(baseQuery, queryParams);
-        
-        this.logger.log(`Retrieved ${result.rows.length} memories from primary category`);
-        return result.rows;
-      });
-
-    } catch (error) {
-      this.logger.error('Error extracting from primary category:', error);
-      return [];
-    }
+  } catch (error) {
+    this.logger.error('Error extracting from primary category:', error);
+    return [];
   }
+}
 
   async extractFromRelatedCategories(userId, query, routing, semanticAnalysis, primaryCount) {
     if (primaryCount >= 10) {
