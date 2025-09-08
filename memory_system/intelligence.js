@@ -849,7 +849,7 @@ class IntelligenceSystem {
           
           UNION ALL
           
-          -- Legacy memories table  
+          -- Legacy memories table (uses old column names)
           SELECT id, user_id, category as category_name, subcategory as subcategory_name, 
                  content, token_count, relevance_score, usage_frequency, created_at, 
                  last_accessed, metadata, 'legacy' as source_table
