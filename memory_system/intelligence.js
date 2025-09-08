@@ -875,10 +875,14 @@ class IntelligenceSystem {
       // INTELLIGENT ORDERING - Prioritize informational content
       baseQuery += `
         ORDER BY 
-          smart_relevance_score DESC,
-          CASE WHEN content ~* '^User:.*\\b(i have|i own|my \\w+\\s+(is|are|was))\\b' THEN 1 ELSE 0 END DESC,
-          usage_frequency DESC,
-          created_at DESC
+        -- First priority: Actual informational content
+        CASE WHEN content ~* '\\b(i have|i own|my \\w+\\s+(is|are|was)|named|called)\\b' THEN 3 ELSE 0 END DESC,
+        -- Second priority: Smart relevance score  
+        smart_relevance_score DESC,
+        -- Third priority: Usage frequency
+        usage_frequency DESC,
+        -- LAST priority: Creation date (so old information beats new questions)
+        created_at ASC
         LIMIT 15
       `;
 
