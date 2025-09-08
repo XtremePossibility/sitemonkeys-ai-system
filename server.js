@@ -796,12 +796,15 @@ if (global.memorySystem && typeof global.memorySystem.retrieveMemory === 'functi
         memoryContext = await global.memorySystem.retrieveMemory('user', message);
         console.log(`[CHAT] ✅ Memory context retrieved: ${memoryContext.memories ? memoryContext.memories.length : 0} characters`);
         
-        // FILTER OUT AI FAILURE RESPONSES
+        // FILTER OUT AI FAILURE RESPONSES (PRECISE)
         if (memoryContext && memoryContext.memories) {
             const originalLength = memoryContext.memories.length;
-            memoryContext.memories = memoryContext.memories.replace(/Assistant: \*\*ANSWER THE QUESTION FIRST:\*\*[\s\S]*?no specific mention[\s\S]*?(?=User:|$)/g, '');
-            memoryContext.memories = memoryContext.memories.replace(/Assistant: [\s\S]*?no recorded details[\s\S]*?(?=User:|$)/g, '');
-            memoryContext.memories = memoryContext.memories.replace(/Assistant: [\s\S]*?there is no specific mention[\s\S]*?(?=User:|$)/g, '');
+            
+            // Only remove specific AI failure patterns, preserve everything else
+            memoryContext.memories = memoryContext.memories.replace(/Assistant: Based on our previous conversations, you mentioned something about[^,]*, but it seems there wasn't any specific information provided about them\./g, '');
+            memoryContext.memories = memoryContext.memories.replace(/Assistant: Based on our previous conversations, I don't have specific details about[^.]*\./g, '');
+            memoryContext.memories = memoryContext.memories.replace(/Assistant: I don't have specific details about[^.]*from our previous conversations\./g, '');
+            
             console.log(`[CHAT] 🧹 Filtered poison memories: ${originalLength} → ${memoryContext.memories.length} characters`);
         }
         
