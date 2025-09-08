@@ -837,56 +837,37 @@ class IntelligenceSystem {
     this.logger.log(`Extracting from primary category: ${primaryCategory}`);
 
     return await this.coreSystem.withDbClient(async (client) => {
-      // QUERY BOTH TABLES WITH INTELLIGENT CONTENT-AWARE ORDERING
+      // SIMPLIFIED INTELLIGENT QUERY - MAIN TABLE ONLY
       let baseQuery = `
-        WITH unified_memories AS (
-          -- Main persistent memories table
-          SELECT id, user_id, category_name, subcategory_name, content, token_count, 
-                 relevance_score, usage_frequency, created_at, last_accessed, metadata,
-                 'persistent' as source_table
-          FROM persistent_memories 
-          WHERE user_id = $1 AND category_name = $2
-          
-          UNION ALL
-          
-          -- Legacy memories table (uses old column names)
-          SELECT id, user_id, category as category_name, subcategory as subcategory_name, 
-                 content, token_count, relevance_score, usage_frequency, created_at, 
-                 last_accessed, metadata, 'legacy' as source_table
-          FROM memory_entries_legacy 
-          WHERE user_id = $1 AND category = $2
-        ),
-        scored_memories AS (
-          SELECT *,
-            CASE 
-              -- HIGHEST PRIORITY: Informational content (answers with facts)
-              WHEN content ~* '\\b(i have|i own|my \\w+\\s+(is|are|was)|i drive|i work|i live)\\b' 
-                   AND content ~* '\\b[A-Z][a-z]+\\b' THEN relevance_score + 1.0
-              
-              -- HIGH PRIORITY: Content with specific details (names, numbers)  
-              WHEN content ~* '\\b[A-Z][a-z]+\\b.*\\b[A-Z][a-z]+\\b|\\d+' 
-                   AND NOT content ~* '\\b(do you remember|what did i tell|can you recall)\\b' 
-                   THEN relevance_score + 0.7
-              
-              -- MEDIUM PRIORITY: Mixed content (questions with information)
-              WHEN content ~* '\\b(i have|i own|my \\w+\\s+(is|are|was))\\b' 
-                   THEN relevance_score + 0.4
-              
-              -- HEAVY PENALTY: Pure questions without information
-              WHEN content ~* '\\b(do you remember|what did i tell|can you recall|remember anything)\\b' 
-                   AND NOT content ~* '\\b(i have|i own|my \\w+\\s+(is|are|was))\\b' 
-                   THEN relevance_score - 0.6
-              
-              -- ZERO SCORE: AI failure responses
-              WHEN content ~* 'no specific mention|no recorded details|I don''t have any|no mention of' 
-                   THEN 0
-              
-              ELSE relevance_score
-            END as content_intelligence_score
-          FROM unified_memories
-        )
-        SELECT * FROM scored_memories
-        WHERE content_intelligence_score > 0
+        SELECT id, user_id, category_name, subcategory_name, content, token_count, 
+               relevance_score, usage_frequency, created_at, last_accessed, metadata,
+               CASE 
+                 -- HIGHEST PRIORITY: Informational content (answers with facts)
+                 WHEN content ~* '\\b(i have|i own|my \\w+\\s+(is|are|was)|i drive|i work|i live)\\b' 
+                      AND content ~* '\\b[A-Z][a-z]+\\b' THEN relevance_score + 1.0
+                 
+                 -- HIGH PRIORITY: Content with specific details (names, numbers)  
+                 WHEN content ~* '\\b[A-Z][a-z]+\\b.*\\b[A-Z][a-z]+\\b|\\d+' 
+                      AND NOT content ~* '\\b(do you remember|what did i tell|can you recall)\\b' 
+                      THEN relevance_score + 0.7
+                 
+                 -- MEDIUM PRIORITY: Mixed content (questions with information)
+                 WHEN content ~* '\\b(i have|i own|my \\w+\\s+(is|are|was))\\b' 
+                      THEN relevance_score + 0.4
+                 
+                 -- HEAVY PENALTY: Pure questions without information
+                 WHEN content ~* '\\b(do you remember|what did i tell|can you recall|remember anything)\\b' 
+                      AND NOT content ~* '\\b(i have|i own|my \\w+\\s+(is|are|was))\\b' 
+                      THEN relevance_score - 0.6
+                 
+                 -- ZERO SCORE: AI failure responses
+                 WHEN content ~* 'no specific mention|no recorded details|I don''t have any|no mention of' 
+                      THEN 0
+                 
+                 ELSE relevance_score
+               END as content_intelligence_score
+        FROM persistent_memories 
+        WHERE user_id = $1 AND category_name = $2 AND relevance_score > 0
       `;
       
       let queryParams = [userId, primaryCategory];
@@ -918,8 +899,7 @@ class IntelligenceSystem {
 
       const result = await client.query(baseQuery, queryParams);
       
-      this.logger.log(`Retrieved ${result.rows.length} memories from unified tables with content-intelligence ordering`);
-      this.logger.log(`Source breakdown: ${result.rows.filter(r => r.source_table === 'persistent').length} persistent, ${result.rows.filter(r => r.source_table === 'legacy').length} legacy`);
+      this.logger.log(`Retrieved ${result.rows.length} memories with intelligent content ordering`);
       
       return result.rows;
     });
