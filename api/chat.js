@@ -100,6 +100,28 @@ const intelligence = new EnhancedIntelligence();
 async function initializeMemoryIntelligenceBridge() {
   try {
     console.log('[BRIDGE-INIT] Initializing memory-intelligence bridge');
+    
+    let enhancedIntelligence = null;
+    let aiReasoningEngine = null;
+    let intelligenceOrchestrator = null;
+
+    // Load your existing intelligence modules
+    try {
+      const { EnhancedIntelligence } = await import('./lib/enhanced-intelligence.js');
+      enhancedIntelligence = new EnhancedIntelligence();
+    } catch (error) {
+      console.log('Enhanced intelligence not available:', error.message);
+    }
+
+    // Add other engine imports as needed...
+
+    return new MemoryIntelligenceBridge(enhancedIntelligence, aiReasoningEngine, intelligenceOrchestrator);
+
+  } catch (error) {
+    console.error('Failed to initialize memory-intelligence bridge:', error);
+    return null;
+  }
+}
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
