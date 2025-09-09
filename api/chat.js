@@ -113,7 +113,23 @@ async function initializeMemoryIntelligenceBridge() {
       console.log('Enhanced intelligence not available:', error.message);
     }
 
-    // Add other engine imports as needed...
+    // Load AI Reasoning Engine if available
+    try {
+      const { AIReasoningEngine } = await import('./lib/ai-reasoning-engine.js');
+      aiReasoningEngine = new AIReasoningEngine();
+      console.log('AI Reasoning Engine loaded successfully');
+    } catch (error) {
+      console.log('AI reasoning engine not available:', error.message);
+    }
+    
+    // Load Intelligence Orchestrator if available  
+    try {
+      const { intelligenceOrchestrator } = await import('./lib/intelligence-orchestrator.js');
+      intelligenceOrchestrator = intelligenceOrchestrator;
+      console.log('Intelligence Orchestrator loaded successfully');
+    } catch (error) {
+      console.log('Intelligence orchestrator not available:', error.message);
+    }
 
     return new MemoryIntelligenceBridge(enhancedIntelligence, aiReasoningEngine, intelligenceOrchestrator);
 
@@ -346,6 +362,7 @@ if (intelligenceResult.memoryIntegrated && memoryResult?.hasMemory) {
     console.log('[MEMORY DEBUG] Memory content preview:', memoryContext?.memories?.substring(0, 500));
 
     // *** MASTER SYSTEM PROMPT CONSTRUCTION ***
+    const intelligenceContext = null; // Bridge will provide intelligence context if needed
     const masterPrompt = buildMasterPrompt(mode, optimalPersonality, vaultContent, vaultHealthy, expertDomain, careNeeds, protectiveAlerts, solutionOpportunities, memoryContext, intelligenceContext);
     const basePrompt = buildFullConversationPrompt(masterPrompt, message, conversation_history, expertDomain, careNeeds, memoryContext);
     
@@ -481,7 +498,7 @@ if (complianceValidation.corrected_content) {
     try {
       if (global.memorySystem && global.memorySystem.storeMemory) {
         const conversationData = `User: ${message}\nAI: ${finalResponse}`;
-        await global.memorySystem.storeMemory(user_id, conversationData);
+        await global.memorySystem.storeMemoryForChat(user_id, conversationData);
         console.log('[MEMORY] Conversation stored successfully');
       } else {
         console.log('[MEMORY] Storage system not available - conversation not stored');
