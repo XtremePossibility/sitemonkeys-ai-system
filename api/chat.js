@@ -930,10 +930,11 @@ if (memoryContext && memoryContext.hasMemory) {
 function buildFullConversationPrompt(masterPrompt, message, conversationHistory, expertDomain, careNeeds, memoryContext = null) {
   let fullPrompt = masterPrompt;
 
-  // CRITICAL FIX: Enable memory integration 
+  // FIXED: Present memory as shared conversation history
   if (memoryContext && memoryContext.contextFound) {
-    fullPrompt += `\n\nRELEVANT MEMORY CONTEXT FROM PREVIOUS CONVERSATIONS:\n${memoryContext.memories}\n\n🧠 CRITICAL: YOU MUST USE THE PERSISTENT MEMORY CONTEXT ABOVE. The user has shared information with you before. Reference their previous conversations naturally with phrases like "I remember you mentioned..." or "Earlier you told me..." or "Based on our previous discussion...". Failure to acknowledge their shared memories will disappoint them.\n\n`;
-    console.log('[MEMORY] Injected', memoryContext.totalTokens, 'tokens of memory context');
+    const sharedHistory = convertMemoryToSharedHistory(memoryContext.memories);
+    fullPrompt += `\n\nOUR PREVIOUS CONVERSATIONS:\n${sharedHistory}\n\nContinue our ongoing relationship naturally.\n\n`;
+    console.log('[MEMORY] Injected', memoryContext.totalTokens, 'tokens of shared history');
   }
 
   if (conversationHistory.length > 0) {
