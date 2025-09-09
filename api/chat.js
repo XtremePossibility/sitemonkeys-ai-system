@@ -15,6 +15,7 @@ import { AI_ARCHITECTURE } from './site-monkeys/ai-architecture.js';
 import { getVaultStatus, checkVaultTriggers, generateVaultContext, enforceVaultCompliance } from './lib/vault.js';
 import { integrateSystemIntelligence, enhancePromptWithIntelligence, getSystemIntelligenceStatus } from './lib/system-intelligence.js';
 import zlib from 'zlib';
+import { MemoryIntelligenceBridge } from './lib/memory-intelligence-bridge.js';
 
 // NEW ENFORCEMENT MODULE IMPORTS (ADD THESE)
 import { 
@@ -95,6 +96,10 @@ let conversationCount = 0;
 let systemDriftHistory = [];
 
 const intelligence = new EnhancedIntelligence();
+
+async function initializeMemoryIntelligenceBridge() {
+  try {
+    console.log('[BRIDGE-INIT] Initializing memory-intelligence bridge');
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -250,57 +255,67 @@ Would you like to proceed?`,
       });
     }
 
-    // *** ENHANCED MEMORY RETRIEVAL WITH INTELLIGENCE INTEGRATION ***
-let memoryContext = null;
-let intelligenceContext = null;
-let integrationSuccess = false;
+    // *** MEMORY-INTELLIGENCE INTEGRATION ***
+console.log('[MEMORY-INTELLIGENCE] Starting integration');
 
-try {
-  console.log('[MEMORY-INTELLIGENCE] Starting integrated retrieval...');
-  
-  // Initialize bridge if needed
-  if (!memoryIntelligenceBridge.initialized) {
-    memoryIntelligenceBridge.initialize();
-  }
+// Initialize the bridge
+const memoryIntelligenceBridge = await initializeMemoryIntelligenceBridge();
 
-  // Use the bridge for integrated memory and intelligence
-  const integrationResult = await memoryIntelligenceBridge.integrateMemoryAndIntelligence(
-    message, 
-    user_id, 
-    optimalPersonality, 
-    mode, 
-    expertDomain
-  );
-
-  memoryContext = integrationResult.memoryContext;
-  intelligenceContext = integrationResult.intelligenceContext;
-  integrationSuccess = integrationResult.integrationSuccess;
-
-  console.log('[MEMORY-INTELLIGENCE] Integration result:', {
-    has_memory: memoryContext?.hasMemory || false,
-    memory_count: memoryContext?.memoryCount || 0,
-    intelligence_enhanced: intelligenceContext?.requiresReasoning || false,
-    integration_success: integrationSuccess
-  });
-
-} catch (memoryError) {
-  console.error('[MEMORY-INTELLIGENCE] Integration error:', memoryError);
-  
-  // Fallback to existing memory system
+// Get memory from existing persistent memory system
+let memoryResult = null;
+if (global.memorySystem) {
   try {
-    if (global.memorySystem) {
-      console.log('[MEMORY-INTELLIGENCE] Falling back to standard memory...');
-      const fallbackMemory = await global.memorySystem.retrieveMemory(user_id, message);
-      memoryContext = memoryIntelligenceBridge.formatMemoryForPersonalities(fallbackMemory, optimalPersonality);
-    }
-  } catch (fallbackError) {
-    console.error('[MEMORY-INTELLIGENCE] Fallback also failed:', fallbackError);
-    memoryContext = {
-      hasMemory: false,
-      formattedMemory: '',
-      personalityPrompt: memoryIntelligenceBridge.getErrorPrompt(optimalPersonality)
-    };
+    memoryResult = await global.memorySystem.retrieveMemoryForChat(user_id, message);
+    console.log('[MEMORY-INTELLIGENCE] Memory retrieved:', memoryResult?.hasMemory ? 'SUCCESS' : 'NO_MEMORY');
+  } catch (memoryError) {
+    console.error('[MEMORY-INTELLIGENCE] Memory retrieval failed:', memoryError);
+    memoryResult = { hasMemory: false };
   }
+}
+
+// Bridge memory to existing intelligence engines
+let intelligenceResult = {
+  intelligenceEnhanced: false,
+  memoryIntegrated: false,
+  enginesActivated: ['fallback'],
+  response: null,
+  confidence: 0.5
+};
+
+if (memoryIntelligenceBridge) {
+  try {
+    intelligenceResult = await memoryIntelligenceBridge.enhanceWithMemoryContext(
+      message,
+      mode,
+      memoryResult,
+      vaultContent,
+      optimalPersonality
+    );
+    console.log('[MEMORY-INTELLIGENCE] Intelligence enhancement:', intelligenceResult.intelligenceEnhanced ? 'SUCCESS' : 'FALLBACK');
+    console.log('[MEMORY-INTELLIGENCE] Engines activated:', intelligenceResult.enginesActivated.join(', '));
+  } catch (bridgeError) {
+    console.error('[MEMORY-INTELLIGENCE] Bridge failed:', bridgeError);
+  }
+}
+
+// Create memory context for backward compatibility
+let memoryContext = null;
+if (intelligenceResult.memoryIntegrated && memoryResult?.hasMemory) {
+  memoryContext = {
+    hasMemory: true,
+    contextFound: true,
+    memories: memoryResult.systemPrompt || memoryResult.conversationContext || memoryResult.memories || '',
+    totalTokens: memoryResult.tokenCount || 0,
+    personalityPrompt: `You have access to previous conversation context. Reference it naturally when relevant.\n\n`
+  };
+} else {
+  memoryContext = {
+    hasMemory: false,
+    contextFound: false,
+    memories: '',
+    totalTokens: 0,
+    personalityPrompt: ''
+  };
 }
     
     // *** MEMORY DEBUG - TEMPORARY DIAGNOSTIC ***
@@ -316,9 +331,24 @@ try {
     const intelligence = { vaultIntelligenceActive: vaultHealthy, status: 'active' };
     const fullPrompt = basePrompt;
     
-    // *** ENHANCED API CALL ***
-    const memoryForPersonality = memoryContext && memoryContext.contextFound ? memoryContext.memories : null;
-    const apiResponse = await makeEnhancedAPICall(fullPrompt, optimalPersonality, prideMotivation, memoryForPersonality);
+    // *** RESPONSE GENERATION WITH MEMORY-INTELLIGENCE ***
+    let finalResponse;
+    let apiResponse;
+    
+    if (intelligenceResult.intelligenceEnhanced && intelligenceResult.response) {
+      // Use intelligence-enhanced response
+      finalResponse = intelligenceResult.response;
+      apiResponse = { response: finalResponse, usage: { prompt_tokens: 0, completion_tokens: 0 } };
+      console.log('[MEMORY-INTELLIGENCE] Using intelligence-enhanced response');
+      
+    } else {
+      // Fallback to existing personality system
+      console.log('[MEMORY-INTELLIGENCE] Using fallback personality response');
+      
+      const memoryForPersonality = memoryContext && memoryContext.contextFound ? memoryContext.memories : null;
+      apiResponse = await makeEnhancedAPICall(fullPrompt, optimalPersonality, prideMotivation, memoryForPersonality);
+      finalResponse = apiResponse.response;
+    }
 
     let promptTokens, completionTokens;
 
@@ -333,9 +363,13 @@ try {
     const trackingResult = trackApiCall(optimalPersonality, promptTokens, completionTokens, vaultTokens);
     
     // 0. ENHANCED REASONING PROCESSING (MEMORY-AWARE)
-try {
-  // Skip enhancement if memory was successfully integrated
-  if (memoryContext && memoryContext.contextFound && memoryContext.totalTokens > 0) {
+    let enhancedResponse = finalResponse;
+    
+    try {
+      // Skip enhancement if intelligence already enhanced the response
+      if (intelligenceResult.intelligenceEnhanced) {
+        console.log('[ENHANCED INTELLIGENCE] Skipping enhancement - intelligence already enhanced');
+      } else if (memoryContext && memoryContext.contextFound && memoryContext.totalTokens > 0) {
     console.log('[ENHANCED INTELLIGENCE] Skipping enhancement - memory integration detected');
   } else {
     const enhancement = await intelligence.enhanceResponse(
@@ -440,6 +474,11 @@ if (complianceValidation.corrected_content) {
       response: finalResponse,
       mode_active: mode,
       personality_active: optimalPersonality,
+      memory_integrated: intelligenceResult.memoryIntegrated,
+      intelligence_enhanced: intelligenceResult.intelligenceEnhanced,
+      engines_used: intelligenceResult.enginesActivated,
+      intelligence_confidence: intelligenceResult.confidence,
+      memory_tokens_used: memoryResult?.tokenCount || 0,
       cognitive_intelligence: {
         expert_domain: expertDomain.domain,
         expert_title: expertDomain.title,
