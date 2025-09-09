@@ -154,7 +154,7 @@ Your response should demonstrate extraordinary analytical capability while maint
   } catch (error) {
     console.error('❌ Enhanced Eli response error:', error);
     
-    return generateEliEnhancedFallback(error, message, mode);
+    return generateEliEnhancedFallback(error, message, mode, conversationHistory);
   }
 }
 
@@ -896,11 +896,15 @@ function validateRoxyResponseEnhanced(response, mode, requiresEmpathy) {
   };
 }
 
-function generateEliEnhancedFallback(error, message, mode) {
+function generateEliEnhancedFallback(error, message, mode, memoryContext = null) {
   return {
-    response: `🍌 **Eli:** I'm experiencing technical difficulties with my enhanced analysis systems. Let me provide direct guidance:
+    response: `🍌 **Eli:** ${memoryContext && memoryContext.contextFound ? 
+      `Based on our previous conversations, I can still provide guidance despite technical issues:` : 
+      `I'm experiencing technical difficulties with my enhanced analysis systems. Let me provide direct guidance:`}
 
-Based on your query, I can offer structured thinking even with limited processing capacity:
+${memoryContext && memoryContext.contextFound ? 
+  `From what we've discussed: ${memoryContext.memories.substring(0, 200)}...` : 
+  `Based on your query, I can offer structured thinking even with limited processing capacity:`}
 
 **Direct Assessment:** Your question requires careful analysis that I'll approach systematically when my enhanced capabilities are restored.
 
