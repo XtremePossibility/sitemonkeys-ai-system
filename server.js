@@ -887,21 +887,19 @@ if (conversation_history && conversation_history.length > 0) {
 }
 let enhancedPrompt = buildConversationPrompt(systemPrompt, message, conversation_history, expertDomain);
 
-// CRITICAL FIX: Include retrieved memory context in AI prompt
-if (memoryContext && memoryContext.memories && memoryContext.memories.length > 0) {
+// MEMORY INJECTION DISABLED - HANDLED BY CHAT.JS
+if (conversationHistoryText) {
   enhancedPrompt = systemPrompt + `
 
-${conversationHistoryText ? `RECENT CONVERSATION:\n${conversationHistoryText}\n\n` : ''}
+RECENT CONVERSATION:
+${conversationHistoryText}
 
-OUR CONVERSATION HISTORY:
-${convertMemoryToSharedHistory(memoryContext.memories)}
+Please acknowledge the conversation context in your response.
 
-Continue our ongoing relationship naturally.
-
-CURRENT REQUEST:
+CURRENT REQUEST:  
 Family Member: ${message}
 
-Respond using conversation context, memory context, and your expertise:`;
+Respond using conversation context and your expertise:`;
   
   console.log(`[CHAT] 🧠 Added ${memoryContext.memories.length} characters of memory context to AI prompt`);
   console.log('[DEBUG] First 500 chars of memory:', memoryContext.memories.substring(0, 500));
