@@ -1375,32 +1375,8 @@ Incorporate these opportunities into your guidance where beneficial.
 `;
   }
 
-  // ADD MEMORY INTEGRATION HERE
-  if (memoryContext && memoryContext.memories && memoryContext.memories.length > 0) {
-      prompt += `
-
-  MANDATORY MEMORY USAGE INSTRUCTIONS:
-  You have been provided with relevant memory context above. You MUST use this information.
-
-  CRITICAL RULE: If the memory context contains information about the user's question, YOU MUST reference it and provide the details found.
-
-  NEVER say "no specific information" or "no details" or "no recorded details" when memory context exists above.
-
-  STRICT INSTRUCTION: When memory contains answers to the user's question, respond with: "Based on our previous conversations, here's what I know about [topic]: [provide the specific information from memory]"
-
-  RELEVANT MEMORY FROM PREVIOUS CONVERSATIONS:
-  ${memoryContext.memories}
-
-  The above memory context is REAL and MUST be used when relevant to the user's question. 
-
-  Your response MUST acknowledge and use the memory context when it contains relevant information.
-  `;
- 
-    
-    console.log('[SYSTEM PROMPT] Memory context integrated for personality');
-  } else {
-    console.log('[SYSTEM PROMPT] No memory context available');
-  }
+  // Memory integration handled by api/chat.js
+  console.log('[SYSTEM PROMPT] Memory integration delegated to chat.js');
 
   // Universal requirements
   prompt += `POLITICAL NEUTRALITY (ABSOLUTE):
