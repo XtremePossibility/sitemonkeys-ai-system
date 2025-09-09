@@ -22,50 +22,45 @@ export class MemoryIntelligenceBridge {
   // ================================================================
   
   formatMemoryForPersonalities(memoryContext, personality) {
-    try {
-      if (!memoryContext || !memoryContext.contextFound) {
-        return {
-          hasMemory: false,
-          formattedMemory: '',
-          memoryCount: 0,
-          personalityPrompt: this.getNoMemoryPrompt(personality)
-        };
-      }
-
-      // Extract memories based on intelligence context
-      const memories = memoryContext.memories || '';
-      const intelligenceEnhanced = memoryContext.intelligenceEnhanced || false;
-      
-      // Format for personality-specific consumption
-      let formattedMemory = '';
-      
-      if (intelligenceEnhanced && memoryContext.reasoningSupport) {
-        // Enhanced intelligence format
-        formattedMemory = this.formatIntelligentMemory(memoryContext, personality);
-      } else {
-        // Standard memory format (backwards compatibility)
-        formattedMemory = this.formatStandardMemory(memories, personality);
-      }
-
-      return {
-        hasMemory: true,
-        formattedMemory: formattedMemory,
-        memoryCount: memoryContext.memoryCount || 0,
-        category: memoryContext.category || 'general',
-        confidence: memoryContext.confidence || 0.5,
-        personalityPrompt: this.getMemoryPrompt(personality, formattedMemory)
-      };
-
-    } catch (error) {
-      this.logger.error('Memory formatting error:', error);
+  try {
+    if (!memoryContext || !memoryContext.contextFound) {
       return {
         hasMemory: false,
         formattedMemory: '',
-        memoryCount: 0,
-        personalityPrompt: this.getErrorPrompt(personality)
+        personalityPrompt: this.getNoMemoryPrompt(personality)
       };
     }
+
+    // FIXED: Single, consistent memory format for all personalities
+    const memories = memoryContext.memories || '';
+    const cleanedMemories = memories.trim();
+    
+    // FIXED: Direct personality prompt injection (no competing formats)
+    const personalityPrompt = `IMPORTANT: You have access to previous conversation context. Reference this naturally when relevant.
+
+PREVIOUS CONVERSATIONS:
+${cleanedMemories}
+
+Use this context to provide continuity. Reference prior discussions with phrases like "Earlier you mentioned..." or "Based on what we discussed before...".
+
+`;
+
+    return {
+      hasMemory: true,
+      formattedMemory: cleanedMemories,
+      memoryCount: memoryContext.memoryCount || 0,
+      personalityPrompt: personalityPrompt
+    };
+
+  } catch (error) {
+    this.logger.error('Memory formatting error:', error);
+    return {
+      hasMemory: false,
+      formattedMemory: '',
+      personalityPrompt: this.getErrorPrompt(personality)
+    };
   }
+}
 
   formatIntelligentMemory(memoryContext, personality) {
     let formatted = `=== CONTEXT FROM YOUR MEMORY ===\n`;
