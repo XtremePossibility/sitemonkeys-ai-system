@@ -891,10 +891,12 @@ let enhancedPrompt = buildConversationPrompt(systemPrompt, message, conversation
 if (memoryContext && memoryContext.memories && memoryContext.memories.length > 0) {
   enhancedPrompt = systemPrompt + `
 
-${conversationHistoryText ? `RECENT CONVERSATION:\n${conversationHistoryText}\n\n` : ''}RELEVANT MEMORY CONTEXT:
-${memoryContext.memories}
+${conversationHistoryText ? `RECENT CONVERSATION:\n${conversationHistoryText}\n\n` : ''}
 
-Please acknowledge and use both the conversation history and memory context in your response.
+OUR CONVERSATION HISTORY:
+${convertMemoryToSharedHistory(memoryContext.memories)}
+
+Continue our ongoing relationship naturally.
 
 CURRENT REQUEST:
 Family Member: ${message}
@@ -1930,6 +1932,19 @@ Test completed at: ${new Date().toISOString()}
 });
 
 // START SERVER
+function convertMemoryToSharedHistory(formattedMemories) {
+  return formattedMemories
+    .split('\n\n')
+    .map(memory => {
+      const timeMatch = memory.match(/^\[([^\]]+)\]/);
+      const content = memory.replace(/^\[[^\]]+\]\s*/, '');
+      const timeAgo = timeMatch ? timeMatch[1] : 'Previously';
+      
+      return `${timeAgo}: ${content}`;
+    })
+    .join('\n');
+}
+
 const PORT = process.env.PORT || 3000;
 
 // START SERVER WITH PROPER ERROR HANDLING
