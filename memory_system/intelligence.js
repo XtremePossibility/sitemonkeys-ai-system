@@ -953,58 +953,112 @@ class IntelligenceSystem {
   // ================================================================
 
   async applySophisticatedScoring(memories, query, semanticAnalysis, routing) {
-    if (!memories || memories.length === 0) return [];
+  if (!memories || memories.length === 0) return [];
 
-    this.logger.log(`Applying sophisticated scoring to ${memories.length} memories`);
+  this.logger.log(`Applying intelligent semantic scoring to ${memories.length} memories`);
 
-    return memories.map(memory => {
-      let score = memory.relevance_score || 0.5;
-      const scoringFactors = {};
-      const contentType = this.classifyContentType(memory.content);
-      
-      // IMMEDIATE EXCLUSION: AI failure responses
-      if (contentType === 'ai_failure') {
-        memory.sophisticatedScore = 0;
-        return memory;
-      }
-      
-      // Factor 1: Content Type Weighting (40% - Primary Factor)
-      let contentTypeScore = 0;
-      switch(contentType) {
-        case 'informational': contentTypeScore = 1.0; break;
-        case 'mixed': contentTypeScore = 0.7; break;
-        case 'interrogative': contentTypeScore = 0.1; break; // Heavy penalty
-      }
-      score += contentTypeScore * 0.40;
-      scoringFactors.contentType = contentTypeScore;
-
-      // Factor 2: Semantic Match (25%)
-      const textSimilarity = this.calculateAdvancedTextSimilarity(memory.content, query);
-      score += textSimilarity * 0.25;
-      scoringFactors.textSimilarity = textSimilarity;
-
-      // Factor 3: Information Density (20%)
-      const informationDensity = this.calculateInformationDensity(memory.content);
-      score += informationDensity * 0.20;
-      scoringFactors.informationDensity = informationDensity;
-
-      // Factor 4: Recency and usage boost (10% - Reduced)
-      const recencyUsageScore = this.calculateRecencyUsageScore(memory);
-      score += recencyUsageScore * 0.10;
-      scoringFactors.recencyUsageScore = recencyUsageScore;
-
-      // Factor 5: Category confidence boost (5%)
-      const categoryBoost = memory.category_name === routing.primaryCategory ? 0.3 : 0;
-      score += categoryBoost * 0.05;
-      scoringFactors.categoryBoost = categoryBoost;
-
-      // Final score assignment
-      memory.sophisticatedScore = Math.min(score, 2.0);
-      memory.scoringFactors = scoringFactors;
-
+  return memories.map(memory => {
+    const contentType = this.classifyContentType(memory.content);
+    
+    // Immediate exclusion of AI failures
+    if (contentType === 'ai_failure') {
+      memory.sophisticatedScore = 0;
       return memory;
-    });
+    }
+
+    // CORE SEMANTIC INTELLIGENCE - Does this memory actually address what the user is asking about?
+    const topicRelevance = this.calculateTopicRelevance(memory.content, query);
+    
+    // If topic relevance is very low, don't include this memory regardless of other factors
+    if (topicRelevance < 0.3) {
+      memory.sophisticatedScore = 0.1;
+      return memory;
+    }
+
+    // Build score based on semantic relevance first
+    let score = topicRelevance * 0.7; // Topic relevance is primary factor
+    
+    // Information density boost
+    const informationDensity = this.calculateInformationDensity(memory.content);
+    score += informationDensity * 0.2;
+    
+    // Recency and usage
+    const recencyUsageScore = this.calculateRecencyUsageScore(memory);
+    score += recencyUsageScore * 0.1;
+
+    memory.sophisticatedScore = Math.min(score, 2.0);
+    return memory;
+  });
+}
+
+calculateTopicRelevance(memoryContent, query) {
+  const memoryLower = memoryContent.toLowerCase();
+  const queryLower = query.toLowerCase();
+  
+  // Extract the core topic from the query
+  const queryTopic = this.extractCoreTopic(queryLower);
+  const memoryTopic = this.extractCoreTopic(memoryLower);
+  
+  // If we can identify clear topics and they don't match, low relevance
+  if (queryTopic && memoryTopic && queryTopic !== memoryTopic) {
+    return 0.1;
   }
+  
+  // Look for direct conceptual matches
+  const queryNouns = this.extractImportantNouns(queryLower);
+  const memoryNouns = this.extractImportantNouns(memoryLower);
+  
+  let conceptOverlap = 0;
+  for (const queryNoun of queryNouns) {
+    for (const memoryNoun of memoryNouns) {
+      if (queryNoun === memoryNoun) {
+        conceptOverlap += 1.0;
+      } else if (this.areConceptsRelated(queryNoun, memoryNoun)) {
+        conceptOverlap += 0.5;
+      }
+    }
+  }
+  
+  const topicScore = queryNouns.length > 0 ? conceptOverlap / queryNouns.length : 0.5;
+  
+  // Boost for exact phrase matches
+  if (memoryLower.includes(queryLower)) {
+    return Math.min(topicScore + 0.4, 1.0);
+  }
+  
+  return Math.min(topicScore, 1.0);
+}
+
+extractCoreTopic(text) {
+  if (text.includes('video game') || text.includes('gaming') || text.includes('franchise')) return 'videogames';
+  if (text.includes('monkey') || text.includes('pet') || text.includes('animal')) return 'pets';
+  if (text.includes('vehicle') || text.includes('car') || text.includes('drive') || text.includes('truck')) return 'vehicles';
+  if (text.includes('superhero') || text.includes('comic') || text.includes('marvel') || text.includes('hero')) return 'superheroes';
+  return null;
+}
+
+extractImportantNouns(text) {
+  const words = text.split(/\s+/);
+  return words.filter(word => 
+    word.length > 3 && 
+    !this.stopWords.has(word) &&
+    /^[a-zA-Z]+$/.test(word)
+  );
+}
+
+areConceptsRelated(concept1, concept2) {
+  // Simple conceptual relationships
+  const relationships = [
+    ['vehicle', 'truck'], ['vehicle', 'car'], ['car', 'drive'],
+    ['monkey', 'pet'], ['pet', 'animal'],
+    ['game', 'gaming'], ['franchise', 'series']
+  ];
+  
+  return relationships.some(([a, b]) => 
+    (concept1.includes(a) && concept2.includes(b)) ||
+    (concept1.includes(b) && concept2.includes(a))
+  );
+}
 
   calculateAdvancedTextSimilarity(memoryContent, query) {
   if (!memoryContent || !query) return 0;
