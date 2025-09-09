@@ -846,7 +846,7 @@ class IntelligenceSystem {
         WHERE user_id = $1 AND category_name = $2 AND relevance_score > 0
       `;
       
-      let queryParams = [userId, primaryCategory];
+      queryParams = [userId, primaryCategory];
       let paramIndex = 3;
       
       // TOPIC FILTERING - Only get memories that contain query words
