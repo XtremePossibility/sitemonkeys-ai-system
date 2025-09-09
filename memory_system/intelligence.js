@@ -838,36 +838,32 @@ class IntelligenceSystem {
 
     return await this.coreSystem.withDbClient(async (client) => {
       // SIMPLIFIED INTELLIGENT QUERY - MAIN TABLE ONLY
+      // TOPIC-SPECIFIC DATABASE QUERY
       let baseQuery = `
         SELECT id, user_id, category_name, subcategory_name, content, token_count, 
-               relevance_score, usage_frequency, created_at, last_accessed, metadata,
-               CASE 
-                 -- HIGHEST PRIORITY: Informational content (answers with facts)
-                 WHEN content ~* '\\b(i have|i own|my \\w+\\s+(is|are|was)|i drive|i work|i live)\\b' 
-                      AND content ~* '\\b[A-Z][a-z]+\\b' THEN relevance_score + 1.0
-                 
-                 -- HIGH PRIORITY: Content with specific details (names, numbers)  
-                 WHEN content ~* '\\b[A-Z][a-z]+\\b.*\\b[A-Z][a-z]+\\b|\\d+' 
-                      AND NOT content ~* '\\b(do you remember|what did i tell|can you recall)\\b' 
-                      THEN relevance_score + 0.7
-                 
-                 -- MEDIUM PRIORITY: Mixed content (questions with information)
-                 WHEN content ~* '\\b(i have|i own|my \\w+\\s+(is|are|was))\\b' 
-                      THEN relevance_score + 0.4
-                 
-                 -- HEAVY PENALTY: Pure questions without information
-                 WHEN content ~* '\\b(do you remember|what did i tell|can you recall|remember anything)\\b' 
-                      AND NOT content ~* '\\b(i have|i own|my \\w+\\s+(is|are|was))\\b' 
-                      THEN relevance_score - 0.6
-                 
-                 -- ZERO SCORE: AI failure responses
-                 WHEN content ~* 'no specific mention|no recorded details|I don''t have any|no mention of' 
-                      THEN 0
-                 
-                 ELSE relevance_score
-               END as content_intelligence_score
+               relevance_score, usage_frequency, created_at, last_accessed, metadata
         FROM persistent_memories 
         WHERE user_id = $1 AND category_name = $2 AND relevance_score > 0
+      `;
+      
+      let queryParams = [userId, primaryCategory];
+      let paramIndex = 3;
+      
+      // TOPIC FILTERING - Only get memories that contain query words
+      const queryWords = query.toLowerCase().split(/\s+/).filter(word => 
+        word.length > 3 && 
+        !['remember', 'told', 'about', 'what', 'your', 'favorite', 'who'].includes(word)
+      );
+      
+      if (queryWords.length > 0) {
+        const wordFilters = queryWords.map(() => `content ILIKE $${paramIndex++}`).join(' OR ');
+        baseQuery += ` AND (${wordFilters})`;
+        queryParams.push(...queryWords.map(word => `%${word}%`));
+      }
+      
+      baseQuery += `
+        ORDER BY relevance_score DESC, created_at DESC
+        LIMIT 20
       `;
       
       let queryParams = [userId, primaryCategory];
