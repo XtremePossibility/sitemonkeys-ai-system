@@ -930,6 +930,19 @@ if (memoryContext && memoryContext.hasMemory) {
 function buildFullConversationPrompt(masterPrompt, message, conversationHistory, expertDomain, careNeeds, memoryContext = null) {
   let fullPrompt = masterPrompt;
 
+  function convertMemoryToSharedHistory(formattedMemories) {
+  return formattedMemories
+    .split('\n\n')
+    .map(memory => {
+      const timeMatch = memory.match(/^\[([^\]]+)\]/);
+      const content = memory.replace(/^\[[^\]]+\]\s*/, '');
+      const timeAgo = timeMatch ? timeMatch[1] : 'Previously';
+      
+      return `${timeAgo}: ${content}`;
+    })
+    .join('\n');
+}
+
   // FIXED: Present memory as shared conversation history
   if (memoryContext && memoryContext.contextFound) {
     const sharedHistory = convertMemoryToSharedHistory(memoryContext.memories);
