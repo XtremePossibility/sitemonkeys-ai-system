@@ -999,8 +999,8 @@ async function makeEnhancedAPICall(prompt, personality, prideMotivation) {
         body: JSON.stringify({
           model: 'claude-3-5-sonnet-20241022',
           max_tokens: maxTokens,
-          system: prompt.split('CURRENT REQUEST:')[0],
-          messages: [{ role: 'user', content: prompt.split('CURRENT REQUEST:')[1] || prompt }],
+          system: prompt,
+          messages: [{ role: 'user', content: message }],
           temperature: 0.1 + (prideMotivation * 0.1)
         })
       });
