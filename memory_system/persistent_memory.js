@@ -596,17 +596,22 @@ class PersistentMemoryOrchestrator {
   // ================================================================
 
   formatMemoriesForChat(memories) {
-    if (!memories || memories.length === 0) {
-      return '';
-    }
-
-    return memories
-      .map(memory => {
-        const timeAgo = this.formatTimeAgo(memory.created_at || memory.timestamp);
-        return `[${timeAgo}] ${memory.content}`;
-      })
-      .join('\n\n');
+  if (!memories || memories.length === 0) {
+    return '';
   }
+
+  return memories
+    .map((memory, index) => {
+      // FIXED: Validate content exists and strip any existing formatting
+      const content = (memory.content || '').trim();
+      if (!content) return null;
+      
+      // FIXED: Simple, corruption-resistant format
+      return `${content}`;  // Remove time formatting that corrupts content
+    })
+    .filter(memory => memory !== null)  // Remove empty memories
+    .join('\n\n');
+}
 
   async extractIntelligentMemoryForChat(message, userId, intelligenceContext) {
     const startTime = Date.now();
