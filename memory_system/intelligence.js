@@ -1012,55 +1012,74 @@ class IntelligenceSystem {
   const memoryLower = memoryContent.toLowerCase();
   const queryLower = query.toLowerCase();
 
-  // TOPIC-AWARE MATCHING - Check for topic relevance first
-  const queryTopics = this.extractTopics(queryLower);
-  const memoryTopics = this.extractTopics(memoryLower);
-  
-  // If no topic overlap, heavily penalize
-  const topicOverlap = queryTopics.filter(topic => memoryTopics.includes(topic)).length;
-  if (queryTopics.length > 0 && topicOverlap === 0) {
-    return 0.1; // Very low score for different topics
+  // Exact phrase matching gets highest priority
+  if (memoryLower.includes(queryLower)) {
+    return 0.9;
   }
 
-  // Enhanced word matching
+  // Extract key nouns and context
   const memoryWords = this.extractMeaningfulWords(memoryLower);
   const queryWords = this.extractMeaningfulWords(queryLower);
-
+  
   if (memoryWords.length === 0 || queryWords.length === 0) return 0;
 
-  // Calculate word similarity
-  const memorySet = new Set(memoryWords);
-  const querySet = new Set(queryWords);
-  const intersection = new Set([...querySet].filter(x => memorySet.has(x)));
+  // Find semantic overlap - words that actually relate to the same concept
+  let semanticMatches = 0;
+  let totalQueryConcepts = 0;
   
-  const jaccardSimilarity = intersection.size / Math.max(querySet.size, memorySet.size);
-  
-  // Topic boost for matching topics
-  const topicBoost = topicOverlap > 0 ? 0.4 : 0;
-  
-  // Exact phrase matching
-  const exactMatch = memoryLower.includes(queryLower) ? 0.3 : 0;
-
-  return Math.min(jaccardSimilarity + topicBoost + exactMatch, 1.0);
-}
-
-extractTopics(text) {
-  const topicPatterns = [
-    ['videogames', /\b(video game|gaming|game|franchise|xbox|playstation|nintendo|console)\b/g],
-    ['superheroes', /\b(superhero|marvel|dc|comic|hero|villain|deadpool|wolverine)\b/g],
-    ['business', /\b(business|company|revenue|profit|startup|entrepreneur)\b/g],
-    ['family', /\b(family|spouse|wife|husband|children|kids|marriage)\b/g],
-    ['pets', /\b(pet|pets|dog|cat|animal|monkey|monkeys)\b/g],
-    ['health', /\b(health|medical|doctor|fitness|exercise|diet)\b/g]
-  ];
-  
-  const topics = [];
-  for (const [topic, pattern] of topicPatterns) {
-    if (pattern.test(text)) {
-      topics.push(topic);
+  for (const queryWord of queryWords) {
+    totalQueryConcepts++;
+    
+    // Direct word match
+    if (memoryWords.includes(queryWord)) {
+      semanticMatches += 1.0;
+      continue;
+    }
+    
+    // Contextual relationship - if query word appears near matched concepts
+    for (const memoryWord of memoryWords) {
+      if (this.areWordsContextuallyRelated(queryWord, memoryWord, memoryLower, queryLower)) {
+        semanticMatches += 0.5;
+        break;
+      }
     }
   }
-  return topics;
+  
+  // Penalize if query has specific concepts that memory doesn't address
+  const conceptMismatch = this.detectConceptMismatch(queryWords, memoryWords);
+  
+  const semanticScore = semanticMatches / Math.max(totalQueryConcepts, 1);
+  return Math.max(0, semanticScore - conceptMismatch);
+}
+
+areWordsContextuallyRelated(word1, word2, memoryText, queryText) {
+  // Simple contextual understanding without predefined rules
+  const word1Context = this.getWordContext(word1, queryText);
+  const word2Context = this.getWordContext(word2, memoryText);
+  
+  // If both words appear in similar sentence structures, they might be related
+  return word1Context.length > 2 && word2Context.length > 2 && 
+         word1Context.some(w => word2Context.includes(w));
+}
+
+getWordContext(word, text) {
+  const words = text.split(/\s+/);
+  const wordIndex = words.indexOf(word);
+  if (wordIndex === -1) return [];
+  
+  const start = Math.max(0, wordIndex - 2);
+  const end = Math.min(words.length, wordIndex + 3);
+  return words.slice(start, end);
+}
+
+detectConceptMismatch(queryWords, memoryWords) {
+  // If query has very specific terms that memory completely lacks
+  const specificQueryTerms = queryWords.filter(w => w.length > 4);
+  const hasAnySpecificMatch = specificQueryTerms.some(term => 
+    memoryWords.some(mw => mw.includes(term) || term.includes(mw))
+  );
+  
+  return specificQueryTerms.length > 0 && !hasAnySpecificMatch ? 0.3 : 0;
 }
 
   calculateIntentAlignment(memory, semanticAnalysis) {
