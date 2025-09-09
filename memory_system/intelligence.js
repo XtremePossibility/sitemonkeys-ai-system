@@ -873,6 +873,15 @@ class IntelligenceSystem {
       let queryParams = [userId, primaryCategory];
       let paramIndex = 3;
 
+      // TOPIC-AWARE FILTERING - Only get memories that actually relate to the query topic
+      const queryNouns = this.extractImportantNouns(query.toLowerCase());
+      if (queryNouns.length > 0) {
+        // Build topic filter
+        const topicFilters = queryNouns.map(() => `content ILIKE $${paramIndex++}`).join(' OR ');
+        baseQuery += ` AND (${topicFilters})`;
+        queryParams.push(...queryNouns.map(noun => `%${noun}%`));
+      }
+
       // Add your existing semantic filters
       if (semanticAnalysis.emotionalWeight > 0.5) {
         baseQuery += ` AND (content ILIKE $${paramIndex} OR metadata->>'emotional_content' = 'true')`;
