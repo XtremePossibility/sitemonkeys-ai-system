@@ -317,7 +317,8 @@ try {
     const fullPrompt = basePrompt;
     
     // *** ENHANCED API CALL ***
-    const apiResponse = await makeEnhancedAPICall(fullPrompt, optimalPersonality, prideMotivation);
+    const memoryForPersonality = memoryContext && memoryContext.contextFound ? memoryContext.memories : null;
+    const apiResponse = await makeEnhancedAPICall(fullPrompt, optimalPersonality, prideMotivation, memoryForPersonality);
 
     let promptTokens, completionTokens;
 
@@ -331,22 +332,26 @@ try {
 
     const trackingResult = trackApiCall(optimalPersonality, promptTokens, completionTokens, vaultTokens);
     
-    // *** COMPREHENSIVE RESPONSE ENHANCEMENT & ENFORCEMENT ***
-    let enhancedResponse = apiResponse.response;
-    
-    // 0. ENHANCED REASONING PROCESSING (ALWAYS ACTIVE)
+    // 0. ENHANCED REASONING PROCESSING (MEMORY-AWARE)
 try {
-  const enhancement = await intelligence.enhanceResponse(
-    enhancedResponse, message, mode, memoryContext, vaultContent, 0.8
-  );
-  enhancedResponse = enhancement.enhancedResponse;
-  console.log('[ENHANCED INTELLIGENCE] Applied:', enhancement.intelligenceApplied.join(', '));
+  // Skip enhancement if memory was successfully integrated
+  if (memoryContext && memoryContext.contextFound && memoryContext.totalTokens > 0) {
+    console.log('[ENHANCED INTELLIGENCE] Skipping enhancement - memory integration detected');
+  } else {
+    const enhancement = await intelligence.enhanceResponse(
+      enhancedResponse, message, mode, memoryContext, vaultContent, 0.8
+    );
+    enhancedResponse = enhancement.enhancedResponse;
+    console.log('[ENHANCED INTELLIGENCE] Applied:', enhancement.intelligenceApplied.join(', '));
+  }
 } catch (error) {
   console.error('[ENHANCED INTELLIGENCE] Error:', error);
-  // Fallback to existing method
-  enhancedResponse = applyEnhancedReasoning(
-    enhancedResponse, message, mode, expertDomain, memoryContext, vaultContent
-  );
+  // Skip fallback if memory was successfully integrated
+  if (!(memoryContext && memoryContext.contextFound)) {
+    enhancedResponse = applyEnhancedReasoning(
+      enhancedResponse, message, mode, expertDomain, memoryContext, vaultContent
+    );
+  }
 }
     
     // 1. QUANTITATIVE REASONING ENFORCEMENT
@@ -979,7 +984,7 @@ Respond with the expertise and caring dedication of a family member who genuinel
 }
 
 // *** ENHANCED API CALL ***
-async function makeEnhancedAPICall(prompt, personality, prideMotivation) {
+async function makeEnhancedAPICall(prompt, personality, prideMotivation, memoryContent = null) {
   const maxTokens = Math.floor(1200 + (prideMotivation * 800)); // More tokens for high pride situations
 
   if (personality === 'claude') {
@@ -1034,7 +1039,7 @@ async function makeEnhancedAPICall(prompt, personality, prideMotivation) {
         },
         body: JSON.stringify({
           model: 'gpt-4o',
-          messages: [{ role: 'system', content: prompt }],
+          messages: [{ role: 'system', content: memoryContent ? `PREVIOUS CONVERSATION CONTEXT:\n${memoryContent}\n\n${prompt}` : prompt }],
           max_tokens: maxTokens,
           temperature: 0.2 + (prideMotivation * 0.1),
           top_p: 0.9,
