@@ -401,7 +401,9 @@ if (intelligenceResult.memoryIntegrated && memoryResult?.hasMemory) {
       // Fallback to existing personality system
       console.log('[MEMORY-INTELLIGENCE] Using fallback personality response');
       
-      const memoryForPersonality = memoryContext && memoryContext.contextFound ? memoryContext.memories : null;
+      const memoryForPersonality = memoryContext && (memoryContext.contextFound || memoryContext.hasMemory) ? 
+      (memoryContext.memories || memoryContext.formattedMemory || memoryContext) : null;
+    console.log('[MEMORY FIX] Memory for personality:', memoryForPersonality ? 'FOUND' : 'NULL');
       apiResponse = await makeEnhancedAPICall(fullPrompt, optimalPersonality, prideMotivation, memoryForPersonality);
       finalResponse = apiResponse.response;
     }
