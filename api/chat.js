@@ -305,8 +305,11 @@ if (global.memorySystem) {
   try {
     memoryResult = await global.memorySystem.retrieveMemoryForChat(user_id, message);
     console.log('[MEMORY-INTELLIGENCE] Memory retrieved:', memoryResult?.hasMemory ? 'SUCCESS' : 'NO_MEMORY');
+    
+    console.log('[BRIDGE DEBUG] memoryResult check:', memoryResult ? 'EXISTS' : 'NULL', typeof memoryResult);
     if (memoryResult) {
-  console.log('[MEMORY DEBUG] Full memory result:', JSON.stringify(memoryResult, null, 2));
+      console.log('[MEMORY DEBUG] Full memory result:', JSON.stringify(memoryResult, null, 2));
+  // ... rest of your existing debug code
   console.log('[MEMORY DEBUG] Memory hasMemory:', memoryResult.hasMemory);
   console.log('[MEMORY DEBUG] Memory content keys:', Object.keys(memoryResult));
   if (memoryResult.memories) {
