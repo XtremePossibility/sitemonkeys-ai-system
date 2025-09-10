@@ -1,4 +1,3 @@
-// FORCE CACHE REFRESH - 2025-07-27-1559 - DELETE AFTER DEPLOY
 // COMPLETE MODULAR CARING FAMILY INTELLIGENCE SYSTEM
 // Orchestrates all cognitive modules for universal expert intelligence
 // MEMORY SYSTEMS NOW HANDLED BY SERVER.JS BOOTSTRAP
@@ -355,7 +354,7 @@ if (memoryIntelligenceBridge) {
 
 // Create memory context for backward compatibility
 let memoryContext = null;
-if (intelligenceResult.memoryIntegrated && memoryResult?.hasMemory) {
+if (memoryResult?.hasMemory) {
   memoryContext = {
     hasMemory: true,
     contextFound: true,
