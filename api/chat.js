@@ -305,6 +305,20 @@ if (global.memorySystem) {
   try {
     memoryResult = await global.memorySystem.retrieveMemoryForChat(user_id, message);
     console.log('[MEMORY-INTELLIGENCE] Memory retrieved:', memoryResult?.hasMemory ? 'SUCCESS' : 'NO_MEMORY');
+    if (memoryResult) {
+  console.log('[MEMORY DEBUG] Full memory result:', JSON.stringify(memoryResult, null, 2));
+  console.log('[MEMORY DEBUG] Memory hasMemory:', memoryResult.hasMemory);
+  console.log('[MEMORY DEBUG] Memory content keys:', Object.keys(memoryResult));
+  if (memoryResult.memories) {
+    console.log('[MEMORY DEBUG] Memory content preview:', memoryResult.memories.substring(0, 500));
+  }
+  if (memoryResult.systemPrompt) {
+    console.log('[MEMORY DEBUG] System prompt preview:', memoryResult.systemPrompt.substring(0, 500));
+  }
+  if (memoryResult.conversationContext) {
+    console.log('[MEMORY DEBUG] Conversation context preview:', memoryResult.conversationContext.substring(0, 500));
+  }
+}
   } catch (memoryError) {
     console.error('[MEMORY-INTELLIGENCE] Memory retrieval failed:', memoryError);
     memoryResult = { hasMemory: false };
