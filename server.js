@@ -15,7 +15,7 @@ import JSZip from 'jszip';
 import xml2js from 'xml2js';
 import zlib from 'zlib';
 import { promisify } from 'util';
-import chatHandler from './api/chat.js'; All right
+import chatHandler from './api/chat.js';
 
 // NOW declare your variables:
 const app = express();
