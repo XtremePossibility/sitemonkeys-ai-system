@@ -15,6 +15,7 @@ import JSZip from 'jszip';
 import xml2js from 'xml2js';
 import zlib from 'zlib';
 import { promisify } from 'util';
+import chatHandler from './api/chat.js'; All right
 
 // NOW declare your variables:
 const app = express();
@@ -738,91 +739,8 @@ let familyMemory = {
   trustBuilding: 0.0
 };
 
-// MAIN CHAT ENDPOINT
-app.post('/api/chat', async (req, res) => {
-    const startTime = Date.now();
-    let totalCost = 0;
-    
-    try {
-        console.log('\n🚀 [CHAT] New conversation request received');
-     
-    const {
-      message,
-      conversation_history = [],
-      mode = 'site_monkeys',
-      claude_requested = false,
-      vault_content = null
-    } = req.body;
-
-    if (!message || typeof message !== 'string') {
-      return res.status(400).json({ error: 'Message is required and must be a string' });
-    }
-
-    // VAULT LOADING (Fast)
-    let vaultContent = '';
-    let vaultTokens = 0;
-    let vaultStatus = 'not_loaded';
-    let vaultHealthy = false;
-
-    try {
-      if (vault_content && typeof vault_content === 'string' && vault_content.trim().length > 100) {
-        vaultContent = vault_content;
-        vaultStatus = 'loaded_from_frontend';
-        vaultHealthy = true;
-      } else if (process.env.VAULT_CONTENT) {
-        vaultContent = process.env.VAULT_CONTENT;
-        vaultStatus = 'loaded_from_environment';
-        vaultHealthy = true;
-      } else {
-        vaultStatus = 'fallback_mode';
-        vaultContent = `SITE MONKEYS FALLBACK LOGIC:
-Pricing: Boost $697, Climb $1,497, Lead $2,997
-Minimum 85% margins required for all projections
-Professional service standards maintained
-Quality-first approach with caring delivery`;
-        vaultHealthy = false;
-      }
-      vaultTokens = Math.ceil(vaultContent.length / 4);
-    } catch (error) {
-      vaultStatus = 'error_fallback';
-      vaultHealthy = false;
-    }
-
-    // ===== MEMORY CONTEXT RETRIEVAL =====
-let memoryContext = '';
-if (global.memorySystem && typeof global.memorySystem.retrieveMemory === 'function') {
-    try {
-        console.log('[CHAT] 📋 Retrieving memory context...');
-        memoryContext = await global.memorySystem.retrieveMemory('user', message);
-        console.log(`[CHAT] ✅ Memory context retrieved: ${memoryContext.memories ? memoryContext.memories.length : 0} characters`);
-        
-        // FILTER OUT AI FAILURE RESPONSES (PRECISE)
-        if (memoryContext && memoryContext.memories) {
-            const originalLength = memoryContext.memories.length;
-            
-            // Only remove specific AI failure patterns, preserve everything else
-            memoryContext.memories = memoryContext.memories.replace(/Assistant: Based on our previous conversations, you mentioned something about[^,]*, but it seems there wasn't any specific information provided about them\./g, '');
-            memoryContext.memories = memoryContext.memories.replace(/Assistant: Based on our previous conversations, I don't have specific details about[^.]*\./g, '');
-            memoryContext.memories = memoryContext.memories.replace(/Assistant: I don't have specific details about[^.]*from our previous conversations\./g, '');
-            
-            console.log(`[CHAT] 🧹 Filtered poison memories: ${originalLength} → ${memoryContext.memories.length} characters`);
-        }
-        
-    } catch (error) {
-        console.error('[CHAT] ⚠️ Memory retrieval failed:', error);
-        memoryContext = '';
-    }
-} else {
-    console.log('[CHAT] ⚠️ Memory system not available for context retrieval');
-}
-        
-if (!persistentMemory.isReady()) {
-  console.error('[CHAT] ❌ Memory systems not ready');
-  return res.status(500).json({ 
-    error: 'Memory systems not initialized',
-    details: persistentMemory.getSystemStatus()
-  });
-}
+    // Route all chat requests to sophisticated api/chat.js
+    app.post('/api/chat', chatHandler);
 
 console.log('[CHAT] ✅ Memory systems ready');
 
