@@ -879,7 +879,7 @@ class IntelligenceSystem {
       if (queryNouns.length > 0) {
         // Build topic filter with correct parameter indexing
         const startIndex = paramIndex;
-        const topicFilters = queryNouns.map((noun, i) => `content ILIKE $${startIndex + i}`).join(' OR ');
+        const topicFilters = queryNouns.map((noun, i) => `content::text ILIKE $${startIndex + i}::text`).join(' OR ');
         baseQuery += ` AND (${topicFilters})`;
         queryParams.push(...queryNouns.map(noun => `%${noun}%`));
         paramIndex += queryNouns.length; // Increment AFTER adding parameters
@@ -887,13 +887,13 @@ class IntelligenceSystem {
       
       // Add your existing semantic filters with synchronized indexing
       if (semanticAnalysis.emotionalWeight > 0.5) {
-        baseQuery += ` AND (content ILIKE $${paramIndex} OR metadata->>'emotional_content' = 'true')`;
+        baseQuery += ` AND (content::text ILIKE $${paramIndex}::text OR metadata->>'emotional_content' = 'true')`;
         queryParams.push(`%${semanticAnalysis.emotionalTone}%`);
         paramIndex++; // Increment after adding 1 parameter
       }
       
       if (semanticAnalysis.personalContext) {
-        baseQuery += ` AND (content ILIKE $${paramIndex} OR content ILIKE $${paramIndex + 1})`;
+        baseQuery += ` AND (content::text ILIKE $${paramIndex}::text OR content::text ILIKE $${paramIndex + 1}::text)`;
         queryParams.push('%my %', '%personal%');
         paramIndex += 2; // Increment after adding 2 parameters
       }
