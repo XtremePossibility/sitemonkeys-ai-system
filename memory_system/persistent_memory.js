@@ -520,7 +520,7 @@ class PersistentMemoryOrchestrator {
               if (contentLower.includes(stem)) return true;
             }
             return false;
-          });
+          })
         .slice(0, 3);
 
       if (relevantMemories.length > 0) {
