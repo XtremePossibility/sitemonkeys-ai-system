@@ -6,6 +6,7 @@ import express from 'express';
 import cors from 'cors';
 import { exec } from 'child_process';
 import persistentMemory from './memory_system/persistent_memory.js';
+import intelligenceSystem from './memory_system/intelligence.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
@@ -788,9 +789,26 @@ Quality-first approach with caring delivery`;
       vaultHealthy = false;
     }
 
-    // ===== MEMORY CONTEXT RETRIEVAL =====
-let memoryContext = '';
-if (global.memorySystem && typeof global.memorySystem.retrieveMemory === 'function') {
+    // ===== IMPROVED INTELLIGENCE SYSTEM =====
+    let intelligenceRouting = null;
+    let intelligenceMemories = null;
+    
+    try {
+      intelligenceRouting = await intelligenceSystem.analyzeAndRoute(message, 'user');
+      intelligenceMemories = await intelligenceSystem.extractRelevantMemories('user', message, intelligenceRouting);
+      console.log('[INTELLIGENCE] Categorized as:', intelligenceRouting.primaryCategory);
+    } catch (error) {
+      console.error('[INTELLIGENCE] Error:', error);
+      intelligenceRouting = { primaryCategory: 'personal_life_interests' };
+      intelligenceMemories = [];
+    }
+    
+    // ===== MEMORY CONTEXT RETRIEVAL (FALLBACK) =====
+    let memoryContext = '';
+    if (intelligenceMemories && intelligenceMemories.length > 0) {
+      memoryContext = intelligenceMemories.map(m => m.content).join('\n\n');
+      console.log('[INTELLIGENCE] Using improved memory system');
+    } else if (global.memorySystem && typeof global.memorySystem.retrieveMemory === 'function') {
     try {
         console.log('[CHAT] 📋 Retrieving memory context...');
         memoryContext = await global.memorySystem.retrieveMemory('user', message);
