@@ -843,8 +843,9 @@ class IntelligenceSystem {
                relevance_score, usage_frequency, created_at, last_accessed, metadata,
                CASE 
                  -- HIGHEST PRIORITY: Informational content (answers with facts)
-                 WHEN content ~* '\\b(i have|i own|my \\w+\\s+(is|are|was)|i drive|i work|i live)\\b' 
-                      AND content ~* '\\b[A-Z][a-z]+\\b' THEN relevance_score + 1.0
+                 WHEN content ILIKE '%wife%' OR content ILIKE '%spouse%' OR content ILIKE '%partner%' THEN relevance_score + 1.2
+                 WHEN content =~ '\\b(i have|i own|my \\w+|i work|i live)\\b'
+                 AND content =~ '\\b[A-Z][a-z]+\\b' THEN relevance_score + 1.0
                  
                  -- HIGH PRIORITY: Content with specific details (names, numbers)  
                  WHEN content ~* '\\b[A-Z][a-z]+\\b.*\\b[A-Z][a-z]+\\b|\\d+' 
@@ -979,13 +980,13 @@ class IntelligenceSystem {
     const topicRelevance = this.calculateTopicRelevance(memory.content, query);
     
     // If topic relevance is very low, don't include this memory regardless of other factors
-    if (topicRelevance < 0.3) {
+    if (topicRelevance < 0.15) {
       memory.sophisticatedScore = 0.1;
       return memory;
     }
 
     // Build score based on semantic relevance first
-    let score = topicRelevance * 0.7; // Topic relevance is primary factor
+    let score = topicRelevance * 0.8; // Topic relevance is primary factor
     
     // Information density boost
     const informationDensity = this.calculateInformationDensity(memory.content);
