@@ -334,13 +334,6 @@ let intelligenceResult = {
   confidence: 0.5
 };
 
-// FIXED: Properly instantiate the bridge with intelligence orchestrator
-const memoryIntelligenceBridge = new MemoryIntelligenceBridge(
-  intelligence, // your existing EnhancedIntelligence instance
-  null, // aiReasoningEngine (can be null for now)
-  null  // intelligenceOrchestrator (can be null for now)
-);
-
 if (memoryIntelligenceBridge) {
   try {
     intelligenceResult = await memoryIntelligenceBridge.enhanceWithMemoryContext(
