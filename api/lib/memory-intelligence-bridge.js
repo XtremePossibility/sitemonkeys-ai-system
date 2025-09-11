@@ -118,13 +118,12 @@ export class MemoryIntelligenceBridge {
   }
 
   cleanMemoryForIntelligence(memoryContent) {
-    // Remove system artifacts that might confuse existing intelligence engines
+    // CRITICAL: Clean minimally while preserving memory markers
     return memoryContent
-      .replace(/ONGOING CONVERSATION CONTEXT:/g, '')
+      .replace(/ONGOING CONVERSATION CONTEXT:/g, 'MEMORY CONTEXT:')
       .replace(/Continue this natural conversation\./g, '')
       .replace(/Reference previous exchanges when relevant\./g, '')
-      .replace(/\[MEMORY[^\]]*\]/g, '')
-      .replace(/=== [^=]+ ===/g, '')
+      // PRESERVE: [MEMORY] tags and === boundaries for AI recognition
       .replace(/\n{3,}/g, '\n\n')
       .trim();
   }
