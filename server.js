@@ -746,7 +746,7 @@ console.log('[CHAT] ✅ Memory systems ready');
     
     // POLITICAL NEUTRALITY ENFORCEMENT
     if (politicalContent.requiresNeutralityResponse) {
-      return res.json({
+      //return res.json({
         response: generateVotingNeutralityResponse(),
         mode_active: mode,
         personality_active: 'neutrality_enforced',
