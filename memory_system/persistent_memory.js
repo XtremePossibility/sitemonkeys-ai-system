@@ -509,9 +509,18 @@ class PersistentMemoryOrchestrator {
       const relevantMemories = userMemories
         .filter(memory => {
           const contentLower = memory.content.toLowerCase();
-          const words = messageLower.split(' ').filter(w => w.length > 3);
-          return words.some(word => contentLower.includes(word));
-        })
+          const words = messageLower.split(' ').filter(w => w.length > 1); // Allow 2+ character words
+          // FIXED: More flexible matching including partial words and stem matching
+          return words.some(word => {
+            // Direct match
+            if (contentLower.includes(word)) return true;
+            // Stem matching for important words
+            if (word.length > 4) {
+              const stem = word.substring(0, word.length - 1); // Simple stemming
+              if (contentLower.includes(stem)) return true;
+            }
+            return false;
+          });
         .slice(0, 3);
 
       if (relevantMemories.length > 0) {
@@ -630,9 +639,23 @@ class PersistentMemoryOrchestrator {
           const routing = await this.intelligenceSystem.analyzeAndRoute(message, userId);
           this.logger.log(`Intelligence routing: ${routing.primaryCategory}/${routing.subcategory} (confidence: ${routing.confidence.toFixed(3)})`);
 
-          const memories = await this.intelligenceSystem.extractRelevantMemories(userId, message, routing);
-          this.logger.log(`Intelligent extraction found: ${memories.length} memories`);
-
+          // Step 2: Extract relevant memories  
+          let memories = await this.intelligenceSystem.extractRelevantMemories(userId, message, routing);
+          this.logger.log(`Extracted ${memories.length} relevant memories`);
+          
+          // CRITICAL FIX: Try relaxed extraction if no memories found
+          if (memories.length === 0) {
+            this.logger.log('No memories found with standard criteria, trying relaxed extraction...');
+            // Create relaxed routing with lower confidence threshold
+            const relaxedRouting = {
+              ...routing,
+              confidence: Math.max(0.3, routing.confidence * 0.6) // Lower the bar
+            };
+            memories = await this.intelligenceSystem.extractRelevantMemories(userId, message, relaxedRouting);
+            this.logger.log(`Relaxed extraction found: ${memories.length} memories`);
+          }
+          
+          // Step 3: Format response
           if (memories.length > 0) {
             const enhancedResult = await this.applyIntelligenceEnhancements(
               memories, message, intelligenceContext, routing
