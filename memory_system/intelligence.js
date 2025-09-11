@@ -844,25 +844,25 @@ class IntelligenceSystem {
                CASE 
                  -- HIGHEST PRIORITY: Informational content (answers with facts)
                  WHEN content ILIKE '%wife%' OR content ILIKE '%spouse%' OR content ILIKE '%partner%' THEN relevance_score + 1.2
-                 WHEN content =~ '\\b(i have|i own|my \\w+|i work|i live)\\b'
-                 AND content =~ '\\b[A-Z][a-z]+\\b' THEN relevance_score + 1.0
+                 WHEN content::text ~ '\\b(i have|i own|my \\w+|i work|i live)\\b'  
+                 AND content::text ~ '\\b[A-Z][a-z]+\\b' THEN relevance_score + 1.0
                  
                  -- HIGH PRIORITY: Content with specific details (names, numbers)  
-                 WHEN content ~* '\\b[A-Z][a-z]+\\b.*\\b[A-Z][a-z]+\\b|\\d+' 
-                      AND NOT content ~* '\\b(do you remember|what did i tell|can you recall)\\b' 
+                 WHEN content::text ~* '\\b[A-Z][a-z]+\\b.*\\b[A-Z][a-z]+\\b|\\d+' 
+                      AND NOT content::text ~* '\\b(do you remember|what did i tell|can you recall)\\b' 
                       THEN relevance_score + 0.7
                  
                  -- MEDIUM PRIORITY: Mixed content (questions with information)
-                 WHEN content ~* '\\b(i have|i own|my \\w+\\s+(is|are|was))\\b' 
+                 WHEN content::text ~* '\\b(i have|i own|my \\w+\\s+(is|are|was))\\b' 
                       THEN relevance_score + 0.4
                  
                  -- HEAVY PENALTY: Pure questions without information
-                 WHEN content ~* '\\b(do you remember|what did i tell|can you recall|remember anything)\\b' 
-                      AND NOT content ~* '\\b(i have|i own|my \\w+\\s+(is|are|was))\\b' 
+                 WHEN content::text ~* '\\b(do you remember|what did i tell|can you recall|remember anything)\\b' 
+                      AND NOT content::text ~* '\\b(i have|i own|my \\w+\\s+(is|are|was))\\b' 
                       THEN relevance_score - 0.6
                  
                  -- ZERO SCORE: AI failure responses
-                 WHEN content ~* 'no specific mention|no recorded details|I don''t have any|no mention of' 
+                 WHEN content::text ~* 'no specific mention|no recorded details|I don''t have any|no mention of' 
                       THEN 0
                  
                  ELSE relevance_score
@@ -902,8 +902,8 @@ class IntelligenceSystem {
       baseQuery += `
         ORDER BY 
           content_intelligence_score DESC,
-          CASE WHEN content ~* '\\b(i have|i own|my \\w+\\s+(is|are|was))\\b' THEN 2 ELSE 0 END DESC,
-          CASE WHEN content ~* '\\b[A-Z][a-z]+\\b.*\\b[A-Z][a-z]+\\b|\\d+' THEN 1 ELSE 0 END DESC,
+          CASE WHEN content::text ~* '\\b(i have|i own|my \\w+\\s+(is|are|was))\\b' THEN 2 ELSE 0 END DESC,
+          CASE WHEN content::text ~* '\\b[A-Z][a-z]+\\b.*\\b[A-Z][a-z]+\\b|\\d+' THEN 1 ELSE 0 END DESC,
           relevance_score DESC,
           created_at DESC
         LIMIT 20
