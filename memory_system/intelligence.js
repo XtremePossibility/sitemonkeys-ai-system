@@ -1361,8 +1361,24 @@ detectConceptMismatch(queryWords, memoryWords) {
       }
     }
 
-    this.logger.log(`Token management: ${result.length} memories, ${totalTokens} tokens`);
-    return result;
+    // CRITICAL FIX: Enforce strict 2400 token budget
+    let budgetUsed = 0;
+    const tokenBudget = 2400;
+    const enforcedMemories = [];
+    
+    for (const memory of result) {
+      const tokens = memory.token_count || Math.ceil(memory.content.length / 4);
+      if (budgetUsed + tokens <= tokenBudget) {
+        enforcedMemories.push(memory);
+        budgetUsed += tokens;
+      } else {
+        this.logger.warn(`Token budget reached. Excluding memory ${memory.id}`);
+        break;
+      }
+    }
+    
+    this.logger.log(`Token enforcement: ${enforcedMemories.length}/${result.length} memories, ${budgetUsed}/${tokenBudget} tokens`);
+    return enforcedMemories;
   }
 
   // ================================================================
