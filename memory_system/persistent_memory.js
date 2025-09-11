@@ -196,8 +196,11 @@ class PersistentMemoryOrchestrator {
           this.updatePerformanceStats(true, Date.now() - startTime);
           
           return {
+            hasMemory: true,
             contextFound: true,
             memories: formattedMemories,
+            systemPrompt: formattedMemories,
+            conversationContext: formattedMemories,
             totalTokens: totalTokens,
             memoryCount: memories.length,
             category: routing.primaryCategory,
