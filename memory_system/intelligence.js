@@ -251,17 +251,21 @@ class IntelligenceSystem {
     // ================================================================
     
     this.routingStats = {
-      totalRoutes: 0,
-      categoryDistribution: new Map(),
-      avgConfidence: 0,
-      avgProcessingTime: 0,
-      highConfidenceRoutes: 0,
-      lowConfidenceRoutes: 0,
-      overrideApplications: 0,
-      cacheHitRate: 0,
-      cacheHits: 0,
-      cacheMisses: 0,
-      lastReset: Date.now()
+        totalRoutes: 0,
+        categoryDistribution: new Map(),
+        avgConfidence: 0,
+        avgProcessingTime: 0,
+        highConfidenceRoutes: 0,
+        lowConfidenceRoutes: 0,
+        overrideApplications: 0,
+        semanticOverrides: 0,        // ADD THIS LINE
+        semanticDominantRoutes: 0,   // ADD THIS LINE  
+        keywordFallbacks: 0,         // ADD THIS LINE
+        confidenceDistribution: { high: 0, medium: 0, low: 0 }, // ADD THIS LINE
+        cacheHitRate: 0,
+        cacheHits: 0,
+        cacheMisses: 0,
+        lastReset: Date.now()
     };
 
     this.extractionStats = {
@@ -365,7 +369,30 @@ class IntelligenceSystem {
       // Update analytics
       this.updateRoutingAnalytics(finalResult, Date.now() - startTime);
 
-      this.logger.log(`Routed to: ${finalResult.primaryCategory}/${finalResult.subcategory} (confidence: ${finalResult.confidence.toFixed(3)}, ${Date.now() - startTime}ms)`);
+      // Enhanced semantic-aware logging
+      const semanticInfo = {
+        intent: semanticAnalysis.intent,
+        personalContext: semanticAnalysis.personalContext,
+        emotionalWeight: semanticAnalysis.emotionalWeight.toFixed(2),
+        semanticOverride: finalResult.semanticOverride || false
+      };
+      
+      this.logger.log(`SEMANTIC ROUTING: ${finalResult.primaryCategory}/${finalResult.subcategory} 
+        | Confidence: ${finalResult.confidence.toFixed(3)}
+        | Intent: ${semanticInfo.intent}
+        | Personal: ${semanticInfo.personalContext}
+        | Emotional: ${semanticInfo.emotionalWeight}
+        | Override: ${semanticInfo.semanticOverride}
+        | Time: ${Date.now() - startTime}ms`);
+      
+      // Update confidence distribution tracking
+      if (finalResult.confidence > 0.8) {
+        this.routingStats.confidenceDistribution.high++;
+      } else if (finalResult.confidence > 0.5) {
+        this.routingStats.confidenceDistribution.medium++;
+      } else {
+        this.routingStats.confidenceDistribution.low++;
+      }
 
       return finalResult;
 
@@ -480,87 +507,172 @@ class IntelligenceSystem {
 
   async calculateAdvancedCategoryScores(query, semanticAnalysis, userId) {
     const scores = new Map();
-
+  
     for (const [categoryName, config] of this.categoryMappings) {
       let score = 0;
-
-      // Base keyword matching with frequency weighting
+  
+      // SEMANTIC-FIRST: Calculate primary semantic score
+      const semanticScore = this.calculateSemanticBoost(categoryName, semanticAnalysis);
+      score += semanticScore * 8.0; // PRIMARY DRIVER: 8x amplification
+  
+      // REDUCED: Keyword hints (reduced from 2.0x to 0.3x)
       let keywordMatches = 0;
       for (const keyword of config.keywords) {
         if (query.includes(keyword)) {
           keywordMatches++;
-          score += 2.0 * config.weight;
+          score += 0.3 * config.weight; // REDUCED from 2.0
         }
       }
-
-      // Pattern matching with higher weight
+  
+      // REDUCED: Pattern hints (reduced from 3.5x to 0.5x)
       for (const pattern of config.patterns) {
         if (pattern.test(query)) {
-          score += 3.5 * config.weight;
+          score += 0.5 * config.weight; // REDUCED from 3.5
         }
       }
-
-      // Semantic enhancement
-      score += this.calculateSemanticBoost(categoryName, semanticAnalysis);
-
-      // Entity alignment boost
+  
+      // Entity alignment boost (unchanged)
       score += this.calculateEntityAlignmentBoost(categoryName, semanticAnalysis);
-
-      // Priority-based weighting
+  
+      // Priority-based weighting (unchanged)
       if (config.priority === 'high' && semanticAnalysis.urgencyLevel > 0.5) {
         score += 1.0;
       }
-
-      // Keyword density bonus
+  
+      // Keyword density bonus (reduced)
       if (keywordMatches > 1) {
-        score += Math.min(keywordMatches * 0.5, 2.0);
+        score += Math.min(keywordMatches * 0.2, 1.0); // REDUCED from 0.5, 2.0
       }
-
+  
+      // SEMANTIC OVERRIDE: Apply intelligent overrides
+      const semanticOverride = this.applySemanticOverride(categoryName, semanticAnalysis, score);
+      if (semanticOverride.override) {
+        score = semanticOverride.newScore;
+        // Track override for analytics
+        this.routingStats.semanticOverrides = (this.routingStats.semanticOverrides || 0) + 1;
+      }
+  
       scores.set(categoryName, Math.max(score, 0));
     }
-
+  
     return scores;
+  }
+
+  // ================================================================
+  // SEMANTIC OVERRIDE INTELLIGENCE
+  // ================================================================
+  
+  applySemanticOverride(categoryName, semanticAnalysis, currentScore) {
+    // HIGH-CONFIDENCE PERSONAL CONTEXT OVERRIDE
+    if (semanticAnalysis.personalContext && 
+        semanticAnalysis.emotionalWeight > 0.6 && 
+        semanticAnalysis.intent === 'personal_sharing') {
+      
+      const personalCategories = ['personal_life_interests', 'relationships_social', 'mental_emotional'];
+      
+      if (personalCategories.includes(categoryName)) {
+        // BOOST personal categories dramatically
+        return {
+          override: true,
+          newScore: 10.0 + (semanticAnalysis.emotionalWeight * 5.0),
+          reason: 'High-confidence personal context boost applied'
+        };
+      } else {
+        // SUPPRESS non-personal categories when personal context is strong
+        return {
+          override: true,
+          newScore: Math.min(currentScore * 0.2, 1.0),
+          reason: 'Personal context suppression applied to non-personal category'
+        };
+      }
+    }
+  
+    // EMOTIONAL EXPRESSION OVERRIDE
+    if (semanticAnalysis.intent === 'emotional_expression' && 
+        semanticAnalysis.emotionalWeight > 0.7) {
+      
+      if (categoryName === 'mental_emotional') {
+        return {
+          override: true,
+          newScore: 12.0 + (semanticAnalysis.emotionalWeight * 3.0),
+          reason: 'High emotional expression routed to mental_emotional'
+        };
+      }
+    }
+  
+    // MEMORY RECALL OVERRIDE
+    if (semanticAnalysis.intent === 'memory_recall' && 
+        semanticAnalysis.memoryReference) {
+      
+      const memoryCategories = ['mental_emotional', 'relationships_social', 'personal_life_interests'];
+      
+      if (memoryCategories.includes(categoryName)) {
+        return {
+          override: true,
+          newScore: currentScore + 5.0,
+          reason: 'Memory recall boost applied to relevant category'
+        };
+      }
+    }
+  
+    return { override: false };
   }
 
   calculateSemanticBoost(categoryName, semanticAnalysis) {
     let boost = 0;
-
-    // Intent-based boosting
+  
+    // AMPLIFIED: Intent-based boosting (5-7x increase)
     const intentBoosts = {
       memory_recall: {
-        'mental_emotional': 0.6, 'relationships_social': 0.5, 'personal_life_interests': 0.4
+        'mental_emotional': 3.0, 'relationships_social': 2.5, 'personal_life_interests': 2.0
       },
       personal_sharing: {
-        'personal_life_interests': 0.7, 'relationships_social': 0.6, 'mental_emotional': 0.4
+        'personal_life_interests': 4.0, 'relationships_social': 3.0, 'mental_emotional': 2.5
       },
       problem_solving: {
-        'work_career': 0.6, 'health_wellness': 0.5, 'mental_emotional': 0.5, 'tools_tech_workflow': 0.4
+        'work_career': 3.0, 'health_wellness': 2.5, 'mental_emotional': 2.5, 'tools_tech_workflow': 2.0
       },
       emotional_expression: {
-        'mental_emotional': 0.8, 'relationships_social': 0.5, 'health_wellness': 0.4
+        'mental_emotional': 5.0, 'relationships_social': 2.5, 'health_wellness': 2.0
       },
       decision_making: {
-        'goals_active_current': 0.6, 'work_career': 0.4, 'money_spending_goals': 0.4
+        'goals_active_current': 3.0, 'work_career': 2.0, 'money_spending_goals': 2.0
+      },
+      information_request: {
+        'tools_tech_workflow': 2.0, 'health_wellness': 1.5, 'work_career': 1.5
+      },
+      general: {
+        'personal_life_interests': 1.0, 'daily_routines_habits': 0.8
       }
     };
-
+  
     const categoryBoost = intentBoosts[semanticAnalysis.intent]?.[categoryName] || 0;
     boost += categoryBoost;
-
-    // Emotional weight boosting
+  
+    // AMPLIFIED: Emotional weight boosting (4x increase)
     if (semanticAnalysis.emotionalWeight > 0.6) {
       const emotionalBoosts = {
-        'mental_emotional': 1.0,
-        'relationships_social': 0.5,
-        'health_wellness': 0.4,
-        'work_career': 0.3
+        'mental_emotional': 4.0,    // was 1.0
+        'relationships_social': 2.0, // was 0.5
+        'health_wellness': 1.8,     // was 0.4
+        'work_career': 1.5          // was 0.3
       };
       boost += (emotionalBoosts[categoryName] || 0) * semanticAnalysis.emotionalWeight;
     }
 
-    return boost;
+  // ENHANCED: Personal context amplification
+  if (semanticAnalysis.personalContext) {
+    const personalBoosts = {
+      'personal_life_interests': 2.0,
+      'relationships_social': 1.5,
+      'mental_emotional': 1.2,
+      'daily_routines_habits': 1.0
+    };
+    boost += (personalBoosts[categoryName] || 0);
   }
 
+  return boost;
+}
   calculateEntityAlignmentBoost(categoryName, semanticAnalysis) {
     const entityAlignments = {
       health: { 'health_wellness': 1.0, 'mental_emotional': 0.4 },
