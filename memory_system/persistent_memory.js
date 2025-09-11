@@ -499,8 +499,11 @@ class PersistentMemoryOrchestrator {
         
       if (userMemories.length === 0) {
         return {
+          hasMemory: false,
           contextFound: false,
           memories: '',
+          systemPrompt: '',
+          conversationContext: '',
           totalTokens: 0,
           memoryCount: 0,
           mode: 'fallback'
@@ -533,8 +536,11 @@ class PersistentMemoryOrchestrator {
 
         this.logger.log(`Found ${relevantMemories.length} fallback memories`);
         return {
+          hasMemory: true,
           contextFound: true,
           memories: formattedMemories,
+          systemPrompt: formattedMemories,
+          conversationContext: formattedMemories,
           totalTokens: totalTokens,
           memoryCount: relevantMemories.length,
           mode: 'fallback'
@@ -542,8 +548,11 @@ class PersistentMemoryOrchestrator {
       }
 
       return {
+        hasMemory: false,
         contextFound: false,
         memories: '',
+        systemPrompt: '',
+        conversationContext: '',
         totalTokens: 0,
         memoryCount: 0,
         mode: 'fallback'
@@ -552,8 +561,11 @@ class PersistentMemoryOrchestrator {
     } catch (error) {
       this.logger.error('Fallback retrieval error:', error);
       return {
+        hasMemory: false,
         contextFound: false,
         memories: '',
+        systemPrompt: '',
+        conversationContext: '',
         totalTokens: 0,
         memoryCount: 0,
         mode: 'error'
