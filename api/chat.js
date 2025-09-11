@@ -327,7 +327,7 @@ if (global.memorySystem) {
   }
 }
 
-// Bridge memory to existing intelligence engines
+// Bridge memory to existing intelligence engines  
 let intelligenceResult = {
   intelligenceEnhanced: false,
   memoryIntegrated: false,
@@ -335,6 +335,13 @@ let intelligenceResult = {
   response: null,
   confidence: 0.5
 };
+
+// FIXED: Properly instantiate the bridge with intelligence orchestrator
+const memoryIntelligenceBridge = new MemoryIntelligenceBridge(
+  intelligence, // your existing EnhancedIntelligence instance
+  null, // aiReasoningEngine (can be null for now)
+  null  // intelligenceOrchestrator (can be null for now)
+);
 
 if (memoryIntelligenceBridge) {
   try {
