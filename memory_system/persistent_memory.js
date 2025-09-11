@@ -512,16 +512,17 @@ class PersistentMemoryOrchestrator {
           const words = messageLower.split(' ').filter(w => w.length > 1); // Allow 2+ character words
           // FIXED: More flexible matching including partial words and stem matching
           return words.some(word => {
-            // Direct match
-            if (contentLower.includes(word)) return true;
-            // Stem matching for important words
-            if (word.length > 4) {
-              const stem = word.substring(0, word.length - 1); // Simple stemming
-              if (contentLower.includes(stem)) return true;
-            }
-            return false;
-          })
-        .slice(0, 3);
+          // Direct match
+          if (contentLower.includes(word)) return true;
+          // Stem matching for important words
+          if (word.length > 4) {
+            const stem = word.substring(0, word.length - 1); // Simple stemming
+            if (contentLower.includes(stem)) return true;
+          }
+          return false;
+        });
+      })
+      .slice(0, 3);
 
       if (relevantMemories.length > 0) {
         const formattedMemories = this.formatMemoriesForChat(relevantMemories);
