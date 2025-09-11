@@ -609,22 +609,29 @@ class PersistentMemoryOrchestrator {
   // ================================================================
 
   formatMemoriesForChat(memories) {
-  if (!memories || memories.length === 0) {
-    return '';
+    if (!memories || memories.length === 0) {
+      return '';
+    }
+  
+    const memoryHeader = "=== RETRIEVED MEMORY CONTEXT ===\n";
+    const memoryFooter = "\n=== END MEMORY CONTEXT ===\n";
+  
+    const formattedContent = memories
+      .map((memory, index) => {
+        const content = (memory.content || '').trim();
+        if (!content) return null;
+        
+        // CRITICAL: Preserve recognition markers
+        const timestamp = memory.created_at ? new Date(memory.created_at).toLocaleDateString() : 'Recent';
+        const category = memory.category_name || 'General';
+        
+        return `[MEMORY ${index + 1}] (${category} - ${timestamp})\n${content}`;
+      })
+      .filter(memory => memory !== null)
+      .join('\n\n');
+  
+    return `${memoryHeader}${formattedContent}${memoryFooter}`;
   }
-
-  return memories
-    .map((memory, index) => {
-      // FIXED: Validate content exists and strip any existing formatting
-      const content = (memory.content || '').trim();
-      if (!content) return null;
-      
-      // FIXED: Simple, corruption-resistant format
-      return `${content}`;  // Remove time formatting that corrupts content
-    })
-    .filter(memory => memory !== null)  // Remove empty memories
-    .join('\n\n');
-}
 
   async extractIntelligentMemoryForChat(message, userId, intelligenceContext) {
     const startTime = Date.now();
