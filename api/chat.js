@@ -1029,24 +1029,17 @@ if (memoryContext && memoryContext.hasMemory) {
 function buildFullConversationPrompt(masterPrompt, message, conversationHistory, expertDomain, careNeeds, memoryContext = null) {
   let fullPrompt = masterPrompt;
 
-  function convertMemoryToSharedHistory(formattedMemories) {
-  return formattedMemories
-    .split('\n\n')
-    .map(memory => {
-      const timeMatch = memory.match(/^\[([^\]]+)\]/);
-      const content = memory.replace(/^\[[^\]]+\]\s*/, '');
-      const timeAgo = timeMatch ? timeMatch[1] : 'Previously';
-      
-      return `${timeAgo}: ${content}`;
-    })
-    .join('\n');
-}
+  // FIXED: Simple, robust memory injection - no complex processing
+  if (memoryContext && memoryContext.contextFound && memoryContext.memories) {
+    fullPrompt += `\n\nRELEVANT MEMORY CONTEXT:
+${memoryContext.memories}
 
-  // FIXED: Present memory as shared conversation history
-  if (memoryContext && memoryContext.contextFound) {
-    const sharedHistory = convertMemoryToSharedHistory(memoryContext.memories);
-    fullPrompt += `\n\nOUR PREVIOUS CONVERSATIONS:\n${sharedHistory}\n\nContinue our ongoing relationship naturally.\n\n`;
-    console.log('[MEMORY] Injected', memoryContext.totalTokens, 'tokens of shared history');
+Use this context to provide more personalized and informed responses.
+
+`;
+    console.log('[MEMORY] ✅ Injected', memoryContext.totalTokens || 0, 'tokens of memory context to AI prompt');
+  } else {
+    console.log('[MEMORY] ⚠️ No memory context available for AI prompt');
   }
 
   if (conversationHistory.length > 0) {
@@ -1067,7 +1060,7 @@ function buildFullConversationPrompt(masterPrompt, message, conversationHistory,
   
   // MEMORY USAGE INSTRUCTION - CRITICAL FIX
   if (memoryContext && memoryContext.contextFound) {
-   fullPrompt += "MEMORY USAGE REQUIRED: Reference the RELEVANT MEMORY CONTEXT above when relevant...
+    fullPrompt += `MEMORY USAGE REQUIRED: Reference the RELEVANT MEMORY CONTEXT above when relevant. Show that you remember our previous conversations by saying things like "Earlier you mentioned..." or "Based on what you told me before..."
 
 Respond with the expertise and caring dedication of a family member who genuinely wants to see them succeed:`;
   } else {
