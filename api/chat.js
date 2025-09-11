@@ -14,7 +14,6 @@ import { AI_ARCHITECTURE } from './site-monkeys/ai-architecture.js';
 import { getVaultStatus, checkVaultTriggers, generateVaultContext, enforceVaultCompliance } from './lib/vault.js';
 import { integrateSystemIntelligence, enhancePromptWithIntelligence, getSystemIntelligenceStatus } from './lib/system-intelligence.js';
 import zlib from 'zlib';
-import { MemoryIntelligenceBridge } from './lib/memory-intelligence-bridge.js';
 
 // NEW ENFORCEMENT MODULE IMPORTS (ADD THESE)
 import { 
@@ -71,7 +70,6 @@ import { ResponseObjectUnifier } from './response-object-unifier.js';
 import { MasterModeCompliance } from './master-mode-compliance.js';
 import { UnifiedResponseSchema } from './unified-response-schema.js';
 import { EnhancedIntelligence } from './lib/enhanced-intelligence.js';
-import { memoryIntelligenceBridge } from './lib/memory-intelligence-bridge.js';
 
 console.log('[DEBUG] All cognitive modules loaded successfully');
 
