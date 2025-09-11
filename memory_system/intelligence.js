@@ -874,25 +874,28 @@ class IntelligenceSystem {
       let queryParams = [userId, primaryCategory];
       let paramIndex = 3;
 
-      // TOPIC-AWARE FILTERING - Only get memories that actually relate to the query topic
+      // TOPIC-AWARE FILTERING - Fixed parameter index synchronization
       const queryNouns = this.extractImportantNouns(query.toLowerCase());
       if (queryNouns.length > 0) {
-        // Build topic filter
-        const topicFilters = queryNouns.map(() => `content ILIKE $${paramIndex++}`).join(' OR ');
-        baseQuery += ` AND (${topicFilters}) `;
+        // Build topic filter with correct parameter indexing
+        const startIndex = paramIndex;
+        const topicFilters = queryNouns.map((noun, i) => `content ILIKE $${startIndex + i}`).join(' OR ');
+        baseQuery += ` AND (${topicFilters})`;
         queryParams.push(...queryNouns.map(noun => `%${noun}%`));
+        paramIndex += queryNouns.length; // Increment AFTER adding parameters
       }
-
-      // Add your existing semantic filters
+      
+      // Add your existing semantic filters with synchronized indexing
       if (semanticAnalysis.emotionalWeight > 0.5) {
         baseQuery += ` AND (content ILIKE $${paramIndex} OR metadata->>'emotional_content' = 'true')`;
         queryParams.push(`%${semanticAnalysis.emotionalTone}%`);
-        paramIndex++;
+        paramIndex++; // Increment after adding 1 parameter
       }
+      
       if (semanticAnalysis.personalContext) {
         baseQuery += ` AND (content ILIKE $${paramIndex} OR content ILIKE $${paramIndex + 1})`;
         queryParams.push('%my %', '%personal%');
-        paramIndex += 2;
+        paramIndex += 2; // Increment after adding 2 parameters
       }
 
       // INTELLIGENT CONTENT-FIRST ORDERING
