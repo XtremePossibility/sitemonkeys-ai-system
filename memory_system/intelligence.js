@@ -879,7 +879,7 @@ class IntelligenceSystem {
       if (queryNouns.length > 0) {
         // Build topic filter
         const topicFilters = queryNouns.map(() => `content ILIKE $${paramIndex++}`).join(' OR ');
-        baseQuery += ` AND (${topicFilters})`;
+        baseQuery += ` AND (${topicFilters}) `;
         queryParams.push(...queryNouns.map(noun => `%${noun}%`));
       }
 
@@ -889,7 +889,6 @@ class IntelligenceSystem {
         queryParams.push(`%${semanticAnalysis.emotionalTone}%`);
         paramIndex++;
       }
-
       if (semanticAnalysis.personalContext) {
         baseQuery += ` AND (content ILIKE $${paramIndex} OR content ILIKE $${paramIndex + 1})`;
         queryParams.push('%my %', '%personal%');
@@ -907,6 +906,7 @@ class IntelligenceSystem {
         LIMIT 20
       `;
 
+      this.logger.log(`SQL Debug: Query has ${(baseQuery.match(/\$/g) || []).length} placeholders, ${queryParams.length} parameters`);
       const result = await client.query(baseQuery, queryParams);
       
       this.logger.log(`Retrieved ${result.rows.length} memories with intelligent content ordering`);
