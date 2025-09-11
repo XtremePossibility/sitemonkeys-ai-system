@@ -797,35 +797,43 @@ class IntelligenceSystem {
       const semanticAnalysis = routing.semanticAnalysis || 
         await this.performAdvancedSemanticAnalysis(query.toLowerCase());
       
-      // Primary category extraction
+      // STEP 1: Primary category extraction (existing logic)
       const primaryMemories = await this.extractFromPrimaryCategory(
         userId, query, routing, semanticAnalysis
       );
 
-      // Related category extraction if needed
-      const relatedMemories = await this.extractFromRelatedCategories(
-        userId, query, routing, semanticAnalysis, primaryMemories.length
-      );
+      // STEP 2: Score primary memories for similarity
+      const scoredPrimary = primaryMemories.map(memory => ({
+        ...memory,
+        similarityScore: this.calculateContentSimilarity(query, memory.content),
+        source: 'primary_category'
+      }));
 
-      // Combine and score memories
-      const allMemories = [...primaryMemories, ...relatedMemories];
-      const scoredMemories = await this.applySophisticatedScoring(
-        allMemories, query, semanticAnalysis, routing
-      );
+      // STEP 3: If primary results are poor, try related categories
+      let allMemories = scoredPrimary;
+      
+      const goodPrimaryResults = scoredPrimary.filter(m => m.similarityScore > 0.3).length;
+      if (goodPrimaryResults < 2) {
+        this.logger.log('Primary category yielded few relevant results, trying related categories...');
+        const relatedMemories = await this.tryRelatedCategories(userId, query, routing, semanticAnalysis);
+        allMemories = [...scoredPrimary, ...relatedMemories];
+      }
 
-      // Apply intelligent ranking and token management
-      const rankedMemories = this.applyIntelligentRanking(scoredMemories, semanticAnalysis);
+      // STEP 4: Re-rank by similarity score
+      const rankedMemories = this.rerankBySimilarity(allMemories, query);
+
+      // STEP 5: Apply token management (existing logic)
       const finalMemories = await this.applyIntelligentTokenManagement(rankedMemories, 2400);
 
       // Update analytics
       this.updateExtractionAnalytics(finalMemories, routing, Date.now() - startTime);
 
-      this.logger.log(`Extraction completed: ${finalMemories.length} memories, ${this.calculateTotalTokens(finalMemories)} tokens, ${Date.now() - startTime}ms`);
+      this.logger.log(`Enhanced extraction: ${finalMemories.length} memories, ${this.calculateTotalTokens(finalMemories)} tokens, ${Date.now() - startTime}ms`);
 
       return finalMemories;
 
     } catch (error) {
-      this.logger.error('Critical error in extraction:', error);
+      this.logger.error('Critical error in enhanced extraction:', error);
       await this.coreSystem.logExtractionError(error, { userId, query: query.substring(0, 100) });
       return [];
     }
