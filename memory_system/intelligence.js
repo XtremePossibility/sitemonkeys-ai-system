@@ -1963,7 +1963,136 @@ detectConceptMismatch(queryWords, memoryWords) {
     this.extractionCache.clear();
     this.logger.log('Intelligence System caches cleared');
   }
+
+  // ================================================================
+  // SIMPLE SIMILARITY SCORING
+  // ================================================================
+
+  calculateContentSimilarity(query, memoryContent) {
+    if (!query || !memoryContent) return 0;
+    
+    const queryWords = this.extractQueryWords(query.toLowerCase());
+    const memoryWords = this.extractQueryWords(memoryContent.toLowerCase());
+    
+    if (queryWords.length === 0 || memoryWords.length === 0) return 0;
+    
+    // Direct word overlap scoring
+    let matches = 0;
+    for (const queryWord of queryWords) {
+      if (memoryWords.includes(queryWord)) {
+        matches++;
+      } else {
+        // Check for partial matches (3+ characters)
+        for (const memoryWord of memoryWords) {
+          if (queryWord.length >= 3 && memoryWord.includes(queryWord)) {
+            matches += 0.5;
+            break;
+          }
+        }
+      }
+    }
+    
+    return matches / queryWords.length;
+  }
+
+  extractQueryWords(text) {
+    return text
+      .replace(/[^\w\s]/g, ' ')
+      .split(/\s+/)
+      .filter(word => word.length > 2)
+      .filter(word => !this.isCommonWord(word));
+  }
+
+  isCommonWord(word) {
+    const common = ['the', 'and', 'you', 'that', 'was', 'for', 'are', 'with', 'his', 'they', 
+                    'have', 'this', 'will', 'can', 'had', 'her', 'what', 'said', 'each', 'which'];
+    return common.includes(word);
+  }
+
+  // ================================================================
+  // CROSS-CATEGORY FALLBACK SEARCH
+  // ================================================================
+
+  async tryRelatedCategories(userId, query, routing, semanticAnalysis) {
+    // Define category relationships
+    const categoryRelations = {
+      'personal_life_interests': ['relationships_social', 'home_lifestyle'],
+      'relationships_social': ['personal_life_interests', 'mental_emotional'],
+      'business_career': ['financial_management', 'personal_development'],
+      'mental_emotional': ['relationships_social', 'health_wellness'],
+      'home_lifestyle': ['personal_life_interests', 'financial_management']
+    };
+    
+    const primaryCategory = routing.primaryCategory;
+    const relatedCategories = categoryRelations[primaryCategory] || [];
+    
+    this.logger.log(`Trying related categories for ${primaryCategory}: ${relatedCategories.join(', ')}`);
+    
+    const fallbackMemories = [];
+    
+    for (const category of relatedCategories) {
+      try {
+        const categoryMemories = await this.coreSystem.withDbClient(async (client) => {
+          const result = await client.query(`
+            SELECT id, user_id, category_name, subcategory_name, content, token_count, 
+                   relevance_score, usage_frequency, created_at, last_accessed, metadata
+            FROM persistent_memories 
+            WHERE user_id = $1 AND category_name = $2 AND relevance_score > 0.3
+            ORDER BY relevance_score DESC, created_at DESC
+            LIMIT 5
+          `, [userId, category]);
+          
+          return result.rows;
+        });
+        
+        // Score each memory for relevance to the query
+        const scoredMemories = categoryMemories.map(memory => ({
+          ...memory,
+          similarityScore: this.calculateContentSimilarity(query, memory.content),
+          source: 'related_category'
+        }));
+        
+        // Only include memories with reasonable similarity
+        const relevantMemories = scoredMemories.filter(m => m.similarityScore > 0.2);
+        fallbackMemories.push(...relevantMemories);
+        
+      } catch (error) {
+        this.logger.error(`Error searching category ${category}:`, error);
+      }
+    }
+    
+    this.logger.log(`Found ${fallbackMemories.length} memories from related categories`);
+    return fallbackMemories;
+  }
+
+  // ================================================================
+  // SIMILARITY-BASED RE-RANKING
+  // ================================================================
+
+  rerankBySimilarity(memories, query) {
+    return memories.sort((a, b) => {
+      // PRIMARY: Similarity score to query
+      const similarityDiff = b.similarityScore - a.similarityScore;
+      if (Math.abs(similarityDiff) > 0.1) {
+        return similarityDiff;
+      }
+      
+      // SECONDARY: Original relevance score
+      const relevanceDiff = (b.relevance_score || 0) - (a.relevance_score || 0);
+      if (Math.abs(relevanceDiff) > 0.1) {
+        return relevanceDiff;
+      }
+      
+      // TERTIARY: Prefer primary category over related
+      if (a.source !== b.source) {
+        return a.source === 'primary_category' ? -1 : 1;
+      }
+      
+      // FINAL: Usage frequency
+      return (b.usage_frequency || 0) - (a.usage_frequency || 0);
+    });
+  }
 }
 
 // Export instance, not class
-export default new IntelligenceSystem();
+export default new IntelligenceSystem();;
