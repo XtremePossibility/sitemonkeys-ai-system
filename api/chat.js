@@ -70,6 +70,7 @@ import { ResponseObjectUnifier } from './response-object-unifier.js';
 import { MasterModeCompliance } from './master-mode-compliance.js';
 import { UnifiedResponseSchema } from './unified-response-schema.js';
 import { EnhancedIntelligence } from './lib/enhanced-intelligence.js';
+import intelligenceSystem from '../memory_system/intelligence.js';
 
 console.log('[DEBUG] All cognitive modules loaded successfully');
 
@@ -296,6 +297,27 @@ console.log('[MEMORY-INTELLIGENCE] Starting integration');
 // Initialize the bridge
 const memoryIntelligenceBridge = await initializeMemoryIntelligenceBridge();
 
+// *** UPDATED INTELLIGENCE SYSTEM INTEGRATION ***
+let intelligenceRouting = null;
+let intelligenceMemories = null;
+
+try {
+  console.log('[INTELLIGENCE] Using improved semantic categorization');
+  
+  // Use our improved semantic intelligence for categorization  
+  intelligenceRouting = await intelligenceSystem.analyzeAndRoute(message, user_id);
+  console.log('[INTELLIGENCE] Message categorized as:', intelligenceRouting.primaryCategory);
+  
+  // Use our improved memory extraction
+  intelligenceMemories = await intelligenceSystem.extractRelevantMemories(user_id, message, intelligenceRouting);
+  console.log('[INTELLIGENCE] Extracted', intelligenceMemories.length, 'relevant memories');
+  
+} catch (intelligenceError) {
+  console.error('[INTELLIGENCE] Error with improved system:', intelligenceError);
+  intelligenceRouting = { primaryCategory: 'personal_life_interests' };
+  intelligenceMemories = [];
+}    
+
 // Get memory from existing persistent memory system
 let memoryResult = null;
 if (global.memorySystem) {
@@ -350,9 +372,24 @@ if (memoryIntelligenceBridge) {
   }
 }
 
-// Create memory context for backward compatibility
+// Create memory context using improved intelligence system
 let memoryContext = null;
-if (memoryResult?.hasMemory) {
+if (intelligenceMemories && intelligenceMemories.length > 0) {
+  const memoryText = intelligenceMemories.map(m => m.content).join('\n\n');
+  const totalTokens = intelligenceMemories.reduce((sum, m) => sum + (m.token_count || 0), 0);
+  
+  memoryContext = {
+    hasMemory: true,
+    contextFound: true,
+    memories: memoryText,
+    totalTokens: totalTokens,
+    personalityPrompt: `You have access to previous conversation context. Reference it naturally when relevant.\n\n`,
+    intelligenceEnhanced: true,
+    category: intelligenceRouting.primaryCategory
+  };
+  console.log('[INTELLIGENCE] Created memory context with', totalTokens, 'tokens from', intelligenceMemories.length, 'memories');
+} else if (memoryResult?.hasMemory) {
+  // Fallback to old system if new system fails
   memoryContext = {
     hasMemory: true,
     contextFound: true,
@@ -521,6 +558,15 @@ if (complianceValidation.corrected_content) {
       }
     } catch (storageError) {
       console.error('[MEMORY] Storage failed:', storageError);
+    }
+
+    // *** STORE IN IMPROVED INTELLIGENCE SYSTEM ***
+    try {
+      const conversationData = `User: ${message}\nAI: ${finalResponse}`;
+      await intelligenceSystem.coreSystem.storeMemory(user_id, conversationData, intelligenceRouting);
+      console.log('[INTELLIGENCE] Conversation stored in improved system');
+    } catch (intelligenceStorageError) {
+      console.error('[INTELLIGENCE] Storage failed:', intelligenceStorageError);
     }
 
     const sessionData = formatSessionDataForUI();
