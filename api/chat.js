@@ -995,7 +995,12 @@ if (memoryContext && memoryContext.hasMemory) {
   if (mode === 'site_monkeys') {
     if (vaultHealthy && vaultContent.length > 1000) {
       masterPrompt += 'SITE MONKEYS BUSINESS INTELLIGENCE VAULT:\n' + vaultContent + '\n\n';
-      masterPrompt += 'VAULT INTEGRATION: Use this business intelligence operationally in your analysis.\n\n';
+      masterPrompt += 'VAULT USAGE GUIDELINES:\n';
+      masterPrompt += '- ONLY reference vault content when directly relevant to the question\n';
+      masterPrompt += '- EXPLICITLY cite which vault section you\'re using\n';
+      masterPrompt += '- If vault content doesn\'t apply, state "Vault content not relevant to this query"\n';
+      masterPrompt += '- NEVER force vault content into unrelated responses\n\n';
+      
     } else {
       masterPrompt += 'EMERGENCY FALLBACK: Using core Site Monkeys business logic due to vault issues.\n';
       masterPrompt += EMERGENCY_FALLBACKS.business_logic.pricing_structure + '\n';
@@ -1003,11 +1008,14 @@ if (memoryContext && memoryContext.hasMemory) {
     }
   }
 
-  // 9. MEMORY ACKNOWLEDGMENT REQUIREMENT
-  masterPrompt += 'MEMORY ACKNOWLEDGMENT REQUIREMENT:\n';
-  masterPrompt += 'If you see "RELEVANT MEMORY CONTEXT:" in your prompt, you MUST reference previous conversations naturally.\n';
-  masterPrompt += 'Examples: "Earlier you mentioned...", "Based on what you told me before...", "I remember you said..."\n';
-  masterPrompt += 'This shows you\'re paying attention and builds trust through continuity.\n\n';
+  // 9. TRUTHFUL MEMORY ACKNOWLEDGMENT
+  masterPrompt += 'MEMORY ACKNOWLEDGMENT GUIDELINES:\n';
+  masterPrompt += 'If you see "RELEVANT MEMORY CONTEXT:" in your prompt:\n';
+  masterPrompt += '- ONLY reference memory content when it actually relates to the current question\n';
+  masterPrompt += '- If memory doesn\'t apply, state "Our previous conversations don\'t cover this topic"\n';
+  masterPrompt += '- Use phrases like "Based on our previous discussion about X..." only when X matches current topic\n';
+  masterPrompt += '- NEVER force memory references for unrelated questions\n\n';
+  
   // 10. TRUTH-FIRST CARING RESPONSE PATTERN
   masterPrompt += 'TRUTH-FIRST CARING RESPONSE PATTERN:\n';
   masterPrompt += '1. ASSESS KNOWLEDGE BOUNDARIES FIRST (explicitly state what you know vs. don\'t know)\n';
@@ -1086,7 +1094,11 @@ Respond with the expertise and caring dedication of a family member who genuinel
 
 // *** ENHANCED API CALL ***
 async function makeEnhancedAPICall(prompt, personality, prideMotivation, memoryContent = null) {
-  const maxTokens = Math.floor(1200 + (prideMotivation * 800)); // More tokens for high pride situations
+  // Truth-focused token allocation: reward accuracy, not confidence
+  const baseTokens = 1200;
+  const complexityBonus = prompt.includes('multi-part') || prompt.includes('comprehensive') ? 400 : 0;
+  const accuracyPenalty = prideMotivation > 0.7 ? -200 : 0; // Reduce tokens for overconfidence
+  const maxTokens = Math.max(800, baseTokens + complexityBonus + accuracyPenalty);
 
   if (personality === 'claude') {
     if (!process.env.ANTHROPIC_API_KEY) {
