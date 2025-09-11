@@ -4,6 +4,7 @@
 // ================================================================
 
 import { Pool } from 'pg';
+import intelligenceSystem from './intelligence.js';
 
 class CoreSystem {
   constructor() {
@@ -132,7 +133,22 @@ class CoreSystem {
   // ================================================================
 
   async storeMemory(memoryObject) {
-    const { userId, content, category_name, subcategory_name, metadata = {} } = memoryObject;
+    let { userId, content, category_name, subcategory_name, metadata = {} } = memoryObject;
+    
+    // CRITICAL FIX: Use improved intelligence for categorization
+    if (!category_name || !subcategory_name) {
+      try {
+        this.logger.log('Using improved intelligence for memory categorization');
+        const routing = await intelligenceSystem.analyzeAndRoute(content, userId);
+        category_name = routing.primaryCategory;
+        subcategory_name = routing.subcategory;
+        this.logger.log(`Intelligent routing: ${category_name}/${subcategory_name}`);
+      } catch (error) {
+        this.logger.error('Intelligence routing failed, using fallback:', error);
+        category_name = category_name || 'personal_life_interests';
+        subcategory_name = subcategory_name || 'General';
+      }
+    }
     
     try {
       // Calculate token count
@@ -158,7 +174,7 @@ class CoreSystem {
         };
       }
       
-      // Store memory with dynamic subcategory from intelligence.js
+      // Store memory with intelligent categorization
       const insertQuery = `
         INSERT INTO persistent_memories 
         (user_id, category_name, subcategory_name, content, token_count, relevance_score, metadata, created_at)
@@ -169,22 +185,25 @@ class CoreSystem {
       const result = await this.executeQuery(insertQuery, [
         userId, 
         category_name,
-        subcategory_name, // Dynamic from intelligence.js routing
+        subcategory_name,
         content, 
         tokenCount, 
         memoryObject.relevance_score || 0.5, 
         JSON.stringify(metadata)
       ]);
       
-      this.logger.log(`Memory stored successfully: ID ${result.rows[0].id}, ${tokenCount} tokens`);
+      this.logger.log(`Memory stored with intelligent categorization: ID ${result.rows[0].id}, Category: ${category_name}/${subcategory_name}, ${tokenCount} tokens`);
       
       return {
         success: true,
         memoryId: result.rows[0].id,
-        tokenCount: tokenCount
+        tokenCount: tokenCount,
+        category: category_name,
+        subcategory: subcategory_name
       };
-
+  
     } catch (error) {
+      this.logger.error('Storage failed, using fallback:', error);
       // Fallback to in-memory storage
       return await this.fallbackStoreMemory(userId, content, category_name, subcategory_name);
     }
