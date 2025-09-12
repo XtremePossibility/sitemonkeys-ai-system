@@ -806,7 +806,12 @@ Quality-first approach with caring delivery`;
     // ===== MEMORY CONTEXT RETRIEVAL (FALLBACK) =====
     let memoryContext = '';
     if (intelligenceMemories && intelligenceMemories.length > 0) {
-      memoryContext = intelligenceMemories.map(m => m.content).join('\n\n');
+      const memoryText = intelligenceMemories.map(m => m.content).join('\n\n');
+      memoryContext = {
+        memories: memoryText,
+        length: memoryText.length,
+        count: intelligenceMemories.length
+      };
       console.log('[INTELLIGENCE] Using improved memory system');
     } else if (global.memorySystem && typeof global.memorySystem.retrieveMemory === 'function') {
     try {
