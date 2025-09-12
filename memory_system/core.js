@@ -4,7 +4,6 @@
 // ================================================================
 
 import { Pool } from 'pg';
-import intelligenceSystem from './intelligence.js';
 
 class CoreSystem {
   constructor() {
@@ -135,21 +134,12 @@ class CoreSystem {
   async storeMemory(memoryObject) {
     let { userId, content, category_name, subcategory_name, metadata = {} } = memoryObject;
     
-    // CRITICAL FIX: Use improved intelligence for categorization
+    // Use provided categorization or fallback to default
     if (!category_name || !subcategory_name) {
-      try {
-        this.logger.log('Using improved intelligence for memory categorization');
-        const routing = await intelligenceSystem.analyzeAndRoute(content, userId);
-        category_name = routing.primaryCategory;
-        subcategory_name = routing.subcategory;
-        this.logger.log(`Intelligent routing: ${category_name}/${subcategory_name}`);
-      } catch (error) {
-        this.logger.error('Intelligence routing failed, using fallback:', error);
-        category_name = category_name || 'personal_life_interests';
-        subcategory_name = subcategory_name || 'General';
-      }
+      this.logger.log('No categorization provided, using fallback');
+      category_name = category_name || 'personal_life_interests';
+      subcategory_name = subcategory_name || 'General';
     }
-    
     try {
       // Calculate token count
       const tokenCount = Math.ceil(content.length / 4);
@@ -639,6 +629,28 @@ class CoreSystem {
 
     } catch (error) {
       this.logger.error('Maintenance failed:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  // ================================================================
+  // COMPATIBILITY METHOD FOR SERVER.JS
+  // ================================================================
+
+  async storeMemoryForChat(userId, conversationData) {
+    try {
+      const memoryObject = {
+        userId: userId,
+        content: conversationData,
+        // Let the system auto-categorize this conversation
+        relevance_score: 0.6,
+        metadata: { source: 'chat_conversation', timestamp: new Date().toISOString() }
+      };
+      
+      return await this.storeMemory(memoryObject);
+      
+    } catch (error) {
+      this.logger.error('Error storing chat memory:', error);
       return { success: false, error: error.message };
     }
   }
