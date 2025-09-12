@@ -552,10 +552,20 @@ class IntelligenceSystem {
         this.routingStats.semanticOverrides = (this.routingStats.semanticOverrides || 0) + 1;
       }
   
+      // Conditional boosting for personal memory queries
+      if (semanticAnalysis.personalContext === true && semanticAnalysis.intent === 'memory_recall') {
+        if (categoryName === 'relationships_social') {
+          score *= 1.5; // 50% boost when personal + memory_recall
+        }
+        if (categoryName === 'mental_emotional') {
+          score *= 0.85; // 15% reduction to prevent false routing
+        }
+      }
+  
       scores.set(categoryName, Math.max(score, 0));
     }
-  
-    return scores;
+
+  return scores;
   }
 
   // ================================================================
@@ -566,7 +576,7 @@ class IntelligenceSystem {
     // HIGH-CONFIDENCE PERSONAL CONTEXT OVERRIDE
     if (semanticAnalysis.personalContext && 
         semanticAnalysis.emotionalWeight > 0.6 && 
-        semanticAnalysis.intent === 'personal_sharing') {
+        (semanticAnalysis.intent === 'personal_sharing' || semanticAnalysis.intent === 'memory_recall')) {
       
       const personalCategories = ['personal_life_interests', 'relationships_social', 'mental_emotional'];
       
@@ -790,6 +800,17 @@ class IntelligenceSystem {
         reasoning += '; Low confidence personal-emotional fallback applied';
         overrideApplied = true;
       }
+    }
+
+    // Personal relationship memory recall override
+    if (semanticAnalysis.personalContext === true && 
+        semanticAnalysis.intent === 'memory_recall' &&
+        (query.includes('wife') || query.includes('family') || query.includes('husband') || 
+         query.includes('pet') || query.includes('friend') || query.includes('monkey'))) {
+      primaryCategory = 'relationships_social';
+      confidence = Math.max(confidence, 0.8);
+      reasoning += '; Personal memory recall override applied';
+      overrideApplied = true;
     }
 
     if (overrideApplied) {
