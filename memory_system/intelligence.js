@@ -1105,10 +1105,10 @@ class IntelligenceSystem {
             LIMIT 5
           `;
 
-const result = await client.query(query_text, [userId, relatedCategory]);
-
-          const result = await client.query(query_text, [userId, relatedCategory]);
-          return result.rows;
+      const result = await client.query(query_text, [userId, relatedCategory]);
+      
+                const result = await client.query(query_text, [userId, relatedCategory]);
+                return result.rows;
         });
 
         relatedMemories.push(...memories);
