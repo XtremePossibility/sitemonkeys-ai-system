@@ -1097,9 +1097,15 @@ class IntelligenceSystem {
                    relevance_score, usage_frequency, created_at, last_accessed, metadata
             FROM persistent_memories 
             WHERE user_id = $1 AND category_name = $2
+            AND NOT (
+              content::text ~* '\\b(remember anything|do you remember|what did i tell|can you recall)\\b' 
+              AND NOT content::text ~* '\\b(i have|i own|my \\w+\\s+(is|are|was)|name is|work at|live in)\\b'
+            )
             ORDER BY relevance_score DESC, created_at DESC
             LIMIT 5
           `;
+
+const result = await client.query(query_text, [userId, relatedCategory]);
 
           const result = await client.query(query_text, [userId, relatedCategory]);
           return result.rows;
@@ -2194,6 +2200,10 @@ detectConceptMismatch(queryWords, memoryWords) {
                    relevance_score, usage_frequency, created_at, last_accessed, metadata
             FROM persistent_memories 
             WHERE user_id = $1 AND category_name = $2 AND relevance_score > 0.3
+            AND NOT (
+              content::text ~* '\\b(remember anything|do you remember|what did i tell|can you recall)\\b' 
+              AND NOT content::text ~* '\\b(i have|i own|my \\w+\\s+(is|are|was)|name is|work at|live in)\\b'
+            )
             ORDER BY relevance_score DESC, created_at DESC
             LIMIT 5
           `, [userId, category]);
