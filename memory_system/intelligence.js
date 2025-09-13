@@ -1104,8 +1104,6 @@ class IntelligenceSystem {
             ORDER BY relevance_score DESC, created_at DESC
             LIMIT 5
           `;
-
-      const result = await client.query(query_text, [userId, relatedCategory]);
       
                 const result = await client.query(query_text, [userId, relatedCategory]);
                 return result.rows;
