@@ -555,10 +555,10 @@ class IntelligenceSystem {
       // Conditional boosting for personal memory queries
       if (semanticAnalysis.personalContext === true && semanticAnalysis.intent === 'memory_recall') {
         if (categoryName === 'relationships_social') {
-          score *= 2.2; // INCREASED: 120% boost when personal + memory_recall
+          score *= 1.5; // 50% boost when personal + memory_recall
         }
         if (categoryName === 'mental_emotional') {
-          score *= 0.6; // INCREASED reduction to 40% to prevent false routing
+          score *= 0.85; // 15% reduction to prevent false routing
         }
       }
   
@@ -634,8 +634,7 @@ class IntelligenceSystem {
     // AMPLIFIED: Intent-based boosting (5-7x increase)
     const intentBoosts = {
       memory_recall: {
-        'relationships_social': 3.5, 'personal_life_interests': 2.8, 'mental_emotional': 2.0
-      }
+        'mental_emotional': 3.0, 'relationships_social': 2.5, 'personal_life_interests': 2.0
       },
       personal_sharing: {
         'personal_life_interests': 4.0, 'relationships_social': 3.0, 'mental_emotional': 2.5
