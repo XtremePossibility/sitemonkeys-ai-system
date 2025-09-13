@@ -1041,12 +1041,25 @@ class IntelligenceSystem {
         paramIndex += 2; // Increment after adding 2 parameters
       }
 
-      // INTELLIGENT CONTENT-FIRST ORDERING
+      // FILTER OUT PURE QUESTION MEMORIES
+      baseQuery += ` AND NOT (
+        content::text ~* '\\b(remember anything|do you remember|what did i tell|can you recall)\\b' 
+        AND NOT content::text ~* '\\b(i have|i own|my \\w+\\s+(is|are|was)|name is|work at|live in)\\b'
+      )`;
+
+      // INTELLIGENT CONTENT-FIRST ORDERING WITH QUESTION FILTERING
       baseQuery += `
         ORDER BY 
           content_intelligence_score DESC,
-          CASE WHEN content::text ~* '\\b(i have|i own|my \\w+\\s+(is|are|was))\\b' THEN 2 ELSE 0 END DESC,
-          CASE WHEN content::text ~* '\\b[A-Z][a-z]+\\b.*\\b[A-Z][a-z]+\\b|\\d+' THEN 1 ELSE 0 END DESC,
+          -- BOOST: Informational statements with facts
+          CASE WHEN content::text ~* '\\b(i have|i own|my \\w+\\s+(is|are|was))\\b' 
+               AND NOT content::text ~* '\\b(remember|recall|did i tell|what did)\\b' THEN 3 ELSE 0 END DESC,
+          -- BOOST: Content with proper nouns and numbers  
+          CASE WHEN content::text ~* '\\b[A-Z][a-z]+\\b|\\d+' 
+               AND NOT content::text ~* '\\b(remember|recall|did i tell|what did)\\b' THEN 2 ELSE 0 END DESC,
+          -- PENALTY: Pure questions without informational content
+          CASE WHEN content::text ~* '\\b(remember|recall|did i tell|what did)\\b' 
+               AND NOT content::text ~* '\\b(i have|i own|my \\w+\\s+(is|are|was))\\b' THEN -2 ELSE 0 END DESC,
           relevance_score DESC,
           created_at DESC
         LIMIT 20
