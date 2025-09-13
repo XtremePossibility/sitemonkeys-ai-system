@@ -397,15 +397,6 @@ if (intelligenceMemories && intelligenceMemories.length > 0) {
     totalTokens: memoryResult.tokenCount || 0,
     personalityPrompt: `You have access to previous conversation context. Reference it naturally when relevant.\n\n`
   };
-} else {
-  memoryContext = {
-    hasMemory: false,
-    contextFound: false,
-    memories: '',
-    totalTokens: 0,
-    personalityPrompt: ''
-  };
-}
     
     // *** MEMORY DEBUG - TEMPORARY DIAGNOSTIC ***
     console.log('[MEMORY DEBUG] Raw memory context:', JSON.stringify(memoryContext, null, 2));
