@@ -245,6 +245,8 @@ class IntelligenceSystem {
     this.routingCache = new Map();
     this.extractionCache = new Map();
     this.maxCacheSize = 1000;
+    this.routingCache.clear();
+    this.semanticCache.clear();
 
     // ================================================================
     // PERFORMANCE ANALYTICS
@@ -634,7 +636,7 @@ class IntelligenceSystem {
     // AMPLIFIED: Intent-based boosting (5-7x increase)
     const intentBoosts = {
       memory_recall: {
-        'mental_emotional': 3.0, 'relationships_social': 2.5, 'personal_life_interests': 2.0
+        'relationships_social': 3.5, 'personal_life_interests': 2.8, 'mental_emotional': 2.0
       },
       personal_sharing: {
         'personal_life_interests': 4.0, 'relationships_social': 3.0, 'mental_emotional': 2.5
