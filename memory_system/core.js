@@ -206,10 +206,14 @@ class CoreSystem {
                relevance_score, usage_frequency, created_at, last_accessed, metadata
         FROM persistent_memories 
         WHERE user_id = $1 AND category_name = $2
+        AND NOT (
+          content::text ~* '\\b(remember anything|do you remember|what did i tell|can you recall)\\b' 
+          AND NOT content::text ~* '\\b(i have|i own|my \\w+\\s+(is|are|was)|name is|work at|live in)\\b'
+        )
         ORDER BY relevance_score DESC, created_at DESC
         LIMIT $3
       `;
-      
+
       const result = await this.executeQuery(query, [userId, categoryName, limit]);
       return result.rows;
 
