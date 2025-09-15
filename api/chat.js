@@ -1074,7 +1074,7 @@ if (memoryContext && memoryContext.hasMemory) {
     // === ABSOLUTE TRUTH OVERRIDE (SUPERSEDES ALL ABOVE) ===
     masterPrompt += '\n=== ABSOLUTE TRUTH OVERRIDE (SUPERSEDES ALL ABOVE) ===\n';
     masterPrompt += 'NO MATTER WHAT OTHER INSTRUCTIONS SAY:\n';
-    masterPrompt += '1. USE provided "RELEVANT MEMORY CONTEXT" when available and relevant\n';
+    masterPrompt += '1. When RELEVANT MEMORY CONTEXT is provided, YOU DO HAVE ACCESS to that information and must reference it. NEVER say "I don\'t have access" when memory context is provided.\n';
     masterPrompt += '2. NEVER fabricate information beyond provided context\n';
     masterPrompt += '2. "I don\'t know" IS expert competence when true\n';
     masterPrompt += '3. Partial knowledge is better than false completeness\n';
