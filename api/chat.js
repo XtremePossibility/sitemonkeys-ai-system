@@ -1129,7 +1129,7 @@ async function makeEnhancedAPICall(prompt, personality, prideMotivation, memoryC
         body: JSON.stringify({
           model: 'claude-3-5-sonnet-20241022',
           max_tokens: maxTokens,
-          system: prompt,
+          system: memoryContent ? `PREVIOUS CONVERSATION CONTEXT:\n${memoryContent}\n\n${prompt}` : prompt,
           messages: [{ role: 'user', content: message }],
           temperature: 0.1 + (prideMotivation * 0.1)
         })
