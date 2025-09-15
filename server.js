@@ -977,11 +977,11 @@ const fullPrompt = enhancedPrompt;
     // 3. EXPERT QUALITY VALIDATION
     enhancedResponse = enforceExpertStandards(enhancedResponse, expertDomain, careNeeds);
 
-    // 4. PROTECTIVE INTELLIGENCE INTEGRATION
-    enhancedResponse = addProtectiveInsights(enhancedResponse, protectiveAlerts, solutionOpportunities);
-
-    // 5. CARING FAMILY ENHANCEMENT
-    const finalResponse = applyCaringFamilyTouch(enhancedResponse, careNeeds, prideMotivation, expertDomain);
+    // 4. PROTECTIVE INTELLIGENCE INTEGRATION (MEMORY-AWARE)
+    enhancedResponse = addProtectiveInsights(enhancedResponse, protectiveAlerts, solutionOpportunities, memoryContext);
+    
+    // 5. CARING FAMILY ENHANCEMENT (MEMORY-AWARE)
+    const finalResponse = applyCaringFamilyTouch(enhancedResponse, careNeeds, prideMotivation, expertDomain, memoryContext);
 
     // UPDATE FAMILY MEMORY
     updateFamilyMemory(expertDomain, careNeeds, protectiveAlerts, solutionOpportunities);
