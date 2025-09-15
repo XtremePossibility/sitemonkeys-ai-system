@@ -302,21 +302,42 @@ let intelligenceRouting = null;
 let intelligenceMemories = null;
 
 try {
-  console.log('[INTELLIGENCE] Using improved semantic categorization');
+  console.log('[INTELLIGENCE DEBUG] Starting memory extraction for user:', user_id);
+  console.log('[INTELLIGENCE DEBUG] Message preview:', message.substring(0, 100));
   
-  // Use our improved semantic intelligence for categorization  
   intelligenceRouting = await intelligenceSystem.analyzeAndRoute(message, user_id);
-  console.log('[INTELLIGENCE] Message categorized as:', intelligenceRouting.primaryCategory);
+  console.log('[INTELLIGENCE DEBUG] Routing successful:', JSON.stringify(intelligenceRouting, null, 2));
   
-  // Use our improved memory extraction
+  if (!intelligenceRouting || !intelligenceRouting.primaryCategory) {
+    console.error('[INTELLIGENCE DEBUG] Invalid routing result:', intelligenceRouting);
+    throw new Error('Invalid routing result');
+  }
+  
+  console.log('[INTELLIGENCE DEBUG] Starting memory extraction...');
   intelligenceMemories = await intelligenceSystem.extractRelevantMemories(user_id, message, intelligenceRouting);
-  console.log('[INTELLIGENCE] Extracted', intelligenceMemories.length, 'relevant memories');
+  console.log('[INTELLIGENCE DEBUG] Memory extraction result:', {
+    count: intelligenceMemories ? intelligenceMemories.length : 'NULL',
+    type: typeof intelligenceMemories,
+    isArray: Array.isArray(intelligenceMemories)
+  });
+  
+  if (intelligenceMemories && intelligenceMemories.length > 0) {
+    console.log('[INTELLIGENCE DEBUG] First memory preview:', intelligenceMemories[0].content?.substring(0, 100));
+  } else {
+    console.log('[INTELLIGENCE DEBUG] No memories extracted - investigating...');
+    // Try to understand why no memories were found
+    console.log('[INTELLIGENCE DEBUG] Database connection status check needed');
+  }
   
 } catch (intelligenceError) {
-  console.error('[INTELLIGENCE] Error with improved system:', intelligenceError);
+  console.error('[INTELLIGENCE DEBUG] Complete error details:', {
+    message: intelligenceError.message,
+    stack: intelligenceError.stack,
+    name: intelligenceError.name
+  });
   intelligenceRouting = { primaryCategory: 'personal_life_interests' };
   intelligenceMemories = [];
-}    
+}  
 
 // Global memory system removed to prevent database race condition
 let memoryResult = { hasMemory: false };
