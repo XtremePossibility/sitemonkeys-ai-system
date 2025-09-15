@@ -318,59 +318,19 @@ try {
   intelligenceMemories = [];
 }    
 
-// Get memory from existing persistent memory system
-let memoryResult = null;
-if (global.memorySystem) {
-  try {
-    memoryResult = await global.memorySystem.retrieveMemoryForChat(user_id, message);
-    console.log('[MEMORY-INTELLIGENCE] Memory retrieved:', memoryResult?.hasMemory ? 'SUCCESS' : 'NO_MEMORY');
+// Global memory system removed to prevent database race condition
+let memoryResult = { hasMemory: false };
+console.log('[MEMORY] Global memory system disabled - using intelligence system only');
     
-    console.log('[BRIDGE DEBUG] memoryResult check:', memoryResult ? 'EXISTS' : 'NULL', typeof memoryResult);
-    if (memoryResult) {
-      console.log('[MEMORY DEBUG] Full memory result:', JSON.stringify(memoryResult, null, 2));
-  // ... rest of your existing debug code
-  console.log('[MEMORY DEBUG] Memory hasMemory:', memoryResult.hasMemory);
-  console.log('[MEMORY DEBUG] Memory content keys:', Object.keys(memoryResult));
-  if (memoryResult.memories) {
-    console.log('[MEMORY DEBUG] Memory content preview:', memoryResult.memories.substring(0, 500));
-  }
-  if (memoryResult.systemPrompt) {
-    console.log('[MEMORY DEBUG] System prompt preview:', memoryResult.systemPrompt.substring(0, 500));
-  }
-  if (memoryResult.conversationContext) {
-    console.log('[MEMORY DEBUG] Conversation context preview:', memoryResult.conversationContext.substring(0, 500));
-  }
-}
-  } catch (memoryError) {
-    console.error('[MEMORY-INTELLIGENCE] Memory retrieval failed:', memoryError);
-    memoryResult = { hasMemory: false };
-  }
-}
-
-// Bridge memory to existing intelligence engines  
+// Memory bridge removed to prevent database race condition
 let intelligenceResult = {
   intelligenceEnhanced: false,
   memoryIntegrated: false,
-  enginesActivated: ['fallback'],
+  enginesActivated: ['intelligence_system_only'],
   response: null,
   confidence: 0.5
 };
-
-if (memoryIntelligenceBridge) {
-  try {
-    intelligenceResult = await memoryIntelligenceBridge.enhanceWithMemoryContext(
-      message,
-      mode,
-      memoryResult,
-      vaultContent,
-      optimalPersonality
-    );
-    console.log('[MEMORY-INTELLIGENCE] Intelligence enhancement:', intelligenceResult.intelligenceEnhanced ? 'SUCCESS' : 'FALLBACK');
-    console.log('[MEMORY-INTELLIGENCE] Engines activated:', intelligenceResult.enginesActivated.join(', '));
-  } catch (bridgeError) {
-    console.error('[MEMORY-INTELLIGENCE] Bridge failed:', bridgeError);
-  }
-}
+console.log('[MEMORY] Memory bridge disabled - using intelligence system only');
 
 // Create memory context using improved intelligence system
 let memoryContext = null;
@@ -388,15 +348,6 @@ if (intelligenceMemories && intelligenceMemories.length > 0) {
     category: intelligenceRouting.primaryCategory
   };
   console.log('[INTELLIGENCE] Created memory context with', totalTokens, 'tokens from', intelligenceMemories.length, 'memories');
-} else if (memoryResult?.hasMemory) {
-  // Fallback to old system if new system fails
-  memoryContext = {
-    hasMemory: true,
-    contextFound: true,
-    memories: memoryResult.systemPrompt || memoryResult.conversationContext || memoryResult.memories || '',
-    totalTokens: memoryResult.tokenCount || 0,
-    personalityPrompt: `You have access to previous conversation context. Reference it naturally when relevant.\n\n`
-  };
     
     // *** MEMORY DEBUG - TEMPORARY DIAGNOSTIC ***
     console.log('[MEMORY DEBUG] Raw memory context:', JSON.stringify(memoryContext, null, 2));
