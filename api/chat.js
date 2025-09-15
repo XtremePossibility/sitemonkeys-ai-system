@@ -465,23 +465,25 @@ if (intelligenceMemories && intelligenceMemories.length > 0) {
     enhancedResponse = enforcePricingFloors(enhancedResponse, mode);
     enhancedResponse = integrateVaultLogic(enhancedResponse, vaultContent, vaultHealthy, mode);
     
-    // 7. SURVIVAL PROTECTION APPLICATION
     // 7. SURVIVAL PROTECTION APPLICATION  
-let finalResponse = applySurvivalProtection(enhancedResponse, mode, vaultContent);
+    let finalResponse = applySurvivalProtection(enhancedResponse, mode, vaultContent);
 
-// 8. UNIFIED CONFLICT RESOLUTION - SUPPLEMENT TO EXISTING INTELLIGENCE
-const responseUnifier = new ResponseObjectUnifier();
-responseUnifier.initializeResponseObject(finalResponse);
-
-// Apply ONLY the conflict resolution, not intelligence replacement
-const conflictResolution = responseUnifier.getFinalResponse();
-finalResponse = conflictResolution.content;
-
-// Master mode compliance - replace the three competing functions ONLY
-const complianceValidation = MasterModeCompliance.validateModeCompliance(
-  finalResponse, 
-  mode, 
-  {
+    // 8. UNIFIED CONFLICT RESOLUTION - SUPPLEMENT TO EXISTING INTELLIGENCE
+    const responseUnifier = new ResponseObjectUnifier();
+    responseUnifier.initializeResponseObject(finalResponse);
+    
+    // CRITICAL: Apply memory preservation BEFORE other processing
+    responseUnifier.applyMemoryPreservation(memoryContext);
+    
+    // Apply ONLY the conflict resolution, not intelligence replacement
+    const conflictResolution = responseUnifier.getFinalResponse();
+    finalResponse = conflictResolution.content;
+    
+    // Master mode compliance - replace the three competing functions ONLY
+    const complianceValidation = MasterModeCompliance.validateModeCompliance(
+      finalResponse, 
+      mode, 
+      {
     fingerprint: generateModeFingerprint(mode, vaultHealthy),
     vaultLoaded: vaultHealthy,
     conversationHistory: conversation_history,
