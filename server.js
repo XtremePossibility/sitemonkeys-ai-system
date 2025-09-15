@@ -803,40 +803,46 @@ Quality-first approach with caring delivery`;
       intelligenceMemories = [];
     }
     
-    // ===== MEMORY CONTEXT RETRIEVAL (FALLBACK) =====
-    let memoryContext = '';
-    if (intelligenceMemories && intelligenceMemories.length > 0) {
-      const memoryText = intelligenceMemories.map(m => m.content).join('\n\n');
+    // ===== ENHANCED MEMORY CONTEXT WITH FULL INTELLIGENCE =====
+let memoryContext = '';
+let memoryResult = null;
+
+// Try intelligence system first
+if (intelligenceMemories && intelligenceMemories.length > 0) {
+  const memoryText = intelligenceMemories.map(m => m.content).join('\n\n');
+  const totalTokens = intelligenceMemories.reduce((sum, m) => sum + (m.token_count || 0), 0);
+  
+  memoryContext = {
+    memories: memoryText,
+    length: memoryText.length,
+    count: intelligenceMemories.length,
+    hasMemory: true,
+    contextFound: true,
+    totalTokens: totalTokens,
+    intelligenceEnhanced: true
+  };
+  console.log('[INTELLIGENCE] Using improved memory system with', totalTokens, 'tokens from', intelligenceMemories.length, 'memories');
+} else if (global.memorySystem && typeof global.memorySystem.retrieveMemory === 'function') {
+  try {
+    console.log('[CHAT] 📋 Retrieving fallback memory context...');
+    memoryResult = await global.memorySystem.retrieveMemory('user', message);
+    if (memoryResult && memoryResult.memories) {
       memoryContext = {
-        memories: memoryText,
-        length: memoryText.length,
-        count: intelligenceMemories.length
+        memories: memoryResult.memories,
+        length: memoryResult.memories.length,
+        count: 1,
+        hasMemory: true,
+        contextFound: true
       };
-      console.log('[INTELLIGENCE] Using improved memory system');
-    } else if (global.memorySystem && typeof global.memorySystem.retrieveMemory === 'function') {
-    try {
-        console.log('[CHAT] 📋 Retrieving memory context...');
-        memoryContext = await global.memorySystem.retrieveMemory('user', message);
-        console.log(`[CHAT] ✅ Memory context retrieved: ${memoryContext.memories ? memoryContext.memories.length : 0} characters`);
-        
-        // FILTER OUT AI FAILURE RESPONSES (PRECISE)
-        if (memoryContext && memoryContext.memories) {
-            const originalLength = memoryContext.memories.length;
-            
-            // Only remove specific AI failure patterns, preserve everything else
-            memoryContext.memories = memoryContext.memories.replace(/Assistant: Based on our previous conversations, you mentioned something about[^,]*, but it seems there wasn't any specific information provided about them\./g, '');
-            memoryContext.memories = memoryContext.memories.replace(/Assistant: Based on our previous conversations, I don't have specific details about[^.]*\./g, '');
-            memoryContext.memories = memoryContext.memories.replace(/Assistant: I don't have specific details about[^.]*from our previous conversations\./g, '');
-            
-            console.log(`[CHAT] 🧹 Filtered poison memories: ${originalLength} → ${memoryContext.memories.length} characters`);
-        }
-        
-    } catch (error) {
-        console.error('[CHAT] ⚠️ Memory retrieval failed:', error);
-        memoryContext = '';
+      console.log(`[CHAT] ✅ Fallback memory context retrieved: ${memoryContext.memories.length} characters`);
     }
+  } catch (error) {
+    console.error('[CHAT] ⚠️ Memory retrieval failed:', error);
+    memoryContext = '';
+  }
 } else {
-    console.log('[CHAT] ⚠️ Memory system not available for context retrieval');
+  console.log('[CHAT] ⚠️ No memory context available');
+  memoryContext = '';
 }
         
 if (!persistentMemory.isReady()) {
