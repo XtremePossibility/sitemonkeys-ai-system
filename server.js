@@ -917,7 +917,7 @@ if (conversation_history && conversation_history.length > 0) {
 let enhancedPrompt = buildConversationPrompt(systemPrompt, message, conversation_history, expertDomain);
 
 // MEMORY INJECTION DISABLED - HANDLED BY CHAT.JS
-if (conversationHistoryText) {
+if (memoryContext && memoryContext.memories && memoryContext.memories.length > 0) {
   enhancedPrompt = systemPrompt + `
 
 RECENT CONVERSATION:
