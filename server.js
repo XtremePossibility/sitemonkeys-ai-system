@@ -1506,7 +1506,7 @@ async function makeIntelligentAPICall(prompt, personality, prideMotivation) {
     try {
       const payload = {
         model: 'gpt-4o',
-        messages: [{ role: 'system', content: memoryContent ? `PREVIOUS CONVERSATION CONTEXT:\n${memoryContent}\n\n${prompt}` : prompt }],
+        content: prompt
         max_tokens: maxTokens,
         temperature: 0.2 + (prideMotivation * 0.1),
         top_p: 0.9
