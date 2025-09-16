@@ -936,6 +936,9 @@ Respond using conversation context and your expertise:`;
   
   console.log(`[CHAT] 🧠 Added ${memoryContext.memories.length} characters of memory context to AI prompt`);
   console.log('[DEBUG] First 500 chars of memory:', memoryContext.memories.substring(0, 500));
+  console.log(`[FULL DEBUG] Complete memory content:`, memoryContext.memories);
+  console.log(`[MEMORY STRUCTURE] Memory context object:`, JSON.stringify(memoryContext, null, 2));
+  console.log(`[MEMORY BREAKDOWN] Field types:`, typeof memoryContext.memories, typeof memoryContext.contextFound);
 } else if (conversationHistoryText) {
   enhancedPrompt = systemPrompt + `
 
@@ -962,6 +965,9 @@ Respond with your expertise:`;
 
 const fullPrompt = enhancedPrompt;
 
+    console.log(`[FINAL PROMPT] Complete prompt being sent to AI:`, fullPrompt);
+    console.log(`[PROMPT LENGTH] Total prompt length:`, fullPrompt.length);    
+        
     // ENHANCED API CALL
     const apiResponse = await makeIntelligentAPICall(fullPrompt, personality, prideMotivation);
 
