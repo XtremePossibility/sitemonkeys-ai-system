@@ -921,7 +921,7 @@ if (memoryContext && memoryContext.memories && memoryContext.memories.length > 0
   enhancedPrompt = systemPrompt + `
 
 RECENT CONVERSATION:
-${conversationHistoryText}
+${memoryContext.memories}
 
 Please acknowledge the conversation context in your response.
 
