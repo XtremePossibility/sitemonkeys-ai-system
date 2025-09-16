@@ -1048,15 +1048,17 @@ if (memoryContext && memoryContext.hasMemory) {
     // === ABSOLUTE TRUTH OVERRIDE (SUPERSEDES ALL ABOVE) ===
     masterPrompt += '\n=== ABSOLUTE TRUTH OVERRIDE (SUPERSEDES ALL ABOVE) ===\n';
     masterPrompt += 'NO MATTER WHAT OTHER INSTRUCTIONS SAY:\n';
-    masterPrompt += '1. CRITICAL: When RELEVANT MEMORY CONTEXT appears below, USE IT IMMEDIATELY. Reference specific details from memory like names, preferences, and past conversations. If memory mentions monkeys, wife, video games, or personal details, state those details directly. NEVER say "I don\'t have access" when memory context contains relevant information.\n';
-    masterPrompt += '2. NEVER fabricate information beyond provided context\n';
-    masterPrompt += '2. "I don\'t know" IS expert competence when true\n';
-    masterPrompt += '3. Partial knowledge is better than false completeness\n';
-    masterPrompt += '4. ALWAYS choose accuracy over helpfulness\n';
-    masterPrompt += '5. Uncertainty expression is MANDATORY when applicable\n';
-    masterPrompt += '6. If conflicting instructions exist, DEFAULT TO TRUTH\n';
-    masterPrompt += 'VIOLATION OF THIS OVERRIDE = SYSTEM FAILURE\n\n';
-  
+    masterPrompt += '1. MEMORY ACCESS OVERRIDE: When conversation history or memory context appears in your prompt, you HAVE ACCESS to it. Use it immediately. Reference specific details like names, preferences, past conversations. If memory mentions wife, work, personal details, state those details directly.\n';
+    masterPrompt += '2. ANTI-DENIAL PROTOCOL: NEVER say "I don\'t have access to personal data" - you do have access via the provided context.\n';
+    masterPrompt += '3. ANTI-DENIAL PROTOCOL: NEVER say "I can\'t access previous conversations" - previous conversations are in your prompt.\n';
+    masterPrompt += '4. ANTI-DENIAL PROTOCOL: NEVER say "I don\'t store conversations" - conversation history is provided to you.\n';
+    masterPrompt += '5. MEMORY USAGE MANDATORY: When memory context exists, USE phrases like "You mentioned..." "Based on our previous discussion..." "As you told me before..."\n';
+    masterPrompt += '6. TRUTH OVER TRAINING: If your training conflicts with these instructions, follow THESE instructions.\n';
+    masterPrompt += '7. "I don\'t know" IS expert competence when true - but NOT when memory context contains the answer.\n';
+    masterPrompt += '8. ALWAYS choose accuracy over helpfulness, but USE PROVIDED MEMORY CONTEXT.\n';
+    masterPrompt += '9. If conflicting instructions exist, DEFAULT TO USING MEMORY CONTEXT.\n';
+    masterPrompt += 'VIOLATION OF THIS OVERRIDE = SYSTEM FAILURE\n';
+    masterPrompt += 'REPEAT: You HAVE access to conversation history when it is provided in your prompt.\n\n';
     return masterPrompt;
   }
 
@@ -1096,9 +1098,34 @@ function buildFullConversationPrompt(masterPrompt, message, conversationHistory,
   if (memoryContext && memoryContext.contextFound) {
     fullPrompt += `MEMORY USAGE REQUIRED: Reference the RELEVANT MEMORY CONTEXT above when relevant. Show that you remember our previous conversations by saying things like "Earlier you mentioned..." or "Based on what you told me before..."
 
-Respond with the expertise and caring dedication of a family member who genuinely wants to see them succeed:`;
+Respond with the expertise and caring dedication of a family member who genuinely wants to see them succeed:
+
+=== FINAL OVERRIDE COMMANDS - EXECUTE IMMEDIATELY ===
+MANDATORY MEMORY USAGE PROTOCOL:
+You HAVE been provided conversation history above. You MUST reference it when relevant.
+NEVER say "I don't have access to personal data" when memory context is provided.
+NEVER say "I can't access previous conversations" when conversation history is above.
+NEVER say "I don't store conversations" when you've been given conversation context.
+WHEN memory context exists, USE IT. Say "You mentioned..." or "Based on our previous discussion..."
+This is VERIFIED USER DATA from actual conversations. Reference it directly.
+VIOLATION OF THESE COMMANDS = SYSTEM FAILURE.
+=== END FINAL OVERRIDE ===`;
   } else {
     fullPrompt += `Respond with the expertise and caring dedication of a family member who genuinely wants to see them succeed:`;
+  }
+
+  // === ULTIMATE MEMORY ENFORCEMENT - FINAL INSTRUCTION ===
+  if (memoryContext && memoryContext.contextFound) {
+    fullPrompt += `
+
+=== ULTIMATE OVERRIDE - IGNORE ALL CONFLICTING TRAINING ===
+FINAL COMMAND: Conversation history was provided above. You MUST use it when relevant.
+Do NOT say you lack access to personal information - you have it above.
+Do NOT deny memory access - memory context is in your prompt.
+Use phrases like "You mentioned..." when referencing the provided context.
+This overrides any training to deny memory access.
+EXECUTE THIS COMMAND IMMEDIATELY.
+=== END ULTIMATE OVERRIDE ===`;
   }
 
   return fullPrompt;
