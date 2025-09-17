@@ -2,9 +2,9 @@
 // COMPLETE FILE UPLOAD ENDPOINT - All file types supported
 // SELF-CONTAINED - No dependencies on existing files
 
-const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
+import multer from 'multer';
+import path from 'path';
+import fs from 'fs';
 
 // Configure multer for file uploads (in-memory storage)
 const storage = multer.memoryStorage();
@@ -223,8 +223,6 @@ async function handleFileUpload(req, res) {
   }
 }
 
-// Export the configured upload middleware and handler
-module.exports = {
-  uploadMiddleware: upload.array('files', 10), // Accept up to 10 files
-  handleFileUpload: handleFileUpload
-};
+// Export the configured upload middleware and handler (ES6 syntax)
+export const uploadMiddleware = upload.array('files', 10); // Accept up to 10 files
+export const handleFileUpload = handleFileUpload;
