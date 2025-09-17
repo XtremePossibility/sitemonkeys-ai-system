@@ -224,5 +224,5 @@ async function handleFileUpload(req, res) {
 }
 
 // Export the configured upload middleware and handler (ES6 syntax)
-export const uploadMiddleware = upload.array('files', 10); // Accept up to 10 files
-export const handleFileUpload = handleFileUpload;
+export const uploadMiddleware = upload.array('files', 10);
+export { handleFileUpload };
