@@ -1066,13 +1066,13 @@ function buildFullConversationPrompt(masterPrompt, message, conversationHistory,
   let fullPrompt = masterPrompt;
 
   // FIXED: Simple, robust memory injection - no complex processing
-  if (memoryContext && memoryContext.contextFound && memoryContext.memories) {
-    fullPrompt += `\n\nCONVERSATION HISTORY CONTEXT:
-  ${memoryContext.memories}
-  
-  INSTRUCTION: The above contains verified information from previous conversations in this session. When relevant to the current query, reference this information directly using phrases like "You mentioned that..." or "Based on our earlier discussion..." Do not claim lack of access to information that is provided above.
-  
-  `;
+if (memoryContext && memoryContext.contextFound && memoryContext.memories) {
+  fullPrompt += `\n\nRELEVANT MEMORIES FROM PAST CONVERSATIONS:
+${memoryContext.memories}
+
+CRITICAL: Use the specific information above when relevant. Do not fabricate details not provided. Reference actual details from the memories above using phrases like "You mentioned that..." When the memories contain specific information, state it directly.
+
+`;
     console.log('[MEMORY] ✅ Injected', memoryContext.totalTokens || 0, 'tokens of memory context to AI prompt');
   } else {
     console.log('[MEMORY] ⚠️ No memory context available for AI prompt');
