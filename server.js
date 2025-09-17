@@ -16,6 +16,7 @@ import JSZip from 'jszip';
 import xml2js from 'xml2js';
 import zlib from 'zlib';
 import { promisify } from 'util';
+const { uploadMiddleware, handleFileUpload } = require('./api/upload-file');
 
 // NOW declare your variables:
 const app = express();
@@ -758,6 +759,8 @@ app.post('/api/chat', async (req, res) => {
     if (!message || typeof message !== 'string') {
       return res.status(400).json({ error: 'Message is required and must be a string' });
     }
+
+    app.post('/api/upload-file', uploadMiddleware, handleFileUpload);
 
     // VAULT LOADING (Fast)
     let vaultContent = '';
