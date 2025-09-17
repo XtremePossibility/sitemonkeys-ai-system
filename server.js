@@ -16,7 +16,7 @@ import JSZip from 'jszip';
 import xml2js from 'xml2js';
 import zlib from 'zlib';
 import { promisify } from 'util';
-const { uploadMiddleware, handleFileUpload } = require('./api/upload-file');
+import { uploadMiddleware, handleFileUpload } from './api/upload-file.js';
 
 // NOW declare your variables:
 const app = express();
