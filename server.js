@@ -17,7 +17,7 @@ import xml2js from 'xml2js';
 import zlib from 'zlib';
 import { promisify } from 'util';
 import { uploadMiddleware, handleFileUpload } from './api/upload-file.js';
-import { uploadMiddleware as analysisMiddleware, handleFileUpload as uploadForAnalysisHandler } from './api/upload-for-analysis.js';
+import { analysisMiddleware, handleAnalysisUpload } from './api/upload-for-analysis.js';
 
 // ===== CRITICAL RAILWAY ERROR HANDLERS =====
 process.on('unhandledRejection', (reason, promise) => {
@@ -786,7 +786,7 @@ let familyMemory = {
   trustBuilding: 0.0
 };
 
-app.post('/api/upload-for-analysis', analysisMiddleware, uploadForAnalysisHandler);
+app.post('/api/upload-for-analysis', analysisMiddleware, handleAnalysisUpload);
 app.post('/api/upload-file', uploadMiddleware, handleFileUpload);
 
 // MAIN CHAT ENDPOINT
