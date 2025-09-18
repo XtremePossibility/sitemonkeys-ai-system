@@ -1,5 +1,5 @@
 // api/upload-for-analysis.js
-// EXACT COPY OF YOUR WORKING upload-file.js PATTERN - GUARANTEED TO WORK
+// EXACT COPY of working upload-file.js with minimal changes for analysis
 
 import multer from 'multer';
 import path from 'path';
@@ -123,8 +123,8 @@ async function processFile(file) {
   return processingResult;
 }
 
-// Main upload handler - EXACT COPY of handleFileUpload with analysis-specific messages
-async function handleFileUpload(req, res) {
+// Main upload handler - EXACT COPY with analysis-specific logging
+async function handleAnalysisUpload(req, res) {
   console.log('📤 [Analysis] File upload request received');
   
   try {
@@ -160,7 +160,7 @@ async function handleFileUpload(req, res) {
             message: result.message,
             type: result.type,
             size: result.size,
-            folder: 'analysis', // Analysis folder instead of vault
+            folder: 'analysis',
             preview: result.preview,
             metadata: result.metadata
           });
@@ -188,13 +188,25 @@ async function handleFileUpload(req, res) {
       }
     }
     
-    // Return results - EXACT SAME STRUCTURE as upload-file.js
+    // Return results - FRONTEND COMPATIBLE
     const response = {
+      success: successCount > 0,
       status: successCount > 0 ? 'success' : 'error',
       message: `Analysis upload complete: ${successCount} successful, ${failureCount} failed`,
+      files_processed: successCount,
       successful_uploads: successCount,
       failed_uploads: failureCount,
-      files: results
+      files: results,
+      analysis_results: results.map(file => ({
+        filename: file.filename,
+        success: file.success,
+        analysis: file.success ? `File "${file.filename}" uploaded and ready for analysis.` : `Failed to process ${file.filename}`,
+        type: file.type
+      })),
+      enhanced_query: null,
+      system_status: {
+        claude_vision_used: false
+      }
     };
     
     console.log(`📊 [Analysis] Upload complete: ${successCount}/${req.files.length} successful`);
@@ -213,6 +225,6 @@ async function handleFileUpload(req, res) {
   }
 }
 
-// Export the configured upload middleware and handler (ES6 syntax) - EXACT COPY
-export const uploadMiddleware = upload.array('files', 10);
-export { handleFileUpload };
+// Export with different names to avoid conflicts - EXACT PATTERN
+export const analysisMiddleware = upload.array('files', 10);
+export { handleAnalysisUpload };
