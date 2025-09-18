@@ -1,12 +1,11 @@
 // api/upload-for-analysis.js
-// SIMPLE VERSION - Multer handled inside function
-// EXACT COPY OF upload-file.js WITH MINIMAL CHANGES
+// EXACT COPY OF YOUR WORKING upload-file.js PATTERN
+// Only changes: function name and export names
 
 import multer from 'multer';
 import path from 'path';
-import fs from 'fs';
 
-// Configure multer for file uploads (in-memory storage)
+// Configure multer for file uploads (in-memory storage) - EXACT COPY
 const storage = multer.memoryStorage();
 const upload = multer({
   storage: storage,
@@ -20,7 +19,7 @@ const upload = multer({
   }
 });
 
-// File type detection
+// File type detection - EXACT COPY
 function detectFileType(filename, mimetype) {
   const ext = path.extname(filename).toLowerCase();
   
@@ -68,7 +67,7 @@ function detectFileType(filename, mimetype) {
   return 'other';
 }
 
-// Process file content for different types
+// Process file content - EXACT COPY
 async function processFile(file) {
   const fileType = detectFileType(file.originalname, file.mimetype);
   
@@ -133,105 +132,96 @@ async function processFile(file) {
   return processingResult;
 }
 
-// Main handler with multer inside (simplest approach)
-export default function uploadForAnalysisHandler(req, res) {
-  console.log('📤 [Analysis] File analysis request received');
+// Main upload handler - EXACT COPY OF YOUR handleFileUpload FUNCTION
+async function uploadForAnalysisHandler(req, res) {
+  console.log('📤 [Analysis] File upload request received');
   
-  // Handle multer inside the function
-  upload.array('files', 10)(req, res, async (uploadError) => {
-    if (uploadError) {
-      console.error('❌ [Analysis] Upload error:', uploadError);
+  try {
+    // Check if files were uploaded
+    if (!req.files || req.files.length === 0) {
       return res.status(400).json({
         status: 'error',
-        message: uploadError.message,
-        error_type: 'upload_error'
+        message: 'No files uploaded',
+        successful_uploads: 0,
+        failed_uploads: 0,
+        files: []
       });
     }
-
-    try {
-      // Check if files were uploaded
-      if (!req.files || req.files.length === 0) {
-        return res.status(400).json({
-          status: 'error',
-          message: 'No files uploaded',
-          successful_uploads: 0,
-          failed_uploads: 0,
-          files: []
-        });
-      }
+    
+    console.log(`📁 [Analysis] Processing ${req.files.length} file(s)`);
+    
+    const results = [];
+    let successCount = 0;
+    let failureCount = 0;
+    
+    // Process each uploaded file
+    for (const file of req.files) {
+      console.log(`🔄 [Analysis] Processing: ${file.originalname} (${file.size} bytes)`);
       
-      console.log(`📁 [Analysis] Processing ${req.files.length} file(s)`);
-      
-      const results = [];
-      let successCount = 0;
-      let failureCount = 0;
-      
-      // Process each uploaded file
-      for (const file of req.files) {
-        console.log(`🔄 [Analysis] Processing: ${file.originalname} (${file.size} bytes)`);
+      try {
+        const result = await processFile(file);
         
-        try {
-          const result = await processFile(file);
-          
-          if (result.success) {
-            successCount++;
-            results.push({
-              success: true,
-              filename: file.originalname,
-              message: result.message,
-              type: result.type,
-              size: result.size,
-              folder: 'analysis', // Analysis folder
-              preview: result.preview,
-              metadata: result.metadata
-            });
-            console.log(`✅ [Analysis] Successfully processed: ${file.originalname}`);
-          } else {
-            failureCount++;
-            results.push({
-              success: false,
-              filename: file.originalname,
-              message: result.message,
-              error: 'Processing failed'
-            });
-            console.log(`❌ [Analysis] Failed to process: ${file.originalname}`);
-          }
-          
-        } catch (error) {
+        if (result.success) {
+          successCount++;
+          results.push({
+            success: true,
+            filename: file.originalname,
+            message: result.message,
+            type: result.type,
+            size: result.size,
+            folder: 'analysis', // Analysis folder instead of vault
+            preview: result.preview,
+            metadata: result.metadata
+          });
+          console.log(`✅ [Analysis] Successfully processed: ${file.originalname}`);
+        } else {
           failureCount++;
           results.push({
             success: false,
             filename: file.originalname,
-            message: `Upload failed: ${error.message}`,
-            error: error.message
+            message: result.message,
+            error: 'Processing failed'
           });
-          console.log(`❌ [Analysis] Error processing ${file.originalname}:`, error);
+          console.log(`❌ [Analysis] Failed to process: ${file.originalname}`);
         }
+        
+      } catch (error) {
+        failureCount++;
+        results.push({
+          success: false,
+          filename: file.originalname,
+          message: `Upload failed: ${error.message}`,
+          error: error.message
+        });
+        console.log(`❌ [Analysis] Error processing ${file.originalname}:`, error);
       }
-      
-      // Return results
-      const response = {
-        status: successCount > 0 ? 'success' : 'error',
-        message: `Analysis upload complete: ${successCount} successful, ${failureCount} failed`,
-        successful_uploads: successCount,
-        failed_uploads: failureCount,
-        files: results,
-        endpoint_working: true
-      };
-      
-      console.log(`📊 [Analysis] Upload complete: ${successCount}/${req.files.length} successful`);
-      res.json(response);
-      
-    } catch (error) {
-      console.error('❌ [Analysis] Endpoint error:', error);
-      res.status(500).json({
-        status: 'error',
-        message: 'Server error during file analysis',
-        error: error.message,
-        successful_uploads: 0,
-        failed_uploads: req.files ? req.files.length : 0,
-        files: []
-      });
     }
-  });
+    
+    // Return results - EXACT SAME STRUCTURE
+    const response = {
+      status: successCount > 0 ? 'success' : 'error',
+      message: `Analysis upload complete: ${successCount} successful, ${failureCount} failed`,
+      successful_uploads: successCount,
+      failed_uploads: failureCount,
+      files: results
+    };
+    
+    console.log(`📊 [Analysis] Upload complete: ${successCount}/${req.files.length} successful`);
+    res.json(response);
+    
+  } catch (error) {
+    console.error('❌ [Analysis] Upload endpoint error:', error);
+    res.status(500).json({
+      status: 'error',
+      message: 'Server error during file upload',
+      error: error.message,
+      successful_uploads: 0,
+      failed_uploads: req.files ? req.files.length : 0,
+      files: []
+    });
+  }
 }
+
+// Export exactly like your working upload-file.js
+export const uploadMiddleware = upload.array('files', 10);
+export { uploadForAnalysisHandler };
