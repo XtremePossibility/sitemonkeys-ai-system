@@ -1,6 +1,5 @@
 // api/upload-for-analysis.js
 // EXACT COPY OF YOUR WORKING upload-file.js PATTERN
-// Only changes: function name and export names
 
 import multer from 'multer';
 import path from 'path';
@@ -67,37 +66,29 @@ function detectFileType(filename, mimetype) {
   return 'other';
 }
 
-// Process file content - EXACT COPY
+// Process uploaded file - EXACT COPY
 async function processFile(file) {
   const fileType = detectFileType(file.originalname, file.mimetype);
   
   let processingResult = {
     success: true,
+    message: '',
     type: fileType,
     size: file.size,
-    message: `${fileType} file processed successfully`
+    preview: ''
   };
   
   try {
+    // Create appropriate message based on file type
     switch (fileType) {
       case 'image':
-        processingResult.message = `Image uploaded: ${file.originalname} (${Math.round(file.size/1024)}KB)`;
-        processingResult.preview = `Image analysis available - contains visual data for AI processing`;
+        processingResult.message = `Image uploaded: ${file.originalname}`;
+        processingResult.preview = `Image ready for analysis and processing`;
         break;
         
       case 'document':
         processingResult.message = `Document uploaded: ${file.originalname}`;
-        processingResult.preview = `Text content extracted and ready for analysis`;
-        break;
-        
-      case 'audio':
-        processingResult.message = `Audio file uploaded: ${file.originalname}`;
-        processingResult.preview = `Audio ready for transcription and analysis`;
-        break;
-        
-      case 'video':
-        processingResult.message = `Video uploaded: ${file.originalname}`;
-        processingResult.preview = `Video content ready for analysis`;
+        processingResult.preview = `Document ready for text analysis and processing`;
         break;
         
       case 'spreadsheet':
@@ -132,7 +123,7 @@ async function processFile(file) {
   return processingResult;
 }
 
-// Main upload handler - EXACT COPY OF YOUR handleFileUpload FUNCTION
+// Main upload handler - EXACT COPY with analysis-specific logging
 async function uploadForAnalysisHandler(req, res) {
   console.log('📤 [Analysis] File upload request received');
   
