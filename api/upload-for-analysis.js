@@ -215,4 +215,4 @@ async function handleFileUpload(req, res) {
 
 // Export the configured upload middleware and handler (ES6 syntax) - EXACT COPY
 export const uploadMiddleware = upload.array('files', 10);
-export { handleFileUpload };
+export { uploadForAnalysisHandler };
