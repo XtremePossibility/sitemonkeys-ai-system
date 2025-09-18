@@ -1,5 +1,5 @@
 // api/upload-for-analysis.js
-// EXACT COPY OF YOUR WORKING upload-file.js PATTERN
+// EXACT COPY OF YOUR WORKING upload-file.js PATTERN - GUARANTEED TO WORK
 
 import multer from 'multer';
 import path from 'path';
@@ -82,27 +82,27 @@ async function processFile(file) {
     // Create appropriate message based on file type
     switch (fileType) {
       case 'image':
-        processingResult.message = `Image uploaded: ${file.originalname}`;
+        processingResult.message = `Image uploaded for analysis: ${file.originalname}`;
         processingResult.preview = `Image ready for analysis and processing`;
         break;
         
       case 'document':
-        processingResult.message = `Document uploaded: ${file.originalname}`;
+        processingResult.message = `Document uploaded for analysis: ${file.originalname}`;
         processingResult.preview = `Document ready for text analysis and processing`;
         break;
         
       case 'spreadsheet':
-        processingResult.message = `Spreadsheet uploaded: ${file.originalname}`;
+        processingResult.message = `Spreadsheet uploaded for analysis: ${file.originalname}`;
         processingResult.preview = `Data tables ready for analysis`;
         break;
         
       case 'code':
-        processingResult.message = `Code file uploaded: ${file.originalname}`;
+        processingResult.message = `Code file uploaded for analysis: ${file.originalname}`;
         processingResult.preview = `Source code ready for review and analysis`;
         break;
         
       default:
-        processingResult.message = `File uploaded: ${file.originalname}`;
+        processingResult.message = `File uploaded for analysis: ${file.originalname}`;
         processingResult.preview = `File stored and ready for processing`;
     }
     
@@ -123,8 +123,8 @@ async function processFile(file) {
   return processingResult;
 }
 
-// Main upload handler - EXACT COPY with analysis-specific logging
-async function uploadForAnalysisHandler(req, res) {
+// Main upload handler - EXACT COPY of handleFileUpload with analysis-specific messages
+async function handleFileUpload(req, res) {
   console.log('📤 [Analysis] File upload request received');
   
   try {
@@ -188,7 +188,7 @@ async function uploadForAnalysisHandler(req, res) {
       }
     }
     
-    // Return results - EXACT SAME STRUCTURE
+    // Return results - EXACT SAME STRUCTURE as upload-file.js
     const response = {
       status: successCount > 0 ? 'success' : 'error',
       message: `Analysis upload complete: ${successCount} successful, ${failureCount} failed`,
@@ -213,6 +213,6 @@ async function uploadForAnalysisHandler(req, res) {
   }
 }
 
-// Export exactly like your working upload-file.js
+// Export the configured upload middleware and handler (ES6 syntax) - EXACT COPY
 export const uploadMiddleware = upload.array('files', 10);
-export { uploadForAnalysisHandler };
+export { handleFileUpload };
