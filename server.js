@@ -17,7 +17,7 @@ import xml2js from 'xml2js';
 import zlib from 'zlib';
 import { promisify } from 'util';
 import { uploadMiddleware, handleFileUpload } from './api/upload-file.js';
-import uploadForAnalysisHandler, { uploadMiddleware as analysisMiddleware } from './api/upload-for-analysis.js';
+import uploadForAnalysisHandler from './api/upload-for-analysis.js';
 
 // NOW declare your variables:
 const app = express();
@@ -1890,7 +1890,7 @@ app.get('/api/health', (req, res) => {
 });
 
 // FILE ANALYSIS ENDPOINT - Upload and immediate analysis
-app.post('/api/upload-for-analysis', analysisMiddleware, uploadForAnalysisHandler);
+app.post('/api/upload-for-analysis', uploadForAnalysisHandler);
 
 // ===== MEMORY SYSTEM HEALTH CHECK =====
 app.get('/api/memory-status', async (req, res) => {
