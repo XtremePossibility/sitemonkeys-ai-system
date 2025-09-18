@@ -18,9 +18,6 @@ import zlib from 'zlib';
 import { promisify } from 'util';
 import { uploadMiddleware, handleFileUpload } from './api/upload-file.js';
 import uploadForAnalysisHandler from './api/upload-for-analysis.js';
-// Test if deployment works
-import testDeploy from './api/test-deploy.js';
-app.get('/api/test-deploy', testDeploy);
 
 // NOW declare your variables:
 const app = express();
