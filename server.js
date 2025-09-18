@@ -19,6 +19,17 @@ import { promisify } from 'util';
 import { uploadMiddleware, handleFileUpload } from './api/upload-file.js';
 import { uploadMiddleware as analysisMiddleware, uploadForAnalysisHandler } from './api/upload-for-analysis.js';
 
+// ===== CRITICAL RAILWAY ERROR HANDLERS =====
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('❌ Unhandled Promise Rejection:', reason);
+  // Don't exit - Railway will restart if we do
+});
+
+process.on('uncaughtException', (error) => {
+  console.error('❌ Uncaught Exception:', error);
+  // Log but continue running
+});
+
 // NOW declare your variables:
 const app = express();
 
@@ -742,6 +753,7 @@ let familyMemory = {
 };
 
 app.post('/api/upload-for-analysis', analysisMiddleware, uploadForAnalysisHandler);
+app.post('/api/upload-file', uploadMiddleware, handleFileUpload);
 
 // MAIN CHAT ENDPOINT
 app.post('/api/chat', async (req, res) => {
@@ -1967,18 +1979,27 @@ function convertMemoryToSharedHistory(formattedMemories) {
 
 const PORT = process.env.PORT || 3000;
 
-// START SERVER WITH PROPER ERROR HANDLING
-(async () => {
+async function safeStartServer() {
   try {
     await startServer();
-    app.listen(PORT, () => {
+    
+    const server = app.listen(PORT, () => {
       console.log(`🚀 Caring Family Intelligence System running on port ${PORT}`);
       console.log(`💙 ${FAMILY_PHILOSOPHY.core_mission}`);
       console.log(`✨ ${FAMILY_PHILOSOPHY.one_and_done_philosophy}`);
       console.log(`📁 Vault endpoint: /api/load-vault`);
     });
+
+    // Graceful shutdown for Railway
+    process.on('SIGTERM', () => {
+      console.log('SIGTERM received, shutting down gracefully');
+      server.close(() => process.exit(0));
+    });
+
   } catch (error) {
     console.error('❌ Failed to start server:', error);
     process.exit(1);
   }
-})();
+}
+
+safeStartServer();
