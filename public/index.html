@@ -735,6 +735,10 @@ display: flex; align-items: center; justify-content: center;
 <button class="attachment-button" id="attachment-btn" aria-label="Attach File" title="Upload DOCX files to vault">
 📎
 </button>
+<button class="attachment-button" id="analyze-btn" aria-label="Analyze Files" title="Upload files for AI analysis" style="margin-left: 5px; background: #4CAF50;">
+🔍
+</button>
+<input type="file" id="analyze-file-input" accept=".docx,.doc,.pdf,.txt,.csv,.xlsx,.xls,.pptx,.ppt,.md,.rtf,.json,.xml,.html,.htm,.odt,.ods,.odp,.pages,.numbers,.key,.zip,.rar,.7z,.tar,.gz,.jpeg,.jpg,.png,.gif,.bmp,.svg,.tiff,.mp3,.mp4,.avi,.mov,.wmv,.flv,.webm,.wav,.m4a,.ogg,.aac" multiple style="display: none;">
 <textarea class="chat-input" id="user-input" placeholder="Ask Eli, Roxy, and AI about business validation..." rows="3"></textarea>
 <button class="send-button" id="send-btn" aria-label="Send">
 <img src="rocket.png" alt="Rocket Send" />
@@ -762,6 +766,199 @@ display: flex; align-items: center; justify-content: center;
 let conversationHistory = [];
 let systemActive = false;
 let aiToggle = false;
+
+// ================================================================
+// FILE ANALYSIS FUNCTIONS - COPY AND PASTE THIS ENTIRE SECTION
+// Add this RIGHT AFTER your existing global variables in index.html
+// ================================================================
+
+// Main function to handle file upload and immediate analysis
+async function handleAnalysisUpload(files) {
+  if (files.length === 0) return;
+  
+  const box = document.getElementById('chat-box');
+  
+  // Ask user what they want to analyze
+  const userQuery = prompt('What would you like me to analyze about these files?', 'Please analyze these files and provide insights.');
+  if (userQuery === null) return; // User cancelled
+  
+  // Show upload and analysis starting
+  const processingBubble = document.createElement('div');
+  processingBubble.className = 'bubble ai thinking-bubble';
+  processingBubble.innerHTML = `<img src="boy-mascot.png" class="avatar" alt="Eli"><div class="bubble-content"><strong>Eli:</strong> 🔍 Uploading and analyzing ${files.length} file(s) with AI...</div>`;
+  box.appendChild(processingBubble);
+  box.scrollTop = box.scrollHeight;
+
+  try {
+    // Prepare form data for analysis endpoint
+    const formData = new FormData();
+    for (const file of files) {
+      formData.append('files', file);
+    }
+    
+    // Add query and mode
+    formData.append('query', userQuery);
+    formData.append('mode', getCurrentMode());
+
+    console.log(`🔍 Sending ${files.length} files to analysis endpoint...`);
+
+    // Call the analysis endpoint
+    const response = await fetch('/api/upload-for-analysis', {
+      method: 'POST',
+      body: formData
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(`Analysis failed: ${response.status} - ${errorData.error || 'Unknown error'}`);
+    }
+    
+    const result = await response.json();
+    
+    // Update processing bubble with results
+    if (result.success) {
+      const analysisMode = result.system_status?.claude_vision_used ? 'Claude Vision' : 'analysis';
+      const successMessage = `✅ ${analysisMode} analyzed ${result.files_processed} files successfully!`;
+      
+      processingBubble.innerHTML = `<img src="boy-mascot.png" class="avatar" alt="Eli"><div class="bubble-content"><strong>Eli:</strong> ${successMessage}</div>`;
+      
+      // Show individual file results
+      if (result.analysis_results && result.analysis_results.length > 0) {
+        for (const fileResult of result.analysis_results) {
+          if (fileResult.success !== false && fileResult.analysis) {
+            const resultBubble = document.createElement('div');
+            resultBubble.className = 'bubble ai';
+            resultBubble.innerHTML = `<img src="girl-mascot.png" class="avatar" alt="Roxy"><div class="bubble-content"><strong>Roxy:</strong> ${fileResult.analysis}</div>`;
+            box.appendChild(resultBubble);
+            box.scrollTop = box.scrollHeight;
+          }
+        }
+      }
+      
+      // Send enhanced query to your existing chat system
+      if (result.enhanced_query && result.enhanced_query !== userQuery) {
+        await sendEnhancedQueryToChat(result.enhanced_query);
+      }
+      
+      console.log(`✅ Analysis complete:`, {
+        files_processed: result.files_processed,
+        claude_vision_used: result.system_status?.claude_vision_used
+      });
+      
+    } else {
+      // Analysis failed
+      processingBubble.innerHTML = `<img src="boy-mascot.png" class="avatar" alt="Eli"><div class="bubble-content"><strong>Eli:</strong> ❌ Analysis failed: ${result.error}</div>`;
+      console.error('Analysis failed:', result.error);
+    }
+    
+  } catch (error) {
+    console.error('❌ Analysis upload error:', error);
+    
+    // Show error message
+    processingBubble.innerHTML = `<img src="boy-mascot.png" class="avatar" alt="Eli"><div class="bubble-content"><strong>Eli:</strong> ❌ Analysis failed: ${error.message}</div>`;
+  }
+  
+  box.scrollTop = box.scrollHeight;
+}
+
+// Send enhanced query to your existing chat system
+async function sendEnhancedQueryToChat(enhancedQuery) {
+  try {
+    const box = document.getElementById('chat-box');
+    
+    // Add thinking indicator for chat response
+    const thinkingBubble = document.createElement('div');
+    thinkingBubble.className = 'bubble ai thinking-bubble';
+    thinkingBubble.innerHTML = `<img src="boy-mascot.png" class="avatar" alt="Thinking"><div class="bubble-content thinking-content"><span class="thinking-brain">🧠</span> Processing analysis...</div>`;
+    box.appendChild(thinkingBubble);
+    box.scrollTop = box.scrollHeight;
+
+    // Load vault content (your existing logic)
+    let vaultContent = null;
+    try {
+      const vaultResponse = await fetch('/api/load-vault', {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      const vaultData = await vaultResponse.json();
+      vaultContent = vaultData.vault_content;
+    } catch (vaultError) {
+      console.warn('⚠️ Vault load failed for analysis response:', vaultError);
+    }
+
+    // Send enhanced query to your existing chat endpoint
+    const response = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message: enhancedQuery,
+        conversation_history: conversationHistory || [],
+        mode: getCurrentMode(),
+        vault_loaded: isVaultMode(),
+        vault_content: vaultContent
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`Chat API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    const reply = data.reply || data.response || 'No response received';
+
+    // Clean response (your existing logic)
+    const cleanReply = reply
+      .replace(/^\*\*(Eli|Roxy):\*?\*?\s*/i, '') 
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') 
+      .replace(/\*\[MODE:.*?\]/g, '') 
+      .replace(/\[MODE:.*?\]/g, '') 
+      .replace(/\|\s*\[VAULT:.*?\]\s*\|\s*\[TRIGGERED:.*?\]\s*\|\s*\[FLOW:.*?\]\s*\|\s*\[ASSUMPTIONS:.*?\]\*/g, '') 
+      .replace(/\[VAULT:.*?\]/g, '') 
+      .replace(/\[TRIGGERED:.*?\]/g, '') 
+      .replace(/\[FLOW:.*?\]/g, '') 
+      .replace(/\[ASSUMPTIONS:.*?\]/g, '') 
+      .trim();
+
+    // Determine personality (your existing logic)
+    const isEli = aiToggle || false;
+    const who = isEli ? 'Eli' : 'Roxy';
+    const avatar = isEli ? "boy-mascot.png" : "girl-mascot.png";
+
+    // Remove thinking indicator
+    const thinkingElement = document.querySelector('.thinking-bubble');
+    if (thinkingElement) {
+      thinkingElement.remove();
+    }
+
+    // Add assistant response
+    const responseBubble = document.createElement('div');
+    responseBubble.className = 'bubble ai';
+    responseBubble.innerHTML = `<img src="${avatar}" class="avatar" alt="${who}"><div class="bubble-content"><strong>${who}:</strong> ${cleanReply}</div>`;
+    box.appendChild(responseBubble);
+    box.scrollTop = box.scrollHeight;
+
+    // Update conversation history
+    if (window.conversationHistory) {
+      conversationHistory.push({ role: 'user', content: 'File analysis request' });
+      conversationHistory.push({ role: 'assistant', content: reply });
+    }
+
+    // Toggle personality
+    if (typeof window.aiToggle !== 'undefined') {
+      aiToggle = !aiToggle;
+    }
+
+  } catch (error) {
+    console.error('❌ Enhanced query chat error:', error);
+    
+    const box = document.getElementById('chat-box');
+    const errorBubble = document.createElement('div');
+    errorBubble.className = 'bubble ai';
+    errorBubble.innerHTML = `<img src="boy-mascot.png" class="avatar" alt="System"><div class="bubble-content"><strong>System:</strong> Analysis complete, but chat response failed: ${error.message}</div>`;
+    box.appendChild(errorBubble);
+    box.scrollTop = box.scrollHeight;
+  }
+}
 
 // Mode system
 let currentMode = 'business_validation';
@@ -1218,6 +1415,20 @@ attachmentBtn.addEventListener('click', () => fileInput.click());
 fileInput.addEventListener('change', (e) => {
 if (e.target.files.length > 0) handleFileUpload(Array.from(e.target.files));
 });
+
+// Analysis button functionality
+const analyzeBtn = document.getElementById('analyze-btn');
+const analyzeFileInput = document.getElementById('analyze-file-input');
+
+if (analyzeBtn && analyzeFileInput) {
+  analyzeBtn.addEventListener('click', () => analyzeFileInput.click());
+  analyzeFileInput.addEventListener('change', (e) => {
+    if (e.target.files.length > 0) {
+      handleAnalysisUpload(Array.from(e.target.files));
+    }
+  });
+  console.log('✅ Analysis system initialized');
+}
 
 console.log('🎯 Event listeners added');
 setTimeout(() => {
