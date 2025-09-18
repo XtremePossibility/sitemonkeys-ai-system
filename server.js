@@ -741,7 +741,7 @@ let familyMemory = {
   trustBuilding: 0.0
 };
 
-app.post('/api/upload-file', uploadMiddleware, handleFileUpload);
+app.post('/api/upload-for-analysis', analysisMiddleware, uploadForAnalysisHandler);
 
 // MAIN CHAT ENDPOINT
 app.post('/api/chat', async (req, res) => {
