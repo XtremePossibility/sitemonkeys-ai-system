@@ -1,12 +1,12 @@
 // api/upload-for-analysis.js
-// EXACT COPY OF YOUR WORKING upload-file.js PATTERN WITH DEFAULT EXPORT
+// EXACT COPY OF upload-file.js WITH MINIMAL CHANGES
+// SELF-CONTAINED - No dependencies on existing files
 
 import multer from 'multer';
 import path from 'path';
+import fs from 'fs';
 
-console.log('🔍 [Analysis] Loading upload-for-analysis.js...');
-
-// Configure multer exactly like your working upload-file.js
+// Configure multer for file uploads (in-memory storage)
 const storage = multer.memoryStorage();
 const upload = multer({
   storage: storage,
@@ -16,12 +16,11 @@ const upload = multer({
   },
   fileFilter: (req, file, cb) => {
     // Accept all file types
-    console.log(`📤 [Analysis] Accepting file: ${file.originalname} (${file.mimetype})`);
     cb(null, true);
   }
 });
 
-// File type detection - exact copy from your upload-file.js
+// File type detection
 function detectFileType(filename, mimetype) {
   const ext = path.extname(filename).toLowerCase();
   
@@ -62,38 +61,44 @@ function detectFileType(filename, mimetype) {
   }
   
   // Code files
-  if (/\.(js|ts|py|java|cpp|c|php|html|css|sql|json|xml|yaml)$/i.test(filename) || 
-      mimetype.includes('javascript') || mimetype.includes('text')) {
+  if (/\.(js|html|css|json|xml|py|java|cpp|c|php|rb|go|rs)$/i.test(filename)) {
     return 'code';
   }
   
   return 'other';
 }
 
-// Process file - exact copy from your upload-file.js
+// Process file content for different types
 async function processFile(file) {
-  const processingResult = {
+  const fileType = detectFileType(file.originalname, file.mimetype);
+  
+  let processingResult = {
     success: true,
-    message: '',
-    type: '',
-    size: Math.round(file.size / 1024), // Size in KB
-    preview: ''
+    type: fileType,
+    size: file.size,
+    message: `${fileType} file processed successfully`
   };
   
   try {
-    const fileType = detectFileType(file.originalname, file.mimetype);
-    processingResult.type = fileType;
-    
-    // Set appropriate message based on file type
     switch (fileType) {
       case 'image':
-        processingResult.message = `Image uploaded: ${file.originalname}`;
-        processingResult.preview = `Image ready for analysis and discussion`;
+        processingResult.message = `Image uploaded: ${file.originalname} (${Math.round(file.size/1024)}KB)`;
+        processingResult.preview = `Image analysis available - contains visual data for AI processing`;
         break;
         
       case 'document':
         processingResult.message = `Document uploaded: ${file.originalname}`;
-        processingResult.preview = `Document content ready for analysis`;
+        processingResult.preview = `Text content extracted and ready for analysis`;
+        break;
+        
+      case 'audio':
+        processingResult.message = `Audio file uploaded: ${file.originalname}`;
+        processingResult.preview = `Audio ready for transcription and analysis`;
+        break;
+        
+      case 'video':
+        processingResult.message = `Video uploaded: ${file.originalname}`;
+        processingResult.preview = `Video content ready for analysis`;
         break;
         
       case 'spreadsheet':
@@ -128,28 +133,9 @@ async function processFile(file) {
   return processingResult;
 }
 
-// Main handler - exact structure as your working handleFileUpload
+// Main upload handler - RENAMED FROM handleFileUpload TO uploadForAnalysisHandler
 async function uploadForAnalysisHandler(req, res) {
-  console.log('📁 [Analysis] Upload and analysis request received');
-  
-  // Set CORS headers
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  
-  if (req.method === 'OPTIONS') {
-    res.status(200).end();
-    return;
-  }
-  
-  if (req.method !== 'POST') {
-    return res.status(405).json({
-      error: 'Method not allowed',
-      supported_method: 'POST',
-      endpoint_purpose: 'File upload and immediate analysis - WORKING VERSION',
-      timestamp: new Date().toISOString()
-    });
-  }
+  console.log('📤 File upload request received');
   
   try {
     // Check if files were uploaded
@@ -163,15 +149,15 @@ async function uploadForAnalysisHandler(req, res) {
       });
     }
     
-    console.log(`📁 [Analysis] Processing ${req.files.length} file(s)`);
+    console.log(`📁 Processing ${req.files.length} file(s)`);
     
     const results = [];
     let successCount = 0;
     let failureCount = 0;
     
-    // Process each uploaded file - exact logic from your upload-file.js
+    // Process each uploaded file
     for (const file of req.files) {
-      console.log(`🔄 [Analysis] Processing: ${file.originalname} (${file.size} bytes)`);
+      console.log(`🔄 Processing: ${file.originalname} (${file.size} bytes)`);
       
       try {
         const result = await processFile(file);
@@ -184,12 +170,11 @@ async function uploadForAnalysisHandler(req, res) {
             message: result.message,
             type: result.type,
             size: result.size,
-            folder: 'analysis', // Different folder for analysis files
+            folder: 'vault', // Default folder
             preview: result.preview,
-            metadata: result.metadata,
-            analysis_ready: true
+            metadata: result.metadata
           });
-          console.log(`✅ [Analysis] Successfully processed: ${file.originalname}`);
+          console.log(`✅ Successfully processed: ${file.originalname}`);
         } else {
           failureCount++;
           results.push({
@@ -198,7 +183,7 @@ async function uploadForAnalysisHandler(req, res) {
             message: result.message,
             error: 'Processing failed'
           });
-          console.log(`❌ [Analysis] Failed to process: ${file.originalname}`);
+          console.log(`❌ Failed to process: ${file.originalname}`);
         }
         
       } catch (error) {
@@ -209,26 +194,24 @@ async function uploadForAnalysisHandler(req, res) {
           message: `Upload failed: ${error.message}`,
           error: error.message
         });
-        console.log(`❌ [Analysis] Error processing ${file.originalname}:`, error);
+        console.log(`❌ Error processing ${file.originalname}:`, error);
       }
     }
     
-    // Return results - exact structure as your upload-file.js
+    // Return results
     const response = {
       status: successCount > 0 ? 'success' : 'error',
-      message: `Analysis upload complete: ${successCount} successful, ${failureCount} failed`,
+      message: `Upload complete: ${successCount} successful, ${failureCount} failed`,
       successful_uploads: successCount,
       failed_uploads: failureCount,
-      files: results,
-      endpoint_working: true,
-      ready_for_analysis: true
+      files: results
     };
     
-    console.log(`📊 [Analysis] Upload complete: ${successCount}/${req.files.length} successful`);
+    console.log(`📊 Upload complete: ${successCount}/${req.files.length} successful`);
     res.json(response);
     
   } catch (error) {
-    console.error('❌ [Analysis] Upload endpoint error:', error);
+    console.error('❌ Upload endpoint error:', error);
     res.status(500).json({
       status: 'error',
       message: 'Server error during file upload',
@@ -240,29 +223,7 @@ async function uploadForAnalysisHandler(req, res) {
   }
 }
 
-// Use multer middleware first, then our handler
-function createAnalysisHandler() {
-  return upload.array('files', 10);
-}
-
-// Export as DEFAULT (matching server.js import pattern)
-const analysisHandler = (req, res) => {
-  // Apply multer middleware first, then our handler
-  upload.array('files', 10)(req, res, async (uploadError) => {
-    if (uploadError) {
-      console.error('❌ [Analysis] Multer error:', uploadError);
-      return res.status(400).json({
-        success: false,
-        error: uploadError.message,
-        error_type: 'upload_error'
-      });
-    }
-    
-    // Call our main handler
-    await uploadForAnalysisHandler(req, res);
-  });
-};
-
-export default analysisHandler;
-
-console.log('✅ [Analysis] upload-for-analysis.js loaded successfully with DEFAULT export');
+// Export the configured upload middleware and handler (ES6 syntax)
+export const uploadMiddleware = upload.array('files', 10);
+// CHANGED: Export as default instead of named export
+export default uploadForAnalysisHandler;
