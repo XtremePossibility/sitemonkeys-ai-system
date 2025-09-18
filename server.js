@@ -535,104 +535,138 @@ async function loadVaultContent() {
     return { vaultContent, loadedFolders, totalFiles };
 }
 
-// VAULT ENDPOINT - Main vault endpoint handles both GET and POST
-app.all('/api/load-vault', async (req, res) => {
+app.all('/api/load-vault', (req, res) => {
+  // Wrap everything in a promise that can't fail silently
+  Promise.resolve().then(async () => {
     try {
-        // Check if request is for Site Monkeys mode only
-        const mode = req.body.mode || req.query.mode || 'site_monkeys';
-        if (mode !== 'site_monkeys') {
-            console.log(`🚫 Vault access denied for mode: ${mode}`);
-            return res.json({
-                status: "access_denied",
-                vault_content: "",
-                tokens: 0,
-                message: "Vault only available in Site Monkeys mode"
-            });
-        }
+      // Check if request is for Site Monkeys mode only
+      const mode = req.body.mode || req.query.mode || 'site_monkeys';
+      if (mode !== 'site_monkeys') {
+        console.log(`🚫 Vault access denied for mode: ${mode}`);
+        return res.json({
+          status: "access_denied",
+          vault_content: "",
+          tokens: 0,
+          message: "Vault only available in Site Monkeys mode"
+        });
+      }
+      
+      const isRefresh = req.query.refresh === 'true';
+      
+      if (isRefresh) {
+        console.log("🔄 Refresh requested - loading fresh vault data...");
         
-        const isRefresh = req.query.refresh === 'true';
+        // Wrap vault loading in timeout
+        const vaultPromise = loadVaultContent();
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Vault loading timeout')), 45000)
+        );
         
-        if (isRefresh) {
-            console.log("🔄 Refresh requested - loading fresh vault data...");
-            
-            const { vaultContent: vaultMemory, loadedFolders, totalFiles } = await loadVaultContent();
-            
-            const tokenCount = Math.floor(vaultMemory.length / 4);
-            const estimatedCost = (tokenCount * 0.002) / 1000;
-            
-            const vaultData = {
-                vault_content: vaultMemory,
-                tokens: tokenCount,
-                estimated_cost: `$${estimatedCost.toFixed(4)}`,
-                folders_loaded: loadedFolders,
-                total_files: totalFiles,
-                last_updated: "refresh_requested",
-                vault_status: "operational"
-            };
-            
-            const kvStored = await storeVaultInKv(vaultData);
-            
-            console.log(`📊 Vault refresh complete: ${tokenCount} tokens, ${loadedFolders.length} folders`);
-            
-            const response = {
-                status: "refreshed",
-                vault_content: vaultMemory,
-                tokens: tokenCount,
-                estimated_cost: `$${estimatedCost.toFixed(4)}`,
-                folders_loaded: loadedFolders,
-                total_files: totalFiles,
-                kv_stored: kvStored,
-                message: `Vault refreshed: ${loadedFolders.length} folders, ${totalFiles} files`,
-                vault_status: "operational"
-            };
-            
-            res.json(response);
-            
-        } else {
-            console.log("📖 Checking for cached vault data...");
-            
-            const cachedVault = await getVaultFromKv();
-            
-            if (cachedVault && typeof cachedVault === 'object' && cachedVault.vault_content) {
-                console.log("✅ Found valid cached vault data in KV");
-                const response = {
-                    status: "success",
-                    vault_content: cachedVault.vault_content || "",
-                    tokens: cachedVault.tokens || 0,
-                    estimated_cost: cachedVault.estimated_cost || "$0.00",
-                    folders_loaded: cachedVault.folders_loaded || [],
-                    total_files: cachedVault.total_files || 0,
-                    vault_status: cachedVault.vault_status || "operational",
-                    message: "Using cached vault data from KV"
-                };
-                res.json(response);
-            } else {
-                console.log("⚠️ No valid cached vault data found");
-                const response = {
-                    status: "success",
-                    needs_refresh: true,
-                    vault_content: "",
-                    tokens: 0,
-                    estimated_cost: "$0.00",
-                    folders_loaded: [],
-                    total_files: 0,
-                    vault_status: "needs_refresh",
-                    message: "No vault data found - please refresh"
-                };
-                res.json(response);
-            }
-        }
+        const { vaultContent: vaultMemory, loadedFolders, totalFiles } = await Promise.race([
+          vaultPromise,
+          timeoutPromise
+        ]);
         
-    } catch (error) {
-        console.log(`❌ Vault operation failed: ${error.message}`);
-        const errorResponse = {
-            status: "error",
-            error: error.message,
-            vault_status: "error",
-            message: "Vault operation failed - check configuration"
+        const tokenCount = Math.floor(vaultMemory.length / 4);
+        const estimatedCost = (tokenCount * 0.002) / 1000;
+        
+        const vaultData = {
+          vault_content: vaultMemory,
+          tokens: tokenCount,
+          estimated_cost: `$${estimatedCost.toFixed(4)}`,
+          folders_loaded: loadedFolders,
+          total_files: totalFiles,
+          last_updated: "refresh_requested",
+          vault_status: "operational"
         };
-        res.json(errorResponse);
+        
+        // Wrap KV storage in timeout  
+        const kvPromise = storeVaultInKv(vaultData);
+        const kvTimeoutPromise = new Promise((resolve) => 
+          setTimeout(() => resolve(false), 30000)
+        );
+        
+        const kvStored = await Promise.race([kvPromise, kvTimeoutPromise]);
+        
+        console.log(`📊 Vault refresh complete: ${tokenCount} tokens, ${loadedFolders.length} folders`);
+        
+        const response = {
+          status: "refreshed",
+          vault_content: vaultMemory,
+          tokens: tokenCount,
+          estimated_cost: `$${estimatedCost.toFixed(4)}`,
+          folders_loaded: loadedFolders,
+          total_files: totalFiles,
+          kv_stored: kvStored,
+          message: `Vault refreshed: ${loadedFolders.length} folders, ${totalFiles} files`,
+          vault_status: "operational"
+        };
+        
+        res.json(response);
+        
+      } else {
+        console.log("📖 Checking for cached vault data...");
+        
+        // Wrap KV retrieval in timeout
+        const kvPromise = getVaultFromKv();
+        const timeoutPromise = new Promise((resolve) => 
+          setTimeout(() => resolve(null), 15000)
+        );
+        
+        const cachedVault = await Promise.race([kvPromise, timeoutPromise]);
+        
+        if (cachedVault && typeof cachedVault === 'object' && cachedVault.vault_content) {
+          console.log("✅ Found valid cached vault data in KV");
+          const response = {
+            status: "success",
+            vault_content: cachedVault.vault_content || "",
+            tokens: cachedVault.tokens || 0,
+            estimated_cost: cachedVault.estimated_cost || "$0.00",
+            folders_loaded: cachedVault.folders_loaded || [],
+            total_files: cachedVault.total_files || 0,
+            vault_status: cachedVault.vault_status || "operational",
+            message: "Using cached vault data from KV"
+          };
+          res.json(response);
+        } else {
+          console.log("⚠️ No valid cached vault data found");
+          const response = {
+            status: "success",
+            needs_refresh: true,
+            vault_content: "",
+            tokens: 0,
+            estimated_cost: "$0.00",
+            folders_loaded: [],
+            total_files: 0,
+            vault_status: "needs_refresh",
+            message: "No vault data found - please refresh"
+          };
+          res.json(response);
+        }
+      }
+      
+    } catch (error) {
+      console.log(`❌ Vault operation failed: ${error.message}`);
+      console.log(`❌ Full vault error:`, error);
+      const errorResponse = {
+        status: "error",
+        error: error.message,
+        vault_status: "error",
+        message: "Vault operation failed - check configuration"
+      };
+      res.json(errorResponse);
     }
+  }).catch(error => {
+    console.error('❌ Vault endpoint critical error:', error);
+    if (!res.headersSent) {
+      res.status(500).json({
+        status: "error",
+        error: error.message,
+        vault_status: "critical_error",
+        message: "Critical vault error - server protected"
+      });
+    }
+  });
 });
 
 // ==================== END VAULT INTEGRATION ====================
