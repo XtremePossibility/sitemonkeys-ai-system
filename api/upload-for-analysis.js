@@ -124,7 +124,7 @@ async function processFile(file) {
 }
 
 // Main upload handler - EXACT COPY of handleFileUpload with analysis-specific messages
-async function handleFileUpload(req, res) {
+async function uploadForAnalysisHandler(req, res) {
   console.log('📤 [Analysis] File upload request received');
   
   try {
@@ -215,4 +215,4 @@ async function handleFileUpload(req, res) {
 
 // Export the configured upload middleware and handler (ES6 syntax) - EXACT COPY
 export const uploadMiddleware = upload.array('files', 10);
-export { handleFileUpload };
+export { uploadForAnalysisHandler };
