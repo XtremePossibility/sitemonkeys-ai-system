@@ -1305,6 +1305,19 @@ function showStoredDocuments() {
 
 // Auto-clear old documents when new ones are added
 window.addEventListener('beforeunload', clearOldDocuments);
+
+});
+
+// Error handling for missing images
+document.addEventListener('DOMContentLoaded', function() {
+const images = document.querySelectorAll('img');
+images.forEach(img => {
+img.onerror = function() {
+console.warn(`Image failed to load: ${this.src}`);
+this.style.display = 'none';
+};
+});
+});
   
 </script>
 <script src="/js/app.js"></script>
