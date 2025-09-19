@@ -1161,6 +1161,113 @@ const isDocumentQuery = analysisKeywords.some(keyword =>
   text.toLowerCase().includes(keyword)
 );
 
+// File upload functionality
+async function handleFileUpload(files) {
+if (files.length === 0) return;
+const box = document.getElementById('chat-box');
+
+// Show upload message
+const uploadBubble = document.createElement('div');
+uploadBubble.className = 'bubble ai';
+uploadBubble.innerHTML = `<img src="boy-mascot.png" class="avatar" alt="System"><div class="bubble-content"><strong>System:</strong> 📤 Uploading ${files.length} file(s) to vault...</div>`;
+box.appendChild(uploadBubble);
+box.scrollTop = box.scrollHeight;
+
+try {
+const formData = new FormData();
+for (const file of files) { formData.append('files', file); }
+
+const response = await fetch('/api/upload-file', { method: 'POST', body: formData });
+const result = await response.json();
+
+if (result.status === 'success' && result.successful_uploads > 0) {
+for (const fileInfo of result.files) {
+if (fileInfo.success) {
+const successBubble = document.createElement('div');
+successBubble.className = 'bubble ai';
+successBubble.innerHTML = `<img src="girl-mascot.png" class="avatar" alt="Roxy"><div class="bubble-content"><strong>Roxy:</strong> ✅ Uploaded "${fileInfo.filename}" to ${fileInfo.folder} folder. File is now available for chat!</div>`;
+box.appendChild(successBubble);
+box.scrollTop = box.scrollHeight;
+} else {
+const errorBubble = document.createElement('div');
+errorBubble.className = 'bubble ai';
+errorBubble.innerHTML = `<img src="boy-mascot.png" class="avatar" alt="System"><div class="bubble-content"><strong>System:</strong> ❌ Failed to upload "${fileInfo.filename}": ${fileInfo.message}</div>`;
+box.appendChild(errorBubble);
+box.scrollTop = box.scrollHeight;
+}
+}
+} else {
+const errorBubble = document.createElement('div');
+errorBubble.className = 'bubble ai';
+errorBubble.innerHTML = `<img src="boy-mascot.png" class="avatar" alt="System"><div class="bubble-content"><strong>System:</strong> ❌ Upload failed: ${result.message}</div>`;
+box.appendChild(errorBubble);
+box.scrollTop = box.scrollHeight;
+}
+} catch (error) {
+const errorBubble = document.createElement('div');
+errorBubble.className = 'bubble ai';
+errorBubble.innerHTML = `<img src="boy-mascot.png" class="avatar" alt="System"><div class="bubble-content"><strong>System:</strong> ❌ Upload failed: ${error.message}</div>`;
+box.appendChild(errorBubble);
+box.scrollTop = box.scrollHeight;
+}
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+console.log('🚀 DOM LOADED - JavaScript is working!');
+const input = document.getElementById('user-input');
+const sendBtn = document.getElementById('send-btn');
+
+// Mode toggle listeners
+const modeButtons = document.querySelectorAll('.mode-btn');
+modeButtons.forEach(button => {
+  button.addEventListener('click', function() {
+    const selectedMode = this.getAttribute('data-mode');
+    switchMode(selectedMode);
+  });
+});
+
+input.addEventListener('keydown', function(e) {
+if (e.key === 'Enter' && !e.shiftKey) {
+e.preventDefault();
+sendMessage();
+}
+});
+
+sendBtn.addEventListener('click', function(e) {
+e.preventDefault();
+sendMessage();
+});
+
+// Upload button functionality
+const attachmentBtn = document.getElementById('attachment-btn');
+const fileInput = document.getElementById('file-input');
+
+attachmentBtn.addEventListener('click', () => fileInput.click());
+fileInput.addEventListener('change', (e) => {
+if (e.target.files.length > 0) handleFileUpload(Array.from(e.target.files));
+});
+
+// Analysis button functionality
+const analyzeBtn = document.getElementById('analyze-btn');
+const analyzeFileInput = document.getElementById('analyze-file-input');
+
+if (analyzeBtn && analyzeFileInput) {
+  analyzeBtn.addEventListener('click', () => analyzeFileInput.click());
+  analyzeFileInput.addEventListener('change', (e) => {
+    if (e.target.files.length > 0) {
+      handleAnalysisUpload(Array.from(e.target.files));
+    }
+  });
+  console.log('✅ Analysis system initialized');
+}
+
+console.log('🎯 Event listeners added');
+setTimeout(() => {
+console.log('⏰ Starting status animation...');
+loadStatus();
+}, 800);
+});
+
 console.log('🔍 Document query check:', isDocumentQuery);
 console.log('🔍 Documents available:', extractedDocuments.length);
 
@@ -1280,7 +1387,8 @@ box.appendChild(errorBubble);
 box.scrollTop = box.scrollHeight;
 }
 }
-
+} 
+  
 // Function to clear old documents (memory management)
 function clearOldDocuments() {
   const maxDocuments = 5; // Keep only last 5 documents
