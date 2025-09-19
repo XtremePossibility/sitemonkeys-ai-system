@@ -376,10 +376,28 @@ if (intelligenceMemories && intelligenceMemories.length > 0) {
     console.log('[MEMORY DEBUG] Memory found:', memoryContext?.contextFound);
     console.log('[MEMORY DEBUG] Memory content preview:', memoryContext?.memories?.substring(0, 500));
 
+    // *** DOCUMENT CONTEXT PROCESSING ***
+    let enhancedMessage = message;
+    if (document_context) {
+      console.log(`📄 [CHAT] Document context available: ${document_context.filename}`);
+      
+      enhancedMessage = `The user has uploaded a document for analysis. Here are the details:
+    
+    DOCUMENT: ${document_context.filename}
+    TYPE: ${document_context.contentType}
+    WORD COUNT: ${document_context.wordCount}
+    CONTENT: ${document_context.content}
+    KEY PHRASES: ${document_context.keyPhrases}
+    
+    USER QUESTION: ${message}
+    
+    Please provide a detailed analysis of this document based on the user's question. Focus on the actual content provided above.`;
+    }
+    
     // *** MASTER SYSTEM PROMPT CONSTRUCTION ***
     const intelligenceContext = null; // Bridge will provide intelligence context if needed
     const masterPrompt = buildMasterPrompt(mode, optimalPersonality, vaultContent, vaultHealthy, expertDomain, careNeeds, protectiveAlerts, solutionOpportunities, memoryContext, intelligenceContext);
-    const basePrompt = buildFullConversationPrompt(masterPrompt, message, conversation_history, expertDomain, careNeeds, memoryContext);
+    const basePrompt = buildUniversalConversationPrompt(masterPrompt, enhancedMessage, conversation_history, expertDomain, careNeeds, memoryContext);
     
     // *** SYSTEM INTELLIGENCE INTEGRATION - FALLBACK SAFE ***
     const intelligence = { vaultIntelligenceActive: vaultHealthy, status: 'active' };
