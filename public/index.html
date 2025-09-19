@@ -894,6 +894,7 @@ async function handleAnalysisUpload(files) {
       console.log('contentExtracted:', result.files[0].contentExtracted);
       console.log('aiAnalysis:', result.files[0].aiAnalysis);
       console.log('aiAnalysis structure:', Object.keys(result.files[0].aiAnalysis || {}));
+      console.log('All file properties:', Object.keys(result.files[0]));
     }
     console.log('=== END DEBUG ===');
     
