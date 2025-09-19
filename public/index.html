@@ -921,7 +921,7 @@ async function handleAnalysisUpload(files) {
       
       // Process each file result
       const filesToProcess = result.analysis_results || result.files || [];
-      filesToProcess.forEach(file => {{
+      filesToProcess.forEach(file => {
         // Create analysis bubble
         const analysisBubble = document.createElement('div');
         analysisBubble.className = 'bubble ai';
