@@ -885,12 +885,17 @@ async function handleAnalysisUpload(files) {
       console.log('First file object:', result.analysis_results[0]);
       console.log('contentExtracted:', result.analysis_results[0].contentExtracted);
       console.log('docxAnalysis:', result.analysis_results[0].docxAnalysis);
+    } else if (result.files && result.files.length > 0) {
+      console.log('First file object (files):', result.files[0]);
+      console.log('contentExtracted:', result.files[0].contentExtracted);
+      console.log('docxAnalysis:', result.files[0].docxAnalysis);
     }
     console.log('=== END DEBUG ===');
     
     if (result.success) {
       // ✅ CRITICAL FIX: Store extracted documents in global array
-      const docxFiles = result.analysis_results.filter(file => file.contentExtracted && file.docxAnalysis);
+      const fileResults = result.analysis_results || result.files || [];
+      const docxFiles = fileResults.filter(file => file.contentExtracted && file.docxAnalysis);
       
       docxFiles.forEach(file => {
         const docxContent = {
@@ -915,7 +920,8 @@ async function handleAnalysisUpload(files) {
       box.appendChild(successBubble);
       
       // Process each file result
-      result.analysis_results.forEach(file => {
+      const filesToProcess = result.analysis_results || result.files || [];
+      filesToProcess.forEach(file => {{
         // Create analysis bubble
         const analysisBubble = document.createElement('div');
         analysisBubble.className = 'bubble ai';
