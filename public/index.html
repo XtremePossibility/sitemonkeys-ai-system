@@ -1289,6 +1289,15 @@ function clearOldDocuments() {
   }
 }
 
+// Function to clear old documents (memory management)
+function clearOldDocuments() {
+  const maxDocuments = 5; // Keep only last 5 documents
+  if (extractedDocuments.length > maxDocuments) {
+    const removed = extractedDocuments.splice(0, extractedDocuments.length - maxDocuments);
+    console.log(`🗑️ Cleared ${removed.length} old documents from memory`);
+  }
+}
+
 // Function to show current stored documents
 function showStoredDocuments() {
   if (extractedDocuments.length === 0) {
