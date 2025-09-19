@@ -35,22 +35,10 @@ export class EnhancedIntelligence {
     };
 
     // 1. MULTI-STEP REASONING ENGINE
-    requiresReasoning(query, mode) {
-      // Check if query has reasoning complexity indicators
-      const hasComplexityIndicators = 
-        query.length > 50 ||
-        /\b(why|how|should|could|would|analyze|compare|evaluate|assess)\b/i.test(query) ||
-        /\b(problem|issue|decision|choice|option|strategy|invest|business)\b/i.test(query);
-      
-      // Check if query asks WHY/HOW questions (inherently require reasoning)
-      const asksReasoningQuestions = /\b(why|how)\b/i.test(query);
-      
-      // Check if mode specifically demands business reasoning
-      const businessModesRequireReasoning = 
-        (mode === 'business_validation' || mode === 'site_monkeys') && hasComplexityIndicators;
-      
-      // Return true only if query actually needs reasoning
-      return asksReasoningQuestions || hasComplexityIndicators || businessModesRequireReasoning;
+    if (this.requiresReasoning(query, mode)) {
+      console.log('🔗 Applying multi-step reasoning chain');
+      enhancement.reasoningChain = await this.buildReasoningChain(query, memoryContext, vaultContext);
+      enhancement.intelligenceApplied.push('reasoning');
     }
     // 2. CROSS-DOMAIN KNOWLEDGE SYNTHESIS  
     if (this.requiresCrossDomainAnalysis(query, memoryContext)) {
