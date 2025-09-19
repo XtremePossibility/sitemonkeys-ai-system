@@ -1121,7 +1121,7 @@ async function sendMessage() {
     }
 
     // Check if user is asking about uploaded documents
-    const analysisKeywords = ['analyze', 'analysis', 'document', 'file', 'docx', 'content', 'review', 'examine', 'summarize'];
+    const analysisKeywords = ['analyze', 'analysis', 'document', 'file', 'docx', 'content', 'review', 'examine', 'summarize', 'explain', 'contents', 'means', 'about', 'what', 'this'];
     const isDocumentQuery = analysisKeywords.some(keyword => 
       text.toLowerCase().includes(keyword)
     );
