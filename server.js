@@ -17,6 +17,7 @@ import xml2js from 'xml2js';
 import zlib from 'zlib';
 import { promisify } from 'util';
 import { uploadMiddleware, handleFileUpload } from './api/upload-file.js';
+import { analysisMiddleware, handleAnalysisUpload } from './api/upload-for-analysis.js';
 
 // ===== CRITICAL RAILWAY ERROR HANDLERS =====
 process.on('unhandledRejection', (reason, promise) => {
