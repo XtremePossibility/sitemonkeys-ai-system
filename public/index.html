@@ -886,6 +886,16 @@ async function handleAnalysisUpload(files) {
     });
     
     const result = await response.json();
+
+    console.log('=== BACKEND RESPONSE DEBUG ===');
+    console.log('Full result:', result);
+    if (result.files && result.files.length > 0) {
+      console.log('First file object:', result.files[0]);
+      console.log('contentExtracted:', result.files[0].contentExtracted);
+      console.log('aiAnalysis:', result.files[0].aiAnalysis);
+      console.log('aiAnalysis structure:', Object.keys(result.files[0].aiAnalysis || {}));
+    }
+    console.log('=== END DEBUG ===');
     
     if (result.success) {
       // Show success message
