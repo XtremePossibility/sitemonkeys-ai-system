@@ -5,7 +5,21 @@ import multer from 'multer';
 import path from 'path';
 import mammoth from 'mammoth';
 
+// Temporary server-side storage for extracted documents
+export const extractedDocuments = new Map();
+
 // Configure multer for file uploads (in-memory storage) - EXACT COPY
+
+// Helper function to clean old documents (prevent memory bloat)
+function cleanOldDocuments() {
+  const tenMinutesAgo = Date.now() - (10 * 60 * 1000);
+  for (const [key, doc] of extractedDocuments.entries()) {
+    if (doc.timestamp < tenMinutesAgo) {
+      extractedDocuments.delete(key);
+    }
+  }
+}
+
 const storage = multer.memoryStorage();
 const upload = multer({
   storage: storage,
@@ -347,6 +361,27 @@ async function handleAnalysisUpload(req, res) {
         memory_efficient: true
       }
     };
+
+    // Store extracted content for chat system access
+    results.forEach(file => {
+      if (file.contentExtracted && file.docxAnalysis) {
+        const documentId = `${Date.now()}_${file.filename}`;
+        extractedDocuments.set('latest', {
+          id: documentId,
+          filename: file.filename,
+          content: file.docxAnalysis.preview,
+          wordCount: file.docxAnalysis.wordCount,
+          contentType: file.docxAnalysis.contentType,
+          keyPhrases: file.docxAnalysis.keyPhrases,
+          timestamp: Date.now()
+        });
+        
+        console.log(`📄 [STORAGE] Stored document for chat access: ${file.filename}`);
+      }
+    });
+    
+    // Clean old documents
+    cleanOldDocuments();
     
     console.log(`📊 [Analysis] Upload complete: ${successCount}/${req.files.length} successful`);
     res.json(response);
