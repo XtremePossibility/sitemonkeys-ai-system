@@ -1121,24 +1121,21 @@ async function sendMessage() {
     }
 
     // Prepare enhanced message with document context
-    let enhancedMessage = text;
-    let documentContext = null;
-    
+    // Simple document context injection
+    let messageToSend = text;
+
     if (extractedDocuments.length > 0) {
-      const recentDoc = extractedDocuments[extractedDocuments.length - 1];
-      
-      // Always add document context when documents exist
-      enhancedMessage = `${text}
-    
-    UPLOADED DOCUMENT CONTEXT:
-    Filename: ${recentDoc.filename}
-    Content Type: ${recentDoc.contentType}
-    Word Count: ${recentDoc.wordCount}
-    Document Content: ${recentDoc.preview}
-    
-    Please use this document information to answer the user's question.`;
-    
-      console.log('📄 Document context added to message for:', recentDoc.filename);
+      const doc = extractedDocuments[extractedDocuments.length - 1];
+      messageToSend = `${text}
+
+[DOCUMENT CONTEXT]
+File: ${doc.filename}
+Content: ${doc.preview}
+Word Count: ${doc.wordCount}
+Type: ${doc.contentType}
+
+Use this document information to answer the user's question.`;
+      console.log('Document context added:', doc.filename);
     }
 
     console.log('ACTUAL MESSAGE BEING SENT TO API:', enhancedMessage);
@@ -1148,7 +1145,7 @@ async function sendMessage() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        message: enhancedMessage,
+        message: messageToSend,
         conversation_history: conversationHistory,
         mode: getCurrentMode(),
         vault_loaded: isVaultMode(),
