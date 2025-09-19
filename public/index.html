@@ -1122,7 +1122,7 @@ async function sendMessage() {
 
     // Check if user is asking about uploaded documents
     // Always include document context if documents are available
-    let documentContext = null;
+    documentContext = null;
     if (extractedDocuments.length > 0) {
       const recentDoc = extractedDocuments[extractedDocuments.length - 1];
       documentContext = {
