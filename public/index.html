@@ -1141,6 +1141,8 @@ async function sendMessage() {
       console.log('📄 Document context added to message for:', recentDoc.filename);
     }
 
+    console.log('ACTUAL MESSAGE BEING SENT TO API:', enhancedMessage);
+
     // Send message with vault content injection AND document context
     const response = await fetch('/api/chat', {
       method: 'POST',
