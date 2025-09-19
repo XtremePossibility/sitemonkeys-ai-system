@@ -364,7 +364,7 @@ async function handleAnalysisUpload(req, res) {
 
     // Store extracted content for chat system access
     results.forEach(file => {
-      if (file.contentExtracted) {
+      if (file.contentExtracted && file.docxAnalysis) {
         const documentId = `${Date.now()}_${file.filename}`;
         extractedDocuments.set('latest', {
           id: documentId,
