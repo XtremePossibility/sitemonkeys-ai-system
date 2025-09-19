@@ -1487,6 +1487,32 @@ this.style.display = 'none';
 };
 });
 });
+
+// Function to clear old documents (memory management)
+function clearOldDocuments() {
+  const maxDocuments = 5; // Keep only last 5 documents
+  if (extractedDocuments.length > maxDocuments) {
+    const removed = extractedDocuments.splice(0, extractedDocuments.length - maxDocuments);
+    console.log(`🗑️ Cleared ${removed.length} old documents from memory`);
+  }
+}
+
+// Function to show current stored documents
+function showStoredDocuments() {
+  if (extractedDocuments.length === 0) {
+    console.log('📄 No documents currently stored');
+    return;
+  }
+  
+  console.log(`📄 Currently stored documents (${extractedDocuments.length}):`);
+  extractedDocuments.forEach((doc, index) => {
+    console.log(`${index + 1}. ${doc.filename} (${doc.wordCount} words, ${doc.contentType})`);
+  });
+}
+
+// Auto-clear old documents when new ones are added
+window.addEventListener('beforeunload', clearOldDocuments);
+  
 </script>
 <script src="/js/app.js"></script>
 </body>
