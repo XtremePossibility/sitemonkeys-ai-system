@@ -1121,19 +1121,58 @@ console.log('🎯 Vault loaded for chat:', vaultContent ? 'SUCCESS (' + Math.cei
 console.warn('⚠️ Vault load failed, backend will use emergency fallbacks:', vaultError);
 }
 
-// Send message with vault content injection
-const response = await fetch('/api/chat', {
-method: 'POST',
-headers: { 'Content-Type': 'application/json' },
-body: JSON.stringify({
-message: text,
-conversation_history: conversationHistory,
-mode: getCurrentMode(),
-vault_loaded: isVaultMode(),
-vault_content: vaultContent
-})
-});
+// STEP 3: REPLACE the fetch call in your sendMessage function with this:
 
+// Check if user is asking about uploaded documents
+const analysisKeywords = ['analyze', 'analysis', 'document', 'file', 'docx', 'content', 'review', 'examine', 'summarize'];
+const isDocumentQuery = analysisKeywords.some(keyword => 
+  text.toLowerCase().includes(keyword)
+);
+
+// Prepare enhanced message with document context
+let enhancedMessage = text;
+let documentContext = null;
+
+if (isDocumentQuery && extractedDocuments.length > 0) {
+  // Find the most recent document
+  const recentDoc = extractedDocuments[extractedDocuments.length - 1];
+  
+  // Add document context
+  documentContext = {
+    filename: recentDoc.filename,
+    contentType: recentDoc.contentType,
+    wordCount: recentDoc.wordCount,
+    content: recentDoc.preview,
+    keyPhrases: recentDoc.keyPhrases.join(', '),
+    uploadTime: recentDoc.uploadTime
+  };
+  
+  // Enhance the message with document context
+  enhancedMessage = `${text}
+
+DOCUMENT CONTEXT:
+- File: ${recentDoc.filename}
+- Type: ${recentDoc.contentType}
+- Content: ${recentDoc.preview}
+- Key phrases: ${recentDoc.keyPhrases.join(', ')}
+- Word count: ${recentDoc.wordCount}`;
+
+  console.log('📄 Added document context to chat message:', recentDoc.filename);
+}
+
+// Send message with vault content injection AND document context
+const response = await fetch('/api/chat', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    message: enhancedMessage, // This now includes document context when relevant
+    conversation_history: conversationHistory,
+    mode: getCurrentMode(),
+    vault_loaded: isVaultMode(),
+    vault_content: vaultContent,
+    document_context: documentContext // Add document metadata
+  })
+});
 if (!response.ok) {
 const errorData = await response.json();
 if (errorData.needs_refresh) {
