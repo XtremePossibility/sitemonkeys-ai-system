@@ -762,19 +762,96 @@ display: flex; align-items: center; justify-content: center;
 </div>
 
 <script>
-// Global variables for working functionality
+// Global variables
 let conversationHistory = [];
 let systemActive = false;
 let aiToggle = false;
-let extractedDocuments = []; // 👈 ADD THIS LINE
+let extractedDocuments = [];
 
-// ================================================================
-// FILE ANALYSIS FUNCTIONS - COPY AND PASTE THIS ENTIRE SECTION
-// Add this RIGHT AFTER your existing global variables in index.html
-// ================================================================
+// Mode system
+let currentMode = 'business_validation';
 
-// STEP 2: REPLACE your entire handleAnalysisUpload function with this:
+function switchMode(mode) {
+  currentMode = mode;
+  console.log(`🔄 Switched to mode: ${mode}`);
+  
+  // Update button states
+  document.querySelectorAll('.mode-btn').forEach(btn => {
+    btn.classList.remove('active');
+  });
+  
+  // Set active button
+  const activeBtn = document.querySelector(`[data-mode="${mode}"]`);
+  if (activeBtn) {
+    activeBtn.classList.add('active');
+  }
+}
 
+function getCurrentMode() {
+  return currentMode;
+}
+
+function isVaultMode() {
+  return currentMode === 'site_monkeys';
+}
+
+// File upload functionality
+async function handleFileUpload(files) {
+  if (files.length === 0) return;
+  const box = document.getElementById('chat-box');
+
+  // Show upload message
+  const uploadBubble = document.createElement('div');
+  uploadBubble.className = 'bubble ai';
+  uploadBubble.innerHTML = `<img src="boy-mascot.png" class="avatar" alt="System"><div class="bubble-content"><strong>System:</strong> 📤 Uploading ${files.length} file(s) to vault...</div>`;
+  box.appendChild(uploadBubble);
+  box.scrollTop = box.scrollHeight;
+
+  try {
+    const formData = new FormData();
+    for (const file of files) { 
+      formData.append('files', file); 
+    }
+
+    const response = await fetch('/api/upload-file', { 
+      method: 'POST', 
+      body: formData 
+    });
+    const result = await response.json();
+
+    if (result.status === 'success' && result.successful_uploads > 0) {
+      for (const fileInfo of result.files) {
+        if (fileInfo.success) {
+          const successBubble = document.createElement('div');
+          successBubble.className = 'bubble ai';
+          successBubble.innerHTML = `<img src="girl-mascot.png" class="avatar" alt="Roxy"><div class="bubble-content"><strong>Roxy:</strong> ✅ Uploaded "${fileInfo.filename}" to ${fileInfo.folder} folder. File is now available for chat!</div>`;
+          box.appendChild(successBubble);
+          box.scrollTop = box.scrollHeight;
+        } else {
+          const errorBubble = document.createElement('div');
+          errorBubble.className = 'bubble ai';
+          errorBubble.innerHTML = `<img src="boy-mascot.png" class="avatar" alt="System"><div class="bubble-content"><strong>System:</strong> ❌ Failed to upload "${fileInfo.filename}": ${fileInfo.message}</div>`;
+          box.appendChild(errorBubble);
+          box.scrollTop = box.scrollHeight;
+        }
+      }
+    } else {
+      const errorBubble = document.createElement('div');
+      errorBubble.className = 'bubble ai';
+      errorBubble.innerHTML = `<img src="boy-mascot.png" class="avatar" alt="System"><div class="bubble-content"><strong>System:</strong> ❌ Upload failed: ${result.message}</div>`;
+      box.appendChild(errorBubble);
+      box.scrollTop = box.scrollHeight;
+    }
+  } catch (error) {
+    const errorBubble = document.createElement('div');
+    errorBubble.className = 'bubble ai';
+    errorBubble.innerHTML = `<img src="boy-mascot.png" class="avatar" alt="System"><div class="bubble-content"><strong>System:</strong> ❌ Upload failed: ${error.message}</div>`;
+    box.appendChild(errorBubble);
+    box.scrollTop = box.scrollHeight;
+  }
+}
+
+// File analysis functionality
 async function handleAnalysisUpload(files) {
   if (files.length === 0) return;
   
@@ -840,7 +917,7 @@ async function handleAnalysisUpload(files) {
               keyPhrases: analysis.keyPhrases || [],
               readingTime: analysis.readingTime,
               uploadTime: new Date().toISOString(),
-              fullContent: analysis.preview // For now, we'll use preview as content
+              fullContent: analysis.preview
             };
             
             // Store in global array
@@ -896,19 +973,130 @@ async function handleAnalysisUpload(files) {
   }
 }
 
-// Send enhanced query to your existing chat system
-async function sendEnhancedQueryToChat(enhancedQuery) {
-  try {
-    const box = document.getElementById('chat-box');
-    
-    // Add thinking indicator for chat response
-    const thinkingBubble = document.createElement('div');
-    thinkingBubble.className = 'bubble ai thinking-bubble';
-    thinkingBubble.innerHTML = `<img src="boy-mascot.png" class="avatar" alt="Thinking"><div class="bubble-content thinking-content"><span class="thinking-brain">🧠</span> Processing analysis...</div>`;
-    box.appendChild(thinkingBubble);
-    box.scrollTop = box.scrollHeight;
+// Animation code
+const statusItems = document.querySelectorAll('#status-list li');
+const systemReady = document.getElementById('system-ready');
+let statusIndex = 0;
 
-    // Load vault content (your existing logic)
+function loadStatus() {
+  console.log('🎯 loadStatus function called');
+  if (statusIndex < statusItems.length) {
+    statusItems[statusIndex].classList.add('loaded');
+    statusIndex++;
+    setTimeout(loadStatus, 400);
+  } else {
+    setTimeout(() => {
+      console.log('✅ Status animation complete, system ready immediately');
+      systemReady.classList.add('active');
+      systemActive = true;
+      console.log('✅ System active - using KV cache');
+      checkVaultStatus();
+    }, 500);
+  }
+}
+
+// Check vault status and update display
+async function checkVaultStatus() {
+  try {
+    console.log('📖 Checking vault status...');
+    const response = await fetch('/api/load-vault', {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' }
+    });
+
+    const data = await response.json();
+    console.log('📊 Vault status:', data);
+
+    if (data.status === 'success' && !data.needs_refresh) {
+      document.getElementById('vault-info').innerHTML = `
+        <div><span style="color:#00FF00;">✅</span> VAULT READY (CACHED)</div>
+        <div>🔢 <span id="token-count">${data.tokens || 'Ready'}</span> TOKENS</div>
+        <div>💰 EST. COST: <span id="cost-estimate">${data.estimated_cost || '$0.00'}</span></div>
+        <div>📁 <span id="vault-folders">${data.folders_loaded?.length || 'Cached'}</span> FOLDERS LOADED</div>
+        <button id="refresh-vault-btn" onclick="refreshVault()" style="background: #FFD811; color: #373534; border: 1px solid #fff; border-radius: 8px; padding: 8px 12px; font-size: 0.8em; font-weight: bold; cursor: pointer; margin-top: 8px; width: 100%; transition: all 0.2s ease;" onmouseover="this.style.background='#ffe96a'" onmouseout="this.style.background='#FFD811'">🔄 Refresh Vault</button>`;
+    } else {
+      document.getElementById('vault-info').innerHTML = `
+        <div><span style="color:#FFA500;">⚠️</span> VAULT NEEDS REFRESH</div>
+        <div>🔢 <span id="token-count">No Data</span> TOKENS</div>
+        <div>💰 EST. COST: <span id="cost-estimate">$0.00</span></div>
+        <div>📁 <span id="vault-folders">0</span> FOLDERS LOADED</div>
+        <button id="refresh-vault-btn" onclick="refreshVault()" style="background: #FF6B6B; color: white; border: 1px solid #fff; border-radius: 8px; padding: 8px 12px; font-size: 0.8em; font-weight: bold; cursor: pointer; margin-top: 8px; width: 100%; transition: all 0.2s ease;" onmouseover="this.style.background='#ff8a8a'" onmouseout="this.style.background='#FF6B6B'">🔄 REFRESH VAULT NOW</button>`;
+    }
+  } catch (error) {
+    console.error('❌ Vault status check failed:', error);
+  }
+}
+
+// Refresh vault function
+async function refreshVault() {
+  try {
+    console.log('🔄 Refreshing vault...');
+    const button = document.getElementById('refresh-vault-btn');
+    const originalText = button.innerHTML;
+    button.innerHTML = '⏳ Refreshing...';
+    button.disabled = true;
+
+    const response = await fetch('/api/load-vault?refresh=true', {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' }
+    });
+
+    const data = await response.json();
+    console.log('📊 Vault refresh result:', data);
+    console.log('📁 Folders loaded:', data.folders_loaded);
+    console.log('🔢 Token count:', data.tokens);
+    console.log('📄 Vault content preview:', data.vault_content?.substring(0, 500));
+
+    if (data.status === 'refreshed') {
+      document.getElementById('vault-info').innerHTML = `
+        <div><span style="color:#00FF00;">✅</span> VAULT REFRESHED</div>
+        <div>🔢 <span id="token-count">${data.tokens || 'Ready'}</span> TOKENS</div>
+        <div>💰 EST. COST: <span id="cost-estimate">${data.estimated_cost || '$0.00'}</span></div>
+        <div>📁 <span id="vault-folders">${data.folders_loaded?.length || 0}</span> FOLDERS LOADED</div>
+        <button id="refresh-vault-btn" onclick="refreshVault()" style="background: #FFD811; color: #373534; border: 1px solid #fff; border-radius: 8px; padding: 8px 12px; font-size: 0.8em; font-weight: bold; cursor: pointer; margin-top: 8px; width: 100%; transition: all 0.2s ease;" onmouseover="this.style.background='#ffe96a'" onmouseout="this.style.background='#FFD811'">🔄 Refresh Vault</button>`;
+    } else {
+      button.innerHTML = '❌ Refresh Failed';
+      button.disabled = false;
+      setTimeout(() => { 
+        button.innerHTML = originalText; 
+      }, 3000);
+    }
+  } catch (error) {
+    console.error('❌ Vault refresh failed:', error);
+    const button = document.getElementById('refresh-vault-btn');
+    button.innerHTML = '❌ Refresh Failed';
+    button.disabled = false;
+    setTimeout(() => { 
+      button.innerHTML = '🔄 Refresh Vault'; 
+    }, 3000);
+  }
+}
+
+// Main chat function
+async function sendMessage() {
+  const input = document.getElementById('user-input');
+  const text = input.value.trim();
+  if (!text || !systemActive) return;
+
+  const box = document.getElementById('chat-box');
+
+  // Add user message
+  const userBubble = document.createElement('div');
+  userBubble.className = 'bubble user';
+  userBubble.innerHTML = `<div class="bubble-content"><strong>You:</strong> ${text}</div>`;
+  box.appendChild(userBubble);
+  box.scrollTop = box.scrollHeight;
+  input.value = '';
+
+  // Add thinking indicator
+  const thinkingBubble = document.createElement('div');
+  thinkingBubble.className = 'bubble ai thinking-bubble';
+  thinkingBubble.innerHTML = `<img src="boy-mascot.png" class="avatar" alt="Thinking"><div class="bubble-content thinking-content"><span class="thinking-brain">🧠</span> Thinking...</div>`;
+  box.appendChild(thinkingBubble);
+  box.scrollTop = box.scrollHeight;
+
+  try {
+    // Load vault content for backend injection
     let vaultContent = null;
     try {
       const vaultResponse = await fetch('/api/load-vault', {
@@ -917,33 +1105,80 @@ async function sendEnhancedQueryToChat(enhancedQuery) {
       });
       const vaultData = await vaultResponse.json();
       vaultContent = vaultData.vault_content;
+      console.log('🎯 Vault loaded for chat:', vaultContent ? 'SUCCESS (' + Math.ceil(vaultContent.length/4) + ' tokens)' : 'FAILED');
     } catch (vaultError) {
-      console.warn('⚠️ Vault load failed for analysis response:', vaultError);
+      console.warn('⚠️ Vault load failed, backend will use emergency fallbacks:', vaultError);
     }
 
-    // Send enhanced query to your existing chat endpoint
+    // Check if user is asking about uploaded documents
+    const analysisKeywords = ['analyze', 'analysis', 'document', 'file', 'docx', 'content', 'review', 'examine', 'summarize'];
+    const isDocumentQuery = analysisKeywords.some(keyword => 
+      text.toLowerCase().includes(keyword)
+    );
+
+    console.log('🔍 Document query check:', isDocumentQuery);
+    console.log('🔍 Documents available:', extractedDocuments.length);
+
+    // Prepare enhanced message with document context
+    let enhancedMessage = text;
+    let documentContext = null;
+
+    if (isDocumentQuery && extractedDocuments.length > 0) {
+      // Find the most recent document
+      const recentDoc = extractedDocuments[extractedDocuments.length - 1];
+      
+      // Add document context
+      documentContext = {
+        filename: recentDoc.filename,
+        contentType: recentDoc.contentType,
+        wordCount: recentDoc.wordCount,
+        content: recentDoc.preview,
+        keyPhrases: recentDoc.keyPhrases.join(', '),
+        uploadTime: recentDoc.uploadTime
+      };
+      
+      // Enhance the message with document context
+      enhancedMessage = `${text}
+
+DOCUMENT CONTEXT:
+- File: ${recentDoc.filename}
+- Type: ${recentDoc.contentType}
+- Content: ${recentDoc.preview}
+- Key phrases: ${recentDoc.keyPhrases.join(', ')}
+- Word count: ${recentDoc.wordCount}`;
+
+      console.log('📄 Added document context to chat message:', recentDoc.filename);
+    }
+
+    // Send message with vault content injection AND document context
     const response = await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        message: enhancedQuery,
-        conversation_history: conversationHistory || [],
+        message: enhancedMessage,
+        conversation_history: conversationHistory,
         mode: getCurrentMode(),
         vault_loaded: isVaultMode(),
-        vault_content: vaultContent
+        vault_content: vaultContent,
+        document_context: documentContext
       })
     });
 
     if (!response.ok) {
-      throw new Error(`Chat API error: ${response.status}`);
+      const errorData = await response.json();
+      if (errorData.needs_refresh) {
+        throw new Error('Vault needs refreshing. Click the Refresh Vault button first.');
+      } else {
+        throw new Error(`Chat API error: ${response.status}`);
+      }
     }
 
     const data = await response.json();
-    const reply = data.reply || data.response || 'No response received';
+    const reply = data.response || 'No response received';
 
-    // Clean response (your existing logic)
-    const cleanReply = reply
-      .replace(/^\*\*(Eli|Roxy):\*?\*?\s*/i, '') 
+    // Clean the AI response - remove ALL system fingerprints
+    let cleanReply = reply
+      .replace(/^\*?\*?(Eli|Roxy):\*?\*?\s*/i, '') 
       .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') 
       .replace(/\*\[MODE:.*?\]/g, '') 
       .replace(/\[MODE:.*?\]/g, '') 
@@ -954,8 +1189,8 @@ async function sendEnhancedQueryToChat(enhancedQuery) {
       .replace(/\[ASSUMPTIONS:.*?\]/g, '') 
       .trim();
 
-    // Determine personality (your existing logic)
-    const isEli = aiToggle || false;
+    // Determine who speaks
+    const isEli = aiToggle;
     const who = isEli ? 'Eli' : 'Roxy';
     const avatar = isEli ? "boy-mascot.png" : "girl-mascot.png";
 
@@ -965,7 +1200,7 @@ async function sendEnhancedQueryToChat(enhancedQuery) {
       thinkingElement.remove();
     }
 
-    // Add assistant response
+    // Add clean assistant response
     const responseBubble = document.createElement('div');
     responseBubble.className = 'bubble ai';
     responseBubble.innerHTML = `<img src="${avatar}" class="avatar" alt="${who}"><div class="bubble-content"><strong>${who}:</strong> ${cleanReply}</div>`;
@@ -973,431 +1208,44 @@ async function sendEnhancedQueryToChat(enhancedQuery) {
     box.scrollTop = box.scrollHeight;
 
     // Update conversation history
-    if (window.conversationHistory) {
-      conversationHistory.push({ role: 'user', content: 'File analysis request' });
-      conversationHistory.push({ role: 'assistant', content: reply });
-    }
+    conversationHistory.push({ role: 'user', content: text });
+    conversationHistory.push({ role: 'assistant', content: reply });
 
-    // Toggle personality
-    if (typeof window.aiToggle !== 'undefined') {
-      aiToggle = !aiToggle;
+    // Toggle for next message
+    aiToggle = !aiToggle;
+
+    // Enhanced: Log vault status for debugging
+    if (data.vault_status) {
+      console.log('📊 Vault Status:', data.vault_status);
+      console.log('🔧 Enforcement Applied:', data.enforcement_applied);
     }
 
   } catch (error) {
-    console.error('❌ Enhanced query chat error:', error);
-    
-    const box = document.getElementById('chat-box');
+    console.error('❌ Chat error:', error);
+
+    // Remove thinking indicator on error
+    const thinkingElement = document.querySelector('.thinking-bubble');
+    if (thinkingElement) {
+      thinkingElement.remove();
+    }
+
     const errorBubble = document.createElement('div');
     errorBubble.className = 'bubble ai';
-    errorBubble.innerHTML = `<img src="boy-mascot.png" class="avatar" alt="System"><div class="bubble-content"><strong>System:</strong> Analysis complete, but chat response failed: ${error.message}</div>`;
+    errorBubble.innerHTML = `<img src="boy-mascot.png" class="avatar" alt="System"><div class="bubble-content"><strong>System:</strong> ${error.message}</div>`;
     box.appendChild(errorBubble);
     box.scrollTop = box.scrollHeight;
   }
 }
 
-// Mode system
-let currentMode = 'business_validation';
-
-function switchMode(mode) {
-  currentMode = mode;
-  console.log(`🔄 Switched to mode: ${mode}`);
-  
-  // Update button states
-  document.querySelectorAll('.mode-btn').forEach(btn => {
-    btn.classList.remove('active');
-  });
-  
-  // Set active button
-  const activeBtn = document.querySelector(`[data-mode="${mode}"]`);
-  if (activeBtn) {
-    activeBtn.classList.add('active');
-  }
-}
-
-function getCurrentMode() {
-  return currentMode;
-}
-
-function isVaultMode() {
-  return currentMode === 'site_monkeys';
-}
-
-// Animation code
-const statusItems = document.querySelectorAll('#status-list li');
-const systemReady = document.getElementById('system-ready');
-let statusIndex = 0;
-
-function loadStatus() {
-console.log('🎯 loadStatus function called');
-if (statusIndex < statusItems.length) {
-statusItems[statusIndex].classList.add('loaded');
-statusIndex++;
-setTimeout(loadStatus, 400);
-} else {
-setTimeout(() => {
-console.log('✅ Status animation complete, system ready immediately');
-systemReady.classList.add('active');
-systemActive = true;
-console.log('✅ System active - using KV cache');
-checkVaultStatus();
-}, 500);
-}
-}
-
-// Check vault status and update display
-async function checkVaultStatus() {
-try {
-console.log('📖 Checking vault status...');
-const response = await fetch('/api/load-vault', {
-method: 'GET',
-headers: { 'Content-Type': 'application/json' }
-});
-
-const data = await response.json();
-console.log('📊 Vault status:', data);
-
-if (data.status === 'success' && !data.needs_refresh) {
-document.getElementById('vault-info').innerHTML = `
-<div><span style="color:#00FF00;">✅</span> VAULT READY (CACHED)</div>
-<div>🔢 <span id="token-count">${data.tokens || 'Ready'}</span> TOKENS</div>
-<div>💰 EST. COST: <span id="cost-estimate">${data.estimated_cost || '$0.00'}</span></div>
-<div>📁 <span id="vault-folders">${data.folders_loaded?.length || 'Cached'}</span> FOLDERS LOADED</div>
-<button id="refresh-vault-btn" onclick="refreshVault()" style="background: #FFD811; color: #373534; border: 1px solid #fff; border-radius: 8px; padding: 8px 12px; font-size: 0.8em; font-weight: bold; cursor: pointer; margin-top: 8px; width: 100%; transition: all 0.2s ease;" onmouseover="this.style.background='#ffe96a'" onmouseout="this.style.background='#FFD811'">🔄 Refresh Vault</button>`;
-} else {
-document.getElementById('vault-info').innerHTML = `
-<div><span style="color:#FFA500;">⚠️</span> VAULT NEEDS REFRESH</div>
-<div>🔢 <span id="token-count">No Data</span> TOKENS</div>
-<div>💰 EST. COST: <span id="cost-estimate">$0.00</span></div>
-<div>📁 <span id="vault-folders">0</span> FOLDERS LOADED</div>
-<button id="refresh-vault-btn" onclick="refreshVault()" style="background: #FF6B6B; color: white; border: 1px solid #fff; border-radius: 8px; padding: 8px 12px; font-size: 0.8em; font-weight: bold; cursor: pointer; margin-top: 8px; width: 100%; transition: all 0.2s ease;" onmouseover="this.style.background='#ff8a8a'" onmouseout="this.style.background='#FF6B6B'">🔄 REFRESH VAULT NOW</button>`;
-}
-} catch (error) {
-console.error('❌ Vault status check failed:', error);
-}
-}
-
-// Refresh vault function
-async function refreshVault() {
-try {
-console.log('🔄 Refreshing vault...');
-const button = document.getElementById('refresh-vault-btn');
-const originalText = button.innerHTML;
-button.innerHTML = '⏳ Refreshing...';
-button.disabled = true;
-
-const response = await fetch('/api/load-vault?refresh=true', {
-method: 'GET',
-headers: { 'Content-Type': 'application/json' }
-});
-
-const data = await response.json();
-console.log('📊 Vault refresh result:', data);
-console.log('📁 Folders loaded:', data.folders_loaded);
-console.log('🔢 Token count:', data.tokens);
-console.log('📄 Vault content preview:', data.vault_content?.substring(0, 500));
-
-if (data.status === 'refreshed') {
-document.getElementById('vault-info').innerHTML = `
-<div><span style="color:#00FF00;">✅</span> VAULT REFRESHED</div>
-<div>🔢 <span id="token-count">${data.tokens || 'Ready'}</span> TOKENS</div>
-<div>💰 EST. COST: <span id="cost-estimate">${data.estimated_cost || '$0.00'}</span></div>
-<div>📁 <span id="vault-folders">${data.folders_loaded?.length || 0}</span> FOLDERS LOADED</div>
-<button id="refresh-vault-btn" onclick="refreshVault()" style="background: #FFD811; color: #373534; border: 1px solid #fff; border-radius: 8px; padding: 8px 12px; font-size: 0.8em; font-weight: bold; cursor: pointer; margin-top: 8px; width: 100%; transition: all 0.2s ease;" onmouseover="this.style.background='#ffe96a'" onmouseout="this.style.background='#FFD811'">🔄 Refresh Vault</button>`;
-} else {
-button.innerHTML = '❌ Refresh Failed';
-button.disabled = false;
-setTimeout(() => { button.innerHTML = originalText; }, 3000);
-}
-} catch (error) {
-console.error('❌ Vault refresh failed:', error);
-const button = document.getElementById('refresh-vault-btn');
-button.innerHTML = '❌ Refresh Failed';
-button.disabled = false;
-setTimeout(() => { button.innerHTML = '🔄 Refresh Vault'; }, 3000);
-}
-}
-
-// COMPLETE FRONTEND INTEGRATION - sendMessage with vault injection
-async function sendMessage() {
-const input = document.getElementById('user-input');
-const text = input.value.trim();
-if (!text || !systemActive) return;
-
-const box = document.getElementById('chat-box');
-
-// Add user message
-const userBubble = document.createElement('div');
-userBubble.className = 'bubble user';
-userBubble.innerHTML = `<div class="bubble-content"><strong>You:</strong> ${text}</div>`;
-box.appendChild(userBubble);
-box.scrollTop = box.scrollHeight;
-input.value = '';
-
-// Add thinking indicator
-const thinkingBubble = document.createElement('div');
-thinkingBubble.className = 'bubble ai thinking-bubble';
-thinkingBubble.innerHTML = `<img src="boy-mascot.png" class="avatar" alt="Thinking"><div class="bubble-content thinking-content"><span class="thinking-brain">🧠</span> Thinking...</div>`;
-box.appendChild(thinkingBubble);
-box.scrollTop = box.scrollHeight;
-
-try {
-// *** CRITICAL: Load vault content for backend injection ***
-let vaultContent = null;
-try {
-const vaultResponse = await fetch('/api/load-vault', {
-method: 'GET',
-headers: { 'Content-Type': 'application/json' }
-});
-const vaultData = await vaultResponse.json();
-vaultContent = vaultData.vault_content;
-console.log('🎯 Vault loaded for chat:', vaultContent ? 'SUCCESS (' + Math.ceil(vaultContent.length/4) + ' tokens)' : 'FAILED');
-} catch (vaultError) {
-console.warn('⚠️ Vault load failed, backend will use emergency fallbacks:', vaultError);
-}
-
-// Check if user is asking about uploaded documents
-const analysisKeywords = ['analyze', 'analysis', 'document', 'file', 'docx', 'content', 'review', 'examine', 'summarize'];
-const isDocumentQuery = analysisKeywords.some(keyword => 
-  text.toLowerCase().includes(keyword)
-);
-
-// File upload functionality
-async function handleFileUpload(files) {
-if (files.length === 0) return;
-const box = document.getElementById('chat-box');
-
-// Show upload message
-const uploadBubble = document.createElement('div');
-uploadBubble.className = 'bubble ai';
-uploadBubble.innerHTML = `<img src="boy-mascot.png" class="avatar" alt="System"><div class="bubble-content"><strong>System:</strong> 📤 Uploading ${files.length} file(s) to vault...</div>`;
-box.appendChild(uploadBubble);
-box.scrollTop = box.scrollHeight;
-
-try {
-const formData = new FormData();
-for (const file of files) { formData.append('files', file); }
-
-const response = await fetch('/api/upload-file', { method: 'POST', body: formData });
-const result = await response.json();
-
-if (result.status === 'success' && result.successful_uploads > 0) {
-for (const fileInfo of result.files) {
-if (fileInfo.success) {
-const successBubble = document.createElement('div');
-successBubble.className = 'bubble ai';
-successBubble.innerHTML = `<img src="girl-mascot.png" class="avatar" alt="Roxy"><div class="bubble-content"><strong>Roxy:</strong> ✅ Uploaded "${fileInfo.filename}" to ${fileInfo.folder} folder. File is now available for chat!</div>`;
-box.appendChild(successBubble);
-box.scrollTop = box.scrollHeight;
-} else {
-const errorBubble = document.createElement('div');
-errorBubble.className = 'bubble ai';
-errorBubble.innerHTML = `<img src="boy-mascot.png" class="avatar" alt="System"><div class="bubble-content"><strong>System:</strong> ❌ Failed to upload "${fileInfo.filename}": ${fileInfo.message}</div>`;
-box.appendChild(errorBubble);
-box.scrollTop = box.scrollHeight;
-}
-}
-} else {
-const errorBubble = document.createElement('div');
-errorBubble.className = 'bubble ai';
-errorBubble.innerHTML = `<img src="boy-mascot.png" class="avatar" alt="System"><div class="bubble-content"><strong>System:</strong> ❌ Upload failed: ${result.message}</div>`;
-box.appendChild(errorBubble);
-box.scrollTop = box.scrollHeight;
-}
-} catch (error) {
-const errorBubble = document.createElement('div');
-errorBubble.className = 'bubble ai';
-errorBubble.innerHTML = `<img src="boy-mascot.png" class="avatar" alt="System"><div class="bubble-content"><strong>System:</strong> ❌ Upload failed: ${error.message}</div>`;
-box.appendChild(errorBubble);
-box.scrollTop = box.scrollHeight;
-}
-}
-
-document.addEventListener('DOMContentLoaded', function() {
-console.log('🚀 DOM LOADED - JavaScript is working!');
-const input = document.getElementById('user-input');
-const sendBtn = document.getElementById('send-btn');
-
-// Mode toggle listeners
-const modeButtons = document.querySelectorAll('.mode-btn');
-modeButtons.forEach(button => {
-  button.addEventListener('click', function() {
-    const selectedMode = this.getAttribute('data-mode');
-    switchMode(selectedMode);
-  });
-});
-
-input.addEventListener('keydown', function(e) {
-if (e.key === 'Enter' && !e.shiftKey) {
-e.preventDefault();
-sendMessage();
-}
-});
-
-sendBtn.addEventListener('click', function(e) {
-e.preventDefault();
-sendMessage();
-});
-
-// Upload button functionality
-const attachmentBtn = document.getElementById('attachment-btn');
-const fileInput = document.getElementById('file-input');
-
-attachmentBtn.addEventListener('click', () => fileInput.click());
-fileInput.addEventListener('change', (e) => {
-if (e.target.files.length > 0) handleFileUpload(Array.from(e.target.files));
-});
-
-// Analysis button functionality
-const analyzeBtn = document.getElementById('analyze-btn');
-const analyzeFileInput = document.getElementById('analyze-file-input');
-
-if (analyzeBtn && analyzeFileInput) {
-  analyzeBtn.addEventListener('click', () => analyzeFileInput.click());
-  analyzeFileInput.addEventListener('change', (e) => {
-    if (e.target.files.length > 0) {
-      handleAnalysisUpload(Array.from(e.target.files));
-    }
-  });
-  console.log('✅ Analysis system initialized');
-}
-
-console.log('🎯 Event listeners added');
-setTimeout(() => {
-console.log('⏰ Starting status animation...');
-loadStatus();
-}, 800);
-});
-
-console.log('🔍 Document query check:', isDocumentQuery);
-console.log('🔍 Documents available:', extractedDocuments.length);
-
-// Prepare enhanced message with document context
-let enhancedMessage = text;
-let documentContext = null;
-
-if (isDocumentQuery && extractedDocuments.length > 0) {
-  // Find the most recent document
-  const recentDoc = extractedDocuments[extractedDocuments.length - 1];
-  
-  // Add document context
-  documentContext = {
-    filename: recentDoc.filename,
-    contentType: recentDoc.contentType,
-    wordCount: recentDoc.wordCount,
-    content: recentDoc.preview,
-    keyPhrases: recentDoc.keyPhrases.join(', '),
-    uploadTime: recentDoc.uploadTime
-  };
-  
-  // Enhance the message with document context
-  enhancedMessage = `${text}
-
-DOCUMENT CONTEXT:
-- File: ${recentDoc.filename}
-- Type: ${recentDoc.contentType}
-- Content: ${recentDoc.preview}
-- Key phrases: ${recentDoc.keyPhrases.join(', ')}
-- Word count: ${recentDoc.wordCount}`;
-
-  console.log('📄 Added document context to chat message:', recentDoc.filename);
-}
-
-// Send message with vault content injection AND document context
-const response = await fetch('/api/chat', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    message: enhancedMessage, // This now includes document context when relevant
-    conversation_history: conversationHistory,
-    mode: getCurrentMode(),
-    vault_loaded: isVaultMode(),
-    vault_content: vaultContent,
-    document_context: documentContext // Add document metadata
-  })
-});
-if (!response.ok) {
-const errorData = await response.json();
-if (errorData.needs_refresh) {
-throw new Error('Vault needs refreshing. Click the Refresh Vault button first.');
-} else {
-throw new Error(`Chat API error: ${response.status}`);
-}
-}
-
-const data = await response.json();
-const reply = data.response || 'No response received';
-
-// Clean the AI response - remove ALL system fingerprints
-let cleanReply = reply
-  .replace(/^\*?\*?(Eli|Roxy):\*?\*?\s*/i, '') 
-  .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') 
-  .replace(/\*\[MODE:.*?\]/g, '') 
-  .replace(/\[MODE:.*?\]/g, '') 
-  .replace(/\|\s*\[VAULT:.*?\]\s*\|\s*\[TRIGGERED:.*?\]\s*\|\s*\[FLOW:.*?\]\s*\|\s*\[ASSUMPTIONS:.*?\]\*/g, '') 
-  .replace(/\[VAULT:.*?\]/g, '') 
-  .replace(/\[TRIGGERED:.*?\]/g, '') 
-  .replace(/\[FLOW:.*?\]/g, '') 
-  .replace(/\[ASSUMPTIONS:.*?\]/g, '') 
-  .trim();
-
-// Determine who speaks
-const isEli = aiToggle;
-const who = isEli ? 'Eli' : 'Roxy';
-const avatar = isEli ? "boy-mascot.png" : "girl-mascot.png";
-
-// Remove thinking indicator
-const thinkingElement = document.querySelector('.thinking-bubble');
-if (thinkingElement) {
-  thinkingElement.remove();
-}
-
-// Add clean assistant response
-const responseBubble = document.createElement('div');
-responseBubble.className = 'bubble ai';
-responseBubble.innerHTML = `<img src="${avatar}" class="avatar" alt="${who}"><div class="bubble-content"><strong>${who}:</strong> ${cleanReply}</div>`;
-box.appendChild(responseBubble);
-box.scrollTop = box.scrollHeight;
-
-// Update conversation history
-conversationHistory.push({ role: 'user', content: text });
-conversationHistory.push({ role: 'assistant', content: reply });
-
-// Toggle for next message
-aiToggle = !aiToggle;
-
-// Enhanced: Log vault status for debugging
-if (data.vault_status) {
-console.log('📊 Vault Status:', data.vault_status);
-console.log('🔧 Enforcement Applied:', data.enforcement_applied);
-}
-
-} catch (error) {
-console.error('❌ Chat error:', error);
-
-// Remove thinking indicator on error
-const thinkingElement = document.querySelector('.thinking-bubble');
-if (thinkingElement) {
-  thinkingElement.remove();
-}
-
-const errorBubble = document.createElement('div');
-errorBubble.className = 'bubble ai';
-errorBubble.innerHTML = `<img src="boy-mascot.png" class="avatar" alt="System"><div class="bubble-content"><strong>System:</strong> ${error.message}</div>`;
-box.appendChild(errorBubble);
-box.scrollTop = box.scrollHeight;
-}
-}
-  
-// Function to clear old documents (memory management)
+// Document utility functions
 function clearOldDocuments() {
-  const maxDocuments = 5; // Keep only last 5 documents
+  const maxDocuments = 5;
   if (extractedDocuments.length > maxDocuments) {
     const removed = extractedDocuments.splice(0, extractedDocuments.length - maxDocuments);
     console.log(`🗑️ Cleared ${removed.length} old documents from memory`);
   }
 }
 
-// Function to show current stored documents
 function showStoredDocuments() {
   if (extractedDocuments.length === 0) {
     console.log('📄 No documents currently stored');
@@ -1410,20 +1258,80 @@ function showStoredDocuments() {
   });
 }
 
-// Auto-clear old documents when new ones are added
-window.addEventListener('beforeunload', clearOldDocuments);
+// DOM initialization
+document.addEventListener('DOMContentLoaded', function() {
+  console.log('🚀 DOM LOADED - JavaScript is working!');
+  const input = document.getElementById('user-input');
+  const sendBtn = document.getElementById('send-btn');
+
+  // Mode toggle listeners
+  const modeButtons = document.querySelectorAll('.mode-btn');
+  modeButtons.forEach(button => {
+    button.addEventListener('click', function() {
+      const selectedMode = this.getAttribute('data-mode');
+      switchMode(selectedMode);
+    });
+  });
+
+  // Input event listeners
+  input.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  });
+
+  sendBtn.addEventListener('click', function(e) {
+    e.preventDefault();
+    sendMessage();
+  });
+
+  // Upload button functionality
+  const attachmentBtn = document.getElementById('attachment-btn');
+  const fileInput = document.getElementById('file-input');
+
+  attachmentBtn.addEventListener('click', () => fileInput.click());
+  fileInput.addEventListener('change', (e) => {
+    if (e.target.files.length > 0) {
+      handleFileUpload(Array.from(e.target.files));
+    }
+  });
+
+  // Analysis button functionality
+  const analyzeBtn = document.getElementById('analyze-btn');
+  const analyzeFileInput = document.getElementById('analyze-file-input');
+
+  if (analyzeBtn && analyzeFileInput) {
+    analyzeBtn.addEventListener('click', () => analyzeFileInput.click());
+    analyzeFileInput.addEventListener('change', (e) => {
+      if (e.target.files.length > 0) {
+        handleAnalysisUpload(Array.from(e.target.files));
+      }
+    });
+    console.log('✅ Analysis system initialized');
+  }
+
+  console.log('🎯 Event listeners added');
+  setTimeout(() => {
+    console.log('⏰ Starting status animation...');
+    loadStatus();
+  }, 800);
+});
 
 // Error handling for missing images
 document.addEventListener('DOMContentLoaded', function() {
-const images = document.querySelectorAll('img');
-images.forEach(img => {
-img.onerror = function() {
-console.warn(`Image failed to load: ${this.src}`);
-this.style.display = 'none';
-};
+  const images = document.querySelectorAll('img');
+  images.forEach(img => {
+    img.onerror = function() {
+      console.warn(`Image failed to load: ${this.src}`);
+      this.style.display = 'none';
+    };
+  });
 });
-});
-  
+
+// Auto-clear old documents when needed
+window.addEventListener('beforeunload', clearOldDocuments);
+
 </script>
 <script src="/js/app.js"></script>
 </body>
