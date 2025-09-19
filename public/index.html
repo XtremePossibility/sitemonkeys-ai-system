@@ -1155,13 +1155,14 @@ console.log('🎯 Vault loaded for chat:', vaultContent ? 'SUCCESS (' + Math.cei
 console.warn('⚠️ Vault load failed, backend will use emergency fallbacks:', vaultError);
 }
 
-// STEP 3: REPLACE the fetch call in your sendMessage function with this:
-
 // Check if user is asking about uploaded documents
 const analysisKeywords = ['analyze', 'analysis', 'document', 'file', 'docx', 'content', 'review', 'examine', 'summarize'];
 const isDocumentQuery = analysisKeywords.some(keyword => 
   text.toLowerCase().includes(keyword)
 );
+
+console.log('🔍 Document query check:', isDocumentQuery);
+console.log('🔍 Documents available:', extractedDocuments.length);
 
 // Prepare enhanced message with document context
 let enhancedMessage = text;
