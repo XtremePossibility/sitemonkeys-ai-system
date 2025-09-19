@@ -857,9 +857,6 @@ async function handleAnalysisUpload(files) {
   
   const box = document.getElementById('chat-box');
   
-  // Ask user what they want to analyze (optional)
-  const userQuery = prompt('What would you like me to analyze about these files?\n(Leave blank for general analysis)');
-  
   // Show upload progress
   const uploadBubble = document.createElement('div');
   uploadBubble.className = 'bubble ai';
@@ -874,11 +871,6 @@ async function handleAnalysisUpload(files) {
     formData.append('files', files[i]);
   }
   
-  // Add user query if provided
-  if (userQuery && userQuery.trim()) {
-    formData.append('query', userQuery.trim());
-  }
-  
   try {
     const response = await fetch('/api/upload-for-analysis', {
       method: 'POST',
@@ -889,78 +881,71 @@ async function handleAnalysisUpload(files) {
 
     console.log('=== BACKEND RESPONSE DEBUG ===');
     console.log('Full result:', result);
-    if (result.files && result.files.length > 0) {
-      console.log('First file object:', result.files[0]);
-      console.log('contentExtracted:', result.files[0].contentExtracted);
-      console.log('aiAnalysis:', result.files[0].aiAnalysis);
-      console.log('aiAnalysis structure:', Object.keys(result.files[0].aiAnalysis || {}));
-      console.log('All file properties:', Object.keys(result.files[0]));
+    if (result.analysis_results && result.analysis_results.length > 0) {
+      console.log('First file object:', result.analysis_results[0]);
+      console.log('contentExtracted:', result.analysis_results[0].contentExtracted);
+      console.log('docxAnalysis:', result.analysis_results[0].docxAnalysis);
     }
     console.log('=== END DEBUG ===');
     
     if (result.success) {
+      // ✅ CRITICAL FIX: Store extracted documents in global array
+      const docxFiles = result.analysis_results.filter(file => file.contentExtracted && file.docxAnalysis);
+      
+      docxFiles.forEach(file => {
+        const docxContent = {
+          filename: file.filename,
+          content: file.docxAnalysis.preview,
+          wordCount: file.docxAnalysis.wordCount,
+          contentType: file.docxAnalysis.contentType,
+          keyPhrases: file.docxAnalysis.keyPhrases || [],
+          readingTime: file.docxAnalysis.readingTime,
+          uploadTime: new Date().toISOString()
+        };
+        
+        // Store in global array
+        extractedDocuments.push(docxContent);
+        console.log('📄 [STORAGE] Stored document:', docxContent.filename);
+      });
+      
       // Show success message
       const successBubble = document.createElement('div');
       successBubble.className = 'bubble ai';
-      successBubble.innerHTML = `<img src="boy-mascot.png" class="avatar" alt="System"><div class="bubble-content"><strong>System:</strong> ✅ Analysis Complete: ${result.successful_uploads} file(s) processed</div>`;
+      successBubble.innerHTML = `<img src="boy-mascot.png" class="avatar" alt="System"><div class="bubble-content"><strong>System:</strong> ✅ Analysis Complete: ${files.length} file(s) processed</div>`;
       box.appendChild(successBubble);
       
-      // Process each file result and store DOCX content
-      result.files.forEach(file => {
-        if (file.success) {
+      // Process each file result
+      result.analysis_results.forEach(file => {
+        // Create analysis bubble
+        const analysisBubble = document.createElement('div');
+        analysisBubble.className = 'bubble ai';
+        
+        let analysisContent = `<strong>📄 ${file.filename}</strong><br>`;
+        
+        // Special handling for DOCX files with extracted content
+        if (file.contentExtracted && file.docxAnalysis) {
+          const analysis = file.docxAnalysis;
           
-          // Create analysis bubble
-          const analysisBubble = document.createElement('div');
-          analysisBubble.className = 'bubble ai';
+          // Build rich analysis display
+          analysisContent += `📊 <strong>Content Summary:</strong><br>`;
+          analysisContent += `• Type: ${analysis.contentType}<br>`;
+          analysisContent += `• Words: ${analysis.wordCount}<br>`;
+          analysisContent += `• Reading time: ~${analysis.readingTime} minute(s)<br><br>`;
+          analysisContent += `📝 <strong>Preview:</strong><br>${analysis.preview.substring(0, 200)}${analysis.preview.length > 200 ? '...' : ''}<br>`;
           
-          let analysisContent = `<strong>📄 ${file.filename}</strong><br>`;
-          
-          // Special handling for DOCX files with extracted content
-          if (file.contentExtracted && file.docxAnalysis) {
-              const analysis = file.docxAnalysis;
-            // Store the extracted content for chat access
-            const docxContent = {
-              filename: file.filename,
-              wordCount: analysis.wordCount,
-              contentType: analysis.contentType,
-              preview: analysis.preview,
-              keyPhrases: analysis.keyPhrases || [],
-              readingTime: analysis.readingTime,
-              uploadTime: new Date().toISOString(),
-              fullContent: analysis.preview
-            };
-            
-            // Store in global array
-            extractedDocuments.push(docxContent);
-            
-            // Build rich analysis display
-            analysisContent += `📊 <strong>Content Summary:</strong><br>`;
-            analysisContent += `• Type: ${analysis.contentType}<br>`;
-            analysisContent += `• Words: ${analysis.wordCount}<br>`;
-            analysisContent += `• Reading time: ~${analysis.readingTime} minute(s)<br><br>`;
-            analysisContent += `📝 <strong>Preview:</strong><br>${analysis.preview}<br>`;
-            
-            if (analysis.keyPhrases && analysis.keyPhrases.length > 0) {
-              analysisContent += `<br>🔑 <strong>Key phrases:</strong> ${analysis.keyPhrases.join(', ')}<br>`;
-            }
-            
-            analysisContent += `<br>💬 <strong>Now ask me to analyze this document in detail!</strong>`;
-            
-          } else {
-            // Handle other file types
-            analysisContent += `${file.preview}`;
+          if (analysis.keyPhrases && analysis.keyPhrases.length > 0) {
+            analysisContent += `<br>🔑 <strong>Key phrases:</strong> ${analysis.keyPhrases.join(', ')}<br>`;
           }
           
-          analysisBubble.innerHTML = `<img src="girl-mascot.png" class="avatar" alt="Roxy"><div class="bubble-content"><strong>Roxy:</strong> ${analysisContent}</div>`;
-          box.appendChild(analysisBubble);
+          analysisContent += `<br>💬 <strong>Now ask me to analyze this document in detail!</strong>`;
           
         } else {
-          // Error handling
-          const errorBubble = document.createElement('div');
-          errorBubble.className = 'bubble ai';
-          errorBubble.innerHTML = `<img src="boy-mascot.png" class="avatar" alt="System"><div class="bubble-content"><strong>System:</strong> ❌ Failed to process: ${file.filename} - ${file.message}</div>`;
-          box.appendChild(errorBubble);
+          // Handle other file types
+          analysisContent += `${file.preview || 'File processed successfully'}`;
         }
+        
+        analysisBubble.innerHTML = `<img src="girl-mascot.png" class="avatar" alt="Roxy"><div class="bubble-content"><strong>Roxy:</strong> ${analysisContent}</div>`;
+        box.appendChild(analysisBubble);
       });
       
       box.scrollTop = box.scrollHeight;
