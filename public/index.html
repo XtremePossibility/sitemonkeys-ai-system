@@ -916,8 +916,8 @@ async function handleAnalysisUpload(files) {
           let analysisContent = `<strong>📄 ${file.filename}</strong><br>`;
           
           // Special handling for DOCX files with extracted content
-          if (file.contentExtracted && file.aiAnalysis) {  // Changed from docxAnalysis
-            const analysis = file.aiAnalysis;  // Changed from docxAnalysis
+          if (file.contentExtracted && file.docxAnalysis) {
+              const analysis = file.docxAnalysis;
             // Store the extracted content for chat access
             const docxContent = {
               filename: file.filename,
