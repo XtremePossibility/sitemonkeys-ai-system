@@ -433,12 +433,58 @@ export class EnhancedIntelligence {
   // ================================================================
 
   requiresReasoning(query, mode) {
-    return query.length > 50 ||
-           /\b(why|how|what|when|where|should|could|would|analyze|compare|evaluate|assess)\b/i.test(query) ||
-           mode === 'business_validation' || mode === 'site_monkeys' || mode === 'truth_general' ||
-           /\b(problem|issue|decision|choice|option|strategy|invest|business|work|stress)\b/i.test(query);
+    // Simple factual queries that don't require reasoning
+    const simpleFactualPatterns = [
+      /^what'?s? the (weather|time|temperature|date|capital)/i,
+      /^what time is it/i,
+      /^when (is|was|will be)/i,
+      /^where (is|was|are)/i,
+      /^who (is|was|are)/i,
+      /^how (much|many|long|far|old)/i, // Quantitative facts
+      /^what (color|size|type|kind) (is|are)/i // Descriptive facts
+    ];
+    
+    // Check if this is a simple factual query
+    if (simpleFactualPatterns.some(pattern => pattern.test(query.trim()))) {
+      return false;
+    }
+    
+    // Genuine reasoning complexity indicators
+    const reasoningIndicators = [
+      // Length-based complexity
+      query.length > 50,
+      
+      // Analytical question words (not just any question words)
+      /\b(why does|how should|what should|how can|how do|what factors|what causes)\b/i.test(query),
+      
+      // Analysis and evaluation keywords  
+      /\b(analyze|compare|evaluate|assess|decide|determine|strategy|plan|approach)\b/i.test(query),
+      
+      // Causal reasoning language
+      /\b(because|since|therefore|thus|consequently|as a result|leads to|affects|impacts)\b/i.test(query),
+      
+      // Problem-solving context
+      /\b(problem|issue|challenge|difficulty|solve|fix|improve|optimize|solution)\b/i.test(query),
+      
+      // Evaluation and judgment
+      /\b(best|better|worst|optimal|effective|efficient|recommend|suggest|advice)\b/i.test(query),
+      
+      // Hypothetical and scenario reasoning
+      /\b(if|suppose|assume|consider|imagine|scenario|what if|would|could|should)\b/i.test(query),
+      
+      // Multi-part questions (require synthesis)
+      query.includes('and how') || query.includes('and what') || query.includes('and why')
+    ];
+    
+    // Business modes require reasoning only for genuinely complex business queries
+    const businessModeReasoning = (mode === 'business_validation' || mode === 'site_monkeys') && 
+      (query.length > 30 || 
+       /\b(business|revenue|profit|cost|strategy|market|customer|growth|analysis)\b/i.test(query)) &&
+      !simpleFactualPatterns.some(pattern => pattern.test(query.trim()));
+    
+    // Return true only if genuine reasoning indicators are present
+    return reasoningIndicators.some(indicator => indicator) || businessModeReasoning;
   }
-
   requiresCrossDomainAnalysis(query, memoryContext) {
     return (memoryContext && Array.isArray(memoryContext) && memoryContext.length > 0) ||
            /\b(impact|affect|influence|relationship|connect|balance|integrate)\b/i.test(query) ||
