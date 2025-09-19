@@ -773,93 +773,127 @@ let extractedDocuments = []; // 👈 ADD THIS LINE
 // Add this RIGHT AFTER your existing global variables in index.html
 // ================================================================
 
-// Main function to handle file upload and immediate analysis
+// STEP 2: REPLACE your entire handleAnalysisUpload function with this:
+
 async function handleAnalysisUpload(files) {
   if (files.length === 0) return;
   
   const box = document.getElementById('chat-box');
   
-  // Ask user what they want to analyze
-  const userQuery = prompt('What would you like me to analyze about these files?', 'Please analyze these files and provide insights.');
-  if (userQuery === null) return; // User cancelled
+  // Ask user what they want to analyze (optional)
+  const userQuery = prompt('What would you like me to analyze about these files?\n(Leave blank for general analysis)');
   
-  // Show upload and analysis starting
-  const processingBubble = document.createElement('div');
-  processingBubble.className = 'bubble ai thinking-bubble';
-  processingBubble.innerHTML = `<img src="boy-mascot.png" class="avatar" alt="Eli"><div class="bubble-content"><strong>Eli:</strong> 🔍 Uploading and analyzing ${files.length} file(s) with AI...</div>`;
-  box.appendChild(processingBubble);
+  // Show upload progress
+  const uploadBubble = document.createElement('div');
+  uploadBubble.className = 'bubble ai';
+  uploadBubble.innerHTML = `<img src="boy-mascot.png" class="avatar" alt="System"><div class="bubble-content"><strong>System:</strong> 📤 Uploading ${files.length} file(s) for analysis...</div>`;
+  box.appendChild(uploadBubble);
   box.scrollTop = box.scrollHeight;
-
+  
+  const formData = new FormData();
+  
+  // Add all files to form data
+  for (let i = 0; i < files.length; i++) {
+    formData.append('files', files[i]);
+  }
+  
+  // Add user query if provided
+  if (userQuery && userQuery.trim()) {
+    formData.append('query', userQuery.trim());
+  }
+  
   try {
-    // Prepare form data for analysis endpoint
-    const formData = new FormData();
-    for (const file of files) {
-      formData.append('files', file);
-    }
-    
-    // Add query and mode
-    formData.append('query', userQuery);
-    formData.append('mode', getCurrentMode());
-
-    console.log(`🔍 Sending ${files.length} files to analysis endpoint...`);
-
-    // Call the analysis endpoint
     const response = await fetch('/api/upload-for-analysis', {
       method: 'POST',
       body: formData
     });
     
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(`Analysis failed: ${response.status} - ${errorData.error || 'Unknown error'}`);
-    }
-    
     const result = await response.json();
     
-    // Update processing bubble with results
     if (result.success) {
-      const analysisMode = result.system_status?.claude_vision_used ? 'Claude Vision' : 'analysis';
-      const successMessage = `✅ ${analysisMode} analyzed ${result.files_processed} files successfully!`;
+      // Show success message
+      const successBubble = document.createElement('div');
+      successBubble.className = 'bubble ai';
+      successBubble.innerHTML = `<img src="boy-mascot.png" class="avatar" alt="System"><div class="bubble-content"><strong>System:</strong> ✅ Analysis Complete: ${result.successful_uploads} file(s) processed</div>`;
+      box.appendChild(successBubble);
       
-      processingBubble.innerHTML = `<img src="boy-mascot.png" class="avatar" alt="Eli"><div class="bubble-content"><strong>Eli:</strong> ${successMessage}</div>`;
-      
-      // Show individual file results
-      if (result.analysis_results && result.analysis_results.length > 0) {
-        for (const fileResult of result.analysis_results) {
-          if (fileResult.success !== false && fileResult.analysis) {
-            const resultBubble = document.createElement('div');
-            resultBubble.className = 'bubble ai';
-            resultBubble.innerHTML = `<img src="girl-mascot.png" class="avatar" alt="Roxy"><div class="bubble-content"><strong>Roxy:</strong> ${fileResult.analysis}</div>`;
-            box.appendChild(resultBubble);
-            box.scrollTop = box.scrollHeight;
+      // Process each file result and store DOCX content
+      result.files.forEach(file => {
+        if (file.success) {
+          
+          // Create analysis bubble
+          const analysisBubble = document.createElement('div');
+          analysisBubble.className = 'bubble ai';
+          
+          let analysisContent = `<strong>📄 ${file.filename}</strong><br>`;
+          
+          // Special handling for DOCX files with extracted content
+          if (file.contentExtracted && file.docxAnalysis) {
+            const analysis = file.docxAnalysis;
+            
+            // Store the extracted content for chat access
+            const docxContent = {
+              filename: file.filename,
+              wordCount: analysis.wordCount,
+              contentType: analysis.contentType,
+              preview: analysis.preview,
+              keyPhrases: analysis.keyPhrases || [],
+              readingTime: analysis.readingTime,
+              uploadTime: new Date().toISOString(),
+              fullContent: analysis.preview // For now, we'll use preview as content
+            };
+            
+            // Store in global array
+            extractedDocuments.push(docxContent);
+            
+            // Build rich analysis display
+            analysisContent += `📊 <strong>Content Summary:</strong><br>`;
+            analysisContent += `• Type: ${analysis.contentType}<br>`;
+            analysisContent += `• Words: ${analysis.wordCount}<br>`;
+            analysisContent += `• Reading time: ~${analysis.readingTime} minute(s)<br><br>`;
+            analysisContent += `📝 <strong>Preview:</strong><br>${analysis.preview}<br>`;
+            
+            if (analysis.keyPhrases && analysis.keyPhrases.length > 0) {
+              analysisContent += `<br>🔑 <strong>Key phrases:</strong> ${analysis.keyPhrases.join(', ')}<br>`;
+            }
+            
+            analysisContent += `<br>💬 <strong>Now ask me to analyze this document in detail!</strong>`;
+            
+          } else {
+            // Handle other file types
+            analysisContent += `${file.preview}`;
           }
+          
+          analysisBubble.innerHTML = `<img src="girl-mascot.png" class="avatar" alt="Roxy"><div class="bubble-content"><strong>Roxy:</strong> ${analysisContent}</div>`;
+          box.appendChild(analysisBubble);
+          
+        } else {
+          // Error handling
+          const errorBubble = document.createElement('div');
+          errorBubble.className = 'bubble ai';
+          errorBubble.innerHTML = `<img src="boy-mascot.png" class="avatar" alt="System"><div class="bubble-content"><strong>System:</strong> ❌ Failed to process: ${file.filename} - ${file.message}</div>`;
+          box.appendChild(errorBubble);
         }
-      }
-      
-      // Send enhanced query to your existing chat system
-      if (result.enhanced_query && result.enhanced_query !== userQuery) {
-        await sendEnhancedQueryToChat(result.enhanced_query);
-      }
-      
-      console.log(`✅ Analysis complete:`, {
-        files_processed: result.files_processed,
-        claude_vision_used: result.system_status?.claude_vision_used
       });
       
+      box.scrollTop = box.scrollHeight;
+      
     } else {
-      // Analysis failed
-      processingBubble.innerHTML = `<img src="boy-mascot.png" class="avatar" alt="Eli"><div class="bubble-content"><strong>Eli:</strong> ❌ Analysis failed: ${result.error}</div>`;
-      console.error('Analysis failed:', result.error);
+      const errorBubble = document.createElement('div');
+      errorBubble.className = 'bubble ai';
+      errorBubble.innerHTML = `<img src="boy-mascot.png" class="avatar" alt="System"><div class="bubble-content"><strong>System:</strong> ❌ Upload failed: ${result.message}</div>`;
+      box.appendChild(errorBubble);
+      box.scrollTop = box.scrollHeight;
     }
     
   } catch (error) {
-    console.error('❌ Analysis upload error:', error);
-    
-    // Show error message
-    processingBubble.innerHTML = `<img src="boy-mascot.png" class="avatar" alt="Eli"><div class="bubble-content"><strong>Eli:</strong> ❌ Analysis failed: ${error.message}</div>`;
+    console.error('Upload error:', error);
+    const errorBubble = document.createElement('div');
+    errorBubble.className = 'bubble ai';
+    errorBubble.innerHTML = `<img src="boy-mascot.png" class="avatar" alt="System"><div class="bubble-content"><strong>System:</strong> ❌ Upload error: ${error.message}</div>`;
+    box.appendChild(errorBubble);
+    box.scrollTop = box.scrollHeight;
   }
-  
-  box.scrollTop = box.scrollHeight;
 }
 
 // Send enhanced query to your existing chat system
