@@ -1121,10 +1121,17 @@ async function sendMessage() {
     }
 
     // Check if user is asking about uploaded documents
-    const analysisKeywords = ['analyze', 'analysis', 'document', 'file', 'docx', 'content', 'review', 'examine', 'summarize', 'explain', 'contents', 'means', 'about', 'what', 'this'];
-    const isDocumentQuery = analysisKeywords.some(keyword => 
-      text.toLowerCase().includes(keyword)
-    );
+    // Always include document context if documents are available
+    let documentContext = null;
+    if (extractedDocuments.length > 0) {
+      const recentDoc = extractedDocuments[extractedDocuments.length - 1];
+      documentContext = {
+        filename: recentDoc.filename,
+        contentType: recentDoc.contentType,
+        content: recentDoc.preview,
+        wordCount: recentDoc.wordCount
+      };
+    }
 
     console.log('🔍 Document query check:', isDocumentQuery);
     console.log('🔍 Documents available:', extractedDocuments.length);
