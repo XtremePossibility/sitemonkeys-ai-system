@@ -1935,9 +1935,6 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// FILE ANALYSIS ENDPOINT - Upload and immediate analysis
-app.post('/api/upload-for-analysis', analysisMiddleware, uploadForAnalysisHandler);
-
 // ===== MEMORY SYSTEM HEALTH CHECK =====
 app.get('/api/memory-status', async (req, res) => {
     try {
