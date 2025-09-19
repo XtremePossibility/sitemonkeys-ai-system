@@ -164,7 +164,8 @@ export default async function handler(req, res) {
       mode = 'site_monkeys',
       claude_requested = false,
       vault_content = null,
-      user_id = 'default_user'
+      user_id = 'default_user',
+      document_context = null  // 👈 ADD THIS LINE
     } = req.body;
 
     if (!message || typeof message !== 'string') {
