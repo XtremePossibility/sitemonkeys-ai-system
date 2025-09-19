@@ -3,6 +3,7 @@
 
 import multer from 'multer';
 import path from 'path';
+import mammoth from 'mammoth';
 
 // Configure multer for file uploads (in-memory storage) - EXACT COPY
 const storage = multer.memoryStorage();
@@ -66,6 +67,89 @@ function detectFileType(filename, mimetype) {
   return 'other';
 }
 
+// Function 1: Extract content from DOCX (memory-efficient)
+async function extractDocxContent(fileBuffer) {
+  try {
+    console.log('📄 Extracting content from .docx file...');
+    const result = await mammoth.extractRawText({ buffer: fileBuffer });
+    const extractedText = result.value;
+    
+    // Immediately check if extraction worked
+    if (extractedText && extractedText.trim().length > 0) {
+      const wordCount = extractedText.split(/\s+/).length;
+      console.log(`✅ Successfully extracted ${wordCount} words from .docx`);
+      
+      // Return just the essential data - not storing full content in memory
+      return {
+        success: true,
+        wordCount: wordCount,
+        characterCount: extractedText.length,
+        preview: extractedText.substring(0, 200) + (extractedText.length > 200 ? '...' : ''),
+        hasContent: true
+      };
+    } else {
+      console.log('⚠️ .docx file appears to be empty');
+      return {
+        success: false,
+        error: 'Document appears to be empty or unreadable'
+      };
+    }
+  } catch (error) {
+    console.error('❌ Error extracting .docx content:', error);
+    return {
+      success: false,
+      error: `Failed to extract content: ${error.message}`
+    };
+  }
+}
+
+// Function 2: Simple content analysis (no AI needed)
+function analyzeContent(wordCount, characterCount, preview) {
+  // Simple rule-based analysis - no external API calls
+  let contentType = 'General Document';
+  const lowerPreview = preview.toLowerCase();
+  
+  if (lowerPreview.includes('business plan') || lowerPreview.includes('executive summary')) {
+    contentType = 'Business Document';
+  } else if (lowerPreview.includes('resume') || lowerPreview.includes('curriculum vitae')) {
+    contentType = 'Resume/CV';
+  } else if (lowerPreview.includes('contract') || lowerPreview.includes('agreement')) {
+    contentType = 'Legal Document';
+  }
+  
+  const readingTime = Math.ceil(wordCount / 200); // ~200 words per minute
+  
+  return {
+    contentType: contentType,
+    readingTime: readingTime,
+    summary: `${contentType} with ${wordCount} words (${readingTime} minute read)`
+  };
+}
+
+// Function 3: Extract key phrases (simple, memory-efficient)
+function extractKeyPhrases(preview) {
+  // Find sentences with key indicator words
+  const sentences = preview.split(/[.!?]+/);
+  const keyIndicators = ['objective', 'goal', 'action', 'next step', 'deadline', 'important'];
+  
+  const keyPhrases = sentences
+    .filter(sentence => {
+      const lower = sentence.toLowerCase();
+      return keyIndicators.some(indicator => lower.includes(indicator));
+    })
+    .slice(0, 3)
+    .map(s => s.trim())
+    .filter(s => s.length > 10);
+    
+  return keyPhrases;
+}
+
+// Function 4: Check if file is DOCX
+function isDocxFile(file) {
+  return file.mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
+         file.originalname.toLowerCase().endsWith('.docx');
+}
+
 // Process uploaded file - EXACT COPY
 async function processFile(file) {
   const fileType = detectFileType(file.originalname, file.mimetype);
@@ -75,49 +159,97 @@ async function processFile(file) {
     message: '',
     type: fileType,
     size: file.size,
-    preview: ''
+    preview: '',
+    contentExtracted: false,
+    docxAnalysis: null
   };
   
   try {
-    // Create appropriate message based on file type
-    switch (fileType) {
-      case 'image':
-        processingResult.message = `Image uploaded for analysis: ${file.originalname}`;
-        processingResult.preview = `Image ready for analysis and processing`;
-        break;
+    // SPECIAL HANDLING FOR DOCX FILES
+    if (fileType === 'document' && isDocxFile(file)) {
+      console.log(`📄 Processing .docx file: ${file.originalname}`);
+      
+      // Extract content (memory-efficient)
+      const extractionResult = await extractDocxContent(file.buffer);
+      
+      if (extractionResult.success) {
+        // Mark as extracted
+        processingResult.contentExtracted = true;
         
-      case 'document':
-        processingResult.message = `Document uploaded for analysis: ${file.originalname}`;
-        processingResult.preview = `Document ready for text analysis and processing`;
-        break;
+        // Do simple analysis
+        const analysis = analyzeContent(
+          extractionResult.wordCount, 
+          extractionResult.characterCount, 
+          extractionResult.preview
+        );
         
-      case 'spreadsheet':
-        processingResult.message = `Spreadsheet uploaded for analysis: ${file.originalname}`;
-        processingResult.preview = `Data tables ready for analysis`;
-        break;
+        // Extract key phrases
+        const keyPhrases = extractKeyPhrases(extractionResult.preview);
         
-      case 'code':
-        processingResult.message = `Code file uploaded for analysis: ${file.originalname}`;
-        processingResult.preview = `Source code ready for review and analysis`;
-        break;
+        // Store analysis results
+        processingResult.docxAnalysis = {
+          wordCount: extractionResult.wordCount,
+          characterCount: extractionResult.characterCount,
+          contentType: analysis.contentType,
+          readingTime: analysis.readingTime,
+          keyPhrases: keyPhrases,
+          preview: extractionResult.preview
+        };
         
-      default:
-        processingResult.message = `File uploaded for analysis: ${file.originalname}`;
-        processingResult.preview = `File stored and ready for processing`;
+        processingResult.message = `DOCX analyzed: ${file.originalname} (${extractionResult.wordCount} words)`;
+        processingResult.preview = `📄 ${analysis.summary}`;
+        
+      } else {
+        // Content extraction failed
+        processingResult.message = `DOCX processing failed: ${extractionResult.error}`;
+        processingResult.preview = `❌ Could not extract content from ${file.originalname}`;
+        processingResult.success = false;
+      }
+      
+    } else {
+      // Handle all other file types (your existing logic)
+      switch (fileType) {
+        case 'image':
+          processingResult.message = `Image uploaded for analysis: ${file.originalname}`;
+          processingResult.preview = `Image ready for analysis and processing`;
+          break;
+          
+        case 'document':
+          processingResult.message = `Document uploaded for analysis: ${file.originalname}`;
+          processingResult.preview = `Document ready for text analysis and processing`;
+          break;
+          
+        case 'spreadsheet':
+          processingResult.message = `Spreadsheet uploaded for analysis: ${file.originalname}`;
+          processingResult.preview = `Data tables ready for analysis`;
+          break;
+          
+        case 'code':
+          processingResult.message = `Code file uploaded for analysis: ${file.originalname}`;
+          processingResult.preview = `Source code ready for review and analysis`;
+          break;
+          
+        default:
+          processingResult.message = `File uploaded for analysis: ${file.originalname}`;
+          processingResult.preview = `File stored and ready for processing`;
+      }
     }
     
-    // Store file metadata for future reference
+    // Store metadata (same as before, but with docx info)
     processingResult.metadata = {
       filename: file.originalname,
       mimetype: file.mimetype,
       size: file.size,
       uploadTime: new Date().toISOString(),
-      fileType: fileType
+      fileType: fileType,
+      contentExtracted: processingResult.contentExtracted,
+      hasDocxAnalysis: !!processingResult.docxAnalysis
     };
     
   } catch (error) {
     processingResult.success = false;
     processingResult.message = `Failed to process ${file.originalname}: ${error.message}`;
+    console.error('❌ Error in processFile:', error);
   }
   
   return processingResult;
@@ -162,7 +294,9 @@ async function handleAnalysisUpload(req, res) {
             size: result.size,
             folder: 'analysis',
             preview: result.preview,
-            metadata: result.metadata
+            metadata: result.metadata,
+            contentExtracted: result.contentExtracted,
+            docxAnalysis: result.docxAnalysis  // This contains the word count, analysis, etc.
           });
           console.log(`✅ [Analysis] Successfully processed: ${file.originalname}`);
         } else {
@@ -200,12 +334,17 @@ async function handleAnalysisUpload(req, res) {
       analysis_results: results.map(file => ({
         filename: file.filename,
         success: file.success,
-        analysis: file.success ? `File "${file.filename}" uploaded and ready for analysis.` : `Failed to process ${file.filename}`,
-        type: file.type
+        analysis: file.docxAnalysis ? 
+          `DOCX Content: ${file.docxAnalysis.wordCount} words, Type: ${file.docxAnalysis.contentType}` :
+          file.success ? `File "${file.filename}" uploaded and ready for analysis.` : `Failed to process ${file.filename}`,
+        type: file.type,
+        wordCount: file.docxAnalysis?.wordCount,
+        contentType: file.docxAnalysis?.contentType
       })),
       enhanced_query: null,
       system_status: {
-        claude_vision_used: false
+        docx_extraction_enabled: true,
+        memory_efficient: true
       }
     };
     
