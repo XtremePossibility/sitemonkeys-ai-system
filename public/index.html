@@ -1120,51 +1120,25 @@ async function sendMessage() {
       console.warn('⚠️ Vault load failed, backend will use emergency fallbacks:', vaultError);
     }
 
-    // Check if user is asking about uploaded documents
-    // Always include document context if documents are available
-    documentContext = null;
-    if (extractedDocuments.length > 0) {
-      const recentDoc = extractedDocuments[extractedDocuments.length - 1];
-      documentContext = {
-        filename: recentDoc.filename,
-        contentType: recentDoc.contentType,
-        content: recentDoc.preview,
-        wordCount: recentDoc.wordCount
-      };
-    }
-
-    console.log('🔍 Document query check:', isDocumentQuery);
-    console.log('🔍 Documents available:', extractedDocuments.length);
-
     // Prepare enhanced message with document context
     let enhancedMessage = text;
     let documentContext = null;
-
-    if (isDocumentQuery && extractedDocuments.length > 0) {
-      // Find the most recent document
+    
+    if (extractedDocuments.length > 0) {
       const recentDoc = extractedDocuments[extractedDocuments.length - 1];
       
-      // Add document context
-      documentContext = {
-        filename: recentDoc.filename,
-        contentType: recentDoc.contentType,
-        wordCount: recentDoc.wordCount,
-        content: recentDoc.preview,
-        keyPhrases: recentDoc.keyPhrases.join(', '),
-        uploadTime: recentDoc.uploadTime
-      };
-      
-      // Enhance the message with document context
+      // Always add document context when documents exist
       enhancedMessage = `${text}
-
-DOCUMENT CONTEXT:
-- File: ${recentDoc.filename}
-- Type: ${recentDoc.contentType}
-- Content: ${recentDoc.preview}
-- Key phrases: ${recentDoc.keyPhrases.join(', ')}
-- Word count: ${recentDoc.wordCount}`;
-
-      console.log('📄 Added document context to chat message:', recentDoc.filename);
+    
+    UPLOADED DOCUMENT CONTEXT:
+    Filename: ${recentDoc.filename}
+    Content Type: ${recentDoc.contentType}
+    Word Count: ${recentDoc.wordCount}
+    Document Content: ${recentDoc.preview}
+    
+    Please use this document information to answer the user's question.`;
+    
+      console.log('📄 Document context added to message for:', recentDoc.filename);
     }
 
     // Send message with vault content injection AND document context
