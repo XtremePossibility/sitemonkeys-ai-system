@@ -8,6 +8,7 @@ console.log('[DEBUG] Chat imports starting...');
 // CORRECTED IMPORTS - Replace existing imports in chat.js
 import { trackApiCall, formatSessionDataForUI } from './tokenTracker.js';
 import { EMERGENCY_FALLBACKS, validateVaultStructure, getVaultValue } from './site-monkeys/emergency-fallbacks.js';
+import { extractedDocuments } from './upload-for-analysis.js';
 import { ENFORCEMENT_PROTOCOLS } from './site-monkeys/enforcement-protocols.js';
 import { QUALITY_ENFORCEMENT } from './site-monkeys/quality-enforcement.js';
 import { AI_ARCHITECTURE } from './site-monkeys/ai-architecture.js';
@@ -378,7 +379,32 @@ if (intelligenceMemories && intelligenceMemories.length > 0) {
 
     // *** DOCUMENT CONTEXT PROCESSING ***
     let enhancedMessage = message;
-    if (document_context) {
+    
+    // Check for analysis keywords and retrieve stored document
+    const analysisKeywords = ['analyze', 'analysis', 'review', 'examine', 'document', 'file'];
+    const isAnalysisRequest = analysisKeywords.some(keyword => 
+      message.toLowerCase().includes(keyword)
+    );
+    
+    if (isAnalysisRequest) {
+      const storedDoc = extractedDocuments.get('latest');
+      
+      if (storedDoc) {
+        console.log(`📄 [CHAT] Found stored document: ${storedDoc.filename}`);
+        
+        enhancedMessage = `The user has uploaded a document for analysis. Here are the details:
+    
+    DOCUMENT: ${storedDoc.filename}
+    TYPE: ${storedDoc.contentType}
+    WORD COUNT: ${storedDoc.wordCount}
+    CONTENT: ${storedDoc.content}
+    KEY PHRASES: ${storedDoc.keyPhrases}
+    
+    USER QUESTION: ${message}
+    
+    Please provide a detailed analysis of this document based on the user's question.`;
+      }
+    } else if (document_context) {
       console.log(`📄 [CHAT] Document context available: ${document_context.filename}`);
       
       enhancedMessage = `The user has uploaded a document for analysis. Here are the details:
@@ -391,7 +417,7 @@ if (intelligenceMemories && intelligenceMemories.length > 0) {
     
     USER QUESTION: ${message}
     
-    Please provide a detailed analysis of this document based on the user's question. Focus on the actual content provided above.`;
+    Please provide a detailed analysis of this document based on the user's question.`;
     }
     
     // *** MASTER SYSTEM PROMPT CONSTRUCTION ***
