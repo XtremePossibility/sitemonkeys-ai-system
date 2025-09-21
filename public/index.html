@@ -746,14 +746,15 @@ display: flex; align-items: center; justify-content: center;
 <div class="chat-panel">
 <div class="chat-box" id="chat-box"></div>
 <div class="input-area">
-<button class="attachment-button" id="attachment-btn" aria-label="Attach File" title="Upload DOCX files to vault">
+<button class="attachment-button" id="smart-upload-btn" aria-label="Upload Files" title="Upload files">
 📎
 </button>
 <textarea class="chat-input" id="user-input" placeholder="Ask Eli, Roxy, and AI about business validation..." rows="3"></textarea>
 <button class="send-button" id="send-btn" aria-label="Send">
 <img src="rocket.png" alt="Rocket Send" />
 </button>
-<input type="file" id="file-input" accept=".docx,.doc,.pdf,.txt,.csv,.xlsx,.xls,.pptx,.ppt,.md,.rtf,.json,.xml,.html,.htm,.odt,.ods,.odp,.pages,.numbers,.key,.zip,.rar,.7z,.tar,.gz,.jpeg,.jpg,.png,.gif,.bmp,.svg,.tiff,.mp3,.mp4,.avi,.mov,.wmv,.flv,.webm,.wav,.m4a,.ogg,.aac" multiple style="display: none;">
+<input type="file" id="vault-file-input" accept=".docx,.doc,.pdf,.txt,.csv,.xlsx,.xls,.pptx,.ppt,.md,.rtf,.json,.xml,.html,.htm,.odt,.ods,.odp,.pages,.numbers,.key,.zip,.rar,.7z,.tar,.gz,.jpeg,.jpg,.png,.gif,.bmp,.svg,.tiff,.mp3,.mp4,.avi,.mov,.wmv,.flv,.webm,.wav,.m4a,.ogg,.aac" multiple style="display: none;">
+<input type="file" id="analysis-file-input" accept=".docx,.doc,.pdf,.txt,.csv,.xlsx,.xls,.pptx,.ppt,.md,.rtf,.json,.xml,.html,.htm,.odt,.ods,.odp,.pages,.numbers,.key,.zip,.rar,.7z,.tar,.gz,.jpeg,.jpg,.png,.gif,.bmp,.svg,.tiff,.mp3,.mp4,.avi,.mov,.wmv,.flv,.webm,.wav,.m4a,.ogg,.aac" multiple style="display: none;">
 </div>
 </div>
 </div>
@@ -1276,14 +1277,29 @@ document.addEventListener('DOMContentLoaded', function() {
     sendMessage();
   });
 
-  // Upload button functionality
-  const attachmentBtn = document.getElementById('attachment-btn');
-  const fileInput = document.getElementById('file-input');
+  // Smart upload button functionality
+  const smartUploadBtn = document.getElementById('smart-upload-btn');
+  const vaultFileInput = document.getElementById('vault-file-input');
+  const analysisFileInput = document.getElementById('analysis-file-input');
 
-  attachmentBtn.addEventListener('click', () => fileInput.click());
-  fileInput.addEventListener('change', (e) => {
+  smartUploadBtn.addEventListener('click', () => {
+    const choice = confirm('Choose upload type:\nOK = Upload to Vault\nCancel = AI Analysis');
+    if (choice) {
+      vaultFileInput.click();
+    } else {
+      analysisFileInput.click();
+    }
+  });
+
+  vaultFileInput.addEventListener('change', (e) => {
     if (e.target.files.length > 0) {
       handleFileUpload(Array.from(e.target.files));
+    }
+  });
+
+  analysisFileInput.addEventListener('change', (e) => {
+    if (e.target.files.length > 0) {
+      handleAnalysisUpload(Array.from(e.target.files));
     }
   });
 
