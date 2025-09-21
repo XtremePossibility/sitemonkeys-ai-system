@@ -663,6 +663,20 @@ display: flex; align-items: center; justify-content: center;
 
 /* Hover effects */
 .mode-btn:hover:not(.active) { transform: translateY(-1px); opacity: 0.9; }
+
+/* Safari mascot fix */
+@supports (-webkit-appearance: none) {
+  @media (max-width: 950px) and (orientation: landscape) {
+    .mascot-right { 
+      opacity: 1 !important;
+      visibility: visible !important;
+      display: block !important;
+      -webkit-transform: translateY(-50%);
+      transform: translateY(-50%);
+    }
+  }
+}
+
 </style>
 
 </head>
@@ -735,16 +749,11 @@ display: flex; align-items: center; justify-content: center;
 <button class="attachment-button" id="attachment-btn" aria-label="Attach File" title="Upload DOCX files to vault">
 📎
 </button>
-<button class="attachment-button" id="analyze-btn" aria-label="Analyze Files" title="Upload files for AI analysis" style="margin-left: 5px; background: #4CAF50;">
-🔍
-</button>
-<input type="file" id="analyze-file-input" accept=".docx,.doc,.pdf,.txt,.csv,.xlsx,.xls,.pptx,.ppt,.md,.rtf,.json,.xml,.html,.htm,.odt,.ods,.odp,.pages,.numbers,.key,.zip,.rar,.7z,.tar,.gz,.jpeg,.jpg,.png,.gif,.bmp,.svg,.tiff,.mp3,.mp4,.avi,.mov,.wmv,.flv,.webm,.wav,.m4a,.ogg,.aac" multiple style="display: none;">
 <textarea class="chat-input" id="user-input" placeholder="Ask Eli, Roxy, and AI about business validation..." rows="3"></textarea>
 <button class="send-button" id="send-btn" aria-label="Send">
 <img src="rocket.png" alt="Rocket Send" />
 </button>
 <input type="file" id="file-input" accept=".docx,.doc,.pdf,.txt,.csv,.xlsx,.xls,.pptx,.ppt,.md,.rtf,.json,.xml,.html,.htm,.odt,.ods,.odp,.pages,.numbers,.key,.zip,.rar,.7z,.tar,.gz,.jpeg,.jpg,.png,.gif,.bmp,.svg,.tiff,.mp3,.mp4,.avi,.mov,.wmv,.flv,.webm,.wav,.m4a,.ogg,.aac" multiple style="display: none;">
-</div>
 </div>
 </div>
 </div>
@@ -1277,20 +1286,6 @@ document.addEventListener('DOMContentLoaded', function() {
       handleFileUpload(Array.from(e.target.files));
     }
   });
-
-  // Analysis button functionality
-  const analyzeBtn = document.getElementById('analyze-btn');
-  const analyzeFileInput = document.getElementById('analyze-file-input');
-
-  if (analyzeBtn && analyzeFileInput) {
-    analyzeBtn.addEventListener('click', () => analyzeFileInput.click());
-    analyzeFileInput.addEventListener('change', (e) => {
-      if (e.target.files.length > 0) {
-        handleAnalysisUpload(Array.from(e.target.files));
-      }
-    });
-    console.log('✅ Analysis system initialized');
-  }
 
   console.log('🎯 Event listeners added');
   setTimeout(() => {
