@@ -18,6 +18,7 @@ import zlib from 'zlib';
 import { promisify } from 'util';
 import { uploadMiddleware, handleFileUpload } from './api/upload-file.js';
 import { analysisMiddleware, handleAnalysisUpload } from './api/upload-for-analysis.js';
+import { extractedDocuments } from './api/upload-for-analysis.js';
 
 // ===== CRITICAL RAILWAY ERROR HANDLERS =====
 process.on('unhandledRejection', (reason, promise) => {
@@ -802,7 +803,8 @@ app.post('/api/chat', async (req, res) => {
       conversation_history = [],
       mode = 'site_monkeys',
       claude_requested = false,
-      vault_content = null
+      vault_content = null,
+      document_context = null
     } = req.body;
 
     if (!message || typeof message !== 'string') {
