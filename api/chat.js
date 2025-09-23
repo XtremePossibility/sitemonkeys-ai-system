@@ -604,7 +604,13 @@ if (intelligenceResult && intelligenceResult.intelligenceEnhanced) {
     
     // Apply ONLY the conflict resolution, not intelligence replacement
     const conflictResolution = responseUnifier.getFinalResponse();
-    finalResponse = conflictResolution.content;
+  
+    if (!(intelligenceResult && intelligenceResult.intelligenceEnhanced)) {
+      console.log("🧠 Final response replaced by conflict resolution");
+      finalResponse = conflictResolution.content;
+    } else {
+      console.log("✅ Intelligence response preserved – skipping conflict resolution override");
+    }
     
     // Master mode compliance - replace the three competing functions ONLY
     const complianceValidation = MasterModeCompliance.validateModeCompliance(
