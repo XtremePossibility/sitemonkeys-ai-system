@@ -583,7 +583,7 @@ if (intelligenceResult && intelligenceResult.intelligenceEnhanced) {
   enhancedResponse = integrateVaultLogic(enhancedResponse, vaultContent, vaultHealthy, mode);
   
   // 7. SURVIVAL PROTECTION APPLICATION  
-  let finalResponse = applySurvivalProtection(enhancedResponse, mode, vaultContent);
+  enhancedResponse = applySurvivalProtection(enhancedResponse, mode, vaultContent);
   
   // 8. [keep whatever your #8 is]
 }
