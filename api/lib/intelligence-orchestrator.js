@@ -1,14 +1,15 @@
 // api/lib/intelligence-orchestrator.js
-// INTELLIGENCE ORCHESTRATOR - Coordinates genuine AI reasoning with your business wisdom
+// INTELLIGENCE ORCHESTRATOR - ES6 Compatible Version
 // Extraordinarily intelligent system that can handle virtually anything
+// FULL FUNCTIONALITY PRESERVED - Only syntax converted
 
-const { WisdomExtractor } = require('./wisdom-extractor');
-const { AIReasoningEngine } = require('./ai-reasoning-engine');
-const { ValidationEngine } = require('./validation-engine');
-const { MultimodalGateway } = require('./multimodal-gateway');
-const { LearningEngine } = require('./learning-engine');
-const { AdaptationEngine } = require('./adaptation-engine');
-const { StreamProcessor } = require('./stream-processor');
+import { WisdomExtractor } from './wisdom-extractor.js';
+import { AIReasoningEngine } from './ai-reasoning-engine.js';
+import { ValidationEngine } from './validation-engine.js';
+import { MultimodalGateway } from './multimodal-gateway.js';
+import { LearningEngine } from './learning-engine.js';
+import { AdaptationEngine } from './adaptation-engine.js';
+import { StreamProcessor } from './stream-processor.js';
 
 class IntelligenceOrchestrator {
   constructor() {
@@ -411,7 +412,4 @@ Based on the information available, I need to consider multiple factors and pote
 // Export singleton
 const intelligenceOrchestrator = new IntelligenceOrchestrator();
 
-module.exports = { 
-  intelligenceOrchestrator,
-  IntelligenceOrchestrator 
-};
+export { intelligenceOrchestrator, IntelligenceOrchestrator };
