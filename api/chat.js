@@ -466,7 +466,8 @@ try {
     req.body.attachments || []
   );
   
-  if (extraordinaryResponse && extraordinaryResponse.extraordinary_intelligence?.active) {
+  if (extraordinaryResponse && extraordinaryRespon
+      se.extraordinary_intelligence?.active) {
     // Use extraordinary intelligence response
     finalResponse = extraordinaryResponse.content;
     apiResponse = {
@@ -475,6 +476,12 @@ try {
         prompt_tokens: 0, 
         completion_tokens: Math.ceil(finalResponse.length / 4)
       }
+    };
+
+  // SET INTELLIGENCE FLAG SO ENFORCEMENT LAYERS ARE SKIPPED
+    intelligenceResult = {
+      intelligenceEnhanced: true,
+      response: extraordinaryResponse.content
     };
     
     console.log('[EXTRAORDINARY INTELLIGENCE] ✅ SUCCESS');
@@ -549,7 +556,7 @@ try {
     // Skip enforcement layers if intelligence already processed
 if (intelligenceResult && intelligenceResult.intelligenceEnhanced) {
   console.log('🧠 [INTELLIGENCE] Skipping enforcement - intelligence already applied');
-  let finalResponse = enhancedResponse; // Intelligence output preserved
+  // Intelligence output preserved - skip to end of enforcement
 } else {
   console.log('🔄 [FALLBACK] Applying enforcement layers');
   
@@ -581,6 +588,13 @@ if (intelligenceResult && intelligenceResult.intelligenceEnhanced) {
   // 8. [keep whatever your #8 is]
 }
 
+    // Set finalResponse based on whether intelligence was used
+    if (intelligenceResult && intelligenceResult.intelligenceEnhanced) {
+      finalResponse = enhancedResponse; // Use intelligence output
+    } else {
+      finalResponse = enhancedResponse; // Use enforcement-processed output
+    }
+  
     // 8. UNIFIED CONFLICT RESOLUTION - SUPPLEMENT TO EXISTING INTELLIGENCE
     const responseUnifier = new ResponseObjectUnifier();
     responseUnifier.initializeResponseObject(finalResponse);
