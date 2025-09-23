@@ -546,30 +546,40 @@ try {
   }
 }
     
-    // 1. QUANTITATIVE REASONING ENFORCEMENT
-    enhancedResponse = enforceQuantitativeAnalysis(enhancedResponse, message, expertDomain.domain, vaultContent);
-    enhancedResponse = enforceCalculationStandards(enhancedResponse, message, expertDomain.domain);
-    
-    // 2. BUSINESS SURVIVAL ENFORCEMENT  
-    enhancedResponse = enforceBusinessSurvival(enhancedResponse, message, expertDomain.domain, mode);
-    
-    // 3. EXPERT QUALITY VALIDATION
-    enhancedResponse = enforceExpertStandards(enhancedResponse, expertDomain.domain, message);
-    
-    // 4. PROTECTIVE INTELLIGENCE INTEGRATION
-    enhancedResponse = applyProtectiveIntelligence(enhancedResponse, message, expertDomain.domain, conversation_history);
-    
-    // 5. POLITICAL NEUTRALITY ENFORCEMENT
-    enhancedResponse = applyPoliticalNeutrality(enhancedResponse, message);
-    enhancedResponse = enforceEvidenceBasedStandards(enhancedResponse);
-    
-    // 6. SITE MONKEYS BUSINESS LOGIC ENFORCEMENT
-    enhancedResponse = enforceSiteMonkeysStandards(enhancedResponse, mode, vaultContent, vaultHealthy);
-    enhancedResponse = enforcePricingFloors(enhancedResponse, mode);
-    enhancedResponse = integrateVaultLogic(enhancedResponse, vaultContent, vaultHealthy, mode);
-    
-    // 7. SURVIVAL PROTECTION APPLICATION  
-    let finalResponse = applySurvivalProtection(enhancedResponse, mode, vaultContent);
+    // Skip enforcement layers if intelligence already processed
+if (intelligenceResult && intelligenceResult.intelligenceEnhanced) {
+  console.log('🧠 [INTELLIGENCE] Skipping enforcement - intelligence already applied');
+  let finalResponse = enhancedResponse; // Intelligence output preserved
+} else {
+  console.log('🔄 [FALLBACK] Applying enforcement layers');
+  
+  // 1. QUANTITATIVE REASONING ENFORCEMENT
+  enhancedResponse = enforceQuantitativeAnalysis(enhancedResponse, message, expertDomain.domain, vaultContent);
+  enhancedResponse = enforceCalculationStandards(enhancedResponse, message, expertDomain.domain);
+  
+  // 2. BUSINESS SURVIVAL ENFORCEMENT  
+  enhancedResponse = enforceBusinessSurvival(enhancedResponse, message, expertDomain.domain, mode);
+  
+  // 3. EXPERT QUALITY VALIDATION
+  enhancedResponse = enforceExpertStandards(enhancedResponse, expertDomain.domain, message);
+  
+  // 4. PROTECTIVE INTELLIGENCE INTEGRATION
+  enhancedResponse = applyProtectiveIntelligence(enhancedResponse, message, expertDomain.domain, conversation_history);
+  
+  // 5. POLITICAL NEUTRALITY ENFORCEMENT
+  enhancedResponse = applyPoliticalNeutrality(enhancedResponse, message);
+  enhancedResponse = enforceEvidenceBasedStandards(enhancedResponse);
+  
+  // 6. SITE MONKEYS BUSINESS LOGIC ENFORCEMENT
+  enhancedResponse = enforceSiteMonkeysStandards(enhancedResponse, mode, vaultContent, vaultHealthy);
+  enhancedResponse = enforcePricingFloors(enhancedResponse, mode);
+  enhancedResponse = integrateVaultLogic(enhancedResponse, vaultContent, vaultHealthy, mode);
+  
+  // 7. SURVIVAL PROTECTION APPLICATION  
+  let finalResponse = applySurvivalProtection(enhancedResponse, mode, vaultContent);
+  
+  // 8. [keep whatever your #8 is]
+}
 
     // 8. UNIFIED CONFLICT RESOLUTION - SUPPLEMENT TO EXISTING INTELLIGENCE
     const responseUnifier = new ResponseObjectUnifier();
