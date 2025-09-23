@@ -71,8 +71,8 @@ import { ResponseObjectUnifier } from './response-object-unifier.js';
 import { MasterModeCompliance } from './master-mode-compliance.js';
 import { UnifiedResponseSchema } from './unified-response-schema.js';
 import { EnhancedIntelligence } from './lib/enhanced-intelligence.js';
-import intelligenceSystem from '../memory_system/intelligence.js';
 import { IntelligenceOrchestrator } from './lib/intelligence-orchestrator.js';
+import intelligenceSystem from '../memory_system/intelligence.js';
 
 console.log('[DEBUG] All cognitive modules loaded successfully');
 
