@@ -496,7 +496,13 @@ if (intelligenceMemories && intelligenceMemories.length > 0) {
         intelligenceResult = intelligenceOutput;
         console.log('🧠 [INTELLIGENCE] Coordinator used successfully – skipping enforcement');
       } else {
-        throw new Error('Coordinator returned no enhanced result');
+        console.log('🧠 [INTELLIGENCE] Coordinator returned basic result, using it anyway');
+        finalResponse = intelligenceOutput?.response || "Processing...";
+        intelligenceResult = intelligenceOutput || { intelligenceEnhanced: false };
+        // If Intelligence Coordinator didn't use vault, force it into response
+        if (vaultContent && vaultContent.length > 1000 && !finalResponse.includes('SITE MONKEYS')) {
+          console.log('[VAULT FORCE] Intelligence Coordinator ignored vault, forcing injection');
+          throw new Error('Force fallback to inject vault');
       }
     
     } catch (coordError) {
@@ -518,7 +524,7 @@ if (intelligenceMemories && intelligenceMemories.length > 0) {
     
       intelligenceResult = {
         intelligenceEnhanced: false,
-        memoryIntegrated: !!memoryContext?.contextFound,
+        memoryIntegrated: !!(memoryContext?.contextFound || memoryContext?.hasMemory),
         enginesActivated: ['api_fallback'],
         confidence: 0.5
       };
