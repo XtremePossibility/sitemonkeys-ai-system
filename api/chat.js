@@ -220,6 +220,15 @@ export default async function handler(req, res) {
       console.log('✅ Site Monkeys vault health FINAL correction - vault intelligence active');
     }
 
+    // VAULT DEBUG LOGGING
+    console.log('[VAULT DEBUG] Final vault status:', {
+      mode: mode,
+      vaultContentLength: vaultContent?.length || 0,
+      vaultHealthy: vaultHealthy,
+      vaultStatus: vaultStatus,
+      vaultPreview: vaultContent?.substring(0, 100) || 'NO CONTENT'
+    });
+
     // *** COMPREHENSIVE COGNITIVE ANALYSIS ***
     
     // 1. EXPERT DOMAIN RECOGNITION
@@ -379,6 +388,14 @@ if (intelligenceMemories && intelligenceMemories.length > 0) {
   
   // Apply surgical memory enhancement
   memoryContext = enhanceMemoryWithStructure(baseMemoryContext);
+  // MEMORY DEBUG LOGGING  
+  console.log('[MEMORY DEBUG] Final memory context:', {
+    hasMemory: !!memoryContext?.hasMemory,
+    contextFound: !!memoryContext?.contextFound,
+    memoriesLength: memoryContext?.memories?.length || 0,
+    structuredDataAvailable: !!memoryContext?.structuredDataAvailable,
+    memoryPreview: memoryContext?.memories?.substring(0, 100) || 'NO CONTENT'
+  });
   console.log('[INTELLIGENCE] Created memory context with', totalTokens, 'tokens from', intelligenceMemories.length, 'memories');
     
     // *** MEMORY DEBUG - TEMPORARY DIAGNOSTIC ***
@@ -463,8 +480,19 @@ if (intelligenceMemories && intelligenceMemories.length > 0) {
     
     } catch (coordError) {
       console.warn('[INTELLIGENCE COORDINATOR] Fallback triggered:', coordError.message);
-    
-      const fallbackAPI = await makeEnhancedAPICall(fullPrompt, optimalPersonality, prideMotivation, memoryContext?.memories || null);
+      
+      // FORCE vault and memory injection into fallback
+      console.log('[FALLBACK DEBUG] Vault content length:', vaultContent?.length || 0);
+      console.log('[FALLBACK DEBUG] Memory context available:', !!memoryContext?.contextFound);
+      
+      // Rebuild prompt with FORCED vault and memory injection
+      const masterPromptWithVault = buildMasterPrompt(mode, optimalPersonality, vaultContent, vaultHealthy, expertDomain, careNeeds, protectiveAlerts, solutionOpportunities, memoryContext, null);
+      const basePromptWithMemory = buildFullConversationPrompt(masterPromptWithVault, enhancedMessage, conversation_history, expertDomain, careNeeds, memoryContext);
+      
+      console.log('[FALLBACK DEBUG] Final prompt length:', basePromptWithMemory.length);
+      console.log('[FALLBACK DEBUG] Prompt includes vault:', basePromptWithMemory.includes('SITE MONKEYS BUSINESS'));
+      
+      const fallbackAPI = await makeEnhancedAPICall(basePromptWithMemory, optimalPersonality, prideMotivation, memoryContext?.memories || null);
       finalResponse = fallbackAPI.response;
     
       intelligenceResult = {
