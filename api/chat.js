@@ -15,6 +15,7 @@ import { AI_ARCHITECTURE } from './site-monkeys/ai-architecture.js';
 import { getVaultStatus, checkVaultTriggers, generateVaultContext, enforceVaultCompliance } from './lib/vault.js';
 import { integrateSystemIntelligence, enhancePromptWithIntelligence, getSystemIntelligenceStatus } from './lib/system-intelligence.js';
 import zlib from 'zlib';
+import { enhanceMemoryWithStructure } from './lib/memory-enhancer.js';
 
 // NEW ENFORCEMENT MODULE IMPORTS (ADD THESE)
 import { 
@@ -365,7 +366,8 @@ if (intelligenceMemories && intelligenceMemories.length > 0) {
   const memoryText = intelligenceMemories.map(m => m.content).join('\n\n');
   const totalTokens = intelligenceMemories.reduce((sum, m) => sum + (m.token_count || 0), 0);
   
-  memoryContext = {
+  // Create base memory context
+  const baseMemoryContext = {
     hasMemory: true,
     contextFound: true,
     memories: memoryText,
@@ -374,6 +376,9 @@ if (intelligenceMemories && intelligenceMemories.length > 0) {
     intelligenceEnhanced: true,
     category: intelligenceRouting.primaryCategory
   };
+  
+  // Apply surgical memory enhancement
+  memoryContext = enhanceMemoryWithStructure(baseMemoryContext);
   console.log('[INTELLIGENCE] Created memory context with', totalTokens, 'tokens from', intelligenceMemories.length, 'memories');
     
     // *** MEMORY DEBUG - TEMPORARY DIAGNOSTIC ***
