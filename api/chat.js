@@ -387,7 +387,14 @@ if (intelligenceMemories && intelligenceMemories.length > 0) {
   };
   
   // Apply surgical memory enhancement
-  memoryContext = enhanceMemoryWithStructure(baseMemoryContext);
+   memoryContext = enhanceMemoryWithStructure(baseMemoryContext);
+    
+  // MEMORY ENHANCEMENT DEBUG
+  console.log('[MEMORY ENHANCEMENT DEBUG] Memory context after enhancement:');
+  console.log('- Original memories length:', baseMemoryContext?.memories?.length || 0);
+  console.log('- Enhanced memories length:', memoryContext?.memories?.length || 0);
+  console.log('- Structured data available:', memoryContext?.structuredDataAvailable);
+  console.log('- Enhancement result preview:', memoryContext?.memories?.substring(0, 150) || 'NO CONTENT');
   // MEMORY DEBUG LOGGING  
   console.log('[MEMORY DEBUG] Final memory context:', {
     hasMemory: !!memoryContext?.hasMemory,
@@ -458,6 +465,20 @@ if (intelligenceMemories && intelligenceMemories.length > 0) {
     // *** INTELLIGENCE COORDINATOR REPLACEMENT ***
     let finalResponse;
     let intelligenceResult;
+
+    // FORCE VAULT DEBUG - See what's actually being passed
+    console.log('[VAULT INJECTION DEBUG] About to call Intelligence Coordinator with:');
+    console.log('- vaultContent length:', vaultContent?.length || 0);
+    console.log('- vaultContent preview:', vaultContent?.substring(0, 200) || 'EMPTY');
+    console.log('- vaultHealthy:', vaultHealthy);
+    console.log('- mode:', mode);
+    
+    // FORCE MEMORY DEBUG - See what's in memory context  
+    console.log('[MEMORY INJECTION DEBUG] Memory context being passed:');
+    console.log('- contextFound:', memoryContext?.contextFound);
+    console.log('- memories length:', memoryContext?.memories?.length || 0);
+    console.log('- memories preview:', memoryContext?.memories?.substring(0, 200) || 'EMPTY');
+    console.log('- structuredDataAvailable:', memoryContext?.structuredDataAvailable);
     
     try {
       const intelligenceOutput = await IntelligenceCoordinator.processQuery(
