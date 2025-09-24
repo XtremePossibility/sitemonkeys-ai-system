@@ -72,6 +72,8 @@ import { MasterModeCompliance } from './master-mode-compliance.js';
 import { UnifiedResponseSchema } from './unified-response-schema.js';
 import { EnhancedIntelligence } from './lib/enhanced-intelligence.js';
 import { IntelligenceOrchestrator } from './lib/intelligence-orchestrator.js';
+import { coordinator as IntelligenceCoordinator } from './lib/intelligence-coordinator.js';
+
 import intelligenceSystem from '../memory_system/intelligence.js';
 
 console.log('[DEBUG] All cognitive modules loaded successfully');
@@ -431,89 +433,42 @@ if (intelligenceMemories && intelligenceMemories.length > 0) {
     const intelligence = { vaultIntelligenceActive: vaultHealthy, status: 'active' };
     const fullPrompt = basePrompt;
     
-    // *** EXTRAORDINARY INTELLIGENCE PROCESSING ***
-let finalResponse;
-let apiResponse;
-
-try {
-  console.log('[EXTRAORDINARY INTELLIGENCE] Activating your sophisticated intelligence system...');
-  
-  // Prepare comprehensive context for your orchestrator
-  const extraordinaryContext = {
-    query: enhancedMessage,
-    mode: mode,
-    business_context: mode === 'business_validation' || mode === 'site_monkeys',
-    business_critical: mode === 'site_monkeys',
-    expert_domain: expertDomain,
-    care_needs: careNeeds,
-    protective_alerts: protectiveAlerts,
-    solution_opportunities: solutionOpportunities,
-    vault: vaultContent,
-    vault_healthy: vaultHealthy,
-    memory: memoryContext,
-    user_id: user_id,
-    conversation_history: conversation_history,
-    userHistory: conversation_history,
-    political_analysis: politicalAnalysis,
-    pride_motivation: prideMotivation
-  };
-  
-  // Process with your extraordinary intelligence orchestrator
-  const extraordinaryResponse = await intelligenceOrchestrator.processWithExtraordinaryIntelligence(
-    extraordinaryContext,
-    enhancedMessage,
-    mode,
-    req.body.attachments || []
-  );
-  
-  if (extraordinaryResponse && extraordinaryRespon
-      se.extraordinary_intelligence?.active) {
-    // Use extraordinary intelligence response
-    finalResponse = extraordinaryResponse.content;
-    apiResponse = {
-      response: finalResponse,
-      usage: { 
-        prompt_tokens: 0, 
-        completion_tokens: Math.ceil(finalResponse.length / 4)
+    // *** INTELLIGENCE COORDINATOR REPLACEMENT ***
+    let finalResponse;
+    let intelligenceResult;
+    
+    try {
+      const intelligenceOutput = await IntelligenceCoordinator.processQuery(
+        enhancedMessage,
+        {
+          memory: memoryContext,
+          vault: vaultContent,
+          extraordinary: intelligenceOrchestrator
+        },
+        mode
+      );
+    
+      if (intelligenceOutput?.intelligenceEnhanced) {
+        finalResponse = intelligenceOutput.response;
+        intelligenceResult = intelligenceOutput;
+        console.log('🧠 [INTELLIGENCE] Coordinator used successfully – skipping enforcement');
+      } else {
+        throw new Error('Coordinator returned no enhanced result');
       }
-    };
-
-  // SET INTELLIGENCE FLAG SO ENFORCEMENT LAYERS ARE SKIPPED
-    intelligenceResult = {
-      intelligenceEnhanced: true,
-      response: extraordinaryResponse.content
-    };
     
-    console.log('[EXTRAORDINARY INTELLIGENCE] ✅ SUCCESS');
-    console.log('[EXTRAORDINARY INTELLIGENCE] Capabilities used:', 
-      Object.entries(extraordinaryResponse.capabilities_used || {})
-        .filter(([, used]) => used)
-        .map(([cap]) => cap)
-        .join(', ')
-    );
-    console.log('[EXTRAORDINARY INTELLIGENCE] Confidence:', extraordinaryResponse.confidence);
-    console.log('[EXTRAORDINARY INTELLIGENCE] Trust score:', extraordinaryResponse.extraordinary_intelligence?.trust_score);
+    } catch (coordError) {
+      console.warn('[INTELLIGENCE COORDINATOR] Fallback triggered:', coordError.message);
     
-  } else {
-    throw new Error('Extraordinary intelligence processing failed');
-  }
-  
-} catch (extraordinaryError) {
-  console.log('[EXTRAORDINARY INTELLIGENCE] ⚠️ Fallback activated:', extraordinaryError.message);
-  
-  // Your existing sophisticated fallback system
-  if (intelligenceResult.intelligenceEnhanced && intelligenceResult.response) {
-    finalResponse = intelligenceResult.response;
-    apiResponse = { response: finalResponse, usage: { prompt_tokens: 0, completion_tokens: 0 } };
-    console.log('[FALLBACK] Using intelligence-enhanced response');
-  } else {
-    const memoryForPersonality = memoryContext && (memoryContext.contextFound || memoryContext.hasMemory) ? 
-      (memoryContext.memories || memoryContext.formattedMemory || memoryContext) : null;
-    apiResponse = await makeEnhancedAPICall(fullPrompt, optimalPersonality, prideMotivation, memoryForPersonality);
-    finalResponse = apiResponse.response;
-    console.log('[FALLBACK] Using personality system response');
-  }
-}
+      const fallbackAPI = await makeEnhancedAPICall(fullPrompt, optimalPersonality, prideMotivation, memoryContext?.memories || null);
+      finalResponse = fallbackAPI.response;
+    
+      intelligenceResult = {
+        intelligenceEnhanced: false,
+        memoryIntegrated: !!memoryContext?.contextFound,
+        enginesActivated: ['api_fallback'],
+        confidence: 0.5
+      };
+    }
 
     let promptTokens, completionTokens;
 
