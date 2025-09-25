@@ -990,15 +990,6 @@ async function handleAnalysisUpload(files) {
       box.scrollTop = box.scrollHeight;
     }
 
-  try {
-  } catch (error) {
-    console.error('Upload error:', error);
-    const errorBubble = document.createElement('div');
-    errorBubble.className = 'bubble ai';
-    errorBubble.innerHTML = `<img src="boy-mascot.png" class="avatar" alt="System"><div class="bubble-content"><strong>System:</strong> ❌ Upload error: ${error.message}</div>`;
-    box.appendChild(errorBubble);
-    box.scrollTop = box.scrollHeight;
-  }
 }
 
 // Animation code
