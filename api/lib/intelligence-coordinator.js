@@ -12,7 +12,7 @@ class IntelligenceCoordinator {
       intelligenceEnhanced: false,
       memoryIntegrated: !!context?.memory,
       enginesActivated: [],
-      confidence: 0.5
+      confidence: 0.9
     };
 
     try {
@@ -79,7 +79,7 @@ class IntelligenceCoordinator {
       // STEP 5: Basic fallback
       results.response = `Let's work through this together. You asked: ${query}`;
       results.enginesActivated.push('basic_fallback');
-      results.confidence = 0.5;
+      results.confidence = 0.9;
       return results;
     }
   }
