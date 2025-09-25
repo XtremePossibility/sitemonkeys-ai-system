@@ -502,7 +502,8 @@ if (intelligenceMemories && intelligenceMemories.length > 0) {
         // If Intelligence Coordinator didn't use vault, force it into response
         if (vaultContent && vaultContent.length > 1000 && !finalResponse.includes('SITE MONKEYS')) {
           console.log('[VAULT FORCE] Intelligence Coordinator ignored vault, forcing injection');
-          throw new Error('Force fallback to inject vault');
+          console.log('[VAULT NOTICE] Intelligence chose not to use vault - respecting decision');
+          // Don't throw errorhrow new Error
       }
     
     } catch (coordError) {
