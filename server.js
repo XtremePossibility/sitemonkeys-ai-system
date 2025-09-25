@@ -1043,7 +1043,7 @@ const fullPrompt = enhancedPrompt;
     enhancedResponse = addProtectiveInsights(enhancedResponse, protectiveAlerts, solutionOpportunities, memoryContext);
     
     // 5. CARING FAMILY ENHANCEMENT (MEMORY-AWARE)
-    const finalResponse = applyCaringFamilyTouch(enhancedResponse, careNeeds, prideMotivation, expertDomain, memoryContext);
+    const finalResponse = applyCaringFamilyTouch(enhancedResponse, careNeeds, prideMotivation, expertDomain, vaultContent);
 
     // UPDATE FAMILY MEMORY
     updateFamilyMemory(expertDomain, careNeeds, protectiveAlerts, solutionOpportunities);
@@ -1758,11 +1758,11 @@ function addProtectiveInsights(response, protectiveAlerts, solutionOpportunities
   return response + protectiveSection;
 }
 
-function applyCaringFamilyTouch(response, careNeeds, prideMotivation, expertDomain) {
+function applyCaringFamilyTouch(response, careNeeds, prideMotivation, expertDomain, vaultContent) {
   let enhancement = response;
   
   // Add vault signature
-  if (process.env.VAULT_CONTENT) {
+  if (vaultContent && vaultContent.length > 1000) {
     enhancement += '\n\n📁 PROFESSIONAL ANALYSIS: Generated using Site Monkeys business intelligence with professional-grade methodology.';
   } else {
     enhancement += '\n\n📁 PROFESSIONAL ANALYSIS: Advanced AI reasoning with business intelligence applied.';
