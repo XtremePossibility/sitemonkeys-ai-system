@@ -967,6 +967,10 @@ if (conversation_history && conversation_history.length > 0) {
   console.log(`[CHAT] 🔗 Added ${recentHistory.length} conversation context entries`);
 }
 let enhancedPrompt = buildConversationPrompt(systemPrompt, message, conversation_history, expertDomain);
+// Add uploaded document content to prompt
+if (document_context && typeof document_context === 'string' && document_context.length > 100) {
+  enhancedPrompt += `\n\nUPLOADED DOCUMENT ANALYSIS:\n${document_context}\n\nPlease analyze the uploaded document content above and reference it in your response.`;
+}
 
 // MEMORY INJECTION DISABLED - HANDLED BY CHAT.JS
 if (memoryContext && memoryContext.memories && memoryContext.memories.length > 0) {
@@ -1761,12 +1765,8 @@ function addProtectiveInsights(response, protectiveAlerts, solutionOpportunities
 function applyCaringFamilyTouch(response, careNeeds, prideMotivation, expertDomain, vaultContent) {
   let enhancement = response;
   
-  // Add vault signature
-  if (vaultContent && vaultContent.length > 1000) {
-    enhancement += '\n\n📁 PROFESSIONAL ANALYSIS: Generated using Site Monkeys business intelligence with professional-grade methodology.';
-  } else {
-    enhancement += '\n\n📁 PROFESSIONAL ANALYSIS: Advanced AI reasoning with business intelligence applied.';
-  }
+  // Always use professional signature
+  enhancement += '\n\n📁 PROFESSIONAL ANALYSIS: Advanced AI reasoning with business intelligence applied.';
   
   // Add caring touch based on situation
   if (careNeeds.level === 'maximum') {
