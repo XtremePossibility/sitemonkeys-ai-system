@@ -1019,6 +1019,12 @@ Respond with your expertise:`;
   console.log(`[CHAT] ⚠️ No memory context available for AI prompt`);
 }
 
+// Add uploaded document content
+if (document_context && typeof document_context === 'string' && document_context.length > 100) {
+  enhancedPrompt += `\n\nUPLOADED DOCUMENT CONTENT:\n${document_context}\n\nAnalyze the uploaded document content above.`;
+  console.log(`[CHAT] 📄 Added document content: ${document_context.length} characters`);
+}
+
 const fullPrompt = enhancedPrompt;
 
     console.log(`[FINAL PROMPT] Complete prompt being sent to AI:`, fullPrompt);
