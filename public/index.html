@@ -1154,7 +1154,9 @@ Use this document information to answer the user's question.`;
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        message: messageToSend,
+        message: extractedDocuments.length > 0 && (text.toLowerCase().includes('analyze') || text.toLowerCase().includes('document') || text.toLowerCase().includes('file')) 
+          ? `${text}\n\n[DOCUMENT CONTEXT]\nFile: ${extractedDocuments[extractedDocuments.length - 1].filename}\nContent: ${extractedDocuments[extractedDocuments.length - 1].content}\nType: ${extractedDocuments[extractedDocuments.length - 1].contentType}` 
+          : text,
         conversation_history: conversationHistory,
         mode: getCurrentMode(),
         vault_loaded: isVaultMode(),
