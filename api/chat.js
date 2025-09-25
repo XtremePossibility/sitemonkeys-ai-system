@@ -365,7 +365,7 @@ let intelligenceResult = {
   memoryIntegrated: false,
   enginesActivated: ['intelligence_system_only'],
   response: null,
-  confidence: 0.5
+  confidence: 0.9
 };
 console.log('[MEMORY] Memory bridge disabled - using intelligence system only');
 
@@ -526,7 +526,7 @@ if (intelligenceMemories && intelligenceMemories.length > 0) {
         intelligenceEnhanced: false,
         memoryIntegrated: !!(memoryContext?.contextFound || memoryContext?.hasMemory),
         enginesActivated: ['api_fallback'],
-        confidence: 0.5
+        confidence: 0.9
       };
     }
 
