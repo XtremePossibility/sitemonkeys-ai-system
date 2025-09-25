@@ -916,6 +916,7 @@ async function handleAnalysisUpload(files) {
         });
         console.log('📄 Stored documents for chat:', extractedDocuments.length);
       }
+    }
     console.log('=== END DEBUG ===');
     
     if (result.success) {
@@ -990,6 +991,14 @@ async function handleAnalysisUpload(files) {
       box.scrollTop = box.scrollHeight;
     }
 
+  } catch (error) {
+    console.error('❌ Analysis upload failed:', error);
+    const errorBubble = document.createElement('div');
+    errorBubble.className = 'bubble ai';
+    errorBubble.innerHTML = `<img src="boy-mascot.png" class="avatar" alt="System"><div class="bubble-content"><strong>System:</strong> ❌ Upload failed: ${error.message}</div>`;
+    box.appendChild(errorBubble);
+    box.scrollTop = box.scrollHeight;
+  }
 }
 
 // Animation code
@@ -1333,7 +1342,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Auto-clear old documents when needed
 window.addEventListener('beforeunload', clearOldDocuments);
-
 </script>
 <script src="/js/app.js"></script>
 </body>
