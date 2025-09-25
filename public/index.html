@@ -725,7 +725,7 @@ display: flex; align-items: center; justify-content: center;
 <div>🔢 <span id="token-count">Ready</span> TOKENS</div>
 <div>💰 EST. COST: <span id="cost-estimate">$0.00</span></div>
 <div>📁 <span id="vault-folders">Cached</span> FOLDERS LOADED</div>
-<button id="refresh-vault-btn" onclick="refreshVault()" style="
+<button id="refresh-vault-btn" onclick="debouncedRefreshVault()" style="
   background: #FFD811; 
   color: #373534; 
   border: 1px solid #fff; 
@@ -1155,14 +1155,14 @@ async function checkVaultStatus() {
         <div>🔢 <span id="token-count">${data.tokens || 'Ready'}</span> TOKENS</div>
         <div>💰 EST. COST: <span id="cost-estimate">${data.estimated_cost || '$0.00'}</span></div>
         <div>📁 <span id="vault-folders">${data.folders_loaded?.length || 'Cached'}</span> FOLDERS LOADED</div>
-        <button id="refresh-vault-btn" onclick="refreshVault()" style="background: #FFD811; color: #373534; border: 1px solid #fff; border-radius: 8px; padding: 8px 12px; font-size: 0.8em; font-weight: bold; cursor: pointer; margin-top: 8px; width: 100%; transition: all 0.2s ease;" onmouseover="this.style.background='#ffe96a'" onmouseout="this.style.background='#FFD811'">🔄 Refresh Vault</button>`;
+        <button id="refresh-vault-btn" onclick="debouncedRefreshVault()" style="background: #FFD811; color: #373534; border: 1px solid #fff; border-radius: 8px; padding: 8px 12px; font-size: 0.8em; font-weight: bold; cursor: pointer; margin-top: 8px; width: 100%; transition: all 0.2s ease;" onmouseover="this.style.background='#ffe96a'" onmouseout="this.style.background='#FFD811'">🔄 Refresh Vault</button>`;
     } else {
       document.getElementById('vault-info').innerHTML = `
         <div><span style="color:#FFA500;">⚠️</span> VAULT NEEDS REFRESH</div>
         <div>🔢 <span id="token-count">No Data</span> TOKENS</div>
         <div>💰 EST. COST: <span id="cost-estimate">$0.00</span></div>
         <div>📁 <span id="vault-folders">0</span> FOLDERS LOADED</div>
-        <button id="refresh-vault-btn" onclick="refreshVault()" style="background: #FF6B6B; color: white; border: 1px solid #fff; border-radius: 8px; padding: 8px 12px; font-size: 0.8em; font-weight: bold; cursor: pointer; margin-top: 8px; width: 100%; transition: all 0.2s ease;" onmouseover="this.style.background='#ff8a8a'" onmouseout="this.style.background='#FF6B6B'">🔄 REFRESH VAULT NOW</button>`;
+        <button id="refresh-vault-btn" onclick="debouncedRefreshVault()" style="background: #FF6B6B; color: white; border: 1px solid #fff; border-radius: 8px; padding: 8px 12px; font-size: 0.8em; font-weight: bold; cursor: pointer; margin-top: 8px; width: 100%; transition: all 0.2s ease;" onmouseover="this.style.background='#ff8a8a'" onmouseout="this.style.background='#FF6B6B'">🔄 REFRESH VAULT NOW</button>`;
     }
   } catch (error) {
     console.error('❌ Vault status check failed:', error);
@@ -1195,7 +1195,7 @@ async function refreshVault() {
         <div>🔢 <span id="token-count">${data.tokens || 'Ready'}</span> TOKENS</div>
         <div>💰 EST. COST: <span id="cost-estimate">${data.estimated_cost || '$0.00'}</span></div>
         <div>📁 <span id="vault-folders">${data.folders_loaded?.length || 0}</span> FOLDERS LOADED</div>
-        <button id="refresh-vault-btn" onclick="refreshVault()" style="background: #FFD811; color: #373534; border: 1px solid #fff; border-radius: 8px; padding: 8px 12px; font-size: 0.8em; font-weight: bold; cursor: pointer; margin-top: 8px; width: 100%; transition: all 0.2s ease;" onmouseover="this.style.background='#ffe96a'" onmouseout="this.style.background='#FFD811'">🔄 Refresh Vault</button>`;
+        <button id="refresh-vault-btn" onclick="debouncedRefreshVault()" style="background: #FFD811; color: #373534; border: 1px solid #fff; border-radius: 8px; padding: 8px 12px; font-size: 0.8em; font-weight: bold; cursor: pointer; margin-top: 8px; width: 100%; transition: all 0.2s ease;" onmouseover="this.style.background='#ffe96a'" onmouseout="this.style.background='#FFD811'">🔄 Refresh Vault</button>`;
     } else {
       button.innerHTML = '❌ Refresh Failed';
       button.disabled = false;
