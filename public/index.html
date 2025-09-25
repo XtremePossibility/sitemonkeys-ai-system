@@ -777,6 +777,11 @@ let conversationHistory = [];
 let systemActive = false;
 let aiToggle = false;
 let extractedDocuments = [];
+const MAX_CONVERSATION_HISTORY = 50;
+const MAX_EXTRACTED_DOCUMENTS = 10;
+let requestQueue = [];
+let isProcessingRequest = false;
+let refreshDebounceTimer = null;
 
 // Mode system
 let currentMode = 'business_validation';
@@ -803,6 +808,114 @@ function getCurrentMode() {
 
 function isVaultMode() {
   return currentMode === 'site_monkeys';
+}
+function handleApiError(error, context = 'API call') {
+  console.error(`❌ ${context} failed:`, error);
+  
+  const errorMessages = {
+    'NetworkError': 'Network connection failed. Please check your internet connection.',
+    'TypeError': 'Request format error. Please try again.',
+    'SyntaxError': 'Server response error. Please refresh and try again.',
+    'TimeoutError': 'Request timed out. Please try again.',
+    'AbortError': 'Request was cancelled. Please try again.'
+  };
+  
+  const message = errorMessages[error.name] || error.message || 'Unknown error occurred';
+  showErrorMessage(message);
+}
+
+function showErrorMessage(message) {
+  const box = document.getElementById('chat-box');
+  const errorBubble = document.createElement('div');
+  errorBubble.className = 'bubble ai error-bubble';
+  errorBubble.innerHTML = `<img src="boy-mascot.png" class="avatar" alt="System"><div class="bubble-content"><strong>System:</strong> ❌ ${message}</div>`;
+  box.appendChild(errorBubble);
+  box.scrollTop = box.scrollHeight;
+}
+
+function manageConversationHistory() {
+  if (conversationHistory.length > MAX_CONVERSATION_HISTORY) {
+    const removed = conversationHistory.splice(0, conversationHistory.length - MAX_CONVERSATION_HISTORY);
+    console.log(`🗑️ Cleared ${removed.length} old conversation messages`);
+  }
+}
+
+function manageExtractedDocuments() {
+  if (extractedDocuments.length > MAX_EXTRACTED_DOCUMENTS) {
+    const removed = extractedDocuments.splice(0, extractedDocuments.length - MAX_EXTRACTED_DOCUMENTS);
+    console.log(`🗑️ Cleared ${removed.length} old documents from memory`);
+  }
+}
+
+async function processRequestQueue() {
+  if (isProcessingRequest || requestQueue.length === 0) return;
+  
+  isProcessingRequest = true;
+  const request = requestQueue.shift();
+  
+  try {
+    await request();
+  } catch (error) {
+    handleApiError(error, 'Queued request');
+  } finally {
+    isProcessingRequest = false;
+    setTimeout(processRequestQueue, 100);
+  }
+}
+
+function queueRequest(requestFunction) {
+  requestQueue.push(requestFunction);
+  processRequestQueue();
+}
+
+async function fetchWithRetry(url, options = {}, maxRetries = 3, timeout = 10000) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeout);
+  
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      const response = await fetch(url, {
+        ...options,
+        signal: controller.signal
+      });
+      
+      clearTimeout(timeoutId);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
+      return response;
+    } catch (error) {
+      console.warn(`Attempt ${attempt} failed:`, error.message);
+      
+      if (attempt === maxRetries || error.name === 'AbortError') {
+        clearTimeout(timeoutId);
+        throw error;
+      }
+      
+      await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 1000));
+    }
+  }
+}
+
+function startPeriodicCleanup() {
+  setInterval(() => {
+    manageConversationHistory();
+    manageExtractedDocuments();
+    console.log('🧹 Periodic cleanup completed');
+  }, 300000);
+}
+
+function debouncedRefreshVault() {
+  if (refreshDebounceTimer) {
+    clearTimeout(refreshDebounceTimer);
+  }
+  
+  refreshDebounceTimer = setTimeout(() => {
+    refreshVault();
+    refreshDebounceTimer = null;
+  }, 1000);
 }
 
 // File upload functionality
@@ -937,6 +1050,7 @@ async function handleAnalysisUpload(files) {
         
         // Store in global array
         extractedDocuments.push(docxContent);
+        manageExtractedDocuments();
         console.log('📄 [STORAGE] Stored document:', docxContent.filename);
       });
       
@@ -1220,6 +1334,7 @@ Use this document information to answer the user's question.`;
     // Update conversation history
     conversationHistory.push({ role: 'user', content: text });
     conversationHistory.push({ role: 'assistant', content: reply });
+    manageConversationHistory();
 
     // Toggle for next message
     aiToggle = !aiToggle;
@@ -1231,19 +1346,13 @@ Use this document information to answer the user's question.`;
     }
 
   } catch (error) {
-    console.error('❌ Chat error:', error);
-
     // Remove thinking indicator on error
     const thinkingElement = document.querySelector('.thinking-bubble');
     if (thinkingElement) {
       thinkingElement.remove();
     }
-
-    const errorBubble = document.createElement('div');
-    errorBubble.className = 'bubble ai';
-    errorBubble.innerHTML = `<img src="boy-mascot.png" class="avatar" alt="System"><div class="bubble-content"><strong>System:</strong> ${error.message}</div>`;
-    box.appendChild(errorBubble);
-    box.scrollTop = box.scrollHeight;
+    
+    handleApiError(error, 'Chat request');
   }
 }
 
@@ -1271,6 +1380,7 @@ function showStoredDocuments() {
 // DOM initialization
 document.addEventListener('DOMContentLoaded', function() {
   console.log('🚀 DOM LOADED - JavaScript is working!');
+  startPeriodicCleanup();
   const input = document.getElementById('user-input');
   const sendBtn = document.getElementById('send-btn');
 
@@ -1287,13 +1397,13 @@ document.addEventListener('DOMContentLoaded', function() {
   input.addEventListener('keydown', function(e) {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      sendMessage();
+      queueRequest(() => sendMessage());
     }
   });
 
   sendBtn.addEventListener('click', function(e) {
     e.preventDefault();
-    sendMessage();
+    queueRequest(() => sendMessage());
   });
 
   // Smart upload button functionality
