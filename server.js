@@ -1762,7 +1762,7 @@ function applyCaringFamilyTouch(response, careNeeds, prideMotivation, expertDoma
   let enhancement = response;
   
   // Add vault signature
-  if (vaultContent && vaultContent.length > 1000) {
+  if (process.env.VAULT_CONTENT) {
     enhancement += '\n\n📁 PROFESSIONAL ANALYSIS: Generated using Site Monkeys business intelligence with professional-grade methodology.';
   } else {
     enhancement += '\n\n📁 PROFESSIONAL ANALYSIS: Advanced AI reasoning with business intelligence applied.';
