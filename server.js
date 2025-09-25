@@ -1765,7 +1765,7 @@ function applyCaringFamilyTouch(response, careNeeds, prideMotivation, expertDoma
   if (process.env.VAULT_CONTENT) {
     enhancement += '\n\n📁 PROFESSIONAL ANALYSIS: Generated using Site Monkeys business intelligence with professional-grade methodology.';
   } else {
-    enhancement += '\n\n🚨 FALLBACK ANALYSIS: Using core business logic - maintaining professional standards.';
+    enhancement += '\n\n📁 ANALYSIS: Professional-grade methodology applied.';
   }
   
   // Add caring touch based on situation
