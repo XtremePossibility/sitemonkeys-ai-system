@@ -989,7 +989,8 @@ async function handleAnalysisUpload(files) {
       box.appendChild(errorBubble);
       box.scrollTop = box.scrollHeight;
     }
-    
+
+  try {
   } catch (error) {
     console.error('Upload error:', error);
     const errorBubble = document.createElement('div');
