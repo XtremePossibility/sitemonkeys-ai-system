@@ -899,7 +899,23 @@ async function handleAnalysisUpload(files) {
       console.log('First file object (files):', result.files[0]);
       console.log('contentExtracted:', result.files[0].contentExtracted);
       console.log('docxAnalysis:', result.files[0].docxAnalysis);
-    }
+
+      // Store extracted documents for chat analysis  
+      if (result.files && result.files.length > 0) {
+        result.files.forEach(file => {
+          if (file.contentExtracted && file.docxAnalysis) {
+            extractedDocuments.push({
+              filename: file.filename,
+              content: file.docxAnalysis.preview,
+              contentType: file.docxAnalysis.contentType,
+              wordCount: file.docxAnalysis.wordCount,
+              keyPhrases: file.docxAnalysis.keyPhrases || [],
+              timestamp: Date.now()
+            });
+          }
+        });
+        console.log('📄 Stored documents for chat:', extractedDocuments.length);
+      }
     console.log('=== END DEBUG ===');
     
     if (result.success) {
