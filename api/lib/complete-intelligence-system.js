@@ -1,8 +1,8 @@
 // api/lib/complete-intelligence-system.js
 // INTEGRATION FILE - Coordinates all intelligence components
 
-const { ValidationEngine } = require('./validation-engine');
-const { MultimodalGateway } = require('./multimodal-gateway');
+import { ValidationEngine } from './validation-engine.js';
+import { MultimodalGateway } from './multimodal-gateway.js';
 const { LearningEngine } = require('./learning-engine');
 const { AdaptationEngine } = require('./adaptation-engine');
 const { StreamProcessor } = require('./stream-processor');
@@ -40,11 +40,4 @@ class CompleteIntelligenceSystem {
   }
 }
 
-module.exports = { 
-  CompleteIntelligenceSystem,
-  ValidationEngine,
-  MultimodalGateway,
-  LearningEngine,
-  AdaptationEngine,
-  StreamProcessor
-};
+export { CompleteIntelligenceSystem, ValidationEngine, MultimodalGateway, LearningEngine, AdaptationEngine, StreamProcessor };
