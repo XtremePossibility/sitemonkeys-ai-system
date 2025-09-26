@@ -1284,6 +1284,7 @@ Use this document information to answer the user's question.`;
         mode: getCurrentMode(),
         vault_loaded: isVaultMode(),
         vault_content: vaultContent,
+        document_context: getDocumentContextForMessage(text) 
         document_context: extractedDocuments.length > 0 ? extractedDocuments[extractedDocuments.length - 1] : null
       })
     });
