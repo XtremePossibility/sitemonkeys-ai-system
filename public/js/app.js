@@ -4,7 +4,7 @@ let vaultLoaded = false;
 
 async function loadVaultOnDemand() {
   if (vaultLoaded) return window.currentVaultContent || '';
-  
+
   // Only load vault in Site Monkeys mode
   const currentMode = getCurrentMode();
   if (currentMode !== 'site_monkeys') {
@@ -12,21 +12,21 @@ async function loadVaultOnDemand() {
     window.currentVaultContent = '';
     return '';
   }
-  
+
   console.log('🔄 Loading vault on demand for Site Monkeys mode...');
-  
+
   try {
     const vaultResponse = await fetch('/api/load-vault?refresh=true');
     const vaultData = await vaultResponse.json();
     const vaultContent = vaultData.vault_content || '';
-    
+
     window.currentVaultContent = vaultContent;
     window.vaultStatus = {
       loaded: vaultContent.length > 1000,
       healthy: vaultData.vault_status === 'operational',
-      tokens: vaultData.tokens || 0
+      tokens: vaultData.tokens || 0,
     };
-    
+
     vaultLoaded = true;
     console.log('✅ Vault loaded on demand with length:', vaultContent.length);
     return vaultContent;
@@ -45,15 +45,15 @@ async function improvedRefreshVault() {
   try {
     const response = await fetch('/api/load-vault?refresh=true');
     const data = await response.json();
-    
+
     // CACHE THE VAULT CONTENT FOR CHAT
     window.currentVaultContent = data.vault_content || '';
     window.vaultStatus = {
       loaded: true,
       healthy: data.vault_status === 'operational',
-      tokens: data.tokens || 0
+      tokens: data.tokens || 0,
     };
-    
+
     console.log('✅ Vault refreshed and cached:', window.currentVaultContent.length);
   } catch (error) {
     console.error('❌ Vault refresh failed:', error);
@@ -85,38 +85,37 @@ async function sendMessage() {
   box.scrollTop = box.scrollHeight;
 
   try {
-    
-// LOAD VAULT ONLY IF IN SITE MONKEYS MODE
-let vaultContent = '';
-const currentMode = getCurrentMode();
-if (currentMode === 'site_monkeys') {
-  vaultContent = await loadVaultOnDemand();
-  console.log('🔍 Site Monkeys mode - loaded vault with length:', vaultContent.length);
-} else {
-  console.log('🔍 Truth/Business mode - vault disabled');
-  vaultContent = '';
-}
+    // LOAD VAULT ONLY IF IN SITE MONKEYS MODE
+    let vaultContent = '';
+    const currentMode = getCurrentMode();
+    if (currentMode === 'site_monkeys') {
+      vaultContent = await loadVaultOnDemand();
+      console.log('🔍 Site Monkeys mode - loaded vault with length:', vaultContent.length);
+    } else {
+      console.log('🔍 Truth/Business mode - vault disabled');
+      vaultContent = '';
+    }
 
-const requestPayload = {
-  message: text,
-  conversation_history: conversationHistory,
-  mode: getCurrentMode(),
-  vault_content: vaultContent,
-  session_id: `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-};
+    const requestPayload = {
+      message: text,
+      conversation_history: conversationHistory,
+      mode: getCurrentMode(),
+      vault_content: vaultContent,
+      session_id: `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+    };
 
-console.log('🔍 Using vault with length:', vaultContent.length);
+    console.log('🔍 Using vault with length:', vaultContent.length);
 
     console.log('🚀 Sending request:', {
       mode: requestPayload.mode,
       vault_content_length: vaultContent.length,
-      message_preview: text.substring(0, 50) + '...'
+      message_preview: text.substring(0, 50) + '...',
     });
 
     const response = await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(requestPayload)
+      body: JSON.stringify(requestPayload),
     });
 
     if (!response.ok) {
@@ -124,10 +123,10 @@ console.log('🔍 Using vault with length:', vaultContent.length);
     }
 
     const data = await response.json();
-    
+
     // ADD THIS DEBUG LINE:
     console.log('🔍 TOKEN DEBUG:', data.token_usage);
-    
+
     // EXTRACT AND DISPLAY TOKEN/COST DATA
     console.log('🔍 Checking token_usage:', !!data.token_usage, typeof data.token_usage);
     if (data.token_usage && typeof data.token_usage === 'object') {
@@ -135,7 +134,7 @@ console.log('🔍 Using vault with length:', vaultContent.length);
     } else {
       console.log('❌ Token data missing or invalid:', data.token_usage);
     }
-    
+
     let reply = data.response || 'No response received';
 
     // FIXED SYSTEM VERIFICATION - MATCHES BACKEND RESPONSE STRUCTURE
@@ -145,17 +144,17 @@ console.log('🔍 Using vault with length:', vaultContent.length);
       triggered_frameworks: data.enforcement_applied || [],
       assumption_warnings: data.assumption_analysis?.detected || [],
       security_pass: data.security_pass || false,
-      fallback_used: data.performance?.api_error?.fallback_used || false
+      fallback_used: data.performance?.api_error?.fallback_used || false,
     };
 
     // LOG system status for debugging
     console.log('🔍 SYSTEM VERIFICATION:', systemVerification);
-    
+
     // Check for system integrity issues
     if (systemVerification.fallback_used) {
       console.warn('⚠️ Fallback response used - system may be under stress');
     }
-    
+
     if (!systemVerification.security_pass && isVaultMode()) {
       console.error('🚨 Security check failed for vault access');
     }
@@ -175,7 +174,10 @@ console.log('🔍 Using vault with length:', vaultContent.length);
       .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
       .replace(/\*\[MODE:.*?\]/g, '')
       .replace(/\[MODE:.*?\]/g, '')
-      .replace(/\|\s*\[VAULT:.*?\]\s*\|\s*\[TRIGGERED:.*?\]\s*\|\s*\[FLOW:.*?\]\s*\|\s*\[ASSUMPTIONS:.*?\]\*/g, '')
+      .replace(
+        /\|\s*\[VAULT:.*?\]\s*\|\s*\[TRIGGERED:.*?\]\s*\|\s*\[FLOW:.*?\]\s*\|\s*\[ASSUMPTIONS:.*?\]\*/g,
+        '',
+      )
       .replace(/\[VAULT:.*?\]/g, '')
       .replace(/\[TRIGGERED:.*?\]/g, '')
       .replace(/\[FLOW:.*?\]/g, '')
@@ -191,36 +193,41 @@ console.log('🔍 Using vault with length:', vaultContent.length);
     // Determine speaker based on response content or alternation
     const isEli = aiToggle;
     const who = isEli ? 'Eli' : 'Roxy';
-    const avatar = isEli ? "boy-mascot.png" : "girl-mascot.png";
+    const avatar = isEli ? 'boy-mascot.png' : 'girl-mascot.png';
 
     // Add response with truth-focused styling
     const responseBubble = document.createElement('div');
     responseBubble.className = 'bubble ai';
-    
+
     // Add subtle mode indicator to response
-    const modeIndicator = getCurrentMode() === 'truth_general' ? '🔍' : 
-                         getCurrentMode() === 'business_validation' ? '📊' : 
-                         getCurrentMode() === 'site_monkeys' ? '🍌' : '🤖';
-    
+    const modeIndicator =
+      getCurrentMode() === 'truth_general'
+        ? '🔍'
+        : getCurrentMode() === 'business_validation'
+          ? '📊'
+          : getCurrentMode() === 'site_monkeys'
+            ? '🍌'
+            : '🤖';
+
     responseBubble.innerHTML = `<img src="${avatar}" class="avatar" alt="${who}"><div class="bubble-content"><strong>${who} ${modeIndicator}:</strong> ${cleanReply}</div>`;
     box.appendChild(responseBubble);
     box.scrollTop = box.scrollHeight;
 
     // Store complete conversation with system metadata
-    conversationHistory.push({ 
-      role: 'user', 
+    conversationHistory.push({
+      role: 'user',
       content: text,
       timestamp: new Date().toISOString(),
-      mode_requested: getCurrentMode()
+      mode_requested: getCurrentMode(),
     });
-    
-    conversationHistory.push({ 
-      role: 'assistant', 
+
+    conversationHistory.push({
+      role: 'assistant',
       content: reply,
       clean_content: cleanReply,
       system_verification: systemVerification,
       timestamp: new Date().toISOString(),
-      speaker: who
+      speaker: who,
     });
 
     // Limit conversation history to prevent token bloat
@@ -241,10 +248,9 @@ console.log('🔍 Using vault with length:', vaultContent.length);
         box.scrollTop = box.scrollHeight;
       }, 1000);
     }
-
   } catch (error) {
     console.error('❌ Chat system error:', error);
-    
+
     // Remove thinking indicator on error
     const thinkingElement = document.querySelector('.thinking-bubble');
     if (thinkingElement) {
@@ -267,20 +273,19 @@ function updateTokenDisplay(tokenData) {
     // Target the exact elements by their IDs from the HTML
     const tokenCountElement = document.getElementById('token-count');
     const costEstimateElement = document.getElementById('cost-estimate');
-    
+
     if (tokenCountElement) {
       tokenCountElement.textContent = tokenData.session_total_tokens || 0;
       tokenCountElement.style.color = '#00ff41';
       console.log('[COST] Updated token count');
     }
-    
+
     if (costEstimateElement) {
       const sessionCost = (tokenData.session_total_cost || 0).toFixed(4);
       costEstimateElement.textContent = `$${sessionCost}`;
       costEstimateElement.style.color = '#00ff41';
       console.log('[COST] Updated cost estimate');
     }
-    
   } catch (error) {
     console.warn('Token display update failed:', error);
   }

@@ -14,13 +14,13 @@ class CoreSystem {
       overall: false,
       database: { healthy: false },
       initialized: false,
-      lastCheck: null
+      lastCheck: null,
     };
-    
+
     // Valid category names (underscore format)
     this.validCategories = [
       'mental_emotional',
-      'health_wellness', 
+      'health_wellness',
       'relationships_social',
       'work_career',
       'money_income_debt',
@@ -29,24 +29,25 @@ class CoreSystem {
       'goals_future_dreams',
       'tools_tech_workflow',
       'daily_routines_habits',
-      'personal_life_interests'
+      'personal_life_interests',
     ];
 
     this.categoryLimits = {
       tokenLimit: 50000,
-      memoryLimit: 1000
+      memoryLimit: 1000,
     };
 
     this.logger = {
       log: (message) => console.log(`[CORE] ${new Date().toISOString()} ${message}`),
-      error: (message, error) => console.error(`[CORE ERROR] ${new Date().toISOString()} ${message}`, error),
-      warn: (message) => console.warn(`[CORE WARN] ${new Date().toISOString()} ${message}`)
+      error: (message, error) =>
+        console.error(`[CORE ERROR] ${new Date().toISOString()} ${message}`, error),
+      warn: (message) => console.warn(`[CORE WARN] ${new Date().toISOString()} ${message}`),
     };
   }
 
   async initialize() {
     this.logger.log('Initializing Core System...');
-    
+
     try {
       if (!process.env.DATABASE_URL) {
         throw new Error('DATABASE_URL environment variable not found');
@@ -56,8 +57,8 @@ class CoreSystem {
       this.pool = new Pool({
         connectionString: process.env.DATABASE_URL,
         ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
-        max: 20,                    // 20 max connections
-        idleTimeoutMillis: 30000,   // 30s idle timeout
+        max: 20, // 20 max connections
+        idleTimeoutMillis: 30000, // 30s idle timeout
         connectionTimeoutMillis: 2000, // 2s connection timeout
       });
 
@@ -80,14 +81,13 @@ class CoreSystem {
 
       // Schema Management & Migration
       await this.createDatabaseSchema();
-      
+
       // Initialize health monitoring
       await this.updateHealthStatus();
-      
+
       this.isInitialized = true;
       this.logger.log('Core System initialized successfully');
       return true;
-
     } catch (error) {
       this.logger.error('Core System initialization failed:', error);
       this.isInitialized = false;
@@ -118,7 +118,7 @@ class CoreSystem {
     if (!this.pool) {
       throw new Error('Database pool not initialized');
     }
-    
+
     const client = await this.pool.connect();
     try {
       return await callback(client);
@@ -133,7 +133,7 @@ class CoreSystem {
 
   async storeMemory(memoryObject) {
     let { userId, content, category_name, subcategory_name, metadata = {} } = memoryObject;
-    
+
     // Use provided categorization or fallback to default
     if (!category_name || !subcategory_name) {
       this.logger.log('No categorization provided, using fallback');
@@ -143,27 +143,27 @@ class CoreSystem {
     try {
       // Calculate token count
       const tokenCount = Math.ceil(content.length / 4);
-      
+
       // Basic category token check (50K per category limit)
       const tokenCheckQuery = `
         SELECT COALESCE(SUM(token_count), 0) as total_tokens 
         FROM persistent_memories 
         WHERE user_id = $1 AND category_name = $2
       `;
-      
+
       const tokenResult = await this.executeQuery(tokenCheckQuery, [userId, category_name]);
       const currentTokens = parseInt(tokenResult.rows[0].total_tokens);
-      
+
       if (currentTokens + tokenCount > this.categoryLimits.tokenLimit) {
         return {
           success: false,
           error: 'Category token limit exceeded',
           currentTokens: currentTokens,
           requiredTokens: tokenCount,
-          maxTokens: this.categoryLimits.tokenLimit
+          maxTokens: this.categoryLimits.tokenLimit,
         };
       }
-      
+
       // Store memory with intelligent categorization
       const insertQuery = `
         INSERT INTO persistent_memories 
@@ -171,27 +171,28 @@ class CoreSystem {
         VALUES ($1, $2, $3, $4, $5, $6, $7, NOW()) 
         RETURNING id
       `;
-      
+
       const result = await this.executeQuery(insertQuery, [
-        userId, 
+        userId,
         category_name,
         subcategory_name,
-        content, 
-        tokenCount, 
-        memoryObject.relevance_score || 0.5, 
-        JSON.stringify(metadata)
+        content,
+        tokenCount,
+        memoryObject.relevance_score || 0.5,
+        JSON.stringify(metadata),
       ]);
-      
-      this.logger.log(`Memory stored with intelligent categorization: ID ${result.rows[0].id}, Category: ${category_name}/${subcategory_name}, ${tokenCount} tokens`);
-      
+
+      this.logger.log(
+        `Memory stored with intelligent categorization: ID ${result.rows[0].id}, Category: ${category_name}/${subcategory_name}, ${tokenCount} tokens`,
+      );
+
       return {
         success: true,
         memoryId: result.rows[0].id,
         tokenCount: tokenCount,
         category: category_name,
-        subcategory: subcategory_name
+        subcategory: subcategory_name,
       };
-  
     } catch (error) {
       this.logger.error('Storage failed, using fallback:', error);
       // Fallback to in-memory storage
@@ -216,7 +217,6 @@ class CoreSystem {
 
       const result = await this.executeQuery(query, [userId, categoryName, limit]);
       return result.rows;
-
     } catch (error) {
       this.logger.error('Error getting memories by category:', error);
       return this.fallbackGetMemories(userId, categoryName);
@@ -231,9 +231,8 @@ class CoreSystem {
             last_accessed = NOW()
         WHERE id = $1
       `;
-      
+
       await this.executeQuery(query, [memoryId]);
-      
     } catch (error) {
       this.logger.warn(`Failed to update memory access for ID ${memoryId}:`, error.message);
     }
@@ -246,14 +245,13 @@ class CoreSystem {
         WHERE id = $1 AND user_id = $2
         RETURNING id
       `;
-      
+
       const result = await this.executeQuery(query, [memoryId, userId]);
-      
+
       return {
         success: true,
-        deleted: result.rows.length > 0
+        deleted: result.rows.length > 0,
       };
-
     } catch (error) {
       this.logger.error('Error deleting memory:', error);
       return { success: false, error: error.message };
@@ -270,9 +268,9 @@ class CoreSystem {
       const existsQuery = `
         SELECT user_id FROM user_memory_profiles WHERE user_id = $1
       `;
-      
+
       const existsResult = await this.executeQuery(existsQuery, [userId]);
-      
+
       if (existsResult.rows.length === 0) {
         // Create user profile
         const createQuery = `
@@ -280,18 +278,13 @@ class CoreSystem {
           (user_id, total_memories, total_tokens, active_categories, memory_patterns, created_at)
           VALUES ($1, 0, 0, $2, $3, NOW())
         `;
-        
-        await this.executeQuery(createQuery, [
-          userId,
-          JSON.stringify([]),
-          JSON.stringify({})
-        ]);
-        
+
+        await this.executeQuery(createQuery, [userId, JSON.stringify([]), JSON.stringify({})]);
+
         this.logger.log(`User memory provisioned: ${userId}`);
       }
-      
-      return { success: true, message: 'User memory system ready' };
 
+      return { success: true, message: 'User memory system ready' };
     } catch (error) {
       this.logger.error('Error provisioning user memory:', error);
       return { success: false, error: error.message };
@@ -312,20 +305,22 @@ class CoreSystem {
         GROUP BY category_name
         ORDER BY memory_count DESC
       `;
-      
+
       const result = await this.executeQuery(statsQuery, [userId]);
-      
+
       const totalMemories = result.rows.reduce((sum, row) => sum + parseInt(row.memory_count), 0);
-      const totalTokens = result.rows.reduce((sum, row) => sum + parseInt(row.total_tokens || 0), 0);
-      
+      const totalTokens = result.rows.reduce(
+        (sum, row) => sum + parseInt(row.total_tokens || 0),
+        0,
+      );
+
       return {
         userId: userId,
         totalMemories: totalMemories,
         totalTokens: totalTokens,
         categoriesUsed: result.rows.length,
-        categoryBreakdown: result.rows
+        categoryBreakdown: result.rows,
       };
-
     } catch (error) {
       this.logger.error('Error getting user stats:', error);
       // Return fallback stats
@@ -336,7 +331,7 @@ class CoreSystem {
         totalTokens: userMemories.reduce((sum, mem) => sum + Math.ceil(mem.content.length / 4), 0),
         categoriesUsed: 0,
         categoryBreakdown: [],
-        mode: 'fallback'
+        mode: 'fallback',
       };
     }
   }
@@ -352,16 +347,17 @@ class CoreSystem {
         AND usage_frequency < 2
         RETURNING id
       `;
-      
+
       const result = await this.executeQuery(cleanupQuery, [userId]);
-      
-      this.logger.log(`Optimized memories for user ${userId}: removed ${result.rows.length} memories`);
-      
+
+      this.logger.log(
+        `Optimized memories for user ${userId}: removed ${result.rows.length} memories`,
+      );
+
       return {
         success: true,
-        memoriesRemoved: result.rows.length
+        memoriesRemoved: result.rows.length,
       };
-
     } catch (error) {
       this.logger.error('Error optimizing user memories:', error);
       return { success: false, error: error.message };
@@ -375,9 +371,9 @@ class CoreSystem {
   async getSystemHealth() {
     try {
       const healthChecks = await this.performMultiLevelHealthChecks();
-      
+
       const overall = healthChecks.level1 && healthChecks.level2 && healthChecks.level3;
-      
+
       this.healthStatus = {
         overall: overall,
         status: overall ? 'healthy' : 'degraded',
@@ -385,14 +381,13 @@ class CoreSystem {
         database: {
           healthy: healthChecks.level1,
           schemaValid: healthChecks.level2,
-          performanceGood: healthChecks.level3
+          performanceGood: healthChecks.level3,
         },
         timestamp: new Date().toISOString(),
-        details: healthChecks
+        details: healthChecks,
       };
 
       return this.healthStatus;
-
     } catch (error) {
       this.logger.error('Health check failed:', error);
       return {
@@ -400,7 +395,7 @@ class CoreSystem {
         status: 'unhealthy',
         initialized: false,
         error: error.message,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       };
     }
   }
@@ -410,14 +405,14 @@ class CoreSystem {
       level1: false,
       level2: false,
       level3: false,
-      level4: false
+      level4: false,
     };
 
     try {
       // Level 1: Basic connection test
       const timeCheck = await this.executeQuery('SELECT NOW() as current_time');
       checks.level1 = timeCheck.rows.length > 0;
-      
+
       // Level 2: Table existence and schema validation
       const tablesQuery = `
         SELECT table_name 
@@ -425,26 +420,25 @@ class CoreSystem {
         WHERE table_schema = 'public' 
         AND table_name IN ('persistent_memories', 'memory_categories', 'user_memory_profiles')
       `;
-      
+
       const tablesResult = await this.executeQuery(tablesQuery);
       checks.level2 = tablesResult.rows.length >= 3;
-      
+
       // Level 3: Query performance testing
       const startTime = Date.now();
       await this.executeQuery('SELECT COUNT(*) FROM persistent_memories LIMIT 1');
       const queryTime = Date.now() - startTime;
       checks.level3 = queryTime < 1000; // Under 1 second
-      
+
       // Level 4: Data integrity checks
       const integrityQuery = `
         SELECT COUNT(*) as invalid_count 
         FROM persistent_memories 
         WHERE user_id IS NULL OR content IS NULL OR token_count < 0
       `;
-      
+
       const integrityResult = await this.executeQuery(integrityQuery);
       checks.level4 = parseInt(integrityResult.rows[0].invalid_count) === 0;
-
     } catch (error) {
       this.logger.error('Multi-level health check error:', error);
     }
@@ -465,7 +459,7 @@ class CoreSystem {
   async createDatabaseSchema() {
     try {
       this.logger.log('Creating database schema...');
-      
+
       // Create main categories table
       await this.executeQuery(`
         CREATE TABLE IF NOT EXISTS memory_categories (
@@ -518,14 +512,13 @@ class CoreSystem {
         CREATE INDEX IF NOT EXISTS idx_memory_relevance 
         ON persistent_memories(user_id, category_name, relevance_score DESC, created_at DESC)
       `);
-      
+
       await this.executeQuery(`
         CREATE INDEX IF NOT EXISTS idx_memory_category 
         ON persistent_memories(user_id, category_name, subcategory_name)
       `);
-      
-      this.logger.log('Database schema and indexes created successfully');
 
+      this.logger.log('Database schema and indexes created successfully');
     } catch (error) {
       this.logger.error('Error creating database schema:', error);
       throw error;
@@ -544,16 +537,16 @@ class CoreSystem {
 
       const userMemories = this.fallbackMemory.get(userId);
       const memoryId = Date.now() + Math.random();
-      
+
       const newMemory = {
         id: memoryId,
         content: content,
         category_name: category,
         subcategory_name: subcategory,
         timestamp: Date.now(),
-        token_count: Math.ceil(content.length / 4)
+        token_count: Math.ceil(content.length / 4),
       };
-        
+
       userMemories.push(newMemory);
 
       // 50-memory limit per user with oldest-first eviction
@@ -562,16 +555,17 @@ class CoreSystem {
       }
 
       this.fallbackMemory.set(userId, userMemories);
-        
-      this.logger.warn(`Stored in fallback memory - ID: ${memoryId}, Total memories: ${userMemories.length}`);
-      
-      return { 
-        success: true, 
+
+      this.logger.warn(
+        `Stored in fallback memory - ID: ${memoryId}, Total memories: ${userMemories.length}`,
+      );
+
+      return {
+        success: true,
         memoryId: memoryId,
         tokenCount: newMemory.token_count,
-        mode: 'fallback' 
+        mode: 'fallback',
       };
-
     } catch (error) {
       this.logger.error('Fallback storage error:', error);
       return { success: false, error: error.message };
@@ -581,13 +575,10 @@ class CoreSystem {
   async fallbackGetMemories(userId, categoryName) {
     try {
       const userMemories = this.fallbackMemory.get(userId) || [];
-      
-      const categoryMemories = userMemories.filter(mem => 
-        mem.category_name === categoryName
-      );
-      
-      return categoryMemories.slice(0, 10); // Limit fallback results
 
+      const categoryMemories = userMemories.filter((mem) => mem.category_name === categoryName);
+
+      return categoryMemories.slice(0, 10); // Limit fallback results
     } catch (error) {
       this.logger.error('Fallback retrieval error:', error);
       return [];
@@ -598,7 +589,10 @@ class CoreSystem {
     return {
       active: true,
       userCount: this.fallbackMemory.size,
-      totalMemories: Array.from(this.fallbackMemory.values()).reduce((sum, memories) => sum + memories.length, 0)
+      totalMemories: Array.from(this.fallbackMemory.values()).reduce(
+        (sum, memories) => sum + memories.length,
+        0,
+      ),
     };
   }
 
@@ -609,10 +603,10 @@ class CoreSystem {
   async performMaintenance() {
     try {
       this.logger.log('Starting scheduled maintenance...');
-      
+
       // Update health status
       await this.updateHealthStatus();
-      
+
       // Clean up old memories (older than 1 year, low relevance)
       const cleanupQuery = `
         DELETE FROM persistent_memories 
@@ -620,17 +614,16 @@ class CoreSystem {
         AND relevance_score < 0.2 
         AND usage_frequency = 0
       `;
-      
+
       const cleanupResult = await this.executeQuery(cleanupQuery);
       this.logger.log(`Maintenance cleanup: removed ${cleanupResult.rowCount} old memories`);
-      
+
       // Update statistics
       await this.executeQuery('ANALYZE persistent_memories');
-      
-      this.logger.log('Scheduled maintenance completed');
-      
-      return { success: true, memoriesRemoved: cleanupResult.rowCount };
 
+      this.logger.log('Scheduled maintenance completed');
+
+      return { success: true, memoriesRemoved: cleanupResult.rowCount };
     } catch (error) {
       this.logger.error('Maintenance failed:', error);
       return { success: false, error: error.message };
@@ -648,11 +641,10 @@ class CoreSystem {
         content: conversationData,
         // Let the system auto-categorize this conversation
         relevance_score: 0.6,
-        metadata: { source: 'chat_conversation', timestamp: new Date().toISOString() }
+        metadata: { source: 'chat_conversation', timestamp: new Date().toISOString() },
       };
-      
+
       return await this.storeMemory(memoryObject);
-      
     } catch (error) {
       this.logger.error('Error storing chat memory:', error);
       return { success: false, error: error.message };
@@ -679,10 +671,9 @@ class CoreSystem {
         GROUP BY category_name, subcategory_name
         ORDER BY total_memories DESC
       `;
-      
+
       const result = await this.executeQuery(query, [userId]);
       return result.rows;
-
     } catch (error) {
       this.logger.error('Error getting category stats:', error);
       return [];
@@ -692,17 +683,21 @@ class CoreSystem {
   async getRelatedCategories(primaryCategory) {
     // Category relationship mapping
     const categoryRelations = {
-      'mental_emotional': ['health_wellness', 'relationships_social', 'personal_life_interests'],
-      'health_wellness': ['mental_emotional', 'daily_routines_habits', 'personal_life_interests'],
-      'relationships_social': ['mental_emotional', 'personal_life_interests', 'goals_active_current'],
-      'work_career': ['money_income_debt', 'goals_active_current', 'mental_emotional'],
-      'money_income_debt': ['work_career', 'money_spending_goals', 'goals_active_current'],
-      'money_spending_goals': ['money_income_debt', 'goals_active_current', 'personal_life_interests'],
-      'goals_active_current': ['goals_future_dreams', 'work_career', 'personal_life_interests'],
-      'goals_future_dreams': ['goals_active_current', 'work_career', 'personal_life_interests'],
-      'tools_tech_workflow': ['work_career', 'daily_routines_habits', 'goals_active_current'],
-      'daily_routines_habits': ['health_wellness', 'personal_life_interests', 'mental_emotional'],
-      'personal_life_interests': ['relationships_social', 'health_wellness', 'mental_emotional']
+      mental_emotional: ['health_wellness', 'relationships_social', 'personal_life_interests'],
+      health_wellness: ['mental_emotional', 'daily_routines_habits', 'personal_life_interests'],
+      relationships_social: ['mental_emotional', 'personal_life_interests', 'goals_active_current'],
+      work_career: ['money_income_debt', 'goals_active_current', 'mental_emotional'],
+      money_income_debt: ['work_career', 'money_spending_goals', 'goals_active_current'],
+      money_spending_goals: [
+        'money_income_debt',
+        'goals_active_current',
+        'personal_life_interests',
+      ],
+      goals_active_current: ['goals_future_dreams', 'work_career', 'personal_life_interests'],
+      goals_future_dreams: ['goals_active_current', 'work_career', 'personal_life_interests'],
+      tools_tech_workflow: ['work_career', 'daily_routines_habits', 'goals_active_current'],
+      daily_routines_habits: ['health_wellness', 'personal_life_interests', 'mental_emotional'],
+      personal_life_interests: ['relationships_social', 'health_wellness', 'mental_emotional'],
     };
 
     return categoryRelations[primaryCategory] || [];
@@ -716,9 +711,9 @@ class CoreSystem {
     this.logger.error('Extraction error logged:', {
       message: error.message,
       context: context,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
-    
+
     // Could store in error log table for production monitoring
   }
 
@@ -729,16 +724,15 @@ class CoreSystem {
   async shutdown() {
     try {
       this.logger.log('Shutting down Core System...');
-      
+
       if (this.pool) {
         await this.pool.end();
       }
-      
+
       this.fallbackMemory.clear();
       this.isInitialized = false;
-      
-      this.logger.log('Core System shutdown completed');
 
+      this.logger.log('Core System shutdown completed');
     } catch (error) {
       this.logger.error('Error during Core System shutdown:', error);
     }

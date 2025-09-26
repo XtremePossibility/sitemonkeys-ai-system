@@ -4,21 +4,23 @@
 const MIN_API_INTERVAL_MS = Number(process.env.OPENAI_MIN_INTERVAL_MS || 1500); // 1.5s gap
 const MAX_RETRIES = Number(process.env.OPENAI_MAX_RETRIES || 3);
 
-let lastCallAt = 0;                 // simple global spacing
-let inFlight = Promise.resolve();   // serialize to avoid bursts
+let lastCallAt = 0; // simple global spacing
+let inFlight = Promise.resolve(); // serialize to avoid bursts
 
-function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+function sleep(ms) {
+  return new Promise((r) => setTimeout(r, ms));
+}
 
 // Single-file queue: prevents concurrent bursts from different callers
 async function withQueue(fn) {
   const prev = inFlight;
   let release;
-  inFlight = new Promise(res => (release = res));
+  inFlight = new Promise((res) => (release = res));
   try {
-    await prev;        // wait previous call
+    await prev; // wait previous call
     return await fn();
   } finally {
-    release();         // let next proceed
+    release(); // let next proceed
   }
 }
 
@@ -39,16 +41,18 @@ export async function callOpenAI(payload) {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
+            Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
           },
-          body: JSON.stringify(payload)
+          body: JSON.stringify(payload),
         });
 
         // Respect official backoff window if present
         if (resp.status === 429) {
           const retryAfter = resp.headers.get('retry-after');
           const waitMs = retryAfter ? Number(retryAfter) * 1000 : Math.pow(2, attempt) * 1000;
-          console.log(`[OPENAI] 429 rate limited. Attempt ${attempt}/${MAX_RETRIES}. Waiting ${waitMs}ms`);
+          console.log(
+            `[OPENAI] 429 rate limited. Attempt ${attempt}/${MAX_RETRIES}. Waiting ${waitMs}ms`,
+          );
           await sleep(waitMs);
           continue;
         }
@@ -61,7 +65,6 @@ export async function callOpenAI(payload) {
         const json = await resp.json();
         lastCallAt = Date.now();
         return json;
-
       } catch (err) {
         if (attempt === MAX_RETRIES) {
           console.error('[OPENAI] Failed after retries:', err.message);

@@ -12,7 +12,7 @@ class IntelligenceCoordinator {
       intelligenceEnhanced: false,
       memoryIntegrated: !!context?.memory,
       enginesActivated: [],
-      confidence: 0.9
+      confidence: 0.9,
     };
 
     try {
@@ -35,14 +35,14 @@ class IntelligenceCoordinator {
       // STEP 2: Generate Base Response (fallback or template)
       const baseResponse = await this.getBaseResponse(query, mode);
 
-      // STEP 3: Enhance Response with Intelligence  
+      // STEP 3: Enhance Response with Intelligence
       const enhanced = await this.enhanced.enhanceResponse(
-        baseResponse,  // ✔ Base response
-        query,         // ✔ User message
+        baseResponse, // ✔ Base response
+        query, // ✔ User message
         mode,
         context?.memory || null,
         context?.vault || '',
-        0.7
+        0.7,
       );
 
       results.response = enhanced.enhancedResponse;
@@ -50,7 +50,6 @@ class IntelligenceCoordinator {
       results.enginesActivated.push('enhanced_intelligence');
       results.confidence = enhanced.finalConfidence || 0.7;
       return results;
-
     } catch (err) {
       console.error('[Coordinator] Critical error:', err.message);
 
@@ -64,7 +63,7 @@ class IntelligenceCoordinator {
             mode,
             context?.memory || null,
             context?.vault || '',
-            0.6
+            0.6,
           );
           results.response = memoryEnhanced.enhancedResponse;
           results.intelligenceEnhanced = true;
