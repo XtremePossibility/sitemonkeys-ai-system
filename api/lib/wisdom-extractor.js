@@ -3,8 +3,8 @@
 // Transforms your 30+ modules into wisdom sources for AI reasoning
 
 // Import existing modules (NO CHANGES TO THEM)
-const assumptions = require('./assumptions');
-const survivalGuardian = require('./survival-guardian');
+import * as assumptions from './assumptions.js';
+import * as survivalGuardian from './survival-guardian.js';
 const protectiveIntelligence = require('./protective-intelligence');
 const politicalGuardrails = require('./politicalGuardrails');
 const productValidation = require('./productValidation');
@@ -462,4 +462,4 @@ class WisdomExtractor {
   }
 }
 
-module.exports = { WisdomExtractor };
+export { WisdomExtractor };
