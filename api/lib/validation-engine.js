@@ -550,10 +550,4 @@ class StreamProcessor {
   }
 }
 
-module.exports = { 
-  ValidationEngine,
-  MultimodalGateway, 
-  LearningEngine,
-  AdaptationEngine,
-  StreamProcessor 
-};
+export { ValidationEngine, MultimodalGateway, LearningEngine, AdaptationEngine, StreamProcessor };
