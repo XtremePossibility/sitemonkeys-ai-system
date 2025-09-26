@@ -6,8 +6,8 @@ import { EnhancedIntelligence } from './enhanced-intelligence.js';
 import { IntelligenceCoordinator } from './intelligence-coordinator.js';
 import { ResponseObjectUnifier } from './response-object-unifier.js';
 import { EMERGENCY_FALLBACKS, validateSystemCompliance, enforceZeroFailureResponse } from './site-monkeys/emergency-fallbacks.js';
-import { applyPoliticalGuardrails } from './politicalGuardrails.js';
-import { validateProduct } from './productValidation.js';
+import { PoliticalGuardrails } from './politicalGuardrails.js';
+import { ProductValidator } from './productValidation.js';
 
 export class MasterIntelligenceOrchestrator {
   constructor() {
