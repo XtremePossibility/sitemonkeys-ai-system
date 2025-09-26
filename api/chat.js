@@ -8,7 +8,7 @@ console.log('[DEBUG] Chat imports starting...');
 
 // CORRECTED IMPORTS - Replace existing imports in chat.js
 import { trackApiCall, formatSessionDataForUI } from './tokenTracker.js';
-import { EMERGENCY_FALLBACKS, validateVaultStructure, getVaultValue } from './site-monkeys/emergency-fallbacks.js';
+import { EMERGENCY_FALLBACKS, validateVaultStructure, getVaultValue } from './lib/site-monkeys/emergency-fallbacks.js';
 import { extractedDocuments } from './upload-for-analysis.js';
 import { ENFORCEMENT_PROTOCOLS } from './site-monkeys/enforcement-protocols.js';
 import { QUALITY_ENFORCEMENT } from './site-monkeys/quality-enforcement.js';
