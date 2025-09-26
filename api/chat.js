@@ -10,9 +10,9 @@ console.log('[DEBUG] Chat imports starting...');
 import { trackApiCall, formatSessionDataForUI } from './lib/tokenTracker.js';
 import { EMERGENCY_FALLBACKS, validateVaultStructure, getVaultValue } from './lib/site-monkeys/emergency-fallbacks.js';
 import { extractedDocuments } from './lib/upload-for-analysis.js'
-import { ENFORCEMENT_PROTOCOLS } from './site-monkeys/enforcement-protocols.js';
-import { QUALITY_ENFORCEMENT } from './site-monkeys/quality-enforcement.js';
-import { AI_ARCHITECTURE } from './site-monkeys/ai-architecture.js';
+import { ENFORCEMENT_PROTOCOLS } from './lib/site-monkeys/site-monkeys/enforcement-protocols.js';
+import { QUALITY_ENFORCEMENT } from './lib/site-monkeys/site-monkeys/quality-enforcement.js';
+import { AI_ARCHITECTURE } from './lib/site-monkeys/site-monkeys/ai-architecture.js';
 import { getVaultStatus, checkVaultTriggers, generateVaultContext, enforceVaultCompliance } from './lib/vault.js';
 import { integrateSystemIntelligence, enhancePromptWithIntelligence, getSystemIntelligenceStatus } from './lib/system-intelligence.js';
 import zlib from 'zlib';
