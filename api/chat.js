@@ -544,7 +544,7 @@ if (intelligenceMemories && intelligenceMemories.length > 0) {
     }
     
     // Continue with existing enhancedResponse assignment
-    var enhancedResponse = finalResponse;
+    let enhancedResponse = finalResponse;
     
     try {
       // Skip enhancement if intelligence already enhanced the response
