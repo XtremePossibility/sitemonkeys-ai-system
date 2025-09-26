@@ -73,6 +73,7 @@ import { ResponseObjectUnifier } from './response-object-unifier.js';
 import { MasterModeCompliance } from './master-mode-compliance.js';
 import { UnifiedResponseSchema } from './unified-response-schema.js';
 import { EnhancedIntelligence } from './lib/enhanced-intelligence.js';
+import { masterOrchestrator } from './lib/master-intelligence-orchestrator.js';
 import { IntelligenceOrchestrator } from './lib/intelligence-orchestrator.js';
 import { coordinator as IntelligenceCoordinator } from './lib/intelligence-coordinator.js';
 
