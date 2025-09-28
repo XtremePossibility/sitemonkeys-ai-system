@@ -970,9 +970,17 @@ if (conversation_history && conversation_history.length > 0) {
 }
 let enhancedPrompt = buildConversationPrompt(systemPrompt, message, conversation_history, expertDomain);
 // Add uploaded document content to prompt
-if (document_context && typeof document_context === 'string' && document_context.length > 100) {
-  enhancedPrompt += `\n\nUPLOADED DOCUMENT ANALYSIS:\n${document_context}\n\nPlease analyze the uploaded document content above and reference it in your response.`;
+// === FIX B: Robust document injection ===
+if (document_context) {
+  if (typeof document_context === 'string' && document_context.length > 100) {
+    enhancedPrompt += `\n\nUPLOADED DOCUMENT ANALYSIS:\n${document_context}\n\nPlease analyze the uploaded document content above and reference it in your response.`;
+    console.log('[FIX B] Injected string-based document context');
+  } else if (typeof document_context === 'object' && document_context.content) {
+    enhancedPrompt += `\n\nUPLOADED DOCUMENT ANALYSIS:\nFile: ${document_context.filename || 'Unknown'}\nType: ${document_context.contentType || 'Unknown'}\nWord Count: ${document_context.wordCount || 'Unknown'}\n\n${document_context.content}\n\nPlease analyze this uploaded document content above and reference it in your response.`;
+    console.log('[FIX B] Injected object-based document context');
+  }
 }
+
 
 // MEMORY INJECTION DISABLED - HANDLED BY CHAT.JS
 if (memoryContext && memoryContext.memories && memoryContext.memories.length > 0) {
@@ -1021,6 +1029,18 @@ Respond with your expertise:`;
   console.log(`[CHAT] ⚠️ No memory context available for AI prompt`);
 }
 
+// === FIX A: Sanitize memory injection to prevent fallback echo ===
+if (memoryContext && memoryContext.memories) {
+  // Strip out any fallback/system artifacts before injecting into prompt
+  memoryContext.memories = memoryContext.memories
+    .replace(/🚨 FALLBACK ANALYSIS[^\n]*/gi, '')
+    .replace(/📁 PROFESSIONAL ANALYSIS[^\n]*/gi, '')
+    .replace(/Caring Family System Error[^\n]*/gi, '')
+    .trim();
+  console.log('[FIX A] Memory context sanitized for injection');
+}
+
+      
 const fullPrompt = enhancedPrompt;
 
     console.log(`[FINAL PROMPT] Complete prompt being sent to AI:`, fullPrompt);
