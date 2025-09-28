@@ -19,6 +19,8 @@ import { promisify } from 'util';
 import { uploadMiddleware, handleFileUpload } from './api/upload-file.js';
 import { analysisMiddleware, handleAnalysisUpload } from './api/upload-for-analysis.js';
 import { extractedDocuments } from './api/upload-for-analysis.js';
+import repoSnapshotRoute from './api/repo-snapshot.js';
+
 
 // ===== CRITICAL RAILWAY ERROR HANDLERS =====
 process.on('unhandledRejection', (reason, promise) => {
@@ -2011,6 +2013,9 @@ function convertMemoryToSharedHistory(formattedMemories) {
 }
 
 const PORT = process.env.PORT || 3000;
+
+// Register repo snapshot route
+app.use('/api/repo-snapshot', repoSnapshotRoute);
 
 async function safeStartServer() {
   try {
