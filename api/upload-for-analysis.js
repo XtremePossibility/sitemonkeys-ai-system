@@ -99,7 +99,7 @@ async function extractDocxContent(fileBuffer) {
         wordCount: wordCount,
         characterCount: extractedText.length,
         preview: extractedText.substring(0, 200) + (extractedText.length > 200 ? '...' : ''),
-        fullText: extractedText,  // ← ADD THIS LINE
+        fullText: extractedText,
         hasContent: true
       };
     } else {
@@ -201,7 +201,7 @@ async function processFile(file) {
         // Extract key phrases
         const keyPhrases = extractKeyPhrases(extractionResult.preview);
         
-        // Store analysis results
+      
         // Store analysis results
         processingResult.docxAnalysis = {
           wordCount: extractionResult.wordCount,
@@ -356,7 +356,9 @@ async function handleAnalysisUpload(req, res) {
           file.success ? `File "${file.filename}" uploaded and ready for analysis.` : `Failed to process ${file.filename}`,
         type: file.type,
         wordCount: file.docxAnalysis?.wordCount,
-        contentType: file.docxAnalysis?.contentType
+        contentType: file.docxAnalysis?.contentType,
+        contentExtracted: file.contentExtracted,
+        docxAnalysis: file.docxAnalysis
       })),
       enhanced_query: null,
       system_status: {
