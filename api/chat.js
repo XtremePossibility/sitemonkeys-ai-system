@@ -429,36 +429,23 @@ if (intelligenceMemories && intelligenceMemories.length > 0) {
       if (storedDoc) {
         console.log(`📄 [CHAT] Found stored document: ${storedDoc.filename}`);
         
-        enhancedMessage = `The user has uploaded a document for analysis. Here are the details:
-    
-    DOCUMENT: ${storedDoc.filename}
-    TYPE: ${storedDoc.contentType}
-    WORD COUNT: ${storedDoc.wordCount}
-    CONTENT: ${storedDoc.content}
-    KEY PHRASES: ${storedDoc.keyPhrases}
-    
-    USER QUESTION: ${message}
-    
-    Please provide a detailed analysis of this document based on the user's question.`;
+      enhancedMessage = `The user has uploaded a document for analysis. Here are the details:
+      
+      DOCUMENT: ${storedDoc.filename}
+      TYPE: ${storedDoc.contentType}
+      WORD COUNT: ${storedDoc.wordCount}
+      CONTENT: ${storedDoc.fullContent || storedDoc.content}
+      KEY PHRASES: ${storedDoc.keyPhrases}
+      
+      USER QUESTION: ${message}
+      
+      Please provide a detailed analysis of this document based on the user's question.`;
       }
     }
     
     // FIX #2: Backup direct injection (safety net)
     if (document_context && !enhancedMessage.includes('DOCUMENT:')) {
       console.log(`📄 [CHAT] Backup injection: ${document_context.filename}`);
-      
-      enhancedMessage = `The user has uploaded a document for analysis. Here are the details:
-    
-    DOCUMENT: ${document_context.filename}
-    TYPE: ${document_context.contentType}
-    WORD COUNT: ${document_context.wordCount}
-    CONTENT: ${document_context.content}
-    KEY PHRASES: ${document_context.keyPhrases}
-    
-    USER QUESTION: ${message}
-    
-    Please provide a detailed analysis of this document based on the user's question.`;
-    }
     
     // *** MASTER SYSTEM PROMPT CONSTRUCTION ***
     const intelligenceContext = null; // Bridge will provide intelligence context if needed
