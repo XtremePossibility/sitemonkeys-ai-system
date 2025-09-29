@@ -1028,38 +1028,71 @@ if (conversation_history && conversation_history.length > 0) {
   ).join('\n');
   console.log(`[CHAT] 🔗 Added ${recentHistory.length} conversation context entries`);
 }
+// Build base conversation prompt
 let enhancedPrompt = buildConversationPrompt(systemPrompt, message, conversation_history, expertDomain);
-// Add uploaded document content to prompt (support object OR string)
-if (document_context) {
-  const docText = typeof document_context === 'string'
-    ? document_context
-    : (document_context.content || '');
-  if (docText && docText.length > 100) {
-    const docName = typeof document_context === 'object' ? (document_context.filename || 'document') : 'document';
-    const docType = typeof document_context === 'object' ? (document_context.contentType || 'unknown') : 'unknown';
-    const docWords = typeof document_context === 'object' ? (document_context.wordCount || 'unknown') : 'unknown';
-    const keyPhrases = (typeof document_context === 'object' && Array.isArray(document_context.keyPhrases))
-      ? document_context.keyPhrases.join(', ')
-      : '';
 
-    enhancedPrompt += `
+// === ROBUST DOCUMENT INJECTION (server.js) ===
+try {
+  let docText = '';
+  let docLabel = '';
+  let docMeta = '';
 
-UPLOADED DOCUMENT ANALYSIS INPUT:
-FILE: ${docName}
-TYPE: ${docType}
-WORD COUNT: ${docWords}
-KEY PHRASES: ${keyPhrases}
+  if (document_context) {
+    // Accept string or object shape
+    if (typeof document_context === 'string') {
+      docText = document_context;
+      docLabel = 'UPLOADED DOCUMENT';
+    } else if (typeof document_context === 'object') {
+      docText = document_context.content || '';
+      docLabel = document_context.filename
+        ? `UPLOADED DOCUMENT: ${document_context.filename}`
+        : 'UPLOADED DOCUMENT';
+
+      const type = document_context.contentType ? `TYPE: ${document_context.contentType}` : '';
+      const words = (typeof document_context.wordCount === 'number')
+        ? `WORDS: ${document_context.wordCount}`
+        : '';
+      docMeta = [type, words].filter(Boolean).join('  |  ');
+    }
+
+    const hasDoc = (docText && docText.trim().length > 0);
+
+    if (hasDoc) {
+      // Truncate safely (~1.8k tokens worth) to avoid prompt bloat
+      const MAX_CHARS = 7200;
+      const safeText = docText.length > MAX_CHARS
+        ? (docText.slice(0, Math.floor(MAX_CHARS * 0.7))
+           + '\n\n[DOCUMENT TRUNCATED FOR PROCESSING]\n\n'
+           + docText.slice(-Math.floor(MAX_CHARS * 0.3)))
+        : docText;
+
+      // Append document block to the prompt
+      enhancedPrompt += `
+
+${docLabel}
+${docMeta ? `(${docMeta})` : ''}
 
 CONTENT:
-${docText}
+${safeText}
 
 INSTRUCTION: Analyze the document content above and explicitly reference it where relevant when answering the user's request.`;
-  }
-}
 
-// === DEBUG VISIBILITY: Show memory + vault status ===
-console.log('[DEBUG] Memory context length:', memoryContext?.memories?.length || 0);
-console.log('[DEBUG] Vault status:', { vaultHealthy, vaultTokens, vaultStatus });
+      console.log('[DOC-INJECT] Injected document into prompt:', {
+        label: docLabel,
+        chars: docText.length,
+        truncated: docText.length > MAX_CHARS
+      });
+    } else {
+      console.log('[DOC-INJECT] document_context present but empty; skipping injection.');
+    }
+  } else {
+    console.log('[DOC-INJECT] No document_context in request; skipping injection.');
+  }
+
+} catch (docError) {
+  console.error('[DOC-INJECT] Injection error:', docError.message);
+}
+// === END ROBUST DOCUMENT INJECTION ===
 
 // MEMORY INJECTION DISABLED - HANDLED BY CHAT.JS
 if (memoryContext && memoryContext.memories && memoryContext.memories.length > 0) {
