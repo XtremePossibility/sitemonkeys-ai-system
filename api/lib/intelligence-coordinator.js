@@ -14,7 +14,7 @@ class IntelligenceCoordinator {
       enginesActivated: [],
       confidence: 0.9
     };
-
+  
     try {
       // STEP 1: Try Extraordinary Intelligence (if integrated)
       if (context?.extraordinary) {
@@ -31,37 +31,41 @@ class IntelligenceCoordinator {
           console.warn('[Coordinator] Extraordinary intelligence failed:', e.message);
         }
       }
-
-      // STEP 2: Use pre-enhanced query if provided, otherwise generate base
+  
+      // STEP 2: Use pre-enhanced message if provided (contains document context)
+      const messageToUse = context?.enhancedMessage || query;
       const baseResponse = context?.enhancedMessage || await this.getBaseResponse(query, mode);
-      const queryToUse = context?.enhancedMessage || query;
       
+      console.log('📄 [Coordinator] Using message:', messageToUse.substring(0, 100) + '...');
+      console.log('📄 [Coordinator] Message includes DOCUMENT:', messageToUse.includes('DOCUMENT:'));
+  
       // STEP 3: Enhance Response with Intelligence  
       const enhanced = await this.enhanced.enhanceResponse(
         baseResponse,
-        queryToUse,  // ← NOW USES YOUR DOCUMENT-ENHANCED MESSAGE
+        messageToUse,  // ← NOW USES DOCUMENT-ENHANCED MESSAGE
         mode,
         context?.memory || null,
         context?.vault || '',
         0.7
       );
-
+  
       results.response = enhanced.enhancedResponse;
       results.intelligenceEnhanced = true;
       results.enginesActivated.push('enhanced_intelligence');
       results.confidence = enhanced.finalConfidence || 0.7;
       return results;
-
+  
     } catch (err) {
       console.error('[Coordinator] Critical error:', err.message);
-
+  
       // STEP 4: Attempt Memory-Only Fallback
       if (context?.memory?.memories) {
         try {
-          const base = `Based on historical memory:\n\n${context.memory.memories}\n\nUser asked: ${query}`;
+          const messageToUse = context?.enhancedMessage || query;
+          const base = `Based on historical memory:\n\n${context.memory.memories}\n\nUser asked: ${messageToUse}`;
           const memoryEnhanced = await this.enhanced.enhanceResponse(
             base,
-            query,
+            messageToUse,
             mode,
             context?.memory || null,
             context?.vault || '',
@@ -76,9 +80,10 @@ class IntelligenceCoordinator {
           console.warn('[Coordinator] Memory enhancement failed:', memError.message);
         }
       }
-
+  
       // STEP 5: Basic fallback
-      results.response = `Let's work through this together. You asked: ${query}`;
+      const messageToUse = context?.enhancedMessage || query;
+      results.response = `Let's work through this together. You asked: ${messageToUse}`;
       results.enginesActivated.push('basic_fallback');
       results.confidence = 0.9;
       return results;
