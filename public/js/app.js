@@ -97,14 +97,6 @@ if (currentMode === 'site_monkeys') {
   vaultContent = '';
 }
 
-const requestPayload = {
-  message: text,
-  conversation_history: conversationHistory,
-  mode: getCurrentMode(),
-  vault_content: vaultContent,
-  session_id: `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-};
-
 console.log('🔍 Using vault with length:', vaultContent.length);
 
     console.log('🚀 Sending request:', {
