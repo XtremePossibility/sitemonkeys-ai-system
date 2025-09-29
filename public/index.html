@@ -1470,20 +1470,17 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 
-  // Analyze button
-  const analyzeBtn = document.getElementById('analyze-btn');
-  if (analyzeBtn) {
-    analyzeBtn.addEventListener('click', () => {
-      console.log('🔍 Analyze button clicked');
-      analyzeFileInput.click();
-    });
-    console.log('✅ Analyze button connected');
-  }
-
   // Analysis button - Initialize after DOM fully loads
   setTimeout(() => {
     const analyzeBtn = document.getElementById('analyze-btn');
     const analyzeFileInput = document.getElementById('analysis-file-input');
+    if (analyzeBtn) {
+      analyzeBtn.addEventListener('click', () => {
+        console.log('🔍 Analyze button clicked');
+        analyzeFileInput.click();
+      });
+      console.log('✅ Analyze button connected');
+    }
     
     if (analyzeBtn && analyzeFileInput) {
       analyzeBtn.addEventListener('click', () => {
