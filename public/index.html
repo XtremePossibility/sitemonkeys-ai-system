@@ -1470,37 +1470,16 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 
+  const analyzeBtn = document.getElementById('analyze-btn');
+  if (analyzeBtn) {
+    analyzeBtn.addEventListener('click', () => {
+      console.log('🔍 Analyze button clicked');
+      analysisFileInput.click();
+    });
+    console.log('✅ Analyze button connected');
+  }
+
   // Analysis button - Initialize after DOM fully loads
-  setTimeout(() => {
-    const analyzeBtn = document.getElementById('analyze-btn');
-    const analyzeFileInput = document.getElementById('analysis-file-input');
-    if (analyzeBtn) {
-      analyzeBtn.addEventListener('click', () => {
-        console.log('🔍 Analyze button clicked');
-        analyzeFileInput.click();
-      });
-      console.log('✅ Analyze button connected');
-    }
-    
-    if (analyzeBtn && analyzeFileInput) {
-      analyzeBtn.addEventListener('click', () => {
-        console.log('🔍 Analyze button clicked');
-        analyzeFileInput.click();
-      });
-      analyzeFileInput.addEventListener('change', (e) => {
-        if (e.target.files.length > 0) {
-          console.log('📄 Files selected for analysis:', e.target.files.length);
-          handleAnalysisUpload(Array.from(e.target.files));
-        }
-      });
-      console.log('✅ Analysis button connected successfully');
-    } else {
-      console.error('❌ FAILED: Analyze button or input not found', {
-        button: !!analyzeBtn,
-        input: !!analyzeFileInput
-      });
-    }
-  }, 200);
 
   console.log('🎯 Event listeners added');
   setTimeout(() => {
