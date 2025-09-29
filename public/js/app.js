@@ -132,34 +132,6 @@ console.log('🔍 Using vault with length:', vaultContent.length);
     );
     // === END: build requestPayload with document_context ===
     
-    // === BEGIN: build requestPayload with document_context ===
-    const lastDoc = (Array.isArray(extractedDocuments) && extractedDocuments.length > 0)
-      ? extractedDocuments[extractedDocuments.length - 1]
-      : null;
-    
-    const requestPayload = {
-      message: text,                                 // send the user question as-is
-      conversation_history: conversationHistory,     // keep your history as-is
-      mode: getCurrentMode(),
-      vault_loaded: isVaultMode(),
-      vault_content: vaultContent || null,
-      document_context: lastDoc ? {
-        filename: lastDoc.filename || '',
-        content: lastDoc.content || '',
-        wordCount: lastDoc.wordCount || 0,
-        contentType: lastDoc.contentType || '',
-        keyPhrases: Array.isArray(lastDoc.keyPhrases) ? lastDoc.keyPhrases : []
-      } : null
-    };
-    
-    // Debug so we can see what’s going out
-    console.log('[REQUEST] document_context:',
-      requestPayload.document_context
-        ? { filename: requestPayload.document_context.filename, len: requestPayload.document_context.content?.length || 0 }
-        : null
-    );
-    // === END: build requestPayload with document_context ===
-    
     const response = await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
