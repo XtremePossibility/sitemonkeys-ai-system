@@ -416,36 +416,23 @@ if (intelligenceMemories && intelligenceMemories.length > 0) {
     // *** DOCUMENT CONTEXT PROCESSING ***
     let enhancedMessage = message;
     
-    // Check for analysis keywords and retrieve stored document
-    const analysisKeywords = ['analyze', 'analysis', 'review', 'examine', 'document', 'file'];
-    const isAnalysisRequest = analysisKeywords.some(keyword => 
-      message.toLowerCase().includes(keyword)
-    );
-    
-    if (isAnalysisRequest) {
-      // FIX #1: Use proper array access instead of .get()
-      const storedDoc = extractedDocuments.get('latest');
+    // Document context from frontend
+    if (document_context && document_context.fullContent) {
+      console.log(`📄 [CHAT] Document context received: ${document_context.filename}`);
       
-      if (storedDoc) {
-        console.log(`📄 [CHAT] Found stored document: ${storedDoc.filename}`);
-        
       enhancedMessage = `The user has uploaded a document for analysis. Here are the details:
-      
-      DOCUMENT: ${storedDoc.filename}
-      TYPE: ${storedDoc.contentType}
-      WORD COUNT: ${storedDoc.wordCount}
-      CONTENT: ${storedDoc.fullContent || storedDoc.content}
-      KEY PHRASES: ${storedDoc.keyPhrases}
-      
-      USER QUESTION: ${message}
-      
-      Please provide a detailed analysis of this document based on the user's question.`;
-      }
-    }
     
-    // FIX #2: Backup direct injection (safety net)
-    if (document_context && !enhancedMessage.includes('DOCUMENT:')) {
-      console.log(`📄 [CHAT] Backup injection: ${document_context.filename}`);
+    DOCUMENT: ${document_context.filename}
+    TYPE: ${document_context.contentType || 'Document'}
+    WORD COUNT: ${document_context.wordCount || 'Unknown'}
+    CONTENT: ${document_context.fullContent}
+    
+    USER QUESTION: ${message}
+    
+    Please provide a detailed analysis of this document based on the user's question.`;
+      
+      console.log(`📄 [CHAT] Enhanced message with document (${document_context.fullContent.length} chars)`);
+    }
     
     // *** MASTER SYSTEM PROMPT CONSTRUCTION ***
     const intelligenceContext = null; // Bridge will provide intelligence context if needed
