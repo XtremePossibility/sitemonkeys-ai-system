@@ -151,7 +151,8 @@ export class MasterIntelligenceOrchestrator {
     }
 
     // BULLETPROOF: Multi-document handling (addresses critical gap #1)
-    let enhancedMessage = message;
+    // CRITICAL FIX: Use the already-enhanced message from chat.js if provided
+    let enhancedMessage = context.enhancedMessage || message;
     let documentAnalysis = null;
     let totalDocumentTokens = 0;
 
