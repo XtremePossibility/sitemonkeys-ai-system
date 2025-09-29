@@ -93,12 +93,13 @@ async function extractDocxContent(fileBuffer) {
       const wordCount = extractedText.split(/\s+/).length;
       console.log(`✅ Successfully extracted ${wordCount} words from .docx`);
       
-      // Return just the essential data - not storing full content in memory
+      // Return BOTH preview and full text
       return {
         success: true,
         wordCount: wordCount,
         characterCount: extractedText.length,
         preview: extractedText.substring(0, 200) + (extractedText.length > 200 ? '...' : ''),
+        fullText: extractedText,  // ← ADD THIS LINE
         hasContent: true
       };
     } else {
@@ -201,13 +202,15 @@ async function processFile(file) {
         const keyPhrases = extractKeyPhrases(extractionResult.preview);
         
         // Store analysis results
+        // Store analysis results
         processingResult.docxAnalysis = {
           wordCount: extractionResult.wordCount,
           characterCount: extractionResult.characterCount,
           contentType: analysis.contentType,
           readingTime: analysis.readingTime,
           keyPhrases: keyPhrases,
-          preview: extractionResult.preview
+          preview: extractionResult.preview,
+          fullText: extractionResult.fullText  // ← ADD THIS LINE
         };
         
         processingResult.message = `DOCX analyzed: ${file.originalname} (${extractionResult.wordCount} words)`;
@@ -369,13 +372,14 @@ async function handleAnalysisUpload(req, res) {
         extractedDocuments.set('latest', {
           id: documentId,
           filename: file.filename,
-          content: extractionResult.text,  // Full text, not just preview
+          content: file.docxAnalysis.preview,
+          fullContent: extractionResult.fullText,  // ← ADD THIS LINE
           wordCount: file.docxAnalysis.wordCount,
           contentType: file.docxAnalysis.contentType,
           keyPhrases: file.docxAnalysis.keyPhrases,
           timestamp: Date.now()
         });
-        
+                
         console.log(`📄 [STORAGE] Stored document for chat access: ${file.filename}`);
       }
     });
