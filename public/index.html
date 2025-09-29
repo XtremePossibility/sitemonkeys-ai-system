@@ -1002,6 +1002,37 @@ async function handleAnalysisUpload(files) {
     
     const result = await response.json();
 
+    // *** CRITICAL FIX: Store extracted documents for chat analysis ***
+    console.log('📄 [DEBUG] Upload result:', result);
+    
+    if (result.files && result.files.length > 0) {
+      console.log('📄 [DEBUG] Processing', result.files.length, 'files');
+      
+      result.files.forEach(file => {
+        console.log('📄 [DEBUG] File:', file.filename, 'contentExtracted:', file.contentExtracted);
+        
+        if (file.contentExtracted && file.docxAnalysis) {
+          const docToStore = {
+            filename: file.filename,
+            content: file.docxAnalysis.preview,
+            contentType: file.docxAnalysis.contentType,
+            wordCount: file.docxAnalysis.wordCount,
+            keyPhrases: file.docxAnalysis.keyPhrases || [],
+            timestamp: Date.now()
+          };
+          
+          extractedDocuments.push(docToStore);
+          console.log('✅ [FRONTEND] Stored document:', file.filename);
+          console.log('📄 [FRONTEND] Total stored documents:', extractedDocuments.length);
+          console.log('📄 [FRONTEND] Document content preview:', docToStore.content.substring(0, 100));
+        } else {
+          console.log('❌ [FRONTEND] Document not stored - missing content');
+        }
+      });
+    } else {
+      console.log('❌ [FRONTEND] No files in result');
+    }
+
     console.log('=== BACKEND RESPONSE DEBUG ===');
     console.log('Full result:', result);
     if (result.analysis_results && result.analysis_results.length > 0) {
