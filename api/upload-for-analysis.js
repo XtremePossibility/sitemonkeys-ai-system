@@ -369,7 +369,7 @@ async function handleAnalysisUpload(req, res) {
         extractedDocuments.set('latest', {
           id: documentId,
           filename: file.filename,
-          content: file.docxAnalysis.preview,
+          content: extractionResult.text,  // Full text, not just preview
           wordCount: file.docxAnalysis.wordCount,
           contentType: file.docxAnalysis.contentType,
           keyPhrases: file.docxAnalysis.keyPhrases,
