@@ -1029,6 +1029,7 @@ if (conversation_history && conversation_history.length > 0) {
   console.log(`[CHAT] 🔗 Added ${recentHistory.length} conversation context entries`);
 }
 // Build base conversation prompt
+// Build base conversation prompt
 let enhancedPrompt = buildConversationPrompt(systemPrompt, message, conversation_history, expertDomain);
 
 // === ROBUST DOCUMENT INJECTION (server.js) ===
@@ -1094,7 +1095,6 @@ INSTRUCTION: Analyze the document content above and explicitly reference it wher
 }
 // === END ROBUST DOCUMENT INJECTION ===
 
-// MEMORY INJECTION DISABLED - HANDLED BY CHAT.JS
 if (memoryContext && memoryContext.memories && memoryContext.memories.length > 0) {
   enhancedPrompt = systemPrompt + `
 
