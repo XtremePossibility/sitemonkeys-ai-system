@@ -32,13 +32,14 @@ class IntelligenceCoordinator {
         }
       }
 
-      // STEP 2: Generate Base Response (fallback or template)
-      const baseResponse = await this.getBaseResponse(query, mode);
-
+      // STEP 2: Use pre-enhanced query if provided, otherwise generate base
+      const baseResponse = context?.enhancedMessage || await this.getBaseResponse(query, mode);
+      const queryToUse = context?.enhancedMessage || query;
+      
       // STEP 3: Enhance Response with Intelligence  
       const enhanced = await this.enhanced.enhanceResponse(
-        baseResponse,  // ✔ Base response
-        query,         // ✔ User message
+        baseResponse,
+        queryToUse,  // ← NOW USES YOUR DOCUMENT-ENHANCED MESSAGE
         mode,
         context?.memory || null,
         context?.vault || '',
