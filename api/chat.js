@@ -882,9 +882,22 @@ function applyEnhancedReasoning(response, message, mode, expertDomain, memoryCon
     return enhanced;
 
   } catch (error) {
-    console.warn('[ENHANCED REASONING] Skipped due to error:', error.message);
-    return response; // GRACEFUL DEGRADATION
-  }
+    console.warn('[INTELLIGENCE COORDINATOR] Fallback triggered:', error.message);
+  
+    // === FORCE vault + memory injection into fallback ===
+    const forcedPrompt = `
+  ${systemPrompt}
+  
+  ${vaultHealthy ? `📁 VAULT CONTENT:\n${vaultContent}\n` : '[NO VAULT AVAILABLE]'}
+  
+  ${memoryContext?.memories ? `🧠 MEMORY CONTEXT:\n${memoryContext.memories}\n` : '[NO MEMORY CONTEXT]'}
+  
+  USER REQUEST: ${message}
+  `;
+  
+    const fallbackAPI = await makeEnhancedAPICall(forcedPrompt, optimalPersonality, prideMotivation);
+    finalResponse = fallbackAPI.response;
+  } 
 }
 
 // ================================================================
