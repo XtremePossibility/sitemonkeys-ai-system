@@ -423,7 +423,8 @@ if (intelligenceMemories && intelligenceMemories.length > 0) {
     );
     
     if (isAnalysisRequest) {
-      const storedDoc = extractedDocuments.get('latest');
+      // FIX #1: Use proper array access instead of .get()
+      const storedDoc = extractedDocuments[extractedDocuments.length - 1];
       
       if (storedDoc) {
         console.log(`📄 [CHAT] Found stored document: ${storedDoc.filename}`);
@@ -440,8 +441,11 @@ if (intelligenceMemories && intelligenceMemories.length > 0) {
     
     Please provide a detailed analysis of this document based on the user's question.`;
       }
-    } else if (document_context) {
-      console.log(`📄 [CHAT] Document context available: ${document_context.filename}`);
+    }
+    
+    // FIX #2: Backup direct injection (safety net)
+    if (document_context && !enhancedMessage.includes('DOCUMENT:')) {
+      console.log(`📄 [CHAT] Backup injection: ${document_context.filename}`);
       
       enhancedMessage = `The user has uploaded a document for analysis. Here are the details:
     
