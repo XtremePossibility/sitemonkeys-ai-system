@@ -134,9 +134,52 @@ const callOpenAI = async (payload) => {
     return result;
     
   } catch (error) {
-    console.error('❌ OpenAI API call failed:', error.message);
-    throw error;
+    // === INTELLIGENCE FAILURE HANDLER (SAFE FALLBACK INJECTION) ===
+    console.warn('[INTELLIGENCE] Primary intelligence call failed. Error:', error?.message || error);
+  
+    // Very explicit log so we can detect overuse of fallback
+    console.warn('[INTELLIGENCE] Fallback engaged - forcing vault+memory injection into fallback path');
+  
+    // Defensive: ensure vaultContent and memoryContext exist in safe form
+    const safeVault = (typeof vaultContent === 'string' && vaultContent.length > 0) ? vaultContent
+      : `SITE MONKEYS FALLBACK LOGIC:
+  Pricing: Boost $697, Climb $1,497, Lead $2,997
+  Minimum 85% margins required for all projections
+  Professional service standards maintained
+  Quality-first approach with caring delivery`;
+  
+    const safeMemory = (memoryContext && memoryContext.memories) ? memoryContext.memories : '';
+  
+    // Build a forced prompt with the same master system prompt and the best available inputs
+    const forcedPrompt = `
+  [FORCED FALLBACK PROMPT - injected because primary intelligence failed]
+  ${systemPrompt}
+  
+  ${vaultHealthy ? `📁 VAULT CONTENT (injected):\n${safeVault}\n\n` : '[NO VAULT AVAILABLE]\n\n'}
+  
+  ${safeMemory ? `🧠 MEMORY CONTEXT (injected):\n${safeMemory}\n\n` : '[NO MEMORY CONTEXT]\n\n'}
+  
+  USER REQUEST:
+  ${message}
+  
+  NOTE: Primary intelligence failed with error: ${error?.message || String(error)}.
+  Please attempt to answer using the injected vault and memory context. If you cannot, be explicit about what is missing.
+  `;
+  
+    try {
+      // Call the same API wrapper but with forced prompt
+      const fallbackApiResp = await makeIntelligentAPICall(forcedPrompt, personality, prideMotivation);
+      finalResponse = fallbackApiResp.response || generateEmergencyCaringResponse(new Error('Fallback produced no response'));
+  
+      console.log('[INTELLIGENCE] Fallback response received. Tokens:', fallbackApiResp.usage?.total_tokens || 0);
+    } catch (fallbackError) {
+      // If fallback itself fails, produce a safe emergency message
+      console.error('[INTELLIGENCE] Fallback also failed:', fallbackError?.message || fallbackError);
+  
+      finalResponse = generateEmergencyCaringResponse(fallbackError || error);
+    }
   }
+
 };
 
 const gzip = promisify(zlib.gzip);
