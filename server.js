@@ -848,6 +848,18 @@ Quality-first approach with caring delivery`;
       vaultHealthy = false;
     }
 
+    // === CLAMP: Prevent unhealthy vault from poisoning signatures ===
+    if (!vaultHealthy || !vaultContent || vaultContent.length < 500) {
+      console.log('⚠️ Vault unhealthy or empty — enforcing safe clamp');
+      vaultHealthy = false;
+      vaultContent = `SITE MONKEYS FALLBACK LOGIC:
+    Pricing: Boost $697, Climb $1,497, Lead $2,997
+    Minimum 85% margins required for all projections
+    Professional service standards maintained
+    Quality-first approach with caring delivery`;
+    }
+
+
     // ===== IMPROVED INTELLIGENCE SYSTEM =====
     let intelligenceRouting = null;
     let intelligenceMemories = null;
@@ -1001,6 +1013,10 @@ ${docText}
 INSTRUCTION: Analyze the document content above and explicitly reference it where relevant when answering the user's request.`;
   }
 }
+
+// === DEBUG VISIBILITY: Show memory + vault status ===
+console.log('[DEBUG] Memory context length:', memoryContext?.memories?.length || 0);
+console.log('[DEBUG] Vault status:', { vaultHealthy, vaultTokens, vaultStatus });
 
 // MEMORY INJECTION DISABLED - HANDLED BY CHAT.JS
 if (memoryContext && memoryContext.memories && memoryContext.memories.length > 0) {
