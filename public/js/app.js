@@ -62,6 +62,7 @@ async function improvedRefreshVault() {
 
 // Override the global function
 window.refreshVault = improvedRefreshVault;
+// ==================== FIXED SENDMESSAGE FUNCTION ====================
 async function sendMessage() {
   const input = document.getElementById('user-input');
   const text = input.value.trim();
@@ -85,41 +86,40 @@ async function sendMessage() {
   box.scrollTop = box.scrollHeight;
 
   try {
-    
-// LOAD VAULT ONLY IF IN SITE MONKEYS MODE
-let vaultContent = '';
-const currentMode = getCurrentMode();
-if (currentMode === 'site_monkeys') {
-  vaultContent = await loadVaultOnDemand();
-  console.log('🔍 Site Monkeys mode - loaded vault with length:', vaultContent.length);
-} else {
-  console.log('🔍 Truth/Business mode - vault disabled');
-  vaultContent = '';
-}
+    // LOAD VAULT ONLY IF IN SITE MONKEYS MODE
+    let vaultContent = '';
+    const currentMode = getCurrentMode();
+    if (currentMode === 'site_monkeys') {
+      vaultContent = await loadVaultOnDemand();
+      console.log('🔍 Site Monkeys mode - loaded vault with length:', vaultContent.length);
+    } else {
+      console.log('🔍 Truth/Business mode - vault disabled');
+      vaultContent = '';
+    }
 
-console.log('🔍 Using vault with length:', vaultContent.length);
+    console.log('🔍 Using vault with length:', vaultContent.length);
 
-    // === BEGIN: build requestPayload with document_context ===
+    // === BUILD DOCUMENT CONTEXT FROM UPLOAD ===
     const lastDoc = (Array.isArray(extractedDocuments) && extractedDocuments.length > 0)
       ? extractedDocuments[extractedDocuments.length - 1]
       : null;
-    
+
     const requestPayload = {
-      message: text,                                 // send the user question as-is
-      conversation_history: conversationHistory,     // keep your history as-is
+      message: text,                                 // user’s question
+      conversation_history: conversationHistory,     // keep chat context
       mode: getCurrentMode(),
       vault_loaded: isVaultMode(),
       vault_content: vaultContent || null,
       document_context: lastDoc ? {
         filename: lastDoc.filename || '',
-        content: lastDoc.content || '',
+        content: lastDoc.content || '',              // ✅ FIX: now sends actual file text
         wordCount: lastDoc.wordCount || 0,
         contentType: lastDoc.contentType || '',
         keyPhrases: Array.isArray(lastDoc.keyPhrases) ? lastDoc.keyPhrases : []
       } : null
     };
-    
-    // Debug so we can see what’s going out
+
+    // Debug log for verification
     console.log('🚀 Sending request:', {
       mode: requestPayload.mode,
       vault_content_length: vaultContent.length,
@@ -130,8 +130,8 @@ console.log('🔍 Using vault with length:', vaultContent.length);
         ? { filename: requestPayload.document_context.filename, len: requestPayload.document_context.content?.length || 0 }
         : null
     );
-    // === END: build requestPayload with document_context ===
-    
+
+    // SEND TO BACKEND
     const response = await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -143,10 +143,10 @@ console.log('🔍 Using vault with length:', vaultContent.length);
     }
 
     const data = await response.json();
-    
+
     // ADD THIS DEBUG LINE:
     console.log('🔍 TOKEN DEBUG:', data.token_usage);
-    
+
     // EXTRACT AND DISPLAY TOKEN/COST DATA
     console.log('🔍 Checking token_usage:', !!data.token_usage, typeof data.token_usage);
     if (data.token_usage && typeof data.token_usage === 'object') {
@@ -154,10 +154,10 @@ console.log('🔍 Using vault with length:', vaultContent.length);
     } else {
       console.log('❌ Token data missing or invalid:', data.token_usage);
     }
-    
+
     let reply = data.response || 'No response received';
 
-    // FIXED SYSTEM VERIFICATION - MATCHES BACKEND RESPONSE STRUCTURE
+    // SYSTEM VERIFICATION OBJECT
     const systemVerification = {
       mode_used: data.mode_active || 'UNKNOWN',
       vault_status: data.vault_status?.loaded ? 'LOADED' : 'NOT_LOADED',
@@ -167,19 +167,17 @@ console.log('🔍 Using vault with length:', vaultContent.length);
       fallback_used: data.performance?.api_error?.fallback_used || false
     };
 
-    // LOG system status for debugging
     console.log('🔍 SYSTEM VERIFICATION:', systemVerification);
-    
-    // Check for system integrity issues
+
     if (systemVerification.fallback_used) {
       console.warn('⚠️ Fallback response used - system may be under stress');
     }
-    
+
     if (!systemVerification.security_pass && isVaultMode()) {
       console.error('🚨 Security check failed for vault access');
     }
 
-    // Show debug info in development mode
+    // Show debug info in dev mode
     const showDebugInfo = localStorage.getItem('sitemonkeys_debug') === 'true';
     if (showDebugInfo) {
       reply += `\n\n🔍 [DEBUG] Mode: ${systemVerification.mode_used} | Vault: ${systemVerification.vault_status} | Security: ${systemVerification.security_pass ? 'PASS' : 'FAIL'}`;
@@ -188,13 +186,12 @@ console.log('🔍 Using vault with length:', vaultContent.length);
       }
     }
 
-    // Clean response for user display while preserving verification data
+    // Clean response for display
     let cleanReply = reply
       .replace(/^\*?\*?(Eli|Roxy):\*?\*?\s*/i, '')
       .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
       .replace(/\*\[MODE:.*?\]/g, '')
       .replace(/\[MODE:.*?\]/g, '')
-      .replace(/\|\s*\[VAULT:.*?\]\s*\|\s*\[TRIGGERED:.*?\]\s*\|\s*\[FLOW:.*?\]\s*\|\s*\[ASSUMPTIONS:.*?\]\*/g, '')
       .replace(/\[VAULT:.*?\]/g, '')
       .replace(/\[TRIGGERED:.*?\]/g, '')
       .replace(/\[FLOW:.*?\]/g, '')
@@ -207,32 +204,28 @@ console.log('🔍 Using vault with length:', vaultContent.length);
       thinkingElement.remove();
     }
 
-    // Determine speaker based on response content or alternation
+    // Alternate between Eli & Roxy
     const isEli = aiToggle;
     const who = isEli ? 'Eli' : 'Roxy';
     const avatar = isEli ? "boy-mascot.png" : "girl-mascot.png";
 
-    // Add response with truth-focused styling
-    const responseBubble = document.createElement('div');
-    responseBubble.className = 'bubble ai';
-    
-    // Add subtle mode indicator to response
     const modeIndicator = getCurrentMode() === 'truth_general' ? '🔍' : 
                          getCurrentMode() === 'business_validation' ? '📊' : 
                          getCurrentMode() === 'site_monkeys' ? '🍌' : '🤖';
-    
+
+    const responseBubble = document.createElement('div');
+    responseBubble.className = 'bubble ai';
     responseBubble.innerHTML = `<img src="${avatar}" class="avatar" alt="${who}"><div class="bubble-content"><strong>${who} ${modeIndicator}:</strong> ${cleanReply}</div>`;
     box.appendChild(responseBubble);
     box.scrollTop = box.scrollHeight;
 
-    // Store complete conversation with system metadata
+    // Store conversation history
     conversationHistory.push({ 
       role: 'user', 
       content: text,
       timestamp: new Date().toISOString(),
       mode_requested: getCurrentMode()
     });
-    
     conversationHistory.push({ 
       role: 'assistant', 
       content: reply,
@@ -242,15 +235,12 @@ console.log('🔍 Using vault with length:', vaultContent.length);
       speaker: who
     });
 
-    // Limit conversation history to prevent token bloat
     if (conversationHistory.length > 12) {
       conversationHistory = conversationHistory.slice(-12);
     }
 
-    // Toggle speaker for next message
     aiToggle = !aiToggle;
 
-    // Show assumption warnings if any
     if (systemVerification.assumption_warnings.length > 0) {
       setTimeout(() => {
         const warningBubble = document.createElement('div');
@@ -263,14 +253,12 @@ console.log('🔍 Using vault with length:', vaultContent.length);
 
   } catch (error) {
     console.error('❌ Chat system error:', error);
-    
-    // Remove thinking indicator on error
+
     const thinkingElement = document.querySelector('.thinking-bubble');
     if (thinkingElement) {
       thinkingElement.remove();
     }
 
-    // Honest error message (following truth-first principles)
     const errorBubble = document.createElement('div');
     errorBubble.className = 'bubble ai';
     errorBubble.innerHTML = `<img src="boy-mascot.png" class="avatar" alt="System"><div class="bubble-content"><strong>System:</strong> I encountered a technical error and I won't pretend it didn't happen. Error: ${error.message}. I'd rather be honest about system issues than give you unreliable information. Please try again.</div>`;
@@ -278,6 +266,7 @@ console.log('🔍 Using vault with length:', vaultContent.length);
     box.scrollTop = box.scrollHeight;
   }
 }
+
 
 // TOKEN AND COST DISPLAY FUNCTIONS
 function updateTokenDisplay(tokenData) {
