@@ -809,6 +809,11 @@ app.post('/api/chat', async (req, res) => {
       document_context = null
     } = req.body;
 
+    console.log('[DOC] incoming document_context type:', typeof document_context, 
+            document_context && (document_context.filename || '(no filename)'),
+            document_context && (document_context.content ? `${document_context.content.length} chars` : '(no content)'));
+
+
     if (!message || typeof message !== 'string') {
       return res.status(400).json({ error: 'Message is required and must be a string' });
     }
@@ -972,13 +977,45 @@ let enhancedPrompt = buildConversationPrompt(systemPrompt, message, conversation
 // Add uploaded document content to prompt
 // === FIX B: Robust document injection ===
 if (document_context) {
-  if (typeof document_context === 'string' && document_context.length > 100) {
-    enhancedPrompt += `\n\nUPLOADED DOCUMENT ANALYSIS:\n${document_context}\n\nPlease analyze the uploaded document content above and reference it in your response.`;
-    console.log('[FIX B] Injected string-based document context');
-  } else if (typeof document_context === 'object' && document_context.content) {
-    enhancedPrompt += `\n\nUPLOADED DOCUMENT ANALYSIS:\nFile: ${document_context.filename || 'Unknown'}\nType: ${document_context.contentType || 'Unknown'}\nWord Count: ${document_context.wordCount || 'Unknown'}\n\n${document_context.content}\n\nPlease analyze this uploaded document content above and reference it in your response.`;
-    console.log('[FIX B] Injected object-based document context');
+  // === FIX B: Robust document injection ===
+if (document_context) {
+  let docText = '';
+  let docLabel = 'UPLOADED DOCUMENT';
+
+  if (typeof document_context === 'string') {
+    docText = document_context;
+  } else if (typeof document_context === 'object') {
+    docText = document_context.content || '';
+    if (document_context.filename) {
+      docLabel = `UPLOADED DOCUMENT: ${document_context.filename}`;
+    }
   }
+
+  if (docText && docText.trim().length > 100) {
+    const MAX_CHARS = 7200; // ~1.8k tokens safe
+    const safeText = docText.length > MAX_CHARS
+      ? docText.slice(0, Math.floor(MAX_CHARS * 0.7))
+        + '\n\n[DOCUMENT TRUNCATED FOR PROCESSING]\n\n'
+        + docText.slice(-Math.floor(MAX_CHARS * 0.3))
+      : docText;
+
+    enhancedPrompt += `
+
+${docLabel}
+${document_context.contentType ? `TYPE: ${document_context.contentType}` : ''}
+${document_context.wordCount ? `WORDS: ${document_context.wordCount}` : ''}
+
+CONTENT:
+${safeText}
+
+INSTRUCTION: Use the actual document content above directly in your reasoning. Do not ask the user to re-summarize it. Reference specific sections as needed.`;
+
+    console.log('[DOC] Injected document into prompt:', docLabel, `(${safeText.length} chars after trimming)`);
+  } else {
+    console.log('[DOC] document_context provided but no usable content');
+  }
+}
+
 }
 
 
