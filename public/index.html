@@ -1051,6 +1051,7 @@ async function handleAnalysisUpload(files) {
             extractedDocuments.push({
               filename: file.filename,
               content: file.docxAnalysis.preview,
+              fullContent: file.docxAnalysis.fullText,  // ← ADD THIS LINE
               contentType: file.docxAnalysis.contentType,
               wordCount: file.docxAnalysis.wordCount,
               keyPhrases: file.docxAnalysis.keyPhrases || [],
