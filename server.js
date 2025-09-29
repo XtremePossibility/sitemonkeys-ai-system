@@ -974,50 +974,33 @@ if (conversation_history && conversation_history.length > 0) {
   console.log(`[CHAT] 🔗 Added ${recentHistory.length} conversation context entries`);
 }
 let enhancedPrompt = buildConversationPrompt(systemPrompt, message, conversation_history, expertDomain);
-// Add uploaded document content to prompt
-// === FIX B: Robust document injection ===
+// Add uploaded document content to prompt (support object OR string)
 if (document_context) {
-  // === FIX B: Robust document injection ===
-if (document_context) {
-  let docText = '';
-  let docLabel = 'UPLOADED DOCUMENT';
-
-  if (typeof document_context === 'string') {
-    docText = document_context;
-  } else if (typeof document_context === 'object') {
-    docText = document_context.content || '';
-    if (document_context.filename) {
-      docLabel = `UPLOADED DOCUMENT: ${document_context.filename}`;
-    }
-  }
-
-  if (docText && docText.trim().length > 100) {
-    const MAX_CHARS = 7200; // ~1.8k tokens safe
-    const safeText = docText.length > MAX_CHARS
-      ? docText.slice(0, Math.floor(MAX_CHARS * 0.7))
-        + '\n\n[DOCUMENT TRUNCATED FOR PROCESSING]\n\n'
-        + docText.slice(-Math.floor(MAX_CHARS * 0.3))
-      : docText;
+  const docText = typeof document_context === 'string'
+    ? document_context
+    : (document_context.content || '');
+  if (docText && docText.length > 100) {
+    const docName = typeof document_context === 'object' ? (document_context.filename || 'document') : 'document';
+    const docType = typeof document_context === 'object' ? (document_context.contentType || 'unknown') : 'unknown';
+    const docWords = typeof document_context === 'object' ? (document_context.wordCount || 'unknown') : 'unknown';
+    const keyPhrases = (typeof document_context === 'object' && Array.isArray(document_context.keyPhrases))
+      ? document_context.keyPhrases.join(', ')
+      : '';
 
     enhancedPrompt += `
 
-${docLabel}
-${document_context.contentType ? `TYPE: ${document_context.contentType}` : ''}
-${document_context.wordCount ? `WORDS: ${document_context.wordCount}` : ''}
+UPLOADED DOCUMENT ANALYSIS INPUT:
+FILE: ${docName}
+TYPE: ${docType}
+WORD COUNT: ${docWords}
+KEY PHRASES: ${keyPhrases}
 
 CONTENT:
-${safeText}
+${docText}
 
-INSTRUCTION: Use the actual document content above directly in your reasoning. Do not ask the user to re-summarize it. Reference specific sections as needed.`;
-
-    console.log('[DOC] Injected document into prompt:', docLabel, `(${safeText.length} chars after trimming)`);
-  } else {
-    console.log('[DOC] document_context provided but no usable content');
+INSTRUCTION: Analyze the document content above and explicitly reference it where relevant when answering the user's request.`;
   }
 }
-
-}
-
 
 // MEMORY INJECTION DISABLED - HANDLED BY CHAT.JS
 if (memoryContext && memoryContext.memories && memoryContext.memories.length > 0) {
