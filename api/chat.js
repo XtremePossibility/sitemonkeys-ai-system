@@ -479,6 +479,7 @@ if (intelligenceMemories && intelligenceMemories.length > 0) {
       // Single bulletproof processing call that handles EVERYTHING
       const bulletproofResult = await masterOrchestrator.processWithUnifiedIntelligence({
         message: enhancedMessage,
+        enhancedMessage: enhancedMessage,  // ← ADDED THIS LINE
         conversation_history,
         mode,
         claude_requested,
