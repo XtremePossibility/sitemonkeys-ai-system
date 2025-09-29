@@ -131,12 +131,6 @@ console.log('🔍 Using vault with length:', vaultContent.length);
         : null
     );
     // === END: build requestPayload with document_context ===
-
-    
-    // === BEGIN: build requestPayload with document_context ===
-    const lastDoc = (Array.isArray(extractedDocuments) && extractedDocuments.length > 0)
-      ? extractedDocuments[extractedDocuments.length - 1]
-      : null;
     
     const requestPayload = {
       message: text,                                 // send the user question as-is
