@@ -424,7 +424,7 @@ if (intelligenceMemories && intelligenceMemories.length > 0) {
     
     if (isAnalysisRequest) {
       // FIX #1: Use proper array access instead of .get()
-      const storedDoc = extractedDocuments[extractedDocuments.length - 1];
+      const storedDoc = extractedDocuments.get('latest');
       
       if (storedDoc) {
         console.log(`📄 [CHAT] Found stored document: ${storedDoc.filename}`);
