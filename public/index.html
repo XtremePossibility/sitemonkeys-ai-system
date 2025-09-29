@@ -1051,12 +1051,13 @@ async function handleAnalysisUpload(files) {
             extractedDocuments.push({
               filename: file.filename,
               content: file.docxAnalysis.preview,
-              fullContent: file.docxAnalysis.fullText,  // ← ADD THIS LINE
+              fullContent: file.docxAnalysis.fullText,
               contentType: file.docxAnalysis.contentType,
               wordCount: file.docxAnalysis.wordCount,
               keyPhrases: file.docxAnalysis.keyPhrases || [],
               timestamp: Date.now()
             });
+            console.log('📄 [FRONTEND] Stored document with full content:', file.filename, 'Length:', file.docxAnalysis.fullText?.length);
           }
         });
         console.log('📄 Stored documents for chat:', extractedDocuments.length);
@@ -1073,13 +1074,13 @@ async function handleAnalysisUpload(files) {
         const docxContent = {
           filename: file.filename,
           content: file.docxAnalysis.preview,
+          fullContent: file.docxAnalysis.fullText,
           wordCount: file.docxAnalysis.wordCount,
           contentType: file.docxAnalysis.contentType,
           keyPhrases: file.docxAnalysis.keyPhrases || [],
           readingTime: file.docxAnalysis.readingTime,
           uploadTime: new Date().toISOString()
         };
-        
         // Store in global array
         extractedDocuments.push(docxContent);
         manageExtractedDocuments();
@@ -1503,7 +1504,8 @@ function getDocumentContextForMessage(message) {
       contentType: latestDoc.contentType,
       wordCount: latestDoc.wordCount,
       keyPhrases: latestDoc.keyPhrases,
-      content: latestDoc.content
+      content: latestDoc.content,
+      fullContent: latestDoc.fullContent
     };
   }
   
