@@ -375,7 +375,7 @@ async function handleAnalysisUpload(req, res) {
           id: documentId,
           filename: file.filename,
           content: file.docxAnalysis.preview,
-          fullContent: extractionResult.fullText,  // ← ADD THIS LINE
+          fullContent: file.docxAnalysis.fullText,  // ← ADD THIS LINE
           wordCount: file.docxAnalysis.wordCount,
           contentType: file.docxAnalysis.contentType,
           keyPhrases: file.docxAnalysis.keyPhrases,
