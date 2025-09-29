@@ -477,7 +477,33 @@ if (intelligenceMemories && intelligenceMemories.length > 0) {
     
     try {
       // Single bulletproof processing call that handles EVERYTHING
-      const bulletproofResult = await masterOrchestrator.processWithUnifiedIntelligence({
+      // *** CHECK FOR DOCUMENT CONTEXT - SKIP ORCHESTRATOR IF PRESENT ***
+      if (document_context && document_context.content) {
+        console.log('📄 [BYPASS] Document detected - using direct prompt path');
+        
+        // Build prompt directly with document content
+        const masterPrompt = buildMasterPrompt(mode, optimalPersonality, vaultContent, vaultHealthy, expertDomain, careNeeds, protectiveAlerts, solutionOpportunities, memoryContext, intelligenceContext);
+        const basePrompt = buildUniversalConversationPrompt(masterPrompt, enhancedMessage, conversation_history, expertDomain, careNeeds, memoryContext);
+        
+        // Call AI directly
+        const apiResponse = await makeEnhancedAPICall(basePrompt, optimalPersonality, prideMotivation, memoryContext?.memories);
+        
+        finalResponse = apiResponse.response;
+        intelligenceResult = {
+          intelligenceEnhanced: false,
+          source: 'direct_document_processing',
+          confidence: 0.9
+        };
+        
+        console.log('✅ [BYPASS] Document processed via direct path');
+        
+      } else {
+        // Normal orchestrator path for non-document queries
+        console.log('🛡️ [BULLETPROOF] Starting bulletproof intelligence processing...');
+        
+        try {
+          const bulletproofResult = await masterOrchestrator.processWithUnifiedIntelligence({
+            // ... existing orchestrator call ...
         message: enhancedMessage,
         enhancedMessage: enhancedMessage,  // ← ADDED THIS LINE
         conversation_history,
