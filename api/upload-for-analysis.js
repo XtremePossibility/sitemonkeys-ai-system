@@ -210,7 +210,7 @@ async function processFile(file) {
           readingTime: analysis.readingTime,
           keyPhrases: keyPhrases,
           preview: extractionResult.preview,
-          fullText: extractionResult.fullText  // ← ADD THIS LINE
+          fullText: extractionResult.fullText,
         };
         
         processingResult.message = `DOCX analyzed: ${file.originalname} (${extractionResult.wordCount} words)`;
