@@ -781,6 +781,7 @@ display: flex; align-items: center; justify-content: center;
 let conversationHistory = [];
 let systemActive = false;
 let aiToggle = false;
+let extractedDocuments = [];
 const MAX_CONVERSATION_HISTORY = 50;
 const MAX_EXTRACTED_DOCUMENTS = 10;
 let requestQueue = [];
@@ -978,6 +979,55 @@ async function handleFileUpload(files) {
   }
 }
 
+ if (files.length === 0) return;
+  
+  const box = document.getElementById('chat-box');
+  
+  const uploadBubble = document.createElement('div');
+  uploadBubble.className = 'bubble ai';
+  uploadBubble.innerHTML = `<img src="boy-mascot.png" class="avatar" alt="System"><div class="bubble-content"><strong>System:</strong> 📤 Uploading ${files.length} file(s) for analysis...</div>`;
+  box.appendChild(uploadBubble);
+  box.scrollTop = box.scrollHeight;
+  
+  const formData = new FormData();
+  for (let i = 0; i < files.length; i++) {
+    formData.append('files', files[i]);
+  }
+  
+  try {
+    const response = await fetch('/api/upload-for-analysis', {
+      method: 'POST',
+      body: formData
+    });
+    
+    const result = await response.json();
+    
+    if (result.success) {
+      const filesToProcess = result.analysis_results || result.files || [];
+      
+      filesToProcess.forEach(file => {
+        if (file.contentExtracted && file.docxAnalysis) {
+          const analysis = file.docxAnalysis;
+          const docToStore = {
+            filename: file.filename,
+            content: analysis.preview,
+            fullContent: analysis.fullText,
+            contentType: analysis.contentType,
+            wordCount: analysis.wordCount,
+            keyPhrases: analysis.keyPhrases || [],
+            timestamp: Date.now()
+          };
+          extractedDocuments.push(docToStore);
+          manageExtractedDocuments();
+          console.log('📄 Stored document for chat:', file.filename);
+          
+          const analysisBubble = document.createElement('div');
+          analysisBubble.className = 'bubble ai';
+          analysisBubble.innerHTML = `<img src="girl-mascot.png" class="avatar" alt="Roxy"><div class="bubble-content"><strong>Roxy:</strong> 📄 ${file.filename}<br>📊 Words: ${analysis.wordCount}<br>📝 Preview: ${analysis.preview.substring(0, 200)}...<br><br>💬 <strong>Now ask me to analyze this document!</strong></div>`;
+          box.appendChild(analysisBubble);
+        }
+      });
+    }
   } catch (error) {
     console.error('❌ Analysis upload failed:', error);
     const errorBubble = document.createElement('div');
