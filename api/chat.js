@@ -174,7 +174,7 @@ export default async function handler(req, res) {
       claude_requested = false,
       vault_content = null,
       user_id = 'default_user',
-      document_context = null  // 👈 ADD THIS LINE
+      document_context = null  
     } = req.body;
 
     if (!message || typeof message !== 'string') {
@@ -432,6 +432,7 @@ if (intelligenceMemories && intelligenceMemories.length > 0) {
     Please provide a detailed analysis of this document based on the user's question.`;
       
       console.log(`📄 [CHAT] Enhanced message with document (${document_context.fullContent.length} chars)`);
+      console.log('🔴 ACTUAL CONTENT LENGTH BEING SENT TO AI:', enhancedMessage.length);
     }
     
     // *** MASTER SYSTEM PROMPT CONSTRUCTION ***
