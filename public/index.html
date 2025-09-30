@@ -979,8 +979,10 @@ async function handleFileUpload(files) {
   }
 }
  
-  const box = document.getElementById('chat-box');
+  async function handleAnalysisUpload(files) {
+  if (files.length === 0) return;
   
+  const box = document.getElementById('chat-box');
   const uploadBubble = document.createElement('div');
   uploadBubble.className = 'bubble ai';
   uploadBubble.innerHTML = `<img src="boy-mascot.png" class="avatar" alt="System"><div class="bubble-content"><strong>System:</strong> 📤 Uploading ${files.length} file(s) for analysis...</div>`;
