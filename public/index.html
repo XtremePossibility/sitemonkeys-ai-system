@@ -1017,8 +1017,8 @@ async function handleAnalysisUpload(files) {
         console.log('==STORAGE DEBUG==');
         console.log('file object:', file);
         console.log('file.docxAnalysis:', file.docxAnalysis);
-        console.log('file.docxAnalysis.fulltext exists?', file.docxAnalysis?.fulltext !== undefined);
-        console.log('file.docxAnalysis.fulltext length:', file.docxAnalysis?.fulltext?.length);
+        console.log('file.docxAnalysis.fullText exists?', file.docxAnalysis?.fullText !== undefined);
+        console.log('file.docxAnalysis.fullText length:', file.docxAnalysis?.fullText?.length);
         console.log('==END STORAGE DEBUG==');
         console.log('📄 [DEBUG] File:', file.filename, 'contentExtracted:', file.contentExtracted);
         
@@ -1062,14 +1062,14 @@ async function handleAnalysisUpload(files) {
             extractedDocuments.push({
               filename: file.filename,
               content: file.docxAnalysis.preview,
-              fullContent: file.docxAnalysis.fulltext,
+              fullContent: file.docxAnalysis.fullText,
               contentType: file.docxAnalysis.contentType,
               wordCount: file.docxAnalysis.wordCount,
               keyPhrases: file.docxAnalysis.keyPhrases || [],
               timestamp: Date.now()
             });
-            console.log('📄 [FRONTEND] Stored document with full content:', file.filename, 'Length:', file.docxAnalysis.fulltext?.length);
-            console.log('🔍 Storing fullContent length:', file.docxAnalysis.fulltext?.length);
+            console.log('📄 [FRONTEND] Stored document with full content:', file.filename, 'Length:', file.docxAnalysis.fullText?.length);
+            console.log('🔍 Storing fullContent length:', file.docxAnalysis.fullText?.length);
           }
         });
         console.log('📄 Stored documents for chat:', extractedDocuments.length);
@@ -1086,7 +1086,7 @@ async function handleAnalysisUpload(files) {
         const docxContent = {
           filename: file.filename,
           content: file.docxAnalysis.preview,
-          fullContent: file.docxAnalysis.fulltext,
+          fullContent: file.docxAnalysis.fullText,
           wordCount: file.docxAnalysis.wordCount,
           contentType: file.docxAnalysis.contentType,
           keyPhrases: file.docxAnalysis.keyPhrases || [],
