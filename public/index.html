@@ -1057,6 +1057,7 @@ async function handleAnalysisUpload(files) {
               filename: file.filename,
               content: file.docxAnalysis.preview,
               fullContent: file.docxAnalysis.fullText,
+              console.log('🔍 Storing fullContent length:', file.docxAnalysis.fullText?.length);
               contentType: file.docxAnalysis.contentType,
               wordCount: file.docxAnalysis.wordCount,
               keyPhrases: file.docxAnalysis.keyPhrases || [],
