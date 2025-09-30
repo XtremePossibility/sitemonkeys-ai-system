@@ -1026,6 +1026,7 @@ async function handleAnalysisUpload(files) {
           const docToStore = {
             filename: file.filename,
             content: file.docxAnalysis.preview,
+            fullContent: file.docxAnalysis.fullText,
             contentType: file.docxAnalysis.contentType,
             wordCount: file.docxAnalysis.wordCount,
             keyPhrases: file.docxAnalysis.keyPhrases || [],
