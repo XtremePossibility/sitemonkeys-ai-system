@@ -1014,6 +1014,12 @@ async function handleAnalysisUpload(files) {
       console.log('📄 [DEBUG] Processing', result.files.length, 'files');
       
       result.analysis_results.forEach(file => {
+        console.log('==STORAGE DEBUG==');
+        console.log('file object:', file);
+        console.log('file.docxAnalysis:', file.docxAnalysis);
+        console.log('file.docxAnalysis.fulltext exists?', file.docxAnalysis?.fulltext !== undefined);
+        console.log('file.docxAnalysis.fulltext length:', file.docxAnalysis?.fulltext?.length);
+        console.log('==END STORAGE DEBUG==');
         console.log('📄 [DEBUG] File:', file.filename, 'contentExtracted:', file.contentExtracted);
         
         if (file.contentExtracted && file.docxAnalysis) {
