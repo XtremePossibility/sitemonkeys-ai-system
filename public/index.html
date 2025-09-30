@@ -1294,20 +1294,6 @@ async function sendMessage() {
     // Simple document context injection
     let messageToSend = text;
 
-    if (extractedDocuments.length > 0) {
-      const doc = extractedDocuments[extractedDocuments.length - 1];
-      messageToSend = `${text}
-
-[DOCUMENT CONTEXT]
-File: ${doc.filename}
-Content: ${doc.content}
-Word Count: ${doc.wordCount}
-Type: ${doc.contentType}
-
-Use this document information to answer the user's question.`;
-      console.log('Document context added:', doc.filename);
-    }
-
     console.log('ACTUAL MESSAGE BEING SENT TO API:', messageToSend);
 
     // Send message with vault content injection AND document context
