@@ -92,6 +92,8 @@ async function extractDocxContent(fileBuffer) {
     if (extractedText && extractedText.trim().length > 0) {
       const wordCount = extractedText.split(/\s+/).length;
       console.log(`✅ Successfully extracted ${wordCount} words from .docx`);
+
+      console.log('📄 Full text length:', extractedText.length, 'Preview length:', extractedText.substring(0, 200).length);
       
       // Return BOTH preview and full text
       return {
