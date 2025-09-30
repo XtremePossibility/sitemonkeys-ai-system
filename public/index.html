@@ -1057,13 +1057,13 @@ async function handleAnalysisUpload(files) {
               filename: file.filename,
               content: file.docxAnalysis.preview,
               fullContent: file.docxAnalysis.fullText,
-              console.log('Storing fullContent length:', (file.docxAnalysis.fullText ? file.docxAnalysis.fullText.length : 'none')),
               contentType: file.docxAnalysis.contentType,
               wordCount: file.docxAnalysis.wordCount,
               keyPhrases: file.docxAnalysis.keyPhrases || [],
               timestamp: Date.now()
             });
             console.log('📄 [FRONTEND] Stored document with full content:', file.filename, 'Length:', file.docxAnalysis.fullText?.length);
+            console.log('🔍 Storing fullContent length:', file.docxAnalysis.fullText?.length);
           }
         });
         console.log('📄 Stored documents for chat:', extractedDocuments.length);
