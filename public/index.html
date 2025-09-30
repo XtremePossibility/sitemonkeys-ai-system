@@ -1253,6 +1253,21 @@ async function refreshVault() {
   }
 }
 
+function traceDocumentFlow() {
+  console.log('=== DOCUMENT FLOW TRACE ===');
+  console.log('1. extractedDocuments array:', extractedDocuments);
+  console.log('2. Array length:', extractedDocuments.length);
+  if (extractedDocuments.length > 0) {
+    const doc = extractedDocuments[0];
+    console.log('3. First document object:', doc);
+    console.log('4. Has content property?', 'content' in doc, '- Length:', doc.content?.length);
+    console.log('5. Has fullContent property?', 'fullContent' in doc, '- Length:', doc.fullContent?.length);
+    console.log('6. Content value:', doc.content?.substring(0, 100));
+    console.log('7. FullContent value:', doc.fullContent?.substring(0, 100));
+  }
+  console.log('=== END TRACE ===');
+}
+
 // Main chat function
 async function sendMessage() {
   const input = document.getElementById('user-input');
