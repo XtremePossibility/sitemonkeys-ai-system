@@ -425,7 +425,7 @@ if (intelligenceMemories && intelligenceMemories.length > 0) {
     DOCUMENT: ${document_context.filename}
     TYPE: ${document_context.contentType || 'Document'}
     WORD COUNT: ${document_context.wordCount || 'Unknown'}
-    CONTENT: ${document_context.fullContent}
+    CONTENT: ${document_context.fullContent || document_context.content}
     
     USER QUESTION: ${message}
     
