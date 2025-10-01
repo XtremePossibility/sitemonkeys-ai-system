@@ -15,17 +15,20 @@ export function addInventoryEndpoint(app) {
     TTL: 5 * 60 * 1000 // 5 minutes
   };
 
-  app.get('/api/system-inventory', async (req, res) => {
-    try {
-      const format = req.query.format || 'html'; // html, json, or markdown
-      const noCache = req.query.nocache === 'true';
-      
-      // Check cache unless explicitly bypassed
-      if (!noCache && inventoryCache.data && 
-          (Date.now() - inventoryCache.timestamp < inventoryCache.TTL)) {
-        console.log('Serving inventory from cache');
-        return sendResponse(res, inventoryCache.data, format);
-      }
+app.get('/api/system-inventory', async (req, res) => {
+  try {
+    // SECURITY CHECK - require secret key
+    const secretKey = 'inventory2024secure';  // Change this to whatever you want
+    
+    if (req.query.key !== secretKey) {
+      return res.status(401).json({ 
+        error: 'Unauthorized',
+        message: 'Missing or invalid key parameter' 
+      });
+    }
+    
+    const format = req.query.format || 'html';
+    const noCache = req.query.nocache === 'true';
 
       console.log('Generating new inventory scan...');
       
