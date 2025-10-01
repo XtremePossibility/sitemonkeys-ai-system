@@ -20,7 +20,7 @@ import { uploadMiddleware, handleFileUpload } from './api/upload-file.js';
 import { analysisMiddleware, handleAnalysisUpload } from './api/upload-for-analysis.js';
 import { extractedDocuments } from './api/upload-for-analysis.js';
 import repoSnapshotRoute from './api/repo-snapshot.js';
-
+import { addInventoryEndpoint } from './system-inventory-endpoint.js';
 
 // ===== CRITICAL RAILWAY ERROR HANDLERS =====
 process.on('unhandledRejection', (reason, promise) => {
@@ -35,6 +35,7 @@ process.on('uncaughtException', (error) => {
 
 // NOW declare your variables:
 const app = express();
+addInventoryEndpoint(app);
 
 // ===== APPLICATION STARTUP MEMORY INITIALIZATION =====
 console.log('[SERVER] 🚀 Initializing memory systems at application startup...');
