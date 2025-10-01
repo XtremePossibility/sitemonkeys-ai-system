@@ -127,7 +127,7 @@ async function sendMessage() {
     });
     console.log('[REQUEST] document_context:',
       requestPayload.document_context
-        ? { filename: requestPayload.document_context.filename, len: requestPayload.document_context.content?.length || 0 }
+        ? { filename: requestPayload.document_context.filename, len: requestPayload.document_context.fullContent?.length || requestPayload.document_context.content?.length || 0 }
         : null
     );
 
