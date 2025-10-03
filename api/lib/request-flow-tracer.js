@@ -786,4 +786,3 @@ export function createTracerMiddleware() {
 // ================================================================
 
 export default RequestFlowTracer;
-export { RequestFlowTracer, createTracerMiddleware };
