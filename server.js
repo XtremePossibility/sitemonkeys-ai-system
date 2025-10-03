@@ -7,6 +7,7 @@ import cors from 'cors';
 import { exec } from 'child_process';
 import persistentMemory from './memory_system/persistent_memory.js';
 import intelligenceSystem from './memory_system/intelligence.js';
+import Orchestrator from './api/core/orchestrator.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
@@ -39,6 +40,10 @@ addInventoryEndpoint(app);
 
 // ===== APPLICATION STARTUP MEMORY INITIALIZATION =====
 console.log('[SERVER] 🚀 Initializing memory systems at application startup...');
+console.log('🚀 [SERVER] Initializing Orchestrator...');
+const orchestrator = new Orchestrator();
+await orchestrator.initialize();
+console.log('✅ [SERVER] Orchestrator ready');
 
 // CRITICAL FIX: Move async initialization inside an async function
 async function initializeMemorySystem() {
