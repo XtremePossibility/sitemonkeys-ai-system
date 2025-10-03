@@ -94,9 +94,6 @@ export class ResponseObjectUnifier {
 
   // AI-PROCESSORS.JS INTEGRATION - Replaces response.response modifications  
   applyProductValidation() {
-
-  // AI-PROCESSORS.JS INTEGRATION - Replaces response.response modifications  
-  applyProductValidation() {
     return this.modifyResponse(
       (content) => {
         const RECOMMENDATION_PATTERNS = [
