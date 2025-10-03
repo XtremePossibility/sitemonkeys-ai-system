@@ -92,8 +92,15 @@ app.use(express.json({ limit: '50mb' }));
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-// Serve frontend files from /public
-app.use(express.static(path.join(__dirname, 'public')));
+// ═══════════════════════════════════════════════════════════════════════
+// LOCKED UI SERVING - PROTECTED FRONTEND
+// ═══════════════════════════════════════════════════════════════════════
+
+// Serve static assets from locked-ui folder
+app.use('/css', express.static(path.join(__dirname, 'locked-ui', 'css')));
+app.use('/js', express.static(path.join(__dirname, 'locked-ui', 'js')));
+app.use('/images', express.static(path.join(__dirname, 'locked-ui', 'images')));
+app.use('/manifest.json', express.static(path.join(__dirname, 'locked-ui', 'manifest.json')));
 
 // ==================== VAULT LOADER INTEGRATION ====================
 // Adding vault functionality to existing server with ES module imports
@@ -2150,7 +2157,20 @@ const PORT = process.env.PORT || 3000;
 // Register repo snapshot route
 app.use('/api/repo-snapshot', repoSnapshotRoute);
 
+// ═══════════════════════════════════════════════════════════════════════
+// SPA FALLBACK - SERVE INDEX.HTML FOR ALL NON-API ROUTES
+// ═══════════════════════════════════════════════════════════════════════
+app.get('*', (req, res) => {
+  // Don't serve index.html for API routes
+  if (req.path.startsWith('/api/')) {
+    return res.status(404).json({ error: 'API endpoint not found' });
+  }
+  // Serve the locked UI index.html for all other routes
+  res.sendFile(path.join(__dirname, 'locked-ui', 'index.html'));
+});
+
 async function safeStartServer() {
+
   try {
     await startServer();
     
