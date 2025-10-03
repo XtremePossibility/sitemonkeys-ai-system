@@ -67,8 +67,6 @@ export class ResponseObjectUnifier {
     );
   }
 
-  }
-
   // MEMORY REFERENCE PRESERVATION - Protects memory acknowledgments during enforcement
   applyMemoryPreservation(memoryContext) {
     if (!memoryContext || !memoryContext.contextFound) return this.masterResponse;
