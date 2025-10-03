@@ -21,6 +21,10 @@ import { analysisMiddleware, handleAnalysisUpload } from './api/upload-for-analy
 import { extractedDocuments } from './api/upload-for-analysis.js';
 import repoSnapshotRoute from './api/repo-snapshot.js';
 import { addInventoryEndpoint } from './system-inventory-endpoint.js';
+import { createTracerMiddleware } from './api/lib/request-flow-tracer.js';
+import { EnhancedRequestFlowTracer, wrapMasterOrchestrator } from './api/lib/tracer-enhancements.js';
+import { addTracerDashboardEndpoint } from './tracer-dashboard-endpoint.js';
+import { masterOrchestrator } from './api/lib/master-intelligence-orchestrator.js';
 
 // ===== CRITICAL RAILWAY ERROR HANDLERS =====
 process.on('unhandledRejection', (reason, promise) => {
@@ -36,6 +40,25 @@ process.on('uncaughtException', (error) => {
 // NOW declare your variables:
 const app = express();
 addInventoryEndpoint(app);
+
+// ==================== TRACER INITIALIZATION ====================
+console.log('[SERVER] 🔍 Initializing request tracer...');
+
+// Create base tracer
+const { middleware: tracerMiddleware, helpers: tracerHelpers, tracer } = createTracerMiddleware();
+
+// Wrap with enhancements (file logging, sampling, session tracking)
+const enhancedTracer = new EnhancedRequestFlowTracer(tracer);
+
+// Integrate with master orchestrator for deep tracing
+wrapMasterOrchestrator(masterOrchestrator, enhancedTracer);
+
+// Make available globally
+global.tracer = tracer;
+global.enhancedTracer = enhancedTracer;
+global.tracerHelpers = tracerHelpers;
+
+console.log('[SERVER] ✅ Request tracer initialized');
 
 // ===== APPLICATION STARTUP MEMORY INITIALIZATION =====
 console.log('[SERVER] 🚀 Initializing memory systems at application startup...');
@@ -87,6 +110,8 @@ console.log('[SERVER] 🚀 Starting Site Monkeys AI System...');
 // Enable CORS and JSON parsing
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
+// Add tracer middleware
+app.use(tracerMiddleware);
 
 // Required for ESM to get __dirname
 const __filename = fileURLToPath(import.meta.url);
@@ -94,6 +119,9 @@ const __dirname = dirname(__filename);
 
 // Serve frontend files from /public
 app.use(express.static(path.join(__dirname, 'public')));
+
+// Add tracer dashboard endpoint
+addTracerDashboardEndpoint(app);
 
 // ==================== VAULT LOADER INTEGRATION ====================
 // Adding vault functionality to existing server with ES module imports
