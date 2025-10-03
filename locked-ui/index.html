@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Site Monkeys AI</title>
+<link href="https://fonts.cdnfonts.com/css/luckiest-guy" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css?family=Carlito:400,700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/styles.css">
+<link rel="apple-touch-icon" href="/images/Apple Touch icon Site monkeys.png">
+<link rel="manifest" href="/manifest.json">
+</head>
+<body>
+
+<header>
+<div class="header-row">
+<img src="/images/logo.png" alt="Logo" class="logo" onerror="this.style.display='none'">
+<div class="header-center">
+<h1 class="site-title">SITE MONKEYS AI</h1>
+<p class="subtitle">YOU DECIDE THE MODE</p>
+<div class="mode-toggle-container">
+<button class="mode-btn active" data-mode="truth_general" id="truth-btn">
+Truth & General
+</button>
+<button class="mode-btn" data-mode="business_validation" id="business-btn">
+Business Validation
+</button>
+<button class="mode-btn" data-mode="site_monkeys" id="vault-btn">
+Site Monkeys
+</button>
+</div>
+</div>
+<img src="/images/AI Robot.png" alt="AI Robot" class="ai-robot" onerror="this.style.display='none'">
+<img src="/images/rocket.png" alt="Rocket" class="rocket-top" onerror="this.style.display='none'">
+<img src="/images/rocket.png" alt="Mobile Rocket" class="mobile-rocket" onerror="this.style.display='none'">
+</div>
+</header>
+
+<div class="main-wrapper">
+<img src="/images/boy-mascot.png" alt="Eli" class="mascot mascot-left" onerror="this.style.display='none'">
+<div class="main-content">
+
+<div class="status-panel">
+<div class="status-title">SYSTEM STATUS</div>
+<ul class="status-list" id="status-list">
+<li><span class="check">✓</span> Mode Active</li>
+<li><span class="check">✓</span> Memory Online</li>
+<li><span class="check">✓</span> Intelligence Layer</li>
+<li><span class="check">✓</span> Roxy & Eli Ready</li>
+</ul>
+<div class="system-ready" id="system-ready">
+<span class="check">✓</span> SYSTEM READY
+</div>
+<div class="vault-info" id="vault-info">
+<div>📊 TOKENS: <span id="token-count">0</span></div>
+<div>💵 COST: <span id="cost-estimate">$0.00</span></div>
+<div>📁 <span id="vault-folders">Cached</span> FOLDERS LOADED</div>
+<button id="refresh-vault-btn" onclick="debouncedRefreshVault()" style="
+  background: #FFD811; 
+  color: #373534; 
+  border: 1px solid #fff; 
+  border-radius: 8px; 
+  padding: 7px 10px; 
+  font-size: 0.8em; 
+  font-weight: bold; 
+  cursor: pointer; 
+  margin-top: 8px;
+  width: 100%;
+  transition: all 0.2s ease;
+" onmouseover="this.style.background='#ffe96a'" onmouseout="this.style.background='#FFD811'">
+🔄 Refresh Vault
+</button>
+</div>
+</div>
+
+<div class="chat-panel">
+<div class="chat-box" id="chat-box"></div>
+<div class="input-area">
+<button class="attachment-button" id="smart-upload-btn" aria-label="Upload Files" title="Upload files">
+📎
+</button>
+<button class="attachment-button" id="analyze-btn" aria-label="Analyze Document" title="Analyze Document" style="position: absolute; top: 5px; right: 70px; z-index: 100;">
+  🔍
+</button>
+<textarea class="chat-input" id="user-input" placeholder="Ask Eli, Roxy, and AI about business validation..." rows="3"></textarea>
+<button class="send-button" id="send-btn" aria-label="Send">
+<img src="/images/rocket.png" alt="Rocket Send" />
+</button>
+<input type="file" id="vault-file-input" accept=".docx,.doc,.pdf,.txt,.csv,.xlsx,.xls,.pptx,.ppt,.md,.rtf,.json,.xml,.html,.htm,.odt,.ods,.odp,.pages,.numbers,.key,.zip,.rar,.7z,.tar,.gz,.jpeg,.jpg,.png,.gif,.bmp,.svg,.tiff,.mp3,.mp4,.avi,.mov,.wmv,.flv,.webm,.wav,.m4a,.ogg,.aac" multiple style="display: none;">
+<input type="file" id="analysis-file-input" accept=".docx,.doc,.pdf,.txt,.csv,.xlsx,.xls,.pptx,.ppt,.md,.rtf,.json,.xml,.html,.htm,.odt,.ods,.odp,.pages,.numbers,.key,.zip,.rar,.7z,.tar,.gz,.jpeg,.jpg,.png,.gif,.bmp,.svg,.tiff,.mp3,.mp4,.avi,.mov,.wmv,.flv,.webm,.wav,.m4a,.ogg,.aac" multiple style="display: none;">
+</div>
+</div>
+</div>
+
+<div class="footer">
+<img src="/images/boy-mascot.png" alt="Eli" class="footer-mascot">
+<div class="footer-text">AI YOU CAN TRUST!</div>
+<img src="/images/girl-mascot.png" alt="Roxy" class="footer-mascot">
+</div>
+
+<div class="mobile-footer">
+<img src="/images/boy-mascot.png" alt="Eli" class="footer-mascot">
+<div class="mobile-footer-text">AI YOU CAN TRUST!</div>
+<img src="/images/girl-mascot.png" alt="Roxy" class="footer-mascot">
+</div>
+
+<img src="/images/girl-mascot.png" alt="Roxy" class="mascot mascot-right" onerror="this.style.display='none'">
+</div>
+
+<script>
+let systemActive = false;
+let aiToggle = false;
+let conversationHistory = [];
+let extractedDocuments = [];
+
+// Mode management
+function getCurrentMode() {
+  const activeBtn = document.querySelector('.mode-btn.active');
+  return activeBtn ? activeBtn.getAttribute('data-mode') : 'truth_general';
+}
+
+function isVaultMode() {
+  return getCurrentMode() === 'site_monkeys';
+}
+
+// Initialize mode buttons
+document.querySelectorAll('.mode-btn').forEach(btn => {
+  btn.addEventListener('click', function() {
+    document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+    this.classList.add('active');
+    console.log('Mode switched to:', getCurrentMode());
+    updatePlaceholder();
+  });
+});
+
+function updatePlaceholder() {
+  const input = document.getElementById('user-input');
+  const mode = getCurrentMode();
+  
+  if (mode === 'truth_general') {
+    input.placeholder = 'Ask anything - I prioritize truth and accuracy...';
+  } else if (mode === 'business_validation') {
+    input.placeholder = 'Ask about business validation, product viability, market analysis...';
+  } else if (mode === 'site_monkeys') {
+    input.placeholder = 'Site Monkeys mode - vault-enabled business strategy...';
+  }
+}
+
+// System startup animation
+window.addEventListener('load', () => {
+  const items = document.querySelectorAll('#status-list li');
+  items.forEach((item, i) => {
+    setTimeout(() => {
+      item.classList.add('loaded');
+    }, 300 * (i + 1));
+  });
+
+  setTimeout(() => {
+    document.getElementById('system-ready').classList.add('active');
+    systemActive = true;
+    updatePlaceholder();
+  }, items.length * 300 + 300);
+});
+
+// Debounced vault refresh
+let refreshTimeout;
+function debouncedRefreshVault() {
+  clearTimeout(refreshTimeout);
+  refreshTimeout = setTimeout(() => {
+    if (typeof window.refreshVault === 'function') {
+      window.refreshVault();
+    } else {
+      console.warn('Vault refresh not available');
+    }
+  }, 300);
+}
+
+// Smart upload handler
+document.getElementById('smart-upload-btn').addEventListener('click', () => {
+  document.getElementById('vault-file-input').click();
+});
+
+document.getElementById('vault-file-input').addEventListener('change', async (e) => {
+  const files = Array.from(e.target.files);
+  if (!files.length) return;
+
+  console.log('📎 Files selected:', files.length);
+
+  const formData = new FormData();
+  files.forEach(file => formData.append('files', file));
+
+  try {
+    const response = await fetch('/api/upload-file', {
+      method: 'POST',
+      body: formData
+    });
+
+    const result = await response.json();
+    console.log('✅ Upload complete:', result);
+
+    if (result.files && result.files.length > 0) {
+      result.files.forEach(fileResult => {
+        if (fileResult.status === 'success') {
+          extractedDocuments.push({
+            filename: fileResult.filename,
+            content: fileResult.extracted_text || fileResult.preview || '',
+            fullContent: fileResult.extracted_text || '',
+            contentType: fileResult.mime_type || 'text/plain',
+            wordCount: (fileResult.extracted_text || '').split(/\s+/).length,
+            keyPhrases: []
+          });
+        }
+      });
+
+      const box = document.getElementById('chat-box');
+      const uploadBubble = document.createElement('div');
+      uploadBubble.className = 'bubble ai';
+      uploadBubble.innerHTML = `<div class="bubble-content"><strong>System:</strong> ✅ ${result.successful_uploads} file(s) uploaded successfully. You can now ask questions about the content.</div>`;
+      box.appendChild(uploadBubble);
+      box.scrollTop = box.scrollHeight;
+    }
+  } catch (error) {
+    console.error('❌ Upload failed:', error);
+  }
+
+  e.target.value = '';
+});
+
+// Document analysis button
+document.getElementById('analyze-btn').addEventListener('click', () => {
+  document.getElementById('analysis-file-input').click();
+});
+
+document.getElementById('analysis-file-input').addEventListener('change', async (e) => {
+  const files = Array.from(e.target.files);
+  if (!files.length) return;
+
+  console.log('🔍 Analysis files selected:', files.length);
+
+  const formData = new FormData();
+  files.forEach(file => formData.append('files', file));
+
+  try {
+    const response = await fetch('/api/upload-file', {
+      method: 'POST',
+      body: formData
+    });
+
+    const result = await response.json();
+    console.log('✅ Analysis upload complete:', result);
+
+    if (result.files && result.files.length > 0) {
+      result.files.forEach(fileResult => {
+        if (fileResult.status === 'success') {
+          extractedDocuments.push({
+            filename: fileResult.filename,
+            content: fileResult.extracted_text || fileResult.preview || '',
+            fullContent: fileResult.extracted_text || '',
+            contentType: fileResult.mime_type || 'text/plain',
+            wordCount: (fileResult.extracted_text || '').split(/\s+/).length,
+            keyPhrases: []
+          });
+        }
+      });
+
+      const box = document.getElementById('chat-box');
+      const analyzeBubble = document.createElement('div');
+      analyzeBubble.className = 'bubble ai';
+      analyzeBubble.innerHTML = `<div class="bubble-content"><strong>System:</strong> 🔍 ${result.successful_uploads} document(s) ready for analysis. Ask me to analyze or review them.</div>`;
+      box.appendChild(analyzeBubble);
+      box.scrollTop = box.scrollHeight;
+    }
+  } catch (error) {
+    console.error('❌ Analysis upload failed:', error);
+  }
+
+  e.target.value = '';
+});
+
+// Send message on Enter
+document.getElementById('user-input').addEventListener('keypress', (e) => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage();
+  }
+});
+
+document.getElementById('send-btn').addEventListener('click', sendMessage);
+
+// Clear old documents from memory
+function clearOldDocuments() {
+  const now = Date.now();
+  extractedDocuments = extractedDocuments.filter(doc => {
+    const age = now - (doc.timestamp || now);
+    return age < 3600000; // Keep for 1 hour
+  });
+}
+
+// Handle broken images
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('img').forEach(img => {
+    img.onerror = function() {
+      console.warn(`Image failed to load: ${this.src}`);
+      this.style.display = 'none';
+    };
+  });
+});
+
+// Auto-clear old documents when needed
+window.addEventListener('beforeunload', clearOldDocuments);
+
+function getDocumentContextForMessage(message) {
+  const analysisKeywords = ['analyze', 'analysis', 'review', 'examine', 'document', 'content', 'explain', 'summary'];
+  const isAnalysisRequest = analysisKeywords.some(keyword => 
+    message.toLowerCase().includes(keyword)
+  );
+  
+  if (isAnalysisRequest && extractedDocuments.length > 0) {
+    const latestDoc = extractedDocuments[extractedDocuments.length - 1];
+    
+    console.log(`📄 [FRONTEND] Sending document context: ${latestDoc.filename}`);
+    
+    return {
+      filename: latestDoc.filename,
+      contentType: latestDoc.contentType,
+      wordCount: latestDoc.wordCount,
+      keyPhrases: latestDoc.keyPhrases,
+      content: latestDoc.content,
+      fullContent: latestDoc.fullContent
+    };
+  }
+  
+  return null;
+}
+
+</script>
+<script src="/js/app.js"></script>
+</body>
+</html>
