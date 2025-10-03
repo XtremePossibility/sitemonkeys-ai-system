@@ -921,13 +921,21 @@ Quality-first approach with caring delivery`;
     let intelligenceMemories = null;
     
     try {
-      intelligenceRouting = await intelligenceSystem.analyzeAndRoute(message, 'user');
-      intelligenceMemories = await intelligenceSystem.extractRelevantMemories('user', message, intelligenceRouting);
-      console.log('[INTELLIGENCE] Categorized as:', intelligenceRouting.primaryCategory);
+      const orchestratorResult = await orchestrator.processRequest({
+        message: message,
+        userId: 'user',
+        mode: mode,
+        documentContext: document_context,
+        vaultEnabled: vaultHealthy,
+        conversationHistory: conversation_history
+      });
+      
+      // Return orchestrator result directly
+      return res.json(orchestratorResult);
+      
     } catch (error) {
-      console.error('[INTELLIGENCE] Error:', error);
-      intelligenceRouting = { primaryCategory: 'personal_life_interests' };
-      intelligenceMemories = [];
+      console.error('[CHAT] Orchestrator failed:', error);
+      return res.status(500).json({ error: 'Request processing failed' });
     }
     
     // ===== ENHANCED MEMORY CONTEXT WITH FULL INTELLIGENCE =====
