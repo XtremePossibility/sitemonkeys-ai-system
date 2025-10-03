@@ -1,0 +1,16 @@
+{
+  "name": "Site Monkeys AI",
+  "short_name": "Site Monkeys",
+  "description": "Truth-First AI with Business Intelligence",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#373534",
+  "theme_color": "#FFD811",
+  "icons": [
+    {
+      "src": "/images/Apple Touch icon Site monkeys.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ]
+}
