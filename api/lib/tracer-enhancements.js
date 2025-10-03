@@ -528,6 +528,5 @@ export function wrapMasterOrchestrator(masterOrchestrator, enhancedTracer) {
 export {
   FileLogger,
   TraceSampler,
-  SessionTracker,
-  OrchestratorTracer
+  SessionTracker
 };
