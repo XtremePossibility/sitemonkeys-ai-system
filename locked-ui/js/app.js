@@ -63,6 +63,14 @@ async function improvedRefreshVault() {
 // Override the global function
 window.refreshVault = improvedRefreshVault;
 
+// Make debouncedRefreshVault available globally
+window.debouncedRefreshVault = function() {
+  clearTimeout(window.refreshTimeout);
+  window.refreshTimeout = setTimeout(() => {
+    improvedRefreshVault();
+  }, 300);
+};
+
 // SEND MESSAGE FUNCTION
 async function sendMessage() {
   const input = document.getElementById('user-input');
@@ -208,7 +216,6 @@ async function sendMessage() {
     // Alternate between Eli & Roxy
     const isEli = aiToggle;
     const who = isEli ? 'Eli' : 'Roxy';
-    const avatar = isEli ? "boy-mascot.png" : "girl-mascot.png";
 
     const modeIndicator = getCurrentMode() === 'truth_general' ? '🔍' : 
                          getCurrentMode() === 'business_validation' ? '📊' : 
@@ -291,4 +298,22 @@ function updateTokenDisplay(tokenData) {
   } catch (error) {
     console.warn('Token display update failed:', error);
   }
+}
+
+// STATUS ANIMATION
+function loadStatus() {
+  const items = document.querySelectorAll('#status-list li');
+  items.forEach((item, i) => {
+    setTimeout(() => {
+      item.classList.add('loaded');
+    }, 300 * (i + 1));
+  });
+
+  setTimeout(() => {
+    const readyElement = document.getElementById('system-ready');
+    if (readyElement) {
+      readyElement.classList.add('active');
+    }
+    systemActive = true;
+  }, items.length * 300 + 300);
 }
