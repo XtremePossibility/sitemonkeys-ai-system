@@ -4,7 +4,7 @@
 // Matches system-inventory-endpoint.js style and security
 // ================================================================
 
-import { tracer } from './lib/request-flow-tracer.js';
+import { tracer } from './api/lib/request-flow-tracer.js';
 
 export function addTracerDashboardEndpoint(app) {
   
