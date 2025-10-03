@@ -997,6 +997,7 @@ function enforceExpertStandards(response, expertDomain, careNeeds) {
   if (!/assum|presuppos|given that/i.test(response)) {
     missingElements.push('assumption_documentation');
   }
+});
   
   // Check for next steps
   if (!/next step|recommend|suggest.*action/i.test(response)) {
