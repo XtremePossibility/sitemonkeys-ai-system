@@ -4,7 +4,7 @@
 // Matches system-inventory-endpoint.js style and security
 // ================================================================
 
-import { tracer } from './api/lib/request-flow-tracer.js';
+// Import removed - tracer will be accessed via global
 
 export function addTracerDashboardEndpoint(app) {
   
@@ -40,7 +40,7 @@ export function addTracerDashboardEndpoint(app) {
       const filter = req.query.filter || 'all'; // all, warnings, errors
       
       // Get current statistics
-      const stats = tracer ? tracer.getStatistics() : getEmptyStats();
+      const stats = global.tracer ? global.tracer.getStatistics() : getEmptyStats();
       
       // Filter traces
       let filteredTraces = recentTraces;
