@@ -2,6 +2,8 @@
 // ROXY FRAMEWORK - Empathetic & Opportunity-Focused Reasoning
 // Identifies opportunities, finds simplifications, provides practical steps, optimizes resources
 
+const MIN_CONFIDENCE_FOR_SIMPLIFICATION = 0.60;
+
 export class RoxyFramework {
   constructor() {
     this.personality = 'roxy';
@@ -17,6 +19,25 @@ export class RoxyFramework {
 
   async analyzeAndEnhance(response, analysis, mode, context) {
     try {
+      const confidence = analysis?.intentConfidence || analysis?.domainConfidence || 0.5;
+      let enhancedResponse = response;
+      
+      // ========== TRUTH-FIRST FALLBACK (NEW) ==========
+      if (confidence < MIN_CONFIDENCE_FOR_SIMPLIFICATION) {
+        this.logger.log(`Roxy: Confidence too low (${confidence.toFixed(2)}), prioritizing truth over empathy`);
+        
+        enhancedResponse = response + '\n\nI want to be honest with you—I\'m not as confident about this answer as I\'d like to be. Please double-check this information independently and consider getting additional perspectives.';
+        
+        return {
+          enhancedResponse: enhancedResponse,
+          personality: 'roxy',
+          analysisApplied: {},
+          modificationsCount: 1,
+          reasoningApplied: true,
+          truthPrioritized: true,
+          reason: 'Prioritized truth over empathy due to low confidence'
+        };
+      }
       this.logger.log('Applying Roxy empathetic framework...');
       
       let enhancedResponse = response;
@@ -98,6 +119,27 @@ export class RoxyFramework {
       
       this.logger.log(`Roxy analysis complete: ${modificationsCount} enhancements applied`);
       
+      const mvpSuggestions = [
+        'start simple',
+        'mvp',
+        'minimum viable',
+        'bare bones',
+        'just get started',
+        'simplest version'
+      ];
+
+      const hasMVPSuggestion = mvpSuggestions.some(
+        phrase => enhancedResponse.toLowerCase().includes(phrase)
+      );
+
+      if (hasMVPSuggestion && mode === 'site_monkeys') {
+        const vaultMinimum = context.vaultContext?.minimumServicePrice || 697;
+        
+        if (vaultMinimum >= 697) {
+          enhancedResponse += `\n\n**(Important clarification):** When I say "start simple," I mean focus on core value delivery—not reducing your price. Your ${vaultMinimum >= 697 ? `$${vaultMinimum} minimum` : 'premium pricing'} reflects your expertise and ensures you can deliver quality sustainably.`;
+        }
+      }
+
       return {
         enhancedResponse: enhancedResponse,
         personality: 'roxy',
