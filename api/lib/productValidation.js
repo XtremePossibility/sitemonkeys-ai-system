@@ -303,6 +303,50 @@ static validateRecommendation(response, mode, vaultData = null) {
         override_available: true
       };
     }
+
+    static async validate({ response, context }) {
+    try {
+      const validation = this.validateRecommendation(
+        response, 
+        context.mode || 'truth_general',
+        context.vaultContext || null
+      );
+
+      if (validation.validation_passed) {
+        return {
+          needsDisclosure: false,
+          responseWithDisclosure: response
+        };
+      }
+
+      const hasDisclosure = /\[Note:|Caveat:|Important:|Disclaimer:/i.test(response);
+
+      if (hasDisclosure) {
+        return {
+          needsDisclosure: false,
+          responseWithDisclosure: response
+        };
+      }
+
+      const disclosure = '\n\n[Note: Evaluate this recommendation against your specific needs, budget, and risk tolerance. No solution is perfect for every situation.]';
+      
+      return {
+        needsDisclosure: true,
+        responseWithDisclosure: response + disclosure,
+        reason: 'Added value/risk disclosure to product recommendation',
+        validationIssues: validation.enforcement_actions
+      };
+
+    } catch (error) {
+      console.error('[PRODUCT-VALIDATION] Validation error:', error);
+      
+      return {
+        needsDisclosure: false,
+        responseWithDisclosure: response,
+        error: error.message
+      };
+    }
+  }
     
     return null;
   }
