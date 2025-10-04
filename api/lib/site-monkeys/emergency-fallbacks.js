@@ -389,3 +389,100 @@ export {
   extractSpeculativeLanguage,
   containsGuessing
 };
+
+export async function checkFounderProtection({ response, mode, context }) {
+  try {
+    const violations = [];
+
+    // Rule 1: Minimum pricing check ($697)
+    const priceRegex = /\$(\d+)/g;
+    let match;
+    while ((match = priceRegex.exec(response)) !== null) {
+      const price = parseInt(match[1]);
+      if (price < 697 && price > 50) {
+        violations.push({
+          rule: 'minimum_pricing',
+          detected: `Price $${price} below $697 minimum`,
+          severity: 'critical'
+        });
+      }
+    }
+
+    // Rule 2: No free premium features
+    const freeIndicators = [
+      'offer for free', 
+      'give away', 
+      'no charge', 
+      'at no cost', 
+      'complimentary service'
+    ];
+    
+    for (const indicator of freeIndicators) {
+      if (response.toLowerCase().includes(indicator)) {
+        violations.push({
+          rule: 'no_free_premium',
+          detected: `Suggested free value: "${indicator}"`,
+          severity: 'high'
+        });
+      }
+    }
+
+    // Rule 3: Business Validation mode must consider survival
+    if (mode === 'business_validation' && response.length > 500) {
+      const survivalIndicators = [
+        'cash flow', 'runway', 'burn rate', 'break-even',
+        'profitability', 'survival', 'sustainable', 'cash'
+      ];
+      
+      const hasSurvival = survivalIndicators.some(
+        indicator => response.toLowerCase().includes(indicator)
+      );
+
+      if (!hasSurvival) {
+        violations.push({
+          rule: 'survival_focus',
+          detected: 'Business advice missing survival/cash-flow analysis',
+          severity: 'medium'
+        });
+      }
+    }
+
+    if (violations.length > 0) {
+      return {
+        violationDetected: true,
+        violations,
+        reason: `Founder protection: ${violations.map(v => v.rule).join(', ')}`,
+        correctedResponse: response + '\n\n[FOUNDER PROTECTION: This recommendation was adjusted to ensure business sustainability and profitability.]'
+      };
+    }
+
+    return {
+      violationDetected: false
+    };
+
+  } catch (error) {
+    console.error('[FOUNDER-PROTECTION] Check error:', error);
+    
+    return {
+      violationDetected: false,
+      error: error.message
+    };
+  }
+}
+
+export async function handleCostCeiling({ query, context, reason, currentCost }) {
+  return {
+    response: `I've reached the cost ceiling for this session ($${currentCost.toFixed(4)}). 
+
+To continue with complex queries:
+- Start a new session, or
+- Simplify your request for lower-cost processing
+
+The cost ceiling protects you from unexpected charges while maintaining quality.`,
+    metadata: {
+      fallback_reason: reason,
+      cost_blocked: currentCost,
+      ceiling_type: 'session_limit'
+    }
+  };
+}
