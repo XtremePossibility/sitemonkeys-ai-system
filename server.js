@@ -963,27 +963,6 @@ Quality-first approach with caring delivery`;
       enforcementNotes.push(`Margins below ${SITE_MONKEYS_CONFIG.business_standards.minimum_margin}% requirement: ${lowMargins.join(', ')}`);
     }
   }
-  
-  if (enforcementNotes.length > 0) {
-    response += `
-
-🚨 SITE MONKEYS STANDARDS ENFORCEMENT:
-
-Site Monkeys maintains professional service standards to ensure sustainable operations and quality delivery:
-
-VIOLATIONS DETECTED:
-${enforcementNotes.map(note => `- ${note}`).join('\n')}
-
-REQUIRED STANDARDS:
-- Minimum pricing: Boost $${SITE_MONKEYS_CONFIG.pricing.boost.price}, Climb $${SITE_MONKEYS_CONFIG.pricing.climb.price}, Lead $${SITE_MONKEYS_CONFIG.pricing.lead.price}
-- Minimum margins: ${SITE_MONKEYS_CONFIG.business_standards.minimum_margin}% for business sustainability
-- Professional positioning with quality-first approach
-
-These standards ensure long-term viability and exceptional client service.`;
-  }
-  
-  return response;
-}
 
 function enforceExpertStandards(response, expertDomain, careNeeds) {
   const missingElements = [];
