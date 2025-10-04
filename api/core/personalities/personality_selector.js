@@ -2,6 +2,8 @@
 // PERSONALITY SELECTOR - Chooses between Eli and Roxy based on analysis
 // Uses scoring system to determine optimal personality for each request
 
+const MIN_SELECTION_CONFIDENCE = 0.30;
+
 export class PersonalitySelector {
   constructor() {
     this.logger = {
@@ -29,9 +31,9 @@ export class PersonalitySelector {
       // Intent-based selection
       if (analysis.intent === 'problem_solving' || analysis.intent === 'decision_making') {
         if (analysis.complexity > 0.7) {
-          score.eli += 2; // Complex problems need analytical approach
+          score.eli += 2;
         } else {
-          score.roxy += 2; // Simpler problems benefit from solution-focused
+          score.roxy += 2;
         }
       }
       
@@ -47,25 +49,63 @@ export class PersonalitySelector {
       
       // Complexity consideration
       if (analysis.complexity > 0.8) {
-        score.eli += 1; // Very complex = need protective analysis
+        score.eli += 1;
       }
       
-      const selected = score.eli > score.roxy ? 'eli' : 'roxy';
+      const totalScore = score.eli + score.roxy;
+      const eliConfidence = totalScore > 0 ? score.eli / totalScore : 0.5;
+      const roxyConfidence = totalScore > 0 ? score.roxy / totalScore : 0.5;
+      const selectionConfidence = Math.max(eliConfidence, roxyConfidence);
       
-      this.logger.log(`Selected ${selected} (Eli: ${score.eli}, Roxy: ${score.roxy})`);
+      // ========== COMPLIANCE FALLBACK (NEW) ==========
+      if (selectionConfidence < MIN_SELECTION_CONFIDENCE) {
+        this.logger.log(`Selection confidence too low (${selectionConfidence.toFixed(2)}), using safe default`);
+        
+        return {
+          personality: 'eli',
+          confidence: selectionConfidence,
+          fallback: true,
+          reason: 'Selection confidence below threshold, defaulted to Eli for analytical safety'
+        };
+      }
+      
+      // ========== CONTRACT VALIDATION (NEW) ==========
+      if (mode === 'site_monkeys') {
+        const isBusinessTechnical = 
+          analysis.domain === 'business' ||
+          analysis.domain === 'technical';
+        
+        if (isBusinessTechnical && Math.abs(eliConfidence - roxyConfidence) < 0.15) {
+          return {
+            personality: 'eli',
+            confidence: eliConfidence,
+            override: true,
+            reason: 'Site Monkeys mode + business/technical domain requires Eli\'s analytical approach'
+          };
+        }
+      }
+      
+      // ========== NORMAL SELECTION ==========
+      const selectedPersonality = eliConfidence > roxyConfidence ? 'eli' : 'roxy';
+      const selectedConfidence = Math.max(eliConfidence, roxyConfidence);
+      
+      this.logger.log(`Selected ${selectedPersonality} (Eli: ${score.eli}, Roxy: ${score.roxy})`);
       
       return {
-        personality: selected,
-        confidence: Math.abs(score.eli - score.roxy) / 10,
-        reasoning: this.#explainSelection(selected, analysis, mode, score)
+        personality: selectedPersonality,
+        confidence: selectedConfidence,
+        scores: score,
+        reasoning: `Domain: ${analysis.domain}, Intent: ${analysis.intent}, Mode: ${mode}`
       };
       
     } catch (error) {
       this.logger.error('Personality selection failed', error);
+      
       return {
-        personality: 'roxy', // Default to Roxy
+        personality: 'eli',
         confidence: 0.5,
-        reasoning: 'Fallback selection'
+        fallback: true,
+        error: error.message
       };
     }
   }
