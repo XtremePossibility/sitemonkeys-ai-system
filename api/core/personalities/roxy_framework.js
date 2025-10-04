@@ -40,7 +40,6 @@ export class RoxyFramework {
       }
       this.logger.log('Applying Roxy empathetic framework...');
       
-      let enhancedResponse = response;
       const analysisApplied = {
         emotionalContext: null,
         opportunitiesIdentified: [],
