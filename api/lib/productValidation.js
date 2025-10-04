@@ -303,8 +303,11 @@ static validateRecommendation(response, mode, vaultData = null) {
         override_available: true
       };
     }
-
-    static async validate({ response, context }) {
+    
+    return null;
+  }
+  
+  static async validate({ response, context }) {
     try {
       const validation = this.validateRecommendation(
         response, 
@@ -347,10 +350,8 @@ static validateRecommendation(response, mode, vaultData = null) {
       };
     }
   }
-    
-    return null;
-  }
-}
+  
+}  // This closes the ProductValidator class
 
 export function validateProductRecommendation(response, mode, vaultData = null) {
   return ProductValidator.validateRecommendation(response, mode, vaultData);
