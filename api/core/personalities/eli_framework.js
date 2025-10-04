@@ -2,6 +2,8 @@
 // ELI FRAMEWORK - Analytical & Protective Reasoning
 // Identifies risks, challenges assumptions, models downsides, finds blind spots
 
+const MIN_CONFIDENCE_FOR_ENHANCEMENTS = 0.65;
+
 export class EliFramework {
   constructor() {
     this.personality = 'eli';
@@ -17,6 +19,27 @@ export class EliFramework {
 
   async analyzeAndEnhance(response, analysis, mode, context) {
     try {
+      const confidence = analysis?.intentConfidence || analysis?.domainConfidence || 0.5;
+      let enhancedResponse = response;
+      
+      // ========== CONFIDENCE GATING (NEW) ==========
+      if (confidence < MIN_CONFIDENCE_FOR_ENHANCEMENTS) {
+        this.logger.log(`Eli: Confidence too low (${confidence.toFixed(2)}), limiting enhancements`);
+        
+        enhancedResponse = response + '\n\n**Note:** My confidence in this analysis is lower than ideal. Please verify these suggestions independently and consider seeking additional expert input.';
+        
+        return {
+          enhancedResponse: enhancedResponse,
+          personality: 'eli',
+          analysisApplied: {},
+          modificationsCount: 1,
+          reasoningApplied: true,
+          confidenceLimited: true,
+          reason: 'Added uncertainty note due to low confidence'
+        };
+      }
+      
+      // ========== PROCEED WITH NORMAL ANALYSIS ==========
       this.logger.log('Applying Eli analytical framework...');
       
       let enhancedResponse = response;
@@ -388,22 +411,47 @@ export class EliFramework {
       
       if (costs.length > 0) {
         const totalCost = costs.reduce((sum, cost) => sum + cost, 0);
-        const assumedMonthlyBurn = 10000;
-        const assumedRunway = 6;
-        const runwayImpactMonths = totalCost / assumedMonthlyBurn;
+        const burnRate = context.vaultContext?.burnRate || 
+                        context.businessMetrics?.burnRate || 
+                        null;
         
-        metrics.runwayImpact = {
-          oneTimeCost: totalCost,
-          runwayConsumed: `${runwayImpactMonths.toFixed(1)} months of runway`,
-          percentageOfAssumedRunway: `${((runwayImpactMonths / assumedRunway) * 100).toFixed(1)}%`
-        };
+        const runway = context.vaultContext?.runway || 
+                      context.businessMetrics?.runway || 
+                      null;
         
-        if (runwayImpactMonths > 2) {
-          metrics.survivalRisk = 'high';
-        } else if (runwayImpactMonths > 1) {
-          metrics.survivalRisk = 'medium';
+        // Only calculate if we have real data
+        let runwayImpactMonths = null;
+        if (burnRate) {
+          runwayImpactMonths = totalCost / burnRate;
+        }
+        
+        if (burnRate && runway) {
+          metrics.runwayImpact = {
+            oneTimeCost: totalCost,
+            runwayConsumed: `${runwayImpactMonths.toFixed(1)} months of runway`,
+            percentageOfRunway: `${((runwayImpactMonths / runway) * 100).toFixed(1)}%`,
+            currentBurnRate: `$${burnRate.toLocaleString()}/month`,
+            currentRunway: `${runway} months`,
+            criticalDate: this.#calculateRunwayDate(runway)
+          };
         } else {
-          metrics.survivalRisk = 'low';
+          metrics.runwayImpact = {
+            oneTimeCost: totalCost,
+            dataNeeded: 'Survival analysis requires burn rate and runway data',
+            message: 'Provide current monthly burn rate and runway months for accurate impact assessment'
+          };
+        }
+        
+        if (runwayImpactMonths !== null && runway !== null) {
+          if (runwayImpactMonths > 2) {
+            metrics.survivalRisk = 'high';
+          } else if (runwayImpactMonths > 1) {
+            metrics.survivalRisk = 'medium';
+          } else {
+            metrics.survivalRisk = 'low';
+          }
+        } else {
+          metrics.survivalRisk = 'unknown - data needed';
         }
       }
       
@@ -685,6 +733,12 @@ export class EliFramework {
       compliant: missing.length === 0,
       missing: missing
     };
+  }
+
+  #calculateRunwayDate(runwayMonths) {
+    const date = new Date();
+    date.setMonth(date.getMonth() + runwayMonths);
+    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
   }
 }
 
