@@ -16,6 +16,13 @@ import { MODES, validateModeCompliance, calculateConfidenceScore } from '../conf
 import { EMERGENCY_FALLBACKS } from '../lib/site-monkeys/emergency-fallbacks.js';
 import Anthropic from '@anthropic-ai/sdk';
 import OpenAI from 'openai';
+import { driftWatcher } from '../lib/validators/drift-watcher.js';
+import { initiativeEnforcer } from '../lib/validators/initiative-enforcer.js';
+import { costTracker } from '../utils/cost-tracker.js';
+import { PoliticalGuardrails } from '../lib/politicalGuardrails.js';
+import { ProductValidator } from '../lib/productValidation.js';
+import { checkFounderProtection, handleCostCeiling } from '../lib/site-monkeys/emergency-fallbacks.js';
+import { validateCompliance as validateVaultCompliance } from '../lib/vault.js';
 
 // ==================== ORCHESTRATOR CLASS ====================
 
@@ -68,8 +75,173 @@ export class Orchestrator {
     }
   }
 
-  // ==================== MAIN ENTRY POINT ====================
+  /**
+   * Runs the 6-step enforcement chain on a response
+   * CRITICAL: Must execute in exact order - DO NOT REORDER
+   */
+  async #runEnforcementChain(response, analysis, context, mode, personality) {
+    let enforcedResponse = response;
+    const complianceMetadata = {
+      security_pass: true,
+      enforcement_applied: [],
+      overrides: [],
+      confidence_adjustments: [],
+      warnings: []
+    };
+
+    try {
+      // ========== STEP 1: DRIFT WATCHER ==========
+      try {
+        const driftResult = await driftWatcher.validate({
+          semanticAnalysis: analysis || {},
+          response: enforcedResponse,
+          context: context
+        });
+
+        if (driftResult.driftDetected) {
+          enforcedResponse = driftResult.adjustedResponse || enforcedResponse;
+          
+          if (driftResult.confidenceAdjustment) {
+            complianceMetadata.confidence_adjustments.push(driftResult.confidenceAdjustment);
+          }
+          
+          if (driftResult.warning) {
+            complianceMetadata.warnings.push(driftResult.warning);
+          }
+        }
+        
+        complianceMetadata.enforcement_applied.push('drift_watcher');
+      } catch (error) {
+        this.error('Drift watcher failed:', error);
+        complianceMetadata.warnings.push('drift_watcher_error: ' + error.message);
+      }
+
+      // ========== STEP 2: INITIATIVE ENFORCER ==========
+      try {
+        const initiativeResult = await initiativeEnforcer.enforce({
+          response: enforcedResponse,
+          personality: personality || 'eli',
+          context: context
+        });
+
+        if (initiativeResult.modified) {
+          enforcedResponse = initiativeResult.response;
+          complianceMetadata.overrides.push({
+            module: 'initiative_enforcer',
+            reason: initiativeResult.reason
+          });
+        }
+        
+        complianceMetadata.enforcement_applied.push('initiative_enforcer');
+      } catch (error) {
+        this.error('Initiative enforcer failed:', error);
+        complianceMetadata.warnings.push('initiative_enforcer_error: ' + error.message);
+      }
+
+      // ========== STEP 3: POLITICAL GUARDRAILS ==========
+      try {
+        const politicalResult = await PoliticalGuardrails.check({
+          response: enforcedResponse,
+          context: context
+        });
+
+        if (politicalResult.politicalContentDetected) {
+          enforcedResponse = politicalResult.neutralizedResponse;
+          complianceMetadata.overrides.push({
+            module: 'political_guardrails',
+            reason: politicalResult.reason
+          });
+        }
+        
+        complianceMetadata.enforcement_applied.push('political_guardrails');
+      } catch (error) {
+        this.error('Political guardrails failed:', error);
+        complianceMetadata.warnings.push('political_guardrails_error: ' + error.message);
+      }
+
+      // ========== STEP 4: PRODUCT VALIDATION ==========
+      try {
+        const productResult = await ProductValidator.validate({
+          response: enforcedResponse,
+          context: context
+        });
+
+        if (productResult.needsDisclosure) {
+          enforcedResponse = productResult.responseWithDisclosure;
+          complianceMetadata.overrides.push({
+            module: 'product_validation',
+            reason: productResult.reason
+          });
+        }
+        
+        complianceMetadata.enforcement_applied.push('product_validation');
+      } catch (error) {
+        this.error('Product validation failed:', error);
+        complianceMetadata.warnings.push('product_validation_error: ' + error.message);
+      }
+
+      // ========== STEP 5: FOUNDER PROTECTION ==========
+      try {
+        const founderResult = await checkFounderProtection({
+          response: enforcedResponse,
+          mode: mode || 'truth_general',
+          context: context
+        });
+
+        if (founderResult.violationDetected) {
+          enforcedResponse = founderResult.correctedResponse;
+          complianceMetadata.overrides.push({
+            module: 'founder_protection',
+            reason: founderResult.reason,
+            violations: founderResult.violations
+          });
+          complianceMetadata.security_pass = false;
+        }
+        
+        complianceMetadata.enforcement_applied.push('founder_protection');
+      } catch (error) {
+        this.error('Founder protection failed:', error);
+        complianceMetadata.warnings.push('founder_protection_error: ' + error.message);
+      }
+
+      // ========== STEP 6: VAULT COMPLIANCE (Site Monkeys only) ==========
+      if (mode === 'site_monkeys' && context.sources?.hasVault) {
+        try {
+          const vaultResult = await validateVaultCompliance({
+            response: enforcedResponse,
+            vaultContext: context.vaultContext || [],
+            context: context
+          });
+
+          if (vaultResult.violationDetected) {
+            enforcedResponse = vaultResult.correctedResponse;
+            complianceMetadata.overrides.push({
+              module: 'vault_compliance',
+              reason: vaultResult.reason
+            });
+            complianceMetadata.security_pass = false;
+          }
+          
+          complianceMetadata.enforcement_applied.push('vault_compliance');
+        } catch (error) {
+          this.error('Vault compliance failed:', error);
+          complianceMetadata.warnings.push('vault_compliance_error: ' + error.message);
+        }
+      }
+
+    } catch (error) {
+      this.error('Enforcement chain critical failure:', error);
+      complianceMetadata.warnings.push('enforcement_chain_failure: ' + error.message);
+      complianceMetadata.security_pass = false;
+    }
+
+    return {
+      response: enforcedResponse,
+      compliance_metadata: complianceMetadata
+    };
+  }
   
+  // ==================== MAIN ENTRY POINT ====================
   async processRequest(requestData) {
     const startTime = Date.now();
     const { 
@@ -541,6 +713,13 @@ export class Orchestrator {
           cost: aiResponse.cost,
           semanticAnalysisCost: analysis.cost || 0, // NEW
           totalCostIncludingAnalysis: (aiResponse.cost?.totalCost || 0) + (analysis.cost || 0), // NEW
+
+          compliance_metadata: enforcedResult.compliance_metadata,
+          cost_tracking: {
+            session_cost: costTracker.getSessionCost(sessionId),
+            ceiling: costTracker.getCostCeiling(mode),
+            remaining: costTracker.getCostCeiling(mode) - costTracker.getSessionCost(sessionId)
+          },
           
           // Fallback tracking
           fallbackUsed: false,
@@ -967,6 +1146,32 @@ export class Orchestrator {
       let response, inputTokens, outputTokens;
       
       if (useClaude) {
+
+      // ========== COST CEILING CHECK ==========
+      if (useClaude && context.sessionId) {
+        const estimatedCost = costTracker.estimateClaudeCost(message, context);
+        const costCheck = costTracker.wouldExceedCeiling(context.sessionId, estimatedCost, mode);
+        
+        if (costCheck.wouldExceed) {
+          this.log(`[COST CEILING] Exceeded - Total: $${costCheck.totalCost.toFixed(4)}, Ceiling: $${costCheck.ceiling}`);
+          
+          const fallbackResult = await handleCostCeiling({
+            query: message,
+            context: context,
+            reason: 'cost_ceiling_exceeded',
+            currentCost: costCheck.totalCost
+          });
+          
+          return {
+            response: fallbackResult.response,
+            model: 'cost_fallback',
+            cost: 0
+          };
+        }
+        
+        this.log(`[COST] Remaining budget: $${costCheck.remaining.toFixed(4)}`);
+      }
+        
         // Call Claude
         const claudeResponse = await this.anthropic.messages.create({
           model: 'claude-sonnet-4-20250514',
@@ -1047,6 +1252,23 @@ export class Orchestrator {
           context
         );
       }
+
+      // ========== RUN ENFORCEMENT CHAIN ==========
+      this.log('[ENFORCEMENT] Running enforcement chain...');
+      const enforcedResult = await this.#runEnforcementChain(
+        personalityResult.enhancedResponse,
+        analysis,
+        context,
+        mode,
+        personalityResult.personality
+      );
+      
+      this.log(`[ENFORCEMENT] Applied ${enforcedResult.compliance_metadata.enforcement_applied.length} modules`);
+      if (enforcedResult.compliance_metadata.overrides.length > 0) {
+        this.log(`[ENFORCEMENT] ${enforcedResult.compliance_metadata.overrides.length} overrides applied`);
+      }
+      
+      // Use enforcedResult.response going forward instead of personalityResult.enhancedResponse
       
       // Log what the personality framework added
       if (personalityResult.reasoningApplied) {
