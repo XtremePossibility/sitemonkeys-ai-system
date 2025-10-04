@@ -3,6 +3,8 @@
 // Uses OpenAI embeddings for intent/domain classification, not pattern matching
 
 import OpenAI from 'openai';
+import { driftWatcher } from '../../lib/validators/drift-watcher.js';
+import { costTracker } from '../../utils/cost-tracker.js';
 
 export class SemanticAnalyzer {
   constructor() {
@@ -113,46 +115,83 @@ export class SemanticAnalyzer {
       // STEP 7: Determine reasoning needs
       const reasoningNeeds = this.#assessReasoningNeeds(query, queryEmbedding, intentResult);
       
-      // STEP 8: Track performance
+      // STEP 8: Track performance (EXISTING)
       const processingTime = Date.now() - startTime;
       const cost = cacheHit ? 0 : 0.00002 * (query.length / 4000);
       this.#trackPerformance(startTime, cacheHit);
       
-      this.logger.log(`Analysis complete: Intent=${intentResult.intent} (${intentResult.confidence.toFixed(2)}), Domain=${domainResult.domain} (${domainResult.confidence.toFixed(2)}), Time=${processingTime}ms`);
-      
-      return {
-        // Intent
+      // ========== BUILD SEMANTIC RESULT (NEW) ==========
+      const semanticResult = {
         intent: intentResult.intent,
         intentConfidence: intentResult.confidence,
-        
-        // Domain
         domain: domainResult.domain,
         domainConfidence: domainResult.confidence,
-        
-        // Complexity
         complexity: complexityResult.overall,
         complexityFactors: complexityResult.factors,
-        
-        // Emotional
         emotionalTone: emotionalResult.tone,
         emotionalWeight: emotionalResult.weight,
-        
-        // Context
         personalContext: contextSignals.personal,
         temporalContext: contextSignals.temporal,
         requiresMemory: contextSignals.needsMemory,
-        
-        // Reasoning
         requiresCalculation: reasoningNeeds.calculation,
         requiresComparison: reasoningNeeds.comparison,
         requiresCreativity: reasoningNeeds.creativity,
-        
-        // Metadata
         queryEmbedding: queryEmbedding,
         processingTime: processingTime,
         cacheHit: cacheHit,
         cost: cost
       };
+
+      // ========== DRIFT VALIDATION (NEW) ==========
+      const driftCheck = await driftWatcher.validate({
+        semanticAnalysis: semanticResult,
+        response: '',
+        context: context
+      });
+
+      if (driftCheck.driftDetected) {
+        this.logger.log(`Drift detected - adjusting confidence`);
+        
+        if (driftCheck.confidenceAdjustment) {
+          semanticResult.intentConfidence = Math.min(
+            semanticResult.intentConfidence,
+            driftCheck.confidenceAdjustment.to
+          );
+          semanticResult.domainConfidence = Math.min(
+            semanticResult.domainConfidence,
+            driftCheck.confidenceAdjustment.to
+          );
+        }
+        
+        if (!driftCheck.domainValid) {
+          semanticResult.domain = 'general';
+          semanticResult.domainConfidence = 0.5;
+        }
+        
+        if (!driftCheck.intentValid) {
+          semanticResult.intent = 'question';
+          semanticResult.intentConfidence = 0.5;
+        }
+        
+        semanticResult.driftWarning = driftCheck.warning;
+      }
+
+      // ========== REAL COST TRACKING (NEW) ==========
+      if (context.sessionId && cost > 0) {
+        await costTracker.recordCost(
+          context.sessionId, 
+          cost, 
+          'semantic_analysis',
+          { 
+            mode: context.mode,
+            cacheHit: cacheHit
+          }
+        );
+      }
+
+      this.logger.log(`Analysis complete: Intent=${semanticResult.intent} (${semanticResult.intentConfidence.toFixed(2)}), Domain=${semanticResult.domain} (${semanticResult.domainConfidence.toFixed(2)}), Time=${processingTime}ms`);
+      
+      return semanticResult;
       
     } catch (error) {
       this.logger.error('Semantic analysis failed', error);
@@ -548,9 +587,10 @@ export class SemanticAnalyzer {
       processingTime: 0,
       cacheHit: false,
       cost: 0,
-      fallbackUsed: true
+      fallbackUsed: true,
+      driftWarning: 'Fallback analysis used - semantic analyzer unavailable'
     };
-  }
+  } Going to wash them up
 }
 
 export { SemanticAnalyzer };
