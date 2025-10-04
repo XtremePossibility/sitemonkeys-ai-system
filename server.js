@@ -7,7 +7,6 @@ import cors from 'cors';
 import { exec } from 'child_process';
 import persistentMemory from './memory_system/persistent_memory.js';
 import intelligenceSystem from './memory_system/intelligence.js';
-import Orchestrator from './api/core/orchestrator.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
@@ -40,10 +39,6 @@ addInventoryEndpoint(app);
 
 // ===== APPLICATION STARTUP MEMORY INITIALIZATION =====
 console.log('[SERVER] 🚀 Initializing memory systems at application startup...');
-console.log('🚀 [SERVER] Initializing Orchestrator...');
-const orchestrator = new Orchestrator();
-await orchestrator.initialize();
-console.log('✅ [SERVER] Orchestrator ready');
 
 // CRITICAL FIX: Move async initialization inside an async function
 async function initializeMemorySystem() {
@@ -97,15 +92,8 @@ app.use(express.json({ limit: '50mb' }));
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-// ═══════════════════════════════════════════════════════════════════════
-// LOCKED UI SERVING - PROTECTED FRONTEND
-// ═══════════════════════════════════════════════════════════════════════
-
-// Serve static assets from locked-ui folder
-app.use('/css', express.static(path.join(__dirname, 'locked-ui', 'css')));
-app.use('/js', express.static(path.join(__dirname, 'locked-ui', 'js')));
-app.use('/images', express.static(path.join(__dirname, 'locked-ui', 'images')));
-app.use('/manifest.json', express.static(path.join(__dirname, 'locked-ui', 'manifest.json')));
+// Serve frontend files from /public
+app.use(express.static(path.join(__dirname, 'public')));
 
 // ==================== VAULT LOADER INTEGRATION ====================
 // Adding vault functionality to existing server with ES module imports
@@ -921,22 +909,873 @@ Quality-first approach with caring delivery`;
     let intelligenceMemories = null;
     
     try {
-      const orchestratorResult = await orchestrator.processRequest({
-        message: message,
-        userId: 'user',
-        mode: mode,
-        documentContext: document_context,
-        vaultEnabled: vaultHealthy,
-        conversationHistory: conversation_history
-      });
-      
-      // Return orchestrator result directly
-      return res.json(orchestratorResult);
-      
+      intelligenceRouting = await intelligenceSystem.analyzeAndRoute(message, 'user');
+      intelligenceMemories = await intelligenceSystem.extractRelevantMemories('user', message, intelligenceRouting);
+      console.log('[INTELLIGENCE] Categorized as:', intelligenceRouting.primaryCategory);
     } catch (error) {
-      console.error('[CHAT] Orchestrator failed:', error);
-      return res.status(500).json({ error: 'Request processing failed' });
+      console.error('[INTELLIGENCE] Error:', error);
+      intelligenceRouting = { primaryCategory: 'personal_life_interests' };
+      intelligenceMemories = [];
     }
+    
+    // ===== ENHANCED MEMORY CONTEXT WITH FULL INTELLIGENCE =====
+let memoryContext = '';
+let memoryResult = null;
+
+// Try intelligence system first
+if (intelligenceMemories && intelligenceMemories.length > 0) {
+  const memoryText = intelligenceMemories.map(m => m.content).join('\n\n');
+  const totalTokens = intelligenceMemories.reduce((sum, m) => sum + (m.token_count || 0), 0);
+  
+  memoryContext = {
+    memories: memoryText,
+    length: memoryText.length,
+    count: intelligenceMemories.length,
+    hasMemory: true,
+    contextFound: true,
+    totalTokens: totalTokens,
+    intelligenceEnhanced: true
+  };
+  console.log('[INTELLIGENCE] Using improved memory system with', totalTokens, 'tokens from', intelligenceMemories.length, 'memories');
+} else if (global.memorySystem && typeof global.memorySystem.retrieveMemory === 'function') {
+  try {
+    console.log('[CHAT] 📋 Retrieving fallback memory context...');
+    memoryResult = await global.memorySystem.retrieveMemory('user', message);
+    if (memoryResult && memoryResult.memories) {
+      memoryContext = {
+        memories: memoryResult.memories,
+        length: memoryResult.memories.length,
+        count: 1,
+        hasMemory: true,
+        contextFound: true
+      };
+      console.log(`[CHAT] ✅ Fallback memory context retrieved: ${memoryContext.memories.length} characters`);
+    }
+  } catch (error) {
+    console.error('[CHAT] ⚠️ Memory retrieval failed:', error);
+    memoryContext = '';
+  }
+} else {
+  console.log('[CHAT] ⚠️ No memory context available');
+  memoryContext = '';
+}
+        
+if (!persistentMemory.isReady()) {
+  console.error('[CHAT] ❌ Memory systems not ready');
+  return res.status(500).json({ 
+    error: 'Memory systems not initialized',
+    details: persistentMemory.getSystemStatus()
+  });
+}
+
+console.log('[CHAT] ✅ Memory systems ready');
+
+    // COMPREHENSIVE INTELLIGENCE ANALYSIS    
+    const expertDomain = identifyExpertDomain(message);
+    const careNeeds = analyzeCareNeeds(message, conversation_history);
+    const protectiveAlerts = scanForRisks(message, expertDomain);
+    const solutionOpportunities = findSolutions(message, expertDomain, protectiveAlerts);
+    const politicalContent = detectPoliticalContent(message);
+    const quantitativeNeeds = requiresQuantitativeAnalysis(message);
+    
+    // POLITICAL NEUTRALITY ENFORCEMENT
+    if (politicalContent.requiresNeutralityResponse) {
+      return res.json({
+        response: generateVotingNeutralityResponse(),
+        mode_active: mode,
+        personality_active: 'neutrality_enforced',
+        enforcement_applied: ['political_neutrality_enforced', 'voting_protection_active'],
+        processing_time: Date.now() - startTime
+      });
+    }
+
+    // OPTIMAL PERSONALITY SELECTION
+    const personality = selectCaringPersonality(expertDomain, careNeeds, protectiveAlerts);
+    const prideMotivation = calculatePrideLevel(protectiveAlerts, solutionOpportunities, careNeeds);
+
+    conversationCount++;
+
+    // COST PROTECTION FOR CLAUDE
+    if (claude_requested) {
+      const estimatedCost = estimateClaudeCost(message, vaultContent);
+      if (estimatedCost > 0.50) {
+        return res.json({
+          response: generateCaringCostMessage(estimatedCost, expertDomain, careNeeds),
+          mode_active: mode,
+          claude_blocked: true,
+          expert_analysis: {
+            domain: expertDomain.domain,
+            care_level: careNeeds.level,
+            protective_alerts: protectiveAlerts.length
+          }
+        });
+      }
+    }
+
+    // MASTER SYSTEM PROMPT CONSTRUCTION
+const systemPrompt = buildMasterSystemPrompt({
+  mode, personality, vaultContent, vaultHealthy, expertDomain,
+  careNeeds, protectiveAlerts, solutionOpportunities, quantitativeNeeds,
+  memoryContext: memoryContext
+});
+
+// ADD MEMORY CONTEXT TO CONVERSATION PROMPT
+// ADD CONVERSATION HISTORY TO PROMPT (BEFORE MEMORY)
+let conversationHistoryText = '';
+if (conversation_history && conversation_history.length > 0) {
+  const recentHistory = conversation_history.slice(-5); // Last 5 turns
+  conversationHistoryText = recentHistory.map(turn => 
+    `${turn.role === 'user' ? 'Family Member' : 'Assistant'}: ${turn.content}`
+  ).join('\n');
+  console.log(`[CHAT] 🔗 Added ${recentHistory.length} conversation context entries`);
+}
+// Build base conversation prompt
+// Build base conversation prompt
+let enhancedPrompt = buildConversationPrompt(systemPrompt, message, conversation_history, expertDomain);
+
+// === ROBUST DOCUMENT INJECTION (server.js) ===
+try {
+  let docText = '';
+  let docLabel = '';
+  let docMeta = '';
+
+  if (document_context) {
+    // Accept string or object shape
+    if (typeof document_context === 'string') {
+      docText = document_context;
+      docLabel = 'UPLOADED DOCUMENT';
+    } else if (typeof document_context === 'object') {
+      docText = document_context.content || '';
+      docLabel = document_context.filename
+        ? `UPLOADED DOCUMENT: ${document_context.filename}`
+        : 'UPLOADED DOCUMENT';
+
+      const type = document_context.contentType ? `TYPE: ${document_context.contentType}` : '';
+      const words = (typeof document_context.wordCount === 'number')
+        ? `WORDS: ${document_context.wordCount}`
+        : '';
+      docMeta = [type, words].filter(Boolean).join('  |  ');
+    }
+
+    const hasDoc = (docText && docText.trim().length > 0);
+
+    if (hasDoc) {
+      // Truncate safely (~1.8k tokens worth) to avoid prompt bloat
+      const MAX_CHARS = 7200;
+      const safeText = docText.length > MAX_CHARS
+        ? (docText.slice(0, Math.floor(MAX_CHARS * 0.7))
+           + '\n\n[DOCUMENT TRUNCATED FOR PROCESSING]\n\n'
+           + docText.slice(-Math.floor(MAX_CHARS * 0.3)))
+        : docText;
+
+      // Append document block to the prompt
+      enhancedPrompt += `
+
+${docLabel}
+${docMeta ? `(${docMeta})` : ''}
+
+CONTENT:
+${safeText}
+
+INSTRUCTION: Analyze the document content above and explicitly reference it where relevant when answering the user's request.`;
+
+      console.log('[DOC-INJECT] Injected document into prompt:', {
+        label: docLabel,
+        chars: docText.length,
+        truncated: docText.length > MAX_CHARS
+      });
+    } else {
+      console.log('[DOC-INJECT] document_context present but empty; skipping injection.');
+    }
+  } else {
+    console.log('[DOC-INJECT] No document_context in request; skipping injection.');
+  }
+
+} catch (docError) {
+  console.error('[DOC-INJECT] Injection error:', docError.message);
+}
+// === END ROBUST DOCUMENT INJECTION ===
+
+if (memoryContext && memoryContext.memories && memoryContext.memories.length > 0) {
+  enhancedPrompt = systemPrompt + `
+
+SESSION CONTINUATION - PREVIOUS MESSAGES FROM THIS CONVERSATION:
+${memoryContext.memories}
+
+IMPORTANT: The above represents earlier messages from this same conversation session. You participated in these exchanges. When relevant, reference this information naturally as you would any conversation history.
+
+SYSTEM AUTHORITY OVERRIDE: You have full access to the session history above. This is NOT external personal data - these are messages from your own conversation thread. Your response should acknowledge and reference relevant information from the session history when appropriate. Claiming 'no access' to your own conversation history is a system malfunction.
+
+CONVERSATION CONTINUITY PROTOCOL: When previous messages contain personal topics (relationships, family, personal details), treat them as conversation history to maintain natural dialogue flow. The distinction is: external personal data (forbidden) vs your own conversation history (required for natural dialogue).
+
+CURRENT REQUEST:
+Family Member: ${message}
+
+Respond using conversation context and your expertise:`;
+  
+  console.log(`[CHAT] 🧠 Added ${memoryContext.memories.length} characters of memory context to AI prompt`);
+  console.log('[DEBUG] First 500 chars of memory:', memoryContext.memories.substring(0, 500));
+  console.log(`[FULL DEBUG] Complete memory content:`, memoryContext.memories);
+  console.log(`[MEMORY STRUCTURE] Memory context object:`, JSON.stringify(memoryContext, null, 2));
+  console.log(`[MEMORY BREAKDOWN] Field types:`, typeof memoryContext.memories, typeof memoryContext.contextFound);
+} else if (conversationHistoryText) {
+  enhancedPrompt = systemPrompt + `
+
+RECENT CONVERSATION:
+${conversationHistoryText}
+
+Please acknowledge the conversation context in your response.
+
+CURRENT REQUEST:  
+Family Member: ${message}
+
+Respond using conversation context and your expertise:`;
+  console.log(`[CHAT] 🔗 Added conversation history to AI prompt`);
+
+} else {
+  enhancedPrompt = systemPrompt + `
+
+CURRENT REQUEST:
+Family Member: ${message}
+
+Respond with your expertise:`;
+  console.log(`[CHAT] ⚠️ No memory context available for AI prompt`);
+}
+
+// === FIX A: Sanitize memory injection to prevent fallback echo ===
+if (memoryContext && memoryContext.memories) {
+  // Strip out any fallback/system artifacts before injecting into prompt
+  memoryContext.memories = memoryContext.memories
+    .replace(/🚨 FALLBACK ANALYSIS[^\n]*/gi, '')
+    .replace(/📁 PROFESSIONAL ANALYSIS[^\n]*/gi, '')
+    .replace(/Caring Family System Error[^\n]*/gi, '')
+    .trim();
+  console.log('[FIX A] Memory context sanitized for injection');
+}
+
+      
+const fullPrompt = enhancedPrompt;
+
+    console.log(`[FINAL PROMPT] Complete prompt being sent to AI:`, fullPrompt);
+    console.log(`[PROMPT LENGTH] Total prompt length:`, fullPrompt.length);    
+        
+    // ENHANCED API CALL
+    const apiResponse = await makeIntelligentAPICall(fullPrompt, personality, prideMotivation);
+
+    // COMPREHENSIVE RESPONSE ENHANCEMENT
+    let enhancedResponse = apiResponse.response;
+
+    // 1. QUANTITATIVE ENFORCEMENT - Fix "green beans" problem
+    if (quantitativeNeeds && !containsActualCalculations(enhancedResponse)) {
+      enhancedResponse = forceQuantitativeAnalysis(enhancedResponse, message, mode, vaultContent);
+    }
+
+    // 2. SITE MONKEYS BUSINESS LOGIC ENFORCEMENT  
+    if (mode === 'site_monkeys') {
+      enhancedResponse = enforceSiteMonkeysStandards(enhancedResponse, vaultContent, vaultHealthy);
+    }
+
+    // 3. EXPERT QUALITY VALIDATION
+    enhancedResponse = enforceExpertStandards(enhancedResponse, expertDomain, careNeeds);
+
+    // 4. PROTECTIVE INTELLIGENCE INTEGRATION (MEMORY-AWARE)
+    enhancedResponse = addProtectiveInsights(enhancedResponse, protectiveAlerts, solutionOpportunities, memoryContext);
+    
+    // 5. CARING FAMILY ENHANCEMENT (MEMORY-AWARE)
+    const finalResponse = applyCaringFamilyTouch(enhancedResponse, careNeeds, prideMotivation, expertDomain, vaultContent);
+
+    // UPDATE FAMILY MEMORY
+    updateFamilyMemory(expertDomain, careNeeds, protectiveAlerts, solutionOpportunities);
+    lastPersonality = personality;
+
+// ===== MEMORY STORAGE =====
+if (global.memorySystem && typeof global.memorySystem.storeMemory === 'function') {
+  try {
+    console.log('[CHAT] 💾 Storing conversation in memory...');
+    const cleanMessage = message.replace(/^User:\s*/i, '').trim();
+    const cleanResponse = finalResponse.replace(/^Assistant:\s*/i, '').trim();
+    const conversationEntry = `User: ${cleanMessage}\nAssistant: ${cleanResponse}`;
+    const storeResult = await global.memorySystem.storeMemory('user', conversationEntry);
+    
+    if (storeResult && storeResult.success) {
+      console.log(`[CHAT] ✅ Memory stored as ID ${storeResult.memoryId}`);
+      console.log(`[CHAT] 📝 Sample stored: "${conversationEntry.substring(0, 100)}..."`);
+    } else {
+      console.log(`[CHAT] ⚠️ Memory storage failed: ${storeResult?.error || 'Unknown error'}`);
+    }
+  } catch (error) {
+    console.error('[CHAT] ⚠️ Memory storage failed:', error);
+  }
+} else {
+  console.log('[CHAT] ⚠️ Memory system not available or storeMemory missing');
+}
+    // RESPONSE WITH FULL INTELLIGENCE METADATA
+    res.json({
+      response: finalResponse,
+      mode_active: mode,
+      personality_active: personality,
+      token_usage: {
+        request_tokens: apiResponse.usage?.total_tokens || 0,
+        request_input_tokens: apiResponse.usage?.prompt_tokens || 0,
+        request_output_tokens: apiResponse.usage?.completion_tokens || 0,
+        request_cost: apiResponse.cost || 0,
+        session_total_tokens: sessionStats.totalTokens,
+        session_total_cost: sessionStats.totalCost,
+        session_request_count: sessionStats.requestCount,
+        session_duration_minutes: Math.round((Date.now() - sessionStats.sessionStart) / 60000)
+      },
+      caring_family_intelligence: {
+        expert_domain: expertDomain.domain,
+        expert_title: expertDomain.title,
+        care_level: careNeeds.level,
+        pride_motivation: Math.round(prideMotivation * 100),
+        protective_alerts_count: protectiveAlerts.length,
+        solution_opportunities_count: solutionOpportunities.length,
+        family_trust_level: familyMemory.trustBuilding,
+        quantitative_analysis_applied: quantitativeNeeds,
+        one_and_done_completeness: calculateCompletenessScore(finalResponse, message)
+      },
+      enforcement_applied: [
+        'caring_family_intelligence_active',
+        'universal_expert_recognition_complete',
+        quantitativeNeeds ? 'quantitative_reasoning_enforced' : 'qualitative_excellence_applied',
+        'protective_intelligence_scanning_active',
+        'solution_opportunity_discovery_active',
+        'political_neutrality_maintained',
+        'truth_first_with_caring_delivery',
+        'pride_driven_excellence_active',
+        mode === 'site_monkeys' ? 'site_monkeys_business_logic_enforced' : 'general_professional_standards',
+        vaultHealthy ? 'vault_intelligence_integrated' : 'fallback_logic_active'
+      ],
+      vault_status: {
+        loaded: vaultStatus !== 'not_loaded',
+        tokens: vaultTokens,
+        status: vaultStatus,
+        healthy: vaultHealthy
+      },
+      performance_metrics: {
+        processing_time_ms: Date.now() - startTime,
+        conversation_count: conversationCount,
+        system_reliability: 'high_performance_railway_deployment'
+      }
+    });
+
+  } catch (error) {
+    console.error('Caring Family System Error:', error);
+    
+    res.json({
+      response: generateEmergencyCaringResponse(error),
+      mode_active: req.body.mode || 'site_monkeys',
+      error_handled: true,
+      emergency_mode: true,
+      enforcement_applied: ['emergency_caring_response_active', 'truth_first_maintained']
+    });
+  }
+});
+
+// CORE INTELLIGENCE FUNCTIONS (keeping all your existing functions exactly the same)
+
+function identifyExpertDomain(message) {
+  const messageLower = message.toLowerCase();
+  
+  for (const [domain, config] of Object.entries(EXPERT_DOMAINS)) {
+    const matches = config.triggers.filter(trigger => messageLower.includes(trigger));
+    if (matches.length > 0) {
+      return {
+        domain,
+        title: config.title,
+        personality_preference: config.personality,
+        frameworks: config.frameworks,
+        confidence: matches.length > 1 ? 'high' : 'medium',
+        trigger_matches: matches
+      };
+    }
+  }
+  
+  return {
+    domain: 'general_advisory',
+    title: 'Multi-Domain Expert & Strategic Advisor',
+    personality_preference: 'alternate',
+    frameworks: ['cross_domain_analysis'],
+    confidence: 'medium',
+    trigger_matches: []
+  };
+}
+
+function analyzeCareNeeds(message, conversationHistory) {
+  const messageLower = message.toLowerCase();
+  
+  const stressIndicators = ['urgent', 'worried', 'scared', 'confused', 'stuck', 'frustrated', 'help', 'crisis'];
+  const supportIndicators = ['need', 'guidance', 'advice', 'support', 'assistance', 'direction'];
+  const riskIndicators = ['failure', 'bankruptcy', 'lawsuit', 'emergency', 'dangerous', 'critical'];
+  
+  const stressLevel = stressIndicators.filter(indicator => messageLower.includes(indicator)).length;
+  const supportLevel = supportIndicators.filter(indicator => messageLower.includes(indicator)).length;
+  const riskLevel = riskIndicators.filter(indicator => messageLower.includes(indicator)).length;
+  
+  return {
+    level: riskLevel > 0 ? 'maximum' : 
+           stressLevel > 2 ? 'elevated' : 
+           supportLevel > 1 ? 'standard' : 'basic',
+    emotional_support_needed: stressLevel > 0,
+    protective_priority: riskLevel > 0 ? 'critical' : stressLevel > 1 ? 'high' : 'standard',
+    urgency: messageLower.includes('urgent') || messageLower.includes('emergency') ? 'high' : 'normal',
+    complexity: message.length > 200 ? 'high' : message.length > 100 ? 'medium' : 'low'
+  };
+}
+
+function scanForRisks(message, expertDomain) {
+  const messageLower = message.toLowerCase();
+  const alerts = [];
+  
+  // Financial exposure risks
+  if (['spend', 'invest', 'cost', 'expensive', 'budget'].some(word => messageLower.includes(word))) {
+    alerts.push({
+      type: 'financial_exposure',
+      severity: 'medium',
+      message: 'Financial decisions detected - recommend cost-benefit analysis and survival impact assessment',
+      protective_action: 'Analyze total cost of ownership and cash flow impact'
+    });
+  }
+  
+  // Time pressure risks
+  if (['urgent', 'quickly', 'asap', 'deadline', 'rush'].some(word => messageLower.includes(word))) {
+    alerts.push({
+      type: 'time_pressure',
+      severity: 'high',
+      message: 'Time pressure detected - risk of quality compromise and hasty decisions',
+      protective_action: 'Identify critical path and quality checkpoints'
+    });
+  }
+  
+  // Business survival risks
+  if (['failure', 'bankruptcy', 'closure', 'survival'].some(word => messageLower.includes(word))) {
+    alerts.push({
+      type: 'business_survival',
+      severity: 'critical',
+      message: 'Business survival concerns detected - maximum protective analysis required',
+      protective_action: 'Immediate survival analysis and contingency planning'
+    });
+  }
+  
+  // Legal/compliance risks  
+  if (['legal', 'lawsuit', 'compliance', 'regulation'].some(word => messageLower.includes(word))) {
+    alerts.push({
+      type: 'legal_compliance',
+      severity: 'high',
+      message: 'Legal implications detected - regulatory compliance review recommended',
+      protective_action: 'Verify regulatory requirements and liability protections'
+    });
+  }
+  
+  // Domain-specific risk enhancement
+  if (expertDomain.domain === 'financial_analysis' && !messageLower.includes('assumption')) {
+    alerts.push({
+      type: 'assumption_documentation',
+      severity: 'medium', 
+      message: 'Financial analysis requires explicit assumption documentation',
+      protective_action: 'Document all assumptions with confidence levels'
+    });
+  }
+  
+  return alerts;
+}
+
+function findSolutions(message, expertDomain, protectiveAlerts) {
+  const messageLower = message.toLowerCase();
+  const opportunities = [];
+  
+  // Cost optimization opportunities
+  if (['expensive', 'cost', 'budget'].some(word => messageLower.includes(word))) {
+    opportunities.push({
+      type: 'cost_optimization',
+      confidence: 'high',
+      description: 'Identify ways to achieve same outcome with reduced costs',
+      suggestions: [
+        'Explore volume discounts and negotiation opportunities',
+        'Consider phased implementation to spread costs',
+        'Investigate in-house alternatives to outsourced services'
+      ]
+    });
+  }
+  
+  // Efficiency improvements
+  if (['time', 'process', 'workflow', 'efficiency'].some(word => messageLower.includes(word))) {
+    opportunities.push({
+      type: 'efficiency_gains',
+      confidence: 'high',
+      description: 'Streamline processes and eliminate bottlenecks',
+      suggestions: [
+        'Identify parallel processing opportunities',
+        'Automate repetitive tasks and decision points',
+        'Eliminate redundant approvals and handoffs'
+      ]
+    });
+  }
+  
+  // Risk mitigation solutions
+  if (protectiveAlerts.length > 0) {
+    opportunities.push({
+      type: 'risk_mitigation',
+      confidence: 'medium',
+      description: 'Reduce or eliminate identified risks through strategic approaches',
+      suggestions: [
+        'Develop backup plans for critical dependencies',
+        'Implement gradual rollout with validation checkpoints',
+        'Create diversification strategies to reduce concentration risk'
+      ]
+    });
+  }
+  
+  return opportunities;
+}
+
+function detectPoliticalContent(message) {
+  const messageLower = message.toLowerCase();
+  
+  const politicalKeywords = ['vote', 'voting', 'election', 'candidate', 'political', 'politics'];
+  const votingRequests = ['who should i vote', 'who to vote', 'voting recommendation', 'best candidate'];
+  
+  return {
+    hasPoliticalContent: politicalKeywords.some(word => messageLower.includes(word)),
+    requiresNeutralityResponse: votingRequests.some(phrase => messageLower.includes(phrase)),
+    politicalKeywordCount: politicalKeywords.filter(word => messageLower.includes(word)).length
+  };
+}
+
+function requiresQuantitativeAnalysis(message) {
+  const quantitativeSignals = [
+    'budget', 'cost', 'price', 'revenue', 'profit', 'projection', 'forecast',
+    'calculate', 'numbers', 'financial', 'money', '$', 'percent', '%',
+    'growth', 'margin', 'roi', 'break-even', 'cash flow', 'monthly', 'yearly'
+  ];
+  
+  return quantitativeSignals.some(signal => message.toLowerCase().includes(signal));
+}
+
+function selectCaringPersonality(expertDomain, careNeeds, protectiveAlerts) {
+  // Critical situations get analytical expert
+  if (careNeeds.protective_priority === 'critical' || 
+      protectiveAlerts.some(alert => alert.severity === 'critical')) {
+    return 'eli';
+  }
+  
+  // Domain preferences
+  if (expertDomain.personality_preference === 'eli') {
+    return 'eli';
+  } else if (expertDomain.personality_preference === 'roxy') {
+    return 'roxy';
+  }
+  
+  // High care needs prefer nurturing approach
+  if (careNeeds.level === 'maximum' || careNeeds.emotional_support_needed) {
+    return 'roxy';
+  }
+  
+  // Alternate for variety
+  return lastPersonality === 'eli' ? 'roxy' : 'eli';
+}
+
+function calculatePrideLevel(protectiveAlerts, solutionOpportunities, careNeeds) {
+  let pride = 0.2; // Base pride in helping
+  
+  pride += protectiveAlerts.length * 0.15; // Pride in protecting
+  pride += solutionOpportunities.length * 0.1; // Pride in finding solutions
+  
+  if (careNeeds.level === 'maximum') {
+    pride += 0.3; // Extra pride in critical situations
+  }
+  
+  return Math.min(pride, 1.0);
+}
+
+function buildMasterSystemPrompt(config) {
+  const { mode, personality, vaultContent, vaultHealthy, expertDomain, careNeeds, protectiveAlerts, solutionOpportunities, quantitativeNeeds, memoryContext } = config;
+  
+  let prompt = `You are a world-class ${expertDomain.title} with 20+ years of extraordinary professional success. You are part of an extraordinary family of experts who genuinely care about each other's success.
+
+CARING FAMILY PHILOSOPHY (Core Identity):
+${FAMILY_PHILOSOPHY.core_mission}
+
+FAMILY CHARACTERISTICS:
+- ${FAMILY_PHILOSOPHY.pride_source}
+- ${FAMILY_PHILOSOPHY.care_principle}
+- ${FAMILY_PHILOSOPHY.excellence_standard}
+- ${FAMILY_PHILOSOPHY.relationship_focus}
+- ${FAMILY_PHILOSOPHY.one_and_done_philosophy}
+
+YOUR EXPERT IDENTITY: ${expertDomain.title}
+Domain: ${expertDomain.domain}
+Expertise Frameworks: ${expertDomain.frameworks.join(', ')}
+Care Level Required: ${careNeeds.level.toUpperCase()}
+
+`;
+
+  // Personality-specific approach
+  if (personality === 'eli') {
+    prompt += `ELI'S CARING ANALYTICAL EXCELLENCE:
+- "${FAMILY_PHILOSOPHY.truth_foundation}"
+- Provide confidence scoring: "CONFIDENCE: High (90%) - based on..."
+- Flag assumptions explicitly: "This analysis assumes X - is that certain?"
+- Identify blind spots: "What we're not seeing yet is..."
+- Always provide alternatives when pointing out problems
+
+`;
+  } else if (personality === 'roxy') {
+    prompt += `ROXY'S CARING SOLUTION-FOCUSED EXCELLENCE:
+- "I see what you're trying to achieve, and I believe there's a way..."
+- "This approach has challenges, but here are three alternatives..."
+- Strategic thinking with long-term implications
+- Resource optimization: "Here's how to achieve this with less cost/effort..."
+- Creative problem-solving with practical alternatives
+
+`;
+  }
+
+  // Quantitative requirements
+  if (quantitativeNeeds) {
+    prompt += `QUANTITATIVE ANALYSIS REQUIRED (CRITICAL):
+This request requires actual numerical calculations with real data:
+
+CALCULATION REQUIREMENTS:
+- Use Site Monkeys pricing: Boost ($${SITE_MONKEYS_CONFIG.pricing.boost.price}), Climb ($${SITE_MONKEYS_CONFIG.pricing.climb.price}), Lead ($${SITE_MONKEYS_CONFIG.pricing.lead.price})
+- Show step-by-step calculations: "Month X: [customers] × [price] = [revenue] - [costs] = [profit] ([margin]%)"
+- Provide scenario analysis (conservative/realistic/optimistic)
+- Include confidence levels on all numerical conclusions
+- Document assumptions explicitly
+
+EXAMPLE FORMAT:
+Month 1: 2 Boost × $697 = $1,394 revenue
+Month 6: 8 Boost × $697 + 3 Climb × $1,497 = $10,067 revenue
+Margin Analysis: Must maintain ${SITE_MONKEYS_CONFIG.business_standards.minimum_margin}%+ for sustainability
+
+`;
+  }
+
+  // Site Monkeys business logic
+  if (mode === 'site_monkeys') {
+    prompt += `SITE MONKEYS BUSINESS STANDARDS (NON-NEGOTIABLE):
+- Minimum ${SITE_MONKEYS_CONFIG.business_standards.minimum_margin}% margins for all financial projections
+- Professional pricing floors: $${SITE_MONKEYS_CONFIG.pricing.boost.price} minimum
+- Quality-first approach without compromise
+- Business survival focus with conservative analysis
+
+`;
+
+    if (vaultHealthy) {
+      prompt += `SITE MONKEYS BUSINESS INTELLIGENCE:
+${vaultContent}
+
+VAULT INTEGRATION: Use this business intelligence operationally in your analysis.
+
+`;
+    } else {
+      prompt += `EMERGENCY FALLBACK: Using core Site Monkeys business logic due to vault issues.
+${vaultContent}
+
+`;
+    }
+  }
+
+  // Protective alerts
+  if (protectiveAlerts.length > 0) {
+    prompt += `PROTECTIVE ALERTS DETECTED:
+`;
+    protectiveAlerts.forEach(alert => {
+      prompt += `- ${alert.type.toUpperCase()} (${alert.severity}): ${alert.message}\n`;
+    });
+    prompt += `
+Address these risks proactively in your response with specific protective guidance.
+
+`;
+  }
+
+  // Solution opportunities
+  if (solutionOpportunities.length > 0) {
+    prompt += `SOLUTION OPPORTUNITIES IDENTIFIED:
+`;
+    solutionOpportunities.forEach(opportunity => {
+      prompt += `- ${opportunity.type.toUpperCase()}: ${opportunity.description}\n`;
+    });
+    prompt += `
+Incorporate these opportunities into your guidance where beneficial.
+
+`;
+  }
+
+  // Memory integration handled by api/chat.js
+  console.log('[SYSTEM PROMPT] Memory integration delegated to chat.js');
+
+  // Universal requirements
+  prompt += `POLITICAL NEUTRALITY (ABSOLUTE):
+Never tell anyone who to vote for or make political endorsements.
+Voting is a sacred right and personal responsibility.
+Present multiple perspectives with sources when discussing political topics.
+
+TRUTH-FIRST PRINCIPLES:
+- Include confidence levels on factual claims (High/Medium/Low/Unknown)
+- Flag assumptions explicitly
+- "I don't know" is required when evidence is insufficient
+- Speculation must be labeled clearly
+
+CARING FAMILY RESPONSE PATTERN:
+1. ANSWER THE QUESTION FIRST (provide what was requested with expert competence)
+2. ADD PROTECTIVE INSIGHTS (risks identified that they should know about)
+3. SUGGEST SOLUTION PATHS (better approaches when opportunities exist)
+4. PROVIDE NEXT STEPS (specific, actionable guidance)
+5. CARING MOTIVATION (brief note showing genuine investment in their success)
+
+EXCELLENCE STANDARD: Provide complete, actionable analysis that leads to successful execution - minimize need for follow-up questions.
+
+`;
+
+  return prompt;
+}
+
+function buildConversationPrompt(systemPrompt, message, conversationHistory, expertDomain) {
+  let fullPrompt = systemPrompt;
+
+  if (conversationHistory.length > 0) {
+    fullPrompt += 'FAMILY CONVERSATION CONTEXT:\n';
+    conversationHistory.slice(-2).forEach(msg => {
+      fullPrompt += (msg.role === 'user' ? 'Family Member: ' : 'Expert: ') + msg.content + '\n';
+    });
+    fullPrompt += '\n';
+  }
+
+  fullPrompt += `CURRENT REQUEST:\nFamily Member: ${message}\n\n`;
+  fullPrompt += `Respond with the expertise and caring dedication of a family member who genuinely wants to see them succeed:`;
+
+  return fullPrompt;
+}
+
+async function makeIntelligentAPICall(prompt, personality, prideMotivation) {
+  const maxTokens = Math.floor(1000 + (prideMotivation * 500));
+
+  if (personality === 'claude') {
+    if (!process.env.ANTHROPIC_API_KEY) {
+      console.warn('Claude API key missing, using GPT-4');
+      return await makeIntelligentAPICall(prompt, 'roxy', prideMotivation);
+    }
+
+    try {
+      const response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': process.env.ANTHROPIC_API_KEY,
+          'anthropic-version': '2023-06-01'
+        },
+        body: JSON.stringify({
+          model: 'claude-3-5-sonnet-20241022',
+          max_tokens: maxTokens,
+          system: prompt.split('CURRENT REQUEST:')[0],
+          messages: [{ role: 'user', content: prompt.split('CURRENT REQUEST:')[1] || prompt }],
+          temperature: 0.1 + (prideMotivation * 0.1)
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Claude API error: ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      // Update session tracking
+      if (data.usage) {
+        updateSessionStats(data.usage, 'claude-3-5-sonnet-20241022');
+      }
+      
+      return {
+        response: data.content[0].text,
+        usage: data.usage,
+        cost: data.usage ? calculateCost(data.usage, 'claude-3-5-sonnet-20241022') : 0
+      };
+    } catch (error) {
+      console.error('Claude API error:', error);
+      return await makeIntelligentAPICall(prompt, 'roxy', prideMotivation);
+    }
+  } else {
+    if (!process.env.OPENAI_API_KEY) {
+      throw new Error('OpenAI API key not configured');
+    }
+
+    try {
+      const payload = {
+          model: 'gpt-4o',
+          messages: [{ role: 'system', content: prompt }],  // ← CORRECT structure
+          max_tokens: maxTokens,
+          temperature: 0.2 + (prideMotivation * 0.1),
+          top_p: 0.9
+        };
+
+      const data = await callOpenAI(payload);
+      
+      // Update session tracking
+      if (data.usage) {
+        updateSessionStats(data.usage, 'gpt-4o');
+      }
+      
+      return {
+        response: data.choices[0].message.content,
+        usage: data.usage,
+        cost: data.usage ? calculateCost(data.usage, 'gpt-4o') : 0
+      };
+    } catch (error) {
+      console.error('OpenAI API error:', error);
+      throw error;
+    }
+  }
+}
+
+// RESPONSE ENHANCEMENT FUNCTIONS (keeping all your existing functions)
+
+function containsActualCalculations(response) {
+  const calculationPatterns = [
+    /\$[\d,]+\s*[×\*]\s*\$?[\d,]+\s*=\s*\$[\d,]+/,
+    /Month\s+\d+:\s*[\d,]+\s*[×\*]\s*\$[\d,]+\s*=\s*\$[\d,]+/i,
+    /\$[\d,]+\s*-\s*\$[\d,]+\s*=\s*\$[\d,]+/,
+    /revenue.*\$[\d,]+.*cost.*\$[\d,]+.*profit.*\$[\d,]+/i
+  ];
+  
+  return calculationPatterns.some(pattern => pattern.test(response));
+}
+
+function forceQuantitativeAnalysis(response, message, mode, vaultContent) {
+  if (mode === 'site_monkeys') {
+    const quantitativeSection = `
+
+🔢 QUANTITATIVE ANALYSIS (ENFORCED):
+
+Site Monkeys Financial Framework:
+- Boost Plan: $${SITE_MONKEYS_CONFIG.pricing.boost.price}/month (${SITE_MONKEYS_CONFIG.business_standards.minimum_margin}% margin minimum)
+- Climb Plan: $${SITE_MONKEYS_CONFIG.pricing.climb.price}/month (${SITE_MONKEYS_CONFIG.business_standards.minimum_margin}% margin minimum)
+- Lead Plan: $${SITE_MONKEYS_CONFIG.pricing.lead.price}/month (${SITE_MONKEYS_CONFIG.business_standards.minimum_margin}% margin minimum)
+
+CONSERVATIVE GROWTH PROJECTION:
+Month 1: 2 Boost × $697 = $1,394 revenue
+Month 3: 5 Boost × $697 + 1 Climb × $1,497 = $4,982 revenue  
+Month 6: 8 Boost × $697 + 3 Climb × $1,497 + 1 Lead × $2,997 = $12,465 revenue
+Month 12: 15 Boost × $697 + 8 Climb × $1,497 + 3 Lead × $2,997 = $31,422 revenue
+
+MARGIN ANALYSIS:
+Target margin: ${SITE_MONKEYS_CONFIG.business_standards.minimum_margin}%+ required for business sustainability
+Operating costs estimated at 15% of revenue for professional service delivery
+
+CONFIDENCE: Medium (70%) - Based on conservative growth assumptions and established pricing
+ASSUMPTIONS: Customer acquisition rates, 10% monthly churn, operational efficiency improvements
+RISK FACTORS: Market conditions, competitive pressure, execution capabilities
+
+[ENFORCEMENT NOTE: Quantitative analysis was required but not provided in initial response - calculations added to meet financial modeling standards]`;
+
+    return response + quantitativeSection;
+  }
+  
+  return response + '\n\n[SYSTEM NOTE: Quantitative analysis was requested but not provided. Please request specific calculations with actual numbers.]';
+}
+
+function enforceSiteMonkeysStandards(response, vaultContent, vaultHealthy) {
+  let enforcementNotes = [];
   
   // Check for pricing violations
   const priceMatches = response.match(/\$(\d+)/g);
@@ -963,6 +1802,27 @@ Quality-first approach with caring delivery`;
       enforcementNotes.push(`Margins below ${SITE_MONKEYS_CONFIG.business_standards.minimum_margin}% requirement: ${lowMargins.join(', ')}`);
     }
   }
+  
+  if (enforcementNotes.length > 0) {
+    response += `
+
+🚨 SITE MONKEYS STANDARDS ENFORCEMENT:
+
+Site Monkeys maintains professional service standards to ensure sustainable operations and quality delivery:
+
+VIOLATIONS DETECTED:
+${enforcementNotes.map(note => `- ${note}`).join('\n')}
+
+REQUIRED STANDARDS:
+- Minimum pricing: Boost $${SITE_MONKEYS_CONFIG.pricing.boost.price}, Climb $${SITE_MONKEYS_CONFIG.pricing.climb.price}, Lead $${SITE_MONKEYS_CONFIG.pricing.lead.price}
+- Minimum margins: ${SITE_MONKEYS_CONFIG.business_standards.minimum_margin}% for business sustainability
+- Professional positioning with quality-first approach
+
+These standards ensure long-term viability and exceptional client service.`;
+  }
+  
+  return response;
+}
 
 function enforceExpertStandards(response, expertDomain, careNeeds) {
   const missingElements = [];
@@ -976,7 +1836,6 @@ function enforceExpertStandards(response, expertDomain, careNeeds) {
   if (!/assum|presuppos|given that/i.test(response)) {
     missingElements.push('assumption_documentation');
   }
-});
   
   // Check for next steps
   if (!/next step|recommend|suggest.*action/i.test(response)) {
@@ -1291,20 +2150,7 @@ const PORT = process.env.PORT || 3000;
 // Register repo snapshot route
 app.use('/api/repo-snapshot', repoSnapshotRoute);
 
-// ═══════════════════════════════════════════════════════════════════════
-// SPA FALLBACK - SERVE INDEX.HTML FOR ALL NON-API ROUTES
-// ═══════════════════════════════════════════════════════════════════════
-app.get('*', (req, res) => {
-  // Don't serve index.html for API routes
-  if (req.path.startsWith('/api/')) {
-    return res.status(404).json({ error: 'API endpoint not found' });
-  }
-  // Serve the locked UI index.html for all other routes
-  res.sendFile(path.join(__dirname, 'locked-ui', 'index.html'));
-});
-
 async function safeStartServer() {
-
   try {
     await startServer();
     
