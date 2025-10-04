@@ -11,7 +11,7 @@ import { RoxyFramework } from '../core/personalities/roxy_framework.js'; // NEW
 import { PersonalitySelector } from '../core/personalities/personality_selector.js'; // NEW
 import { trackApiCall } from '../lib/tokenTracker.js';
 import { getVaultStatus, generateVaultContext } from '../lib/vault.js';
-import { extractedDocuments } from '../lib/upload-for-analysis.js';
+import { extractedDocuments } from '../../upload-for-analysis.js';
 import { MODES, validateModeCompliance, calculateConfidenceScore } from '../config/modes.js';
 import { EMERGENCY_FALLBACKS } from '../lib/site-monkeys/emergency-fallbacks.js';
 import Anthropic from '@anthropic-ai/sdk';
@@ -360,7 +360,7 @@ import { RoxyFramework } from '../core/personalities/roxy_framework.js'; // NEW
 import { PersonalitySelector } from '../core/personalities/personality_selector.js'; // NEW
 import { trackApiCall } from '../lib/tokenTracker.js';
 import { getVaultStatus, generateVaultContext } from '../lib/vault.js';
-import { extractedDocuments } from '../lib/upload-for-analysis.js';
+import { extractedDocuments } from '../../upload-for-analysis.js';
 import { MODES, validateModeCompliance, calculateConfidenceScore } from '../config/modes.js';
 import { EMERGENCY_FALLBACKS } from '../lib/site-monkeys/emergency-fallbacks.js';
 import Anthropic from '@anthropic-ai/sdk';
