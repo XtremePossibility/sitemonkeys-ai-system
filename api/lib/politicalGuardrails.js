@@ -247,7 +247,38 @@ Would you like me to provide factual information about this topic from a neutral
     
     return recommendations;
   }
-}
+  
+static async check({ response, context }) {
+    try {
+      const analysis = this.analyzePoliticalContent(response, context.message || '');
+      
+      if (analysis.political_risk_level === 'NONE') {
+        return {
+          politicalContentDetected: false,
+          neutralizedResponse: response
+        };
+      }
+
+      const guardedResult = this.guardPoliticalContent(response, context.message || '');
+
+      return {
+        politicalContentDetected: true,
+        neutralizedResponse: guardedResult.guarded_response,
+        reason: `Political content detected: ${analysis.detected_categories.join(', ')}`,
+        riskLevel: analysis.political_risk_level,
+        originalBlocked: guardedResult.original_response_blocked
+      };
+
+    } catch (error) {
+      console.error('[POLITICAL-GUARDRAILS] Check error:', error);
+      
+      return {
+        politicalContentDetected: false,
+        neutralizedResponse: response,
+        error: error.message
+      };
+    }
+  }
 
 export function guardPoliticalContent(response, originalMessage) {
   return PoliticalGuardrails.guardPoliticalContent(response, originalMessage);
