@@ -2,6 +2,32 @@
 // Preserves all breakthrough insights from this conversation
 // Ready for immediate Railway deployment
 //Redeploy
+
+import { log, trackRequest } from './debug-tracer.js';
+
+// Then add these strategic log points:
+log('📦 Imports loaded');
+
+const app = express();
+log('🌐 Express app created');
+
+// Add request tracking to your existing middleware:
+app.use((req, res, next) => {
+  trackRequest(req);
+  next();
+});
+
+// Right before app.listen():
+log('🎯 About to start listening');
+
+const server = app.listen(PORT, () => {
+  log(`✅ Server listening on port ${PORT}`);
+  log(`📊 Initial memory: ${JSON.stringify(process.memoryUsage())}`);
+});
+
+log('🔧 Starting background initialization');
+// ... rest of your code
+
 import express from 'express';
 import cors from 'cors';
 import { exec } from 'child_process';
