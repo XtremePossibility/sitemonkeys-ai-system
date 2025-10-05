@@ -74,22 +74,6 @@ async function initializeMemorySystem() {
     console.log('[SERVER] 📊 Memory system initialization phase complete');
 }
 
-// Wrap entire server startup in async function
-async function startServer() {
-  const server = app.listen(PORT, () => {
-    console.log(`🚀 Caring Family Intelligence System running on port ${PORT}`);
-  });
-
-  initializeMemorySystem().catch(err => {
-    console.error('[SERVER] Memory initialization failed:', err);
-  });
-
-  process.on('SIGTERM', () => {
-    console.log('SIGTERM received, shutting down gracefully');
-    server.close(() => process.exit(0));
-  });
-}
-
 // Initialize server immediately
 console.log('[SERVER] 🚀 Starting Site Monkeys AI System...');
 
