@@ -76,9 +76,18 @@ async function initializeMemorySystem() {
 
 // Wrap entire server startup in async function
 async function startServer() {
-    // Initialize memory systems first
-    await initializeMemorySystem();
-    console.log('[SERVER] 🚀 Memory systems initialized, starting web server...');
+  const server = app.listen(PORT, () => {
+    console.log(`🚀 Caring Family Intelligence System running on port ${PORT}`);
+  });
+
+  initializeMemorySystem().catch(err => {
+    console.error('[SERVER] Memory initialization failed:', err);
+  });
+
+  process.on('SIGTERM', () => {
+    console.log('SIGTERM received, shutting down gracefully');
+    server.close(() => process.exit(0));
+  });
 }
 
 // Initialize server immediately
