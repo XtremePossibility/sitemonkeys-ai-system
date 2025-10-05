@@ -1253,6 +1253,9 @@ export class Orchestrator {
         );
       }
 
+      console.log('🔍 [DEBUG] About to run enforcement - personality completed successfully');
+      console.log('🔍 [DEBUG] Personality result:', personalityResult.personality);
+      
       // ========== RUN ENFORCEMENT CHAIN ==========
       this.log('[ENFORCEMENT] Running enforcement chain...');
       const enforcedResult = await this.#runEnforcementChain(
