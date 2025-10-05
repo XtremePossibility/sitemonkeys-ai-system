@@ -583,6 +583,21 @@ app.all('/api/load-vault', (req, res) => {
   // Wrap everything in a promise that can't fail silently
   Promise.resolve().then(async () => {
     try {
+      // Block auto vault loads - only allow explicit manual requests
+      const manual = req.query.manual === 'true' || req.body?.manual === true;
+      if (!manual) {
+        console.log('🚫 Skipping auto vault load', {
+          method: req.method,
+          path: req.originalUrl,
+          ua: req.headers['user-agent'] || '',
+          ref: req.headers['referer'] || req.headers['referrer'] || ''
+        });
+        return res.json({
+          status: 'skipped',
+          reason: 'auto_load_blocked',
+          message: 'Vault requires ?manual=true'
+        });
+      }
       // Check if request is for Site Monkeys mode only
       const mode = req.body.mode || req.query.mode || 'site_monkeys';
       if (mode !== 'site_monkeys') {
