@@ -2182,4 +2182,9 @@ async function safeStartServer() {
   }
 }
 
-safeStartServer();
+safeStartServer().then(() => {
+  console.log('[SERVER] Startup complete');
+}).catch(err => {
+  console.error('[SERVER] Startup failed:', err);
+  process.exit(1);
+});
