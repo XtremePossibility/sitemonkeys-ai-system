@@ -2063,6 +2063,7 @@ app.post('/api/reset-session-stats', (req, res) => {
 
 // HEALTH CHECK ENDPOINT
 app.get('/api/health', (req, res) => {
+  console.log('[ROUTES] /api/health endpoint registered');  
   res.json({
     status: 'healthy',
     system: 'caring_family_intelligence',
