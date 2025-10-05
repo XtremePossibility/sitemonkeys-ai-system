@@ -28,22 +28,6 @@ const server = app.listen(PORT, () => {
 log('🔧 Starting background initialization');
 // ... rest of your code
 
-import express from 'express';
-import cors from 'cors';
-import { exec } from 'child_process';
-import persistentMemory from './memory_system/persistent_memory.js';
-import intelligenceSystem from './memory_system/intelligence.js';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
-// Lazy load googleapis to avoid 200-600MB memory spike at startup
-let google;
-import axios from 'axios';
-import JSZip from 'jszip';
-import xml2js from 'xml2js';
-import zlib from 'zlib';
-import { promisify } from 'util';
-import { uploadMiddleware, handleFileUpload } from './api/upload-file.js';
 import { analysisMiddleware, handleAnalysisUpload } from './api/upload-for-analysis.js';
 import { extractedDocuments } from './api/upload-for-analysis.js';
 import repoSnapshotRoute from './api/repo-snapshot.js';
