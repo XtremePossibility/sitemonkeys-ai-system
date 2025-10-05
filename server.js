@@ -2146,7 +2146,6 @@ app.use('/api/repo-snapshot', repoSnapshotRoute);
 
 async function safeStartServer() {
   try {
-    await startServer();
     
     const server = app.listen(PORT, () => {
       console.log(`🚀 Caring Family Intelligence System running on port ${PORT}`);
