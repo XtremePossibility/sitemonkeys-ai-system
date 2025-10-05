@@ -10,7 +10,8 @@ import intelligenceSystem from './memory_system/intelligence.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
-import { google } from 'googleapis';
+// Lazy load googleapis to avoid 200-600MB memory spike at startup
+let google;
 import axios from 'axios';
 import JSZip from 'jszip';
 import xml2js from 'xml2js';
@@ -238,37 +239,43 @@ async function extractTextFromDocx(docxBuffer) {
 /**
  * Initialize Google Drive service with credentials
  */
-function getGoogleDriveService() {
-    try {
-        const credsJson = process.env.GOOGLE_CREDENTIALS_JSON;
-        const projectId = process.env.GOOGLE_PROJECT_ID;
-        const projectNumber = process.env.GOOGLE_PROJECT_NUMBER;
-        
-        if (!credsJson) {
-            throw new Error("GOOGLE_CREDENTIALS_JSON environment variable not found");
-        }
-        if (!projectId) {
-            throw new Error("GOOGLE_PROJECT_ID environment variable not found");
-        }
-        
-        console.log(`Using Project ID: ${projectId}`);
-        console.log(`Using Project Number: ${projectNumber}`);
-        
-        const credsInfo = JSON.parse(credsJson);
-        credsInfo.project_id = projectId;
-        if (projectNumber) {
-            credsInfo.project_number = projectNumber;
-        }
-        
-        const auth = new google.auth.GoogleAuth({
-            credentials: credsInfo,
-            scopes: ['https://www.googleapis.com/auth/drive.readonly']
-        });
-        
-        return google.drive({ version: 'v3', auth });
-    } catch (error) {
-        throw new Error(`Google Drive authentication failed: ${error.message}`);
+async function getGoogleDriveService() {
+  // Lazy load googleapis only when needed
+  if (!google) {
+    const googleapis = await import('googleapis');
+    google = googleapis.google;
+  }
+  
+  try {
+    const credsJson = process.env.GOOGLE_CREDENTIALS_JSON;
+    const projectId = process.env.GOOGLE_PROJECT_ID;
+    const projectNumber = process.env.GOOGLE_PROJECT_NUMBER;
+
+    if (!credsJson) {
+      throw new Error("GOOGLE_CREDENTIALS_JSON environment variable not found");
     }
+    if (!projectId) {
+      throw new Error("GOOGLE_PROJECT_ID environment variable not found");
+    }
+
+    console.log(`Using Project ID: ${projectId}`);
+    console.log(`Using Project Number: ${projectNumber}`);
+
+    const credsInfo = JSON.parse(credsJson);
+    credsInfo.project_id = projectId;
+    if (projectNumber) {
+      credsInfo.project_number = projectNumber;
+    }
+
+    const auth = new google.auth.GoogleAuth({
+      credentials: credsInfo,
+      scopes: ['https://www.googleapis.com/auth/drive.readonly']
+    });
+
+    return google.drive({ version: 'v3', auth });
+  } catch (error) {
+    throw new Error(`Google Drive authentication failed: ${error.message}`);
+  }
 }
 
 /**
