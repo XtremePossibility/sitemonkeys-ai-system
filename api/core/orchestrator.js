@@ -16,6 +16,7 @@ import { MODES, validateModeCompliance, calculateConfidenceScore } from '../conf
 import { EMERGENCY_FALLBACKS } from '../lib/site-monkeys/emergency-fallbacks.js';
 import Anthropic from '@anthropic-ai/sdk';
 import OpenAI from 'openai';
+// ========== ENFORCEMENT MODULE IMPORTS ==========
 import { driftWatcher } from '../lib/validators/drift-watcher.js';
 import { initiativeEnforcer } from '../lib/validators/initiative-enforcer.js';
 import { costTracker } from '../utils/cost-tracker.js';
@@ -23,6 +24,7 @@ import { PoliticalGuardrails } from '../lib/politicalGuardrails.js';
 import { ProductValidator } from '../lib/productValidation.js';
 import { checkFounderProtection, handleCostCeiling } from '../lib/site-monkeys/emergency-fallbacks.js';
 import { validateCompliance as validateVaultCompliance } from '../lib/vault.js';
+// ================================================
 
 // ==================== ORCHESTRATOR CLASS ====================
 
@@ -125,7 +127,7 @@ export class Orchestrator {
         });
 
         if (initiativeResult.modified) {
-          enforcedResponse = initiativeResult.response;
+          enforcedResult = initiativeResult.response;
           complianceMetadata.overrides.push({
             module: 'initiative_enforcer',
             reason: initiativeResult.reason
@@ -242,6 +244,7 @@ export class Orchestrator {
   }
   
   // ==================== MAIN ENTRY POINT ====================
+  
   async processRequest(requestData) {
     const startTime = Date.now();
     const { 
@@ -350,24 +353,33 @@ export class Orchestrator {
           
           // Personality tracking - ENHANCED
           personalityApplied: personalityResponse.personality,
-          personalityEnhancements: personalityResponse.modificationsCount || 0, // NEW
-          personalityReasoningApplied: personalityResponse.reasoningApplied || false, // NEW
+          personalityEnhancements: personalityResponse.modificationsCount || 0,
+          personalityReasoningApplied: personalityResponse.reasoningApplied || false,
           
           // Mode enforcement
           modeEnforced: mode,
           
           // Performance tracking - ENHANCED
           processingTime: processingTime,
-          semanticAnalysisTime: analysis.processingTime || 0, // NEW
+          semanticAnalysisTime: analysis.processingTime || 0,
           
           // Cost tracking - ENHANCED
           cost: aiResponse.cost,
-          semanticAnalysisCost: analysis.cost || 0, // NEW
-          totalCostIncludingAnalysis: (aiResponse.cost?.totalCost || 0) + (analysis.cost || 0), // NEW
+          semanticAnalysisCost: analysis.cost || 0,
+          totalCostIncludingAnalysis: (aiResponse.cost?.totalCost || 0) + (analysis.cost || 0),
+          
+          // ========== ADD THESE TWO FIELDS RIGHT HERE ==========
+          compliance_metadata: personalityResponse.compliance_metadata || {},
+          cost_tracking: {
+            session_cost: costTracker.getSessionCost(sessionId),
+            ceiling: costTracker.getCostCeiling(mode),
+            remaining: costTracker.getCostCeiling(mode) - costTracker.getSessionCost(sessionId)
+          },
+          // =====================================================
           
           // Fallback tracking
           fallbackUsed: false,
-          semanticFallbackUsed: analysis.fallbackUsed || false, // NEW
+          semanticFallbackUsed: analysis.fallbackUsed || false,
           
           // Analysis details - ENHANCED
           analysis: {
@@ -713,13 +725,6 @@ export class Orchestrator {
           cost: aiResponse.cost,
           semanticAnalysisCost: analysis.cost || 0, // NEW
           totalCostIncludingAnalysis: (aiResponse.cost?.totalCost || 0) + (analysis.cost || 0), // NEW
-
-          compliance_metadata: enforcedResult.compliance_metadata,
-          cost_tracking: {
-            session_cost: costTracker.getSessionCost(sessionId),
-            ceiling: costTracker.getCostCeiling(mode),
-            remaining: costTracker.getCostCeiling(mode) - costTracker.getSessionCost(sessionId)
-          },
           
           // Fallback tracking
           fallbackUsed: false,
@@ -1146,33 +1151,34 @@ export class Orchestrator {
       let response, inputTokens, outputTokens;
       
       if (useClaude) {
-
-      // ========== COST CEILING CHECK ==========
-      if (useClaude && context.sessionId) {
-        const estimatedCost = costTracker.estimateClaudeCost(message, context);
-        const costCheck = costTracker.wouldExceedCeiling(context.sessionId, estimatedCost, mode);
-        
-        if (costCheck.wouldExceed) {
-          this.log(`[COST CEILING] Exceeded - Total: $${costCheck.totalCost.toFixed(4)}, Ceiling: $${costCheck.ceiling}`);
+        // ========== ADD COST CEILING CHECK RIGHT HERE ==========
+        // ========== COST CEILING CHECK ==========
+        if (context.sessionId) {
+          const estimatedCost = costTracker.estimateClaudeCost(message, context);
+          const costCheck = costTracker.wouldExceedCeiling(context.sessionId, estimatedCost, mode);
           
-          const fallbackResult = await handleCostCeiling({
-            query: message,
-            context: context,
-            reason: 'cost_ceiling_exceeded',
-            currentCost: costCheck.totalCost
-          });
+          if (costCheck.wouldExceed) {
+            this.log(`[COST CEILING] Exceeded - Total: $${costCheck.totalCost.toFixed(4)}, Ceiling: $${costCheck.ceiling}`);
+            
+            const fallbackResult = await handleCostCeiling({
+              query: message,
+              context: context,
+              reason: 'cost_ceiling_exceeded',
+              currentCost: costCheck.totalCost
+            });
+            
+            return {
+              response: fallbackResult.response,
+              model: 'cost_fallback',
+              cost: 0
+            };
+          }
           
-          return {
-            response: fallbackResult.response,
-            model: 'cost_fallback',
-            cost: 0
-          };
+          this.log(`[COST] Remaining budget: $${costCheck.remaining.toFixed(4)}`);
         }
+        // ======================================================
         
-        this.log(`[COST] Remaining budget: $${costCheck.remaining.toFixed(4)}`);
-      }
-        
-        // Call Claude
+        // Call Claude (existing code below)
         const claudeResponse = await this.anthropic.messages.create({
           model: 'claude-sonnet-4-20250514',
           max_tokens: 2000,
@@ -1252,10 +1258,10 @@ export class Orchestrator {
           context
         );
       }
-
-      console.log('🔍 [DEBUG] About to run enforcement - personality completed successfully');
-      console.log('🔍 [DEBUG] Personality result:', personalityResult.personality);
       
+      // Log what the personality framework added
+      if (personalityResult.reasoningApplied) {
+
       // ========== RUN ENFORCEMENT CHAIN ==========
       this.log('[ENFORCEMENT] Running enforcement chain...');
       const enforcedResult = await this.#runEnforcementChain(
@@ -1272,9 +1278,7 @@ export class Orchestrator {
       }
       
       // Use enforcedResult.response going forward instead of personalityResult.enhancedResponse
-      
-      // Log what the personality framework added
-      if (personalityResult.reasoningApplied) {
+        
         this.log(`[PERSONALITY] ${selection.personality.toUpperCase()} analysis applied:`);
         
         if (selection.personality === 'eli' && personalityResult.analysisApplied) {
