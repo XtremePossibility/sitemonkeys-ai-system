@@ -37,6 +37,19 @@ process.on('uncaughtException', (error) => {
 const app = express();
 addInventoryEndpoint(app);
 
+// Instant health endpoints - respond before any initialization
+app.get('/api/health', (req, res) => {
+  res.status(200).json({
+    status: 'healthy',
+    uptime: process.uptime(),
+    timestamp: new Date().toISOString()
+  });
+});
+
+app.get('/', (req, res) => {
+  res.send('Caring Family Intelligence System is active');
+});
+
 // ===== APPLICATION STARTUP MEMORY INITIALIZATION =====
 console.log('[SERVER] 🚀 Initializing memory systems at application startup...');
 
