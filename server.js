@@ -2165,12 +2165,20 @@ app.use('/api/repo-snapshot', repoSnapshotRoute);
 
 async function safeStartServer() {
   try {
-    
-    const server = app.listen(PORT, () => {
+    const server = app.listen(PORT, async () => {
       console.log(`🚀 Caring Family Intelligence System running on port ${PORT}`);
       console.log(`💙 ${FAMILY_PHILOSOPHY.core_mission}`);
       console.log(`✨ ${FAMILY_PHILOSOPHY.one_and_done_philosophy}`);
       console.log(`📁 Vault endpoint: /api/load-vault`);
+      
+      // WAIT 10 seconds before doing ANYTHING else
+      await new Promise(resolve => setTimeout(resolve, 10000));
+      console.log('[SERVER] Stability window passed, initializing background systems...');
+      
+      // NOW do memory initialization
+      initializeMemorySystem().catch(err => {
+        console.error('[SERVER] Background init failed:', err);
+      });
     });
 
     // Graceful shutdown for Railway
