@@ -470,7 +470,14 @@ Quality-first approach with caring delivery`;
       vaultStatus = 'error_fallback';
       vaultHealthy = false;
     }
-
+      
+    // DEBUG: Check vault status before health check
+console.log('🔍 VAULT DEBUG BEFORE HEALTH CHECK:');
+console.log('  vaultHealthy:', vaultHealthy);
+console.log('  vaultContent length:', vaultContent?.length || 0);
+console.log('  vaultContent preview:', vaultContent?.substring(0, 200) || 'EMPTY');
+console.log('  vaultStatus:', vaultStatus);
+      
     // === CLAMP: Prevent unhealthy vault from poisoning signatures ===
     if (!vaultHealthy || !vaultContent || vaultContent.length < 10000) {
       console.log('⚠️ Vault unhealthy or empty — enforcing safe clamp');
