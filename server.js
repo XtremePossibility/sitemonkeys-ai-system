@@ -239,7 +239,7 @@ async function extractTextFromDocx(docxBuffer) {
 /**
  * Initialize Google Drive service with credentials
  */
-async function getGoogleDriveService() {
+function getGoogleDriveService() {
   // Lazy load googleapis only when needed
   
   try {
