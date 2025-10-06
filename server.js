@@ -472,8 +472,11 @@ Quality-first approach with caring delivery`;
     }
 
     // === CLAMP: Prevent unhealthy vault from poisoning signatures ===
-    if (!vaultHealthy || !vaultContent || vaultContent.length < 500) {
+    if (!vaultHealthy || !vaultContent || vaultContent.length < 10000) {
       console.log('⚠️ Vault unhealthy or empty — enforcing safe clamp');
+      console.log('⚠️ Debug - vaultHealthy:', vaultHealthy);
+      console.log('⚠️ Debug - vaultContent length:', vaultContent?.length || 0);
+      console.log('⚠️ Debug - vaultStatus:', vaultStatus);
       vaultHealthy = false;
       vaultContent = `SITE MONKEYS FALLBACK LOGIC:
     Pricing: Boost $697, Climb $1,497, Lead $2,997
