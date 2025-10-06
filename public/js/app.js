@@ -267,23 +267,25 @@ async function sendMessage() {
 
 // TOKEN AND COST DISPLAY FUNCTIONS
 function updateTokenDisplay(tokenData) {
-  console.log('💰 DISPLAY DEBUG:', tokenData);
+  console.log('🔵 DISPLAY DEBUG:', tokenData);
   try {
-    // Target the exact elements by their IDs from the HTML
-    const tokenCountElement = document.getElementById('token-count');
-    const costEstimateElement = document.getElementById('cost-estimate');
+    const tokenCountElement = document.getElementById('session-token-count');
+    const costEstimateElement = document.getElementById('session-cost-estimate');
+    const requestCountElement = document.getElementById('session-request-count');
     
     if (tokenCountElement) {
       tokenCountElement.textContent = tokenData.session_total_tokens || 0;
-      tokenCountElement.style.color = '#00ff41';
       console.log('[COST] Updated token count');
     }
     
     if (costEstimateElement) {
       const sessionCost = (tokenData.session_total_cost || 0).toFixed(4);
       costEstimateElement.textContent = `$${sessionCost}`;
-      costEstimateElement.style.color = '#00ff41';
       console.log('[COST] Updated cost estimate');
+    }
+    
+    if (requestCountElement) {
+      requestCountElement.textContent = tokenData.session_request_count || 0;
     }
     
   } catch (error) {
