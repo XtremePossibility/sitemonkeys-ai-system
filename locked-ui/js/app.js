@@ -121,7 +121,7 @@ async function sendMessage() {
       vault_content: vaultContent || null,
       document_context: lastDoc ? {
         filename: lastDoc.filename || '',
-        content: lastDoc.fullText || lastDoc.content || '',  // ← FIXED: sends full text
+        content: lastDoc.fullContent || lastDoc.content || '',
         fullContent: lastDoc.fullText || '',  // ← Also add this for backend compatibility
         wordCount: lastDoc.wordCount || 0,
         contentType: lastDoc.contentType || '',
