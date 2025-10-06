@@ -21,7 +21,7 @@
   },
   "scripts": {
     "fix-database": "node fix_database.js",
-    "start": "node --trace-warnings server.js",
+    "start": "node server.js",
     "test-intelligence": "node test-intelligence-system.js",
     "validate-deployment": "node deploy-intelligence-upgrade.js"
   },
