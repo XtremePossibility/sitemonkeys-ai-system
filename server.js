@@ -884,16 +884,22 @@ if (global.memorySystem && typeof global.memorySystem.storeMemory === 'function'
     });
 
   } catch (error) {
-    console.error('Caring Family System Error:', error);
-    
-    res.json({
-      response: generateEmergencyCaringResponse(error),
-      mode_active: req.body.mode || 'site_monkeys',
-      error_handled: true,
-      emergency_mode: true,
-      enforcement_applied: ['emergency_caring_response_active', 'truth_first_maintained']
-    });
-  }
+  console.error('Caring Family System Error:', error);
+  
+  res.json({
+    response: generateEmergencyCaringResponse(error),
+    mode_active: req.body.mode || 'site_monkeys',
+    error_handled: true,
+    emergency_mode: true,
+    enforcement_applied: ['emergency_caring_response_active', 'truth_first_maintained'],
+    token_usage: {
+      session_total_tokens: sessionStats.totalTokens,
+      session_total_cost: sessionStats.totalCost,
+      session_request_count: sessionStats.requestCount,
+      session_duration_minutes: Math.round((Date.now() - sessionStats.sessionStart) / 60000)
+    }
+  });
+}
 });
 
 // CORE INTELLIGENCE FUNCTIONS (keeping all your existing functions exactly the same)
