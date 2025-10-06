@@ -489,6 +489,8 @@ app.post('/api/chat', async (req, res) => {
     let vaultStatus = 'not_loaded';
     let vaultHealthy = false;
 
+    if (mode === 'site_monkeys') {
+
     try {
       if (vault_content && typeof vault_content === 'string' && vault_content.trim().length > 100) {
         vaultContent = vault_content;
@@ -516,6 +518,7 @@ app.post('/api/chat', async (req, res) => {
       vaultStatus = 'error_fallback';
       vaultHealthy = false;
     }
+  }
       
     // DEBUG: Check vault status before health check
 console.log('🔍 VAULT DEBUG BEFORE HEALTH CHECK:');
