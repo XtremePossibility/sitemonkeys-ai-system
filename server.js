@@ -183,7 +183,18 @@ const callOpenAI = async (payload) => {
 app.all('/api/load-vault', async (req, res) => {
   try {
 
+    // Allow vault loading, with manual refresh capability
     const manual = req.query.manual === 'true' || req.body?.manual === true;
+    const isRefresh = req.query.refresh === 'true';
+    
+    // If it's a refresh request, it must be manual
+    if (isRefresh && !manual) {
+      return res.json({
+        status: 'skipped',
+        reason: 'refresh_requires_manual',
+        message: 'Vault refresh requires ?manual=true'
+      });
+    }
     
     // Check if request is for Site Monkeys mode only
     const mode = req.body.mode || req.query.mode || 'site_monkeys';
