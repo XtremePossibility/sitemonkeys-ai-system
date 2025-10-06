@@ -420,6 +420,8 @@ app.post('/api/chat', async (req, res) => {
     const startTime = Date.now();
     let totalCost = 0;
     
+    console.log('🔴 CHAT ENDPOINT HIT - vault_content received:', req.body.vault_content?.length || 0);
+    
     try {
         console.log('\n🚀 [CHAT] New conversation request received');
      
