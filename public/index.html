@@ -1232,8 +1232,15 @@ async function sendMessage() {
     }
 
     const data = await response.json();
+    
     const reply = data.response || 'No response received';
-
+    // Update token counter
+    if (data.token_usage) {
+      const tokenEl = document.getElementById('token-count');
+      const costEl = document.getElementById('cost-estimate');
+      if (tokenEl) tokenEl.textContent = data.token_usage.session_total_tokens || 0;
+      if (costEl) costEl.textContent = '$' + (data.token_usage.session_total_cost || 0).toFixed(4);
+    }
     // Clean the AI response - remove ALL system fingerprints
     let cleanReply = reply
       .replace(/^\*?\*?(Eli|Roxy):\*?\*?\s*/i, '') 
