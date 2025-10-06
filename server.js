@@ -451,22 +451,26 @@ app.post('/api/chat', async (req, res) => {
       if (vault_content && typeof vault_content === 'string' && vault_content.trim().length > 100) {
         vaultContent = vault_content;
         vaultStatus = 'loaded_from_frontend';
-        vaultHealthy = true;
+        vaultHealthy = (vaultContent.length >= 10000);  // ← Base healthy flag on actual content length
+        console.log(`✅ Vault loaded from frontend: ${vaultContent.length} chars, healthy: ${vaultHealthy}`);
       } else if (process.env.VAULT_CONTENT) {
         vaultContent = process.env.VAULT_CONTENT;
         vaultStatus = 'loaded_from_environment';
-        vaultHealthy = true;
+        vaultHealthy = (vaultContent.length >= 10000);  // ← Base healthy flag on actual content length
+        console.log(`✅ Vault loaded from environment: ${vaultContent.length} chars, healthy: ${vaultHealthy}`);
       } else {
         vaultStatus = 'fallback_mode';
         vaultContent = `SITE MONKEYS FALLBACK LOGIC:
-Pricing: Boost $697, Climb $1,497, Lead $2,997
-Minimum 85% margins required for all projections
-Professional service standards maintained
-Quality-first approach with caring delivery`;
+    Pricing: Boost $697, Climb $1,497, Lead $2,997
+    Minimum 85% margins required for all projections
+    Professional service standards maintained
+    Quality-first approach with caring delivery`;
         vaultHealthy = false;
+        console.log('⚠️ No vault found, using fallback');
       }
       vaultTokens = Math.ceil(vaultContent.length / 4);
     } catch (error) {
+      console.error('❌ Vault loading error:', error);
       vaultStatus = 'error_fallback';
       vaultHealthy = false;
     }
