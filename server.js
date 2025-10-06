@@ -180,12 +180,6 @@ const callOpenAI = async (payload) => {
 
 };
 
-const gzip = promisify(zlib.gzip);
-const gunzip = promisify(zlib.gunzip);
-
-// Vault folder ID
-const VAULT_FOLDER_ID = "1LAkbqjN7g-HJV9BRWV-AsmMpY1JzJiIM";
-
 app.all('/api/load-vault', async (req, res) => {
   try {
     // Block auto vault loads - only allow explicit manual requests
