@@ -16,7 +16,7 @@ async function loadVaultOnDemand() {
   console.log('🔄 Loading vault on demand for Site Monkeys mode...');
   
   try {
-    const vaultResponse = await fetch('/api/load-vault?refresh=true');
+    const vaultResponse = await fetch('/api/load-vault?refresh=true&manual=true');
     const vaultData = await vaultResponse.json();
     const vaultContent = vaultData.vault_content || '';
     
@@ -43,7 +43,7 @@ window.vaultStatus = { loaded: false, healthy: false, tokens: 0 };
 async function improvedRefreshVault() {
   console.log('🔄 Refresh vault button clicked...');
   try {
-    const response = await fetch('/api/load-vault?refresh=true');
+    const response = await fetch('/api/load-vault?refresh=true&manual=true');
     const data = await response.json();
     
     // CACHE THE VAULT CONTENT FOR CHAT
@@ -171,10 +171,6 @@ async function sendMessage() {
 
     if (systemVerification.fallback_used) {
       console.warn('⚠️ Fallback response used - system may be under stress');
-    }
-
-    if (!systemVerification.security_pass && isVaultMode()) {
-      console.error('🚨 Security check failed for vault access');
     }
 
     // Show debug info in dev mode
