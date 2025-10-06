@@ -11,7 +11,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 // Lazy load googleapis to avoid 200-600MB memory spike at startup
-let google;
+import { google } from 'googleapis';
 import axios from 'axios';
 import JSZip from 'jszip';
 import xml2js from 'xml2js';
@@ -241,10 +241,6 @@ async function extractTextFromDocx(docxBuffer) {
  */
 async function getGoogleDriveService() {
   // Lazy load googleapis only when needed
-  if (!google) {
-    const googleapis = await import('googleapis');
-    google = googleapis.google;
-  }
   
   try {
     const credsJson = process.env.GOOGLE_CREDENTIALS_JSON;
