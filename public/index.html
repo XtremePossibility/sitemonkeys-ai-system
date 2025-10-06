@@ -1101,7 +1101,7 @@ async function refreshVault() {
     button.innerHTML = '⏳ Refreshing...';
     button.disabled = true;
 
-    const response = await fetch('/api/load-vault?refresh=true', {
+    const response = await fetch('/api/load-vault?refresh=true&manual=true', {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' }
     });
