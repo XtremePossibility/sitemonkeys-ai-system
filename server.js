@@ -208,8 +208,6 @@ app.all('/api/load-vault', async (req, res) => {
       });
     }
     
-    const isRefresh = req.query.refresh === 'true';
-    
     if (isRefresh) {
       console.log("🔄 Refresh requested - dynamically loading vault module...");
       
