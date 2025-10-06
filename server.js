@@ -415,6 +415,50 @@ let familyMemory = {
 app.post('/api/upload-for-analysis', analysisMiddleware, handleAnalysisUpload);
 app.post('/api/upload-file', uploadMiddleware, handleFileUpload);
 
+// DATABASE CLEANUP ENDPOINT - Remove signature pollution from memories
+app.get('/api/admin/clean-memories', async (req, res) => {
+  // Security check - only allow with secret key
+  const adminKey = req.query.key;
+  if (adminKey !== process.env.ADMIN_KEY && adminKey !== 'cleanup2024secure') {
+    return res.status(403).json({ error: 'Unauthorized' });
+  }
+
+  try {
+    const { Pool } = await import('pg');
+    const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+
+    // Clean FALLBACK ANALYSIS signatures
+    const result1 = await pool.query(`
+      UPDATE persistent_memories 
+      SET content = REGEXP_REPLACE(content, '🚨 FALLBACK ANALYSIS[^\n]*', '', 'g')
+      WHERE content LIKE '%FALLBACK ANALYSIS%'
+      RETURNING id
+    `);
+
+    // Clean PROFESSIONAL ANALYSIS signatures  
+    const result2 = await pool.query(`
+      UPDATE persistent_memories 
+      SET content = REGEXP_REPLACE(content, '📁 PROFESSIONAL ANALYSIS[^\n]*', '', 'g')
+      WHERE content LIKE '%PROFESSIONAL ANALYSIS%'
+      RETURNING id
+    `);
+
+    await pool.end();
+
+    res.json({
+      success: true,
+      cleaned: {
+        fallback_signatures: result1.rowCount,
+        professional_signatures: result2.rowCount,
+        total_memories_cleaned: result1.rowCount + result2.rowCount
+      }
+    });
+
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // MAIN CHAT ENDPOINT
 app.post('/api/chat', async (req, res) => {
     const startTime = Date.now();
