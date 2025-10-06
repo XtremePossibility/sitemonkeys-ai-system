@@ -1094,9 +1094,10 @@ const currentCost = document.getElementById('cost-estimate')?.textContent || '$0
   }
 }
 
-// Refresh vault function
 async function refreshVault() {
   try {
+    const currentTokens = document.getElementById('token-count')?.textContent || 'Ready';
+    const currentCost = document.getElementById('cost-estimate')?.textContent || '$0.00';
     console.log('🔄 Refreshing vault...');
     const button = document.getElementById('refresh-vault-btn');
     const originalText = button.innerHTML;
@@ -1117,8 +1118,8 @@ async function refreshVault() {
     if (data.status === 'refreshed') {
       document.getElementById('vault-info').innerHTML = `
         <div><span style="color:#00FF00;">✅</span> VAULT REFRESHED</div>
-        <div>🔢 <span id="token-count">${data.tokens || 'Ready'}</span> TOKENS</div>
-        <div>💰 EST. COST: <span id="cost-estimate">${data.estimated_cost || '$0.00'}</span></div>
+        <div>🔢 <span id="token-count">${currentTokens}</span> TOKENS</div>
+        <div>💰 EST. COST: <span id="cost-estimate">${currentCost}</span></div>
         <div>📁 <span id="vault-folders">${data.folders_loaded?.length || 0}</span> FOLDERS LOADED</div>
         <button id="refresh-vault-btn" onclick="debouncedRefreshVault()" style="background: #FFD811; color: #373534; border: 1px solid #fff; border-radius: 8px; padding: 8px 12px; font-size: 0.8em; font-weight: bold; cursor: pointer; margin-top: 8px; width: 100%; transition: all 0.2s ease;" onmouseover="this.style.background='#ffe96a'" onmouseout="this.style.background='#FFD811'">🔄 Refresh Vault</button>`;
     } else {
