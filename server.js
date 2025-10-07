@@ -593,13 +593,13 @@ if (!persistentMemory.isReady()) {
 
 console.log('[CHAT] ✅ Memory systems ready');
 
-    // COMPREHENSIVE INTELLIGENCE ANALYSIS    
-    //const expertDomain = identifyExpertDomain(message);
-    //const careNeeds = analyzeCareNeeds(message, conversation_history);
-    //const protectiveAlerts = scanForRisks(message, expertDomain);
-    //const solutionOpportunities = findSolutions(message, expertDomain, protectiveAlerts);
-    //const politicalContent = detectPoliticalContent(message);
-    //const quantitativeNeeds = requiresQuantitativeAnalysis(message);
+    // INTELLIGENCE ANALYSIS - Simplified for principle-based reasoning
+    const expertDomain = { domain: 'general_advisory', title: 'Expert Advisor' };
+    const careNeeds = { level: 'standard' };
+    const protectiveAlerts = [];
+    const solutionOpportunities = [];
+    
+    const politicalContent = detectPoliticalContent(message);
     
     // POLITICAL NEUTRALITY ENFORCEMENT
     if (politicalContent.requiresNeutralityResponse) {
@@ -612,10 +612,10 @@ console.log('[CHAT] ✅ Memory systems ready');
       });
     }
 
-    // OPTIMAL PERSONALITY SELECTION
-    const personality = selectCaringPersonality(expertDomain, careNeeds, protectiveAlerts);
-    const prideMotivation = calculatePrideLevel(protectiveAlerts, solutionOpportunities, careNeeds);
-
+    // PERSONALITY SELECTION - Simplified
+    const personality = lastPersonality === 'eli' ? 'roxy' : 'eli';
+    lastPersonality = personality;
+    
     conversationCount++;
 
     // COST PROTECTION FOR CLAUDE
