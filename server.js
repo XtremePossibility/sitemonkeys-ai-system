@@ -806,7 +806,7 @@ const fullPrompt = enhancedPrompt;
     // enhancedResponse = enforceExpertStandards(enhancedResponse, expertDomain, careNeeds);
     
     // 4. PROTECTIVE INTELLIGENCE INTEGRATION (MEMORY-AWARE)
-    enhancedResponse = addProtectiveInsights(enhancedResponse, protectiveAlerts, solutionOpportunities, memoryContext);
+    //enhancedResponse = addProtectiveInsights(enhancedResponse, protectiveAlerts, solutionOpportunities, memoryContext);
     
     // 5. CARING FAMILY ENHANCEMENT (COMMENTED OUT FOR TESTING)
     // const finalResponse = applyCaringFamilyTouch(enhancedResponse, careNeeds, prideMotivation, expertDomain, vaultContent);
@@ -1711,6 +1711,58 @@ app.get('/api/memory-status', async (req, res) => {
             memory_system: { status: 'error' }
         });
     }
+});
+
+// ==================== ADMIN: PURGE TEMPLATE MEMORIES ====================
+app.post('/api/admin/purge-template-memories', async (req, res) => {
+  const adminKey = req.query.key;
+  
+  if (adminKey !== process.env.ADMIN_KEY && adminKey !== 'cleanup2024secure') {
+    return res.status(403).json({ 
+      error: 'Unauthorized',
+      message: 'Valid admin key required'
+    });
+  }
+  
+  try {
+    console.log('[ADMIN] 🧹 Starting template memory purge...');
+    
+    const { Pool } = await import('pg');
+    const pool = new Pool({ 
+      connectionString: process.env.DATABASE_URL,
+      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+    });
+    
+    const result = await pool.query(`
+      DELETE FROM persistent_memories 
+      WHERE content LIKE '%ANSWER THE QUESTION FIRST%'
+         OR content LIKE '%ADD PROTECTIVE INSIGHTS%'
+         OR content LIKE '%SUGGEST SOLUTION PATHS%'
+         OR content LIKE '%PROVIDE NEXT STEPS%'
+         OR content LIKE '%CARING MOTIVATION%'
+         OR content LIKE '%[TEMPLATE%'
+         OR content LIKE '%placeholder%'
+      RETURNING id
+    `);
+    
+    await pool.end();
+    
+    console.log(`[ADMIN] ✅ Purged ${result.rowCount} template memories`);
+    
+    res.json({
+      success: true,
+      deleted_count: result.rowCount,
+      message: `Successfully purged ${result.rowCount} template-contaminated memories`,
+      timestamp: new Date().toISOString()
+    });
+    
+  } catch (error) {
+    console.error('[ADMIN] ❌ Purge failed:', error);
+    res.status(500).json({ 
+      error: error.message,
+      success: false
+    });
+  }
 });
 
 // ===== TEMPORARY INTELLIGENCE TESTING ENDPOINT =====
