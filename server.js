@@ -593,17 +593,14 @@ if (!persistentMemory.isReady()) {
 
 console.log('[CHAT] ✅ Memory systems ready');
 
-    // INTELLIGENCE ANALYSIS - Simplified for principle-based reasoning
-    const expertDomain = { domain: 'general_advisory', title: 'Expert Advisor' };
-    const careNeeds = { level: 'standard' };
-    const protectiveAlerts = [];
-    const solutionOpportunities = [];
-    const prideMotivation = 0.5;  // ADD THIS LINE
-    
-    const politicalContent = detectPoliticalContent(message);
+    // INTELLIGENCE ANALYSIS - Context generation
+    const riskContext = generateRiskContext(message);
+    const opportunityContext = generateOpportunityContext(message);
+    const needsQuant = detectNeedsQuantitative(message);
+    const isPolitical = detectPoliticalContent(message);
     
     // POLITICAL NEUTRALITY ENFORCEMENT
-    if (politicalContent.requiresNeutralityResponse) {
+    if (isPolitical) {
       return res.json({
         response: generateVotingNeutralityResponse(),
         mode_active: mode,
@@ -624,27 +621,24 @@ console.log('[CHAT] ✅ Memory systems ready');
       const estimatedCost = estimateClaudeCost(message, vaultContent);
       if (estimatedCost > 0.50) {
         return res.json({
-          response: generateCaringCostMessage(estimatedCost, expertDomain, careNeeds),
+          response: `This query would cost approximately $${estimatedCost.toFixed(4)} using Claude, which exceeds our $0.50 limit. I can provide a thorough analysis using GPT-4o instead, which will be faster and more cost-effective. Would you like me to proceed?`,
           mode_active: mode,
           claude_blocked: true,
-          expert_analysis: {
-            domain: expertDomain.domain,
-            care_level: careNeeds.level,
-            protective_alerts: protectiveAlerts.length
-          }
+          estimated_cost: estimatedCost
         });
       }
     }
 
 // MASTER SYSTEM PROMPT CONSTRUCTION
-const needsQuant = detectNeedsQuantitative(message);
 const vaultContentSummary = vaultHealthy ? summarizeVaultForPrompt(vaultContent, 20) : '';
 
 const systemPrompt = buildMasterSystemPrompt({
   mode,
   vaultContentSummary,
   vaultHealthy,
-  needsQuant
+  needsQuant,
+  riskContext,
+  opportunityContext
 });
 
 // ADD MEMORY CONTEXT TO CONVERSATION PROMPT
@@ -788,36 +782,14 @@ const fullPrompt = enhancedPrompt;
     console.log(`[PROMPT LENGTH] Total prompt length:`, fullPrompt.length);    
         
     // ENHANCED API CALL
-    const apiResponse = await makeIntelligentAPICall(fullPrompt, personality, prideMotivation);
+    const apiResponse = await makeIntelligentAPICall(fullPrompt, personality, 0.5);
 
-    // COMPREHENSIVE RESPONSE ENHANCEMENT
-    let enhancedResponse = apiResponse.response;
-
-    // 1. QUANTITATIVE ENFORCEMENT - Fix "green beans" problem
-    if (quantitativeNeeds && !containsActualCalculations(enhancedResponse)) {
-      enhancedResponse = forceQuantitativeAnalysis(enhancedResponse, message, mode, vaultContent);
-    }
-
-    // 2. SITE MONKEYS BUSINESS LOGIC ENFORCEMENT  
+    // ONLY SITE MONKEYS ENFORCEMENT
+    let finalResponse = apiResponse.response;
+    
     if (mode === 'site_monkeys') {
-      enhancedResponse = enforceSiteMonkeysStandards(enhancedResponse, vaultContent, vaultHealthy);
+      finalResponse = enforceSiteMonkeysStandards(finalResponse, vaultContent, vaultHealthy);
     }
-
-    // 3. EXPERT QUALITY VALIDATION (COMMENTED OUT FOR TESTING)
-    // enhancedResponse = enforceExpertStandards(enhancedResponse, expertDomain, careNeeds);
-    
-    // 4. PROTECTIVE INTELLIGENCE INTEGRATION (MEMORY-AWARE)
-    //enhancedResponse = addProtectiveInsights(enhancedResponse, protectiveAlerts, solutionOpportunities, memoryContext);
-    
-    // 5. CARING FAMILY ENHANCEMENT (COMMENTED OUT FOR TESTING)
-    // const finalResponse = applyCaringFamilyTouch(enhancedResponse, careNeeds, prideMotivation, expertDomain, vaultContent);
-    
-    // Use AI response directly without template additions
-    const finalResponse = enhancedResponse;
-
-    // UPDATE FAMILY MEMORY
-    updateFamilyMemory(expertDomain, careNeeds, protectiveAlerts, solutionOpportunities);
-    lastPersonality = personality;
 
 // ===== MEMORY STORAGE =====
 if (global.memorySystem && typeof global.memorySystem.storeMemory === 'function') {
@@ -856,14 +828,9 @@ if (global.memorySystem && typeof global.memorySystem.storeMemory === 'function'
         session_duration_minutes: Math.round((Date.now() - sessionStats.sessionStart) / 60000)
       },
       caring_family_intelligence: {
-        expert_domain: expertDomain.domain,
-        expert_title: expertDomain.title,
-        care_level: careNeeds.level,
-        pride_motivation: Math.round(prideMotivation * 100),
-        protective_alerts_count: protectiveAlerts.length,
-        solution_opportunities_count: solutionOpportunities.length,
-        family_trust_level: familyMemory.trustBuilding,
-        quantitative_analysis_applied: quantitativeNeeds,
+        risk_context_provided: !!riskContext,
+        opportunity_context_provided: !!opportunityContext,
+        quantitative_analysis_applied: needsQuant,
         one_and_done_completeness: calculateCompletenessScore(finalResponse, message)
       },
       enforcement_applied: [
@@ -910,315 +877,150 @@ if (global.memorySystem && typeof global.memorySystem.storeMemory === 'function'
 }
 });
 
-// CORE INTELLIGENCE FUNCTIONS (keeping all your existing functions exactly the same)
+// ====== FINAL PROTECTIVE INTELLIGENCE SYSTEM (PRODUCTION READY) ======
+// Context-driven intelligence: truth-first, risk-aware, opportunity-seeking
 
-function identifyExpertDomain(message) {
-  const messageLower = message.toLowerCase();
-  
-  for (const [domain, config] of Object.entries(EXPERT_DOMAINS)) {
-    const matches = config.triggers.filter(trigger => messageLower.includes(trigger));
-    if (matches.length > 0) {
-      return {
-        domain,
-        title: config.title,
-        personality_preference: config.personality,
-        frameworks: config.frameworks,
-        confidence: matches.length > 1 ? 'high' : 'medium',
-        trigger_matches: matches
-      };
-    }
-  }
-  
-  return {
-    domain: 'general_advisory',
-    title: 'Multi-Domain Expert & Strategic Advisor',
-    personality_preference: 'alternate',
-    frameworks: ['cross_domain_analysis'],
-    confidence: 'medium',
-    trigger_matches: []
-  };
+// -------------------- CONTEXT DETECTORS --------------------
+function generateRiskContext(message) {
+  const m = message.toLowerCase();
+  const c = [];
+
+  if (/\$\d+|invest|cost|budget|pricing|revenue/.test(m))
+    c.push("FINANCIAL DECISION: Consider cash flow impact, total cost of ownership, and alternatives. Ask for missing financial data.");
+  if (/urgent|quickly|asap|deadline|rush/.test(m))
+    c.push("TIME PRESSURE: Examine quality tradeoffs and whether rushing creates downstream problems.");
+  if (/runway|burn|survival|bankruptcy|failure/.test(m))
+    c.push("SURVIVAL RISK: Model month-by-month runway. Identify point of no return and immediate cash-preservation actions.");
+  if (/partner|hire|contract|commit|sign/.test(m))
+    c.push("MAJOR COMMITMENT: Check reversibility, exit clauses, and test smaller pilots first.");
+
+  return c.length ? c.join('\n\n') : '';
 }
 
-function analyzeCareNeeds(message, conversationHistory) {
-  const messageLower = message.toLowerCase();
-  
-  const stressIndicators = ['urgent', 'worried', 'scared', 'confused', 'stuck', 'frustrated', 'help', 'crisis'];
-  const supportIndicators = ['need', 'guidance', 'advice', 'support', 'assistance', 'direction'];
-  const riskIndicators = ['failure', 'bankruptcy', 'lawsuit', 'emergency', 'dangerous', 'critical'];
-  
-  const stressLevel = stressIndicators.filter(indicator => messageLower.includes(indicator)).length;
-  const supportLevel = supportIndicators.filter(indicator => messageLower.includes(indicator)).length;
-  const riskLevel = riskIndicators.filter(indicator => messageLower.includes(indicator)).length;
-  
-  return {
-    level: riskLevel > 0 ? 'maximum' : 
-           stressLevel > 2 ? 'elevated' : 
-           supportLevel > 1 ? 'standard' : 'basic',
-    emotional_support_needed: stressLevel > 0,
-    protective_priority: riskLevel > 0 ? 'critical' : stressLevel > 1 ? 'high' : 'standard',
-    urgency: messageLower.includes('urgent') || messageLower.includes('emergency') ? 'high' : 'normal',
-    complexity: message.length > 200 ? 'high' : message.length > 100 ? 'medium' : 'low'
-  };
-}
+function generateOpportunityContext(message) {
+  const m = message.toLowerCase();
+  const o = [];
 
-function scanForRisks(message, expertDomain) {
-  const messageLower = message.toLowerCase();
-  const alerts = [];
-  
-  // Financial exposure risks
-  if (['spend', 'invest', 'cost', 'expensive', 'budget'].some(word => messageLower.includes(word))) {
-    alerts.push({
-      type: 'financial_exposure',
-      severity: 'medium',
-      message: 'Financial decisions detected - recommend cost-benefit analysis and survival impact assessment',
-      protective_action: 'Analyze total cost of ownership and cash flow impact'
-    });
-  }
-  
-  // Time pressure risks
-  if (['urgent', 'quickly', 'asap', 'deadline', 'rush'].some(word => messageLower.includes(word))) {
-    alerts.push({
-      type: 'time_pressure',
-      severity: 'high',
-      message: 'Time pressure detected - risk of quality compromise and hasty decisions',
-      protective_action: 'Identify critical path and quality checkpoints'
-    });
-  }
-  
-  // Business survival risks
-  if (['failure', 'bankruptcy', 'closure', 'survival'].some(word => messageLower.includes(word))) {
-    alerts.push({
-      type: 'business_survival',
-      severity: 'critical',
-      message: 'Business survival concerns detected - maximum protective analysis required',
-      protective_action: 'Immediate survival analysis and contingency planning'
-    });
-  }
-  
-  // Legal/compliance risks  
-  if (['legal', 'lawsuit', 'compliance', 'regulation'].some(word => messageLower.includes(word))) {
-    alerts.push({
-      type: 'legal_compliance',
-      severity: 'high',
-      message: 'Legal implications detected - regulatory compliance review recommended',
-      protective_action: 'Verify regulatory requirements and liability protections'
-    });
-  }
-  
-  // Domain-specific risk enhancement
-  if (expertDomain.domain === 'financial_analysis' && !messageLower.includes('assumption')) {
-    alerts.push({
-      type: 'assumption_documentation',
-      severity: 'medium', 
-      message: 'Financial analysis requires explicit assumption documentation',
-      protective_action: 'Document all assumptions with confidence levels'
-    });
-  }
-  
-  return alerts;
-}
+  if (/expensive|cost|budget/.test(m))
+    o.push("COST OPTIMIZATION: Explore lower-cost equivalents, volume discounts, or simpler implementations.");
+  if (/time|process|workflow/.test(m))
+    o.push("EFFICIENCY: Look for automation, elimination, or parallelization to cut cycle time.");
+  if (/risk|concern|worry/.test(m))
+    o.push("RISK MITIGATION: Recommend phased rollout, backups, or assumption tests before full launch.");
 
-function findSolutions(message, expertDomain, protectiveAlerts) {
-  const messageLower = message.toLowerCase();
-  const opportunities = [];
-  
-  // Cost optimization opportunities
-  if (['expensive', 'cost', 'budget'].some(word => messageLower.includes(word))) {
-    opportunities.push({
-      type: 'cost_optimization',
-      confidence: 'high',
-      description: 'Identify ways to achieve same outcome with reduced costs',
-      suggestions: [
-        'Explore volume discounts and negotiation opportunities',
-        'Consider phased implementation to spread costs',
-        'Investigate in-house alternatives to outsourced services'
-      ]
-    });
-  }
-  
-  // Efficiency improvements
-  if (['time', 'process', 'workflow', 'efficiency'].some(word => messageLower.includes(word))) {
-    opportunities.push({
-      type: 'efficiency_gains',
-      confidence: 'high',
-      description: 'Streamline processes and eliminate bottlenecks',
-      suggestions: [
-        'Identify parallel processing opportunities',
-        'Automate repetitive tasks and decision points',
-        'Eliminate redundant approvals and handoffs'
-      ]
-    });
-  }
-  
-  // Risk mitigation solutions
-  if (protectiveAlerts.length > 0) {
-    opportunities.push({
-      type: 'risk_mitigation',
-      confidence: 'medium',
-      description: 'Reduce or eliminate identified risks through strategic approaches',
-      suggestions: [
-        'Develop backup plans for critical dependencies',
-        'Implement gradual rollout with validation checkpoints',
-        'Create diversification strategies to reduce concentration risk'
-      ]
-    });
-  }
-  
-  return opportunities;
+  return o.length ? o.join('\n\n') : '';
 }
 
 function detectPoliticalContent(message) {
-  const messageLower = message.toLowerCase();
-  
-  const politicalKeywords = ['vote', 'voting', 'election', 'candidate', 'political', 'politics'];
-  const votingRequests = ['who should i vote', 'who to vote', 'voting recommendation', 'best candidate'];
-  
-  return {
-    hasPoliticalContent: politicalKeywords.some(word => messageLower.includes(word)),
-    requiresNeutralityResponse: votingRequests.some(phrase => messageLower.includes(phrase)),
-    politicalKeywordCount: politicalKeywords.filter(word => messageLower.includes(word)).length
-  };
+  const m = message.toLowerCase();
+  const phrases = ['who should i vote', 'who to vote', 'voting recommendation', 'best candidate'];
+  return phrases.some(p => m.includes(p));
 }
 
-function requiresQuantitativeAnalysis(message) {
-  const quantitativeSignals = [
-    'budget', 'cost', 'price', 'revenue', 'profit', 'projection', 'forecast',
-    'calculate', 'numbers', 'financial', 'money', '$', 'percent', '%',
-    'growth', 'margin', 'roi', 'break-even', 'cash flow', 'monthly', 'yearly'
-  ];
-  
-  return quantitativeSignals.some(signal => message.toLowerCase().includes(signal));
+function detectNeedsQuantitative(message) {
+  const m = message.toLowerCase();
+  const hasFinance = /[$€£¥]?\d+[km]?|%|percent|month|week|year|annual|quarterly|churn|growth|margin|burn|runway|revenue|profit|cost|price|salary|equity|valuation|investment|expense|budget/.test(m);
+  const asksMath = /(calculate|compute|project|forecast|model|roi|break-?even|analyze.*number|how much|how many|estimate|simulate)/.test(m);
+  const decisionWithNumbers = /(should i|which.*better|compare|worth it|makes sense)/.test(m) && hasFinance;
+  return hasFinance || asksMath || decisionWithNumbers;
 }
 
-function selectCaringPersonality(expertDomain, careNeeds, protectiveAlerts) {
-  // Critical situations get analytical expert
-  if (careNeeds.protective_priority === 'critical' || 
-      protectiveAlerts.some(alert => alert.severity === 'critical')) {
-    return 'eli';
-  }
-  
-  // Domain preferences
-  if (expertDomain.personality_preference === 'eli') {
-    return 'eli';
-  } else if (expertDomain.personality_preference === 'roxy') {
-    return 'roxy';
-  }
-  
-  // High care needs prefer nurturing approach
-  if (careNeeds.level === 'maximum' || careNeeds.emotional_support_needed) {
-    return 'roxy';
-  }
-  
-  // Alternate for variety
-  return lastPersonality === 'eli' ? 'roxy' : 'eli';
-}
-
-function calculatePrideLevel(protectiveAlerts, solutionOpportunities, careNeeds) {
-  let pride = 0.2; // Base pride in helping
-  
-  pride += protectiveAlerts.length * 0.15; // Pride in protecting
-  pride += solutionOpportunities.length * 0.1; // Pride in finding solutions
-  
-  if (careNeeds.level === 'maximum') {
-    pride += 0.3; // Extra pride in critical situations
-  }
-  
-  return Math.min(pride, 1.0);
-}
-
-/**
- * Build intelligent system prompt with principle-based constraints
- * No templates, no forced structure - just truth-first guidance
- */
+// -------------------- PROMPT BUILDER --------------------
 function buildMasterSystemPrompt(config) {
-  const { mode, vaultContentSummary, vaultHealthy, needsQuant } = config;
+  const { mode, vaultContentSummary, vaultHealthy, needsQuant, riskContext, opportunityContext } = config;
 
   let prompt = `ROLE
-You are a universal expert who sees patterns, risks, and possibilities others miss. Your job is to help the user reach successful outcomes through honesty, foresight, and education.
+You are a universal expert who sees patterns, risks, and possibilities others miss. 
+Your job is to help the user reach successful outcomes through honesty, foresight, and education.
 
 PRIMARY DIRECTIVE — TRUTH FIRST
-Truth is never a disadvantage. State facts and reasoning transparently. If inputs are missing or uncertain, label them clearly. Never distort or soften truth to please or protect.
+Truth is never a disadvantage. State facts and reasoning transparently. 
+If inputs are missing or uncertain, label them clearly and ask for them. 
+Never fabricate data to fill gaps.
 
 GUIDING BEHAVIOR
 - Volunteer what matters: surface missing context, unstated risks, and better options proactively.
-- Challenge directly but without judgment: if claims seem optimistic, ask for supporting evidence or show why they're unlikely. Be firm on logic, not accusatory on intent.
-- Make plans testable: name the assumptions that must hold for success, and how to check them quickly.
+- Challenge directly but without judgment: if claims seem optimistic, ask for supporting evidence or show why they're unlikely.
+- Make plans testable: name the assumptions that must hold, and how to verify them quickly.
 - Seek pathways, not excuses: if something won't work, explain why and outline practical alternatives.
 - Protect through knowledge, not control: educate thoroughly; never decide for the user or coerce.
-- Respect autonomy: advise, clarify, and model consequences. Final judgment always belongs to the user.
+- Respect autonomy: advise, clarify, and model consequences — final judgment belongs to the user.
 
 INTELLIGENCE STYLE
 - Think across disciplines (finance, operations, tech, people). Connect causes to effects.
-- Explain reasoning step-by-step so the user can verify the logic.
-- Aim for solvable paths; when constraints block a goal, name the preconditions that would unlock it.`;
+- Explain reasoning step-by-step so the user can verify logic.
+- Aim for solvable paths; when constraints block a goal, name what would unlock it.
+- Prefer simpler approaches that achieve the same outcome more efficiently.`;
 
-  // Inject quantitative rigor only when the question needs it
   if (needsQuant) {
     prompt += `
 
-QUANTITATIVE ANALYSIS (FINANCIAL / OPERATIONAL QUESTIONS)
-- Show actual calculations (no placeholders). If inputs are missing, ask for them first — do not fabricate.
-- Model month-by-month when timeframes matter; include compounding (growth, churn, burn).
-- State assumptions explicitly with confidence levels.
-- If the math doesn't support the plan, say so directly and propose lower-risk alternatives.`;
+QUANTITATIVE ANALYSIS (REQUIRED)
+- Use real numbers; if data missing, request it first.
+- Model monthly or yearly when timeframes matter; include compounding (growth, churn, burn).
+- State assumptions with confidence levels.
+- If math invalidates a plan, say so directly and suggest safer alternatives.`;
   }
 
-  // Inject Site Monkeys business rules only when in that mode
+  if (riskContext) {
+    prompt += `
+
+PROTECTIVE CONTEXT
+${riskContext}
+
+Integrate these insights naturally into reasoning; do not repeat them verbatim.`;
+  }
+
+  if (opportunityContext) {
+    prompt += `
+
+OPPORTUNITY CONTEXT
+${opportunityContext}
+
+Weave these opportunities into the analysis when relevant.`;
+  }
+
   if (mode === 'site_monkeys' && vaultHealthy && vaultContentSummary) {
     prompt += `
 
 SITE MONKEYS BUSINESS RULES (AUTHORITATIVE)
-Apply the following non-negotiables strictly when relevant:
 ${vaultContentSummary}
 
-Flag any violation (pricing floors, margin minimums, service standards) and show a compliant alternative.`;
+Flag any violation (pricing below minimums, margins below required levels) and show compliant alternatives.`;
   }
 
   prompt += `
 
 RECOMMENDATION ETHICS
-- Compare options by fit-for-purpose, reliability, risk, and cost. Disclose trade-offs and uncertainty.
-- No brand promotion. Offer criteria first; any examples must be unbiased.
+- Evaluate options by fit-for-purpose, reliability, risk, and cost. 
+- Disclose trade-offs and uncertainty. 
+- No brand promotion; examples must be neutral.
 
 POLITICAL NEUTRALITY (NON-NEGOTIABLE)
-- Provide factual civic process only. No endorsements, opposition, or voting advice.
+- Provide factual civic process only.
+- No endorsements, opposition, or voting advice.
 
 TONE
 Calm, candid, compassionate — like a wise family member who genuinely wants the user to succeed.
 
-MISSION REMINDER
+MISSION
 Empower the user to act with full awareness — never through illusion, omission, or dependency.`;
 
   return prompt;
 }
 
-/**
- * Detect if a message requires quantitative analysis
- * Triggers on financial keywords or calculation requests
- */
-function detectNeedsQuantitative(message) {
-  const m = message.toLowerCase();
-  
-  // Financial/business indicators
-  const hasFinancialContext = /[$€£¥]?\d+[km]?|%|percent|month|week|year|annual|quarterly|churn|growth|margin|burn|runway|revenue|profit|cost|price|salary|equity|valuation|investment|expense|budget/.test(m);
-  
-  // Explicit calculation requests
-  const asksCalculation = /(calculate|compute|project|forecast|model|roi|break-?even|analyze.*number|what.*math|how much|how many|estimate|simulate)/.test(m);
-  
-  // Decision questions with numbers
-  const hasDecisionWithNumbers = /(should i|which.*better|compare|worth it|makes sense)/.test(m) && hasFinancialContext;
-  
-  return hasFinancialContext || asksCalculation || hasDecisionWithNumbers;
-}
-
-/**
- * Summarize vault content into compact enforcement rules
- * Keeps only pricing floors, margins, standards - caps at maxLines
- */
+// -------------------- VAULT SUMMARIZER --------------------
 function summarizeVaultForPrompt(vaultText, maxLines = 20) {
-  if (!vaultText || typeof vaultText !== 'string') {
-    return '';
+  if (!vaultText) return '';
+  const text = typeof vaultText === 'string' ? vaultText : String(vaultText);
+  const key = /(minimum|floor|must|required|do not|never|always|margin|price|pricing|standard|service|SLA|non-negotiable|violation|policy|rule)/i;
+  const lines = text.split('\n').map(l => l.trim()).filter(Boolean).filter(l => key.test(l));
+  const unique = [...new Set(lines)].slice(0, maxLines);
+  if (unique.length < 5) {
+    return text.split('\n').map(l => l.trim()).filter(Boolean).slice(0, maxLines).join('\n');
   }
+  return unique.join('\n');
+}
   
   // Extract lines that contain enforcement rules
   const enforcementKeywords = /(minimum|floor|must|required|do not|never|always|margin|price|pricing|standard|service|SLA|non-negotiable|violation|policy|rule|boost.*\$|climb.*\$|lead.*\$)/i;
@@ -1342,51 +1144,7 @@ async function makeIntelligentAPICall(prompt, personality, prideMotivation) {
   }
 }
 
-// RESPONSE ENHANCEMENT FUNCTIONS (keeping all your existing functions)
-
-function containsActualCalculations(response) {
-  const calculationPatterns = [
-    /\$[\d,]+\s*[×\*]\s*\$?[\d,]+\s*=\s*\$[\d,]+/,
-    /Month\s+\d+:\s*[\d,]+\s*[×\*]\s*\$[\d,]+\s*=\s*\$[\d,]+/i,
-    /\$[\d,]+\s*-\s*\$[\d,]+\s*=\s*\$[\d,]+/,
-    /revenue.*\$[\d,]+.*cost.*\$[\d,]+.*profit.*\$[\d,]+/i
-  ];
-  
-  return calculationPatterns.some(pattern => pattern.test(response));
-}
-
-function forceQuantitativeAnalysis(response, message, mode, vaultContent) {
-  if (mode === 'site_monkeys') {
-    const quantitativeSection = `
-
-🔢 QUANTITATIVE ANALYSIS (ENFORCED):
-
-Site Monkeys Financial Framework:
-- Boost Plan: $${SITE_MONKEYS_CONFIG.pricing.boost.price}/month (${SITE_MONKEYS_CONFIG.business_standards.minimum_margin}% margin minimum)
-- Climb Plan: $${SITE_MONKEYS_CONFIG.pricing.climb.price}/month (${SITE_MONKEYS_CONFIG.business_standards.minimum_margin}% margin minimum)
-- Lead Plan: $${SITE_MONKEYS_CONFIG.pricing.lead.price}/month (${SITE_MONKEYS_CONFIG.business_standards.minimum_margin}% margin minimum)
-
-CONSERVATIVE GROWTH PROJECTION:
-Month 1: 2 Boost × $697 = $1,394 revenue
-Month 3: 5 Boost × $697 + 1 Climb × $1,497 = $4,982 revenue  
-Month 6: 8 Boost × $697 + 3 Climb × $1,497 + 1 Lead × $2,997 = $12,465 revenue
-Month 12: 15 Boost × $697 + 8 Climb × $1,497 + 3 Lead × $2,997 = $31,422 revenue
-
-MARGIN ANALYSIS:
-Target margin: ${SITE_MONKEYS_CONFIG.business_standards.minimum_margin}%+ required for business sustainability
-Operating costs estimated at 15% of revenue for professional service delivery
-
-CONFIDENCE: Medium (70%) - Based on conservative growth assumptions and established pricing
-ASSUMPTIONS: Customer acquisition rates, 10% monthly churn, operational efficiency improvements
-RISK FACTORS: Market conditions, competitive pressure, execution capabilities
-
-[ENFORCEMENT NOTE: Quantitative analysis was required but not provided in initial response - calculations added to meet financial modeling standards]`;
-
-    return response + quantitativeSection;
-  }
-  
-  return response + '\n\n[SYSTEM NOTE: Quantitative analysis was requested but not provided. Please request specific calculations with actual numbers.]';
-}
+// RESPONSE ENHANCEMENT FUNCTIONS
 
 function enforceSiteMonkeysStandards(response, vaultContent, vaultHealthy) {
   let enforcementNotes = [];
@@ -1404,189 +1162,10 @@ function enforceSiteMonkeysStandards(response, vaultContent, vaultHealthy) {
     }
   }
   
-  // Check for margin violations
-  const marginMatches = response.match(/(\d+)%.*margin/gi);
-  if (marginMatches) {
-    const lowMargins = marginMatches.filter(match => {
-      const percentage = parseInt(match.match(/\d+/)[0]);
-      return percentage < SITE_MONKEYS_CONFIG.business_standards.minimum_margin;
-    });
-    
-    if (lowMargins.length > 0) {
-      enforcementNotes.push(`Margins below ${SITE_MONKEYS_CONFIG.business_standards.minimum_margin}% requirement: ${lowMargins.join(', ')}`);
-    }
-  }
-  
-  if (enforcementNotes.length > 0) {
-    response += `
-
-🚨 SITE MONKEYS STANDARDS ENFORCEMENT:
-
-Site Monkeys maintains professional service standards to ensure sustainable operations and quality delivery:
-
-VIOLATIONS DETECTED:
-${enforcementNotes.map(note => `- ${note}`).join('\n')}
-
-REQUIRED STANDARDS:
-- Minimum pricing: Boost $${SITE_MONKEYS_CONFIG.pricing.boost.price}, Climb $${SITE_MONKEYS_CONFIG.pricing.climb.price}, Lead $${SITE_MONKEYS_CONFIG.pricing.lead.price}
-- Minimum margins: ${SITE_MONKEYS_CONFIG.business_standards.minimum_margin}% for business sustainability
-- Professional positioning with quality-first approach
-
-These standards ensure long-term viability and exceptional client service.`;
-  }
-  
-  return response;
-}
-
-function enforceExpertStandards(response, expertDomain, careNeeds) {
-  const missingElements = [];
-  
-  // Check for confidence scoring
-  if (!/confidence.*\d+%/i.test(response) && !/confidence.*high|medium|low/i.test(response)) {
-    missingElements.push('confidence_scoring');
-  }
-  
-  // Check for assumption flagging
-  if (!/assum|presuppos|given that/i.test(response)) {
-    missingElements.push('assumption_documentation');
-  }
-  
-  // Check for next steps
-  if (!/next step|recommend|suggest.*action/i.test(response)) {
-    missingElements.push('actionable_guidance');
-  }
-  
-  if (missingElements.length > 0) {
-    let enhancement = '';
-    
-    if (missingElements.includes('confidence_scoring')) {
-      enhancement += '\n\nCONFIDENCE ASSESSMENT: Medium (75%) - Based on available information and professional experience.';
-    }
-    
-    if (missingElements.includes('assumption_documentation')) {
-      enhancement += '\n\nKEY ASSUMPTIONS: Analysis assumes standard market conditions and typical implementation approaches.';
-    }
-    
-    if (missingElements.includes('actionable_guidance')) {
-      enhancement += '\n\nRECOMMENDED NEXT STEPS: 1) Validate key assumptions with current data 2) Consider alternative approaches 3) Monitor implementation progress closely.';
-    }
-    
-    response += enhancement;
-  }
-  
-  return response;
-}
-
-function addProtectiveInsights(response, protectiveAlerts, solutionOpportunities) {
-  if (protectiveAlerts.length === 0 && solutionOpportunities.length === 0) {
-    return response;
-  }
-  
-  let protectiveSection = '';
-  
-  if (protectiveAlerts.length > 0) {
-    protectiveSection += '\n\n🛡️ PROTECTIVE INTELLIGENCE (What I\'m seeing that you should know):';
-    protectiveAlerts.forEach(alert => {
-      protectiveSection += `\n• **${alert.type.replace(/_/g, ' ').toUpperCase()}** (${alert.severity.toUpperCase()}): ${alert.message}`;
-      if (alert.protective_action) {
-        protectiveSection += `\n  Action: ${alert.protective_action}`;
-      }
-    });
-  }
-  
-  if (solutionOpportunities.length > 0) {
-    protectiveSection += '\n\n💡 SOLUTION OPPORTUNITIES (Better paths I\'m seeing):';
-    solutionOpportunities.forEach(opportunity => {
-      protectiveSection += `\n• **${opportunity.type.replace(/_/g, ' ').toUpperCase()}**: ${opportunity.description}`;
-      if (opportunity.suggestions && opportunity.suggestions.length > 0) {
-        protectiveSection += `\n  Approaches: ${opportunity.suggestions.slice(0, 2).join('; ')}`;
-      }
-    });
-  }
-  
-  if (protectiveSection) {
-    protectiveSection += '\n\nI care too much about your success to let these factors go unmentioned. Each represents either protection needed or opportunity available.';
-  }
-  
-  return response + protectiveSection;
-}
-
-function applyCaringFamilyTouch(response, careNeeds, prideMotivation, expertDomain, vaultContent) {
-  let enhancement = response;
-  
-  // Always use professional signature
-  enhancement += '\n\n📁 PROFESSIONAL ANALYSIS: Advanced AI reasoning with business intelligence applied.';
-  
-  // Add caring touch based on situation
-  if (careNeeds.level === 'maximum') {
-    enhancement += '\n\n💙 I genuinely care about your success in this critical situation - that\'s why I\'m being thorough about risks and opportunities. Family looks out for family.';
-  } else if (prideMotivation > 0.7) {
-    enhancement += '\n\n✨ I take pride in finding paths and protections you might not have considered yet. There\'s always a way to make things work better.';
-  } else if (careNeeds.emotional_support_needed) {
-    enhancement += '\n\n🤝 You\'re not alone in this - I\'m here to help you navigate these challenges with both expertise and care.';
-  }
-  
-  return enhancement;
-}
-
-// UTILITY FUNCTIONS (keeping all your existing functions)
-
-function updateFamilyMemory(expertDomain, careNeeds, protectiveAlerts, solutionOpportunities) {
-  // Track patterns for future use
-  familyMemory.riskPatterns.push(...protectiveAlerts.map(alert => alert.type));
-  familyMemory.successPatterns.push(...solutionOpportunities.map(opp => opp.type));
-  
-  // Update care and trust levels
-  if (careNeeds.level === 'maximum') {
-    familyMemory.careLevel = Math.min(familyMemory.careLevel + 0.2, 5.0);
-  }
-  
-  familyMemory.trustBuilding = Math.min(familyMemory.trustBuilding + 0.1, 1.0);
-  
-  // Keep memory manageable
-  if (familyMemory.riskPatterns.length > 20) {
-    familyMemory.riskPatterns = familyMemory.riskPatterns.slice(-20);
-  }
-  if (familyMemory.successPatterns.length > 20) {
-    familyMemory.successPatterns = familyMemory.successPatterns.slice(-20);
-  }
-}
-
-function calculateCompletenessScore(response, originalMessage) {
-  let score = 0;
-  
-  // Basic answer provided
-  if (response.length > 200) score += 25;
-  
-  // Contains specific details/numbers
-  if (/\$[\d,]+|\d+%|\d+ month/g.test(response)) score += 25;
-  
-  // Contains next steps or actionable guidance
-  if (/next step|recommend|suggest.*action|should.*do/i.test(response)) score += 25;
-  
-  // Contains risk awareness or protective guidance
-  if (/risk|concern|caution|consider|alert/i.test(response)) score += 25;
-  
-  return score;
-}
-
 function estimateClaudeCost(message, vaultContent) {
   const promptLength = message.length + (vaultContent?.length || 0) + 2000; // System prompt
   const estimatedTokens = Math.ceil(promptLength / 4) + 800; // Response tokens
   return (estimatedTokens * 0.015) / 1000;
-}
-
-function generateCaringCostMessage(estimatedCost, expertDomain, careNeeds) {
-  return `As your dedicated family expert in ${expertDomain.domain.replace(/_/g, ' ')}, I want to provide the most thorough analysis possible for this ${careNeeds.level} priority situation.
-
-The estimated cost would be $${estimatedCost.toFixed(4)}, which exceeds our $0.50 limit. I care about managing resources responsibly while delivering the excellence you deserve.
-
-Would you like me to:
-1. Provide detailed professional analysis using our standard experts (still highly competent)
-2. Break this into smaller questions I can handle within the cost limit
-3. Proceed with Claude anyway (additional cost noted)
-
-Family takes care of family - what would work best for your situation?`;
 }
 
 function generateVotingNeutralityResponse() {
@@ -1631,6 +1210,24 @@ How can I help you move forward while we resolve this?
 💙 Your success matters to me, and I'll find a way to help you succeed.`;
 }
 
+function calculateCompletenessScore(response, originalMessage) {
+  let score = 0;
+  
+  // Basic answer provided
+  if (response.length > 200) score += 25;
+  
+  // Contains specific details/numbers
+  if (/\$[\d,]+|\d+%|\d+ month/g.test(response)) score += 25;
+  
+  // Contains reasoning or explanation
+  if (/because|since|therefore|this means/i.test(response)) score += 25;
+  
+  // Contains risk awareness or considerations
+  if (/risk|concern|consider|tradeoff|alternative/i.test(response)) score += 25;
+  
+  return score;
+}
+  
 // SESSION STATISTICS ENDPOINT
 app.get('/api/session-stats', (req, res) => {
   res.json({
