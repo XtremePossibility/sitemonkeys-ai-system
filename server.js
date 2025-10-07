@@ -594,12 +594,12 @@ if (!persistentMemory.isReady()) {
 console.log('[CHAT] ✅ Memory systems ready');
 
     // COMPREHENSIVE INTELLIGENCE ANALYSIS    
-    const expertDomain = identifyExpertDomain(message);
-    const careNeeds = analyzeCareNeeds(message, conversation_history);
-    const protectiveAlerts = scanForRisks(message, expertDomain);
-    const solutionOpportunities = findSolutions(message, expertDomain, protectiveAlerts);
-    const politicalContent = detectPoliticalContent(message);
-    const quantitativeNeeds = requiresQuantitativeAnalysis(message);
+    //const expertDomain = identifyExpertDomain(message);
+    //const careNeeds = analyzeCareNeeds(message, conversation_history);
+    //const protectiveAlerts = scanForRisks(message, expertDomain);
+    //const solutionOpportunities = findSolutions(message, expertDomain, protectiveAlerts);
+    //const politicalContent = detectPoliticalContent(message);
+    //const quantitativeNeeds = requiresQuantitativeAnalysis(message);
     
     // POLITICAL NEUTRALITY ENFORCEMENT
     if (politicalContent.requiresNeutralityResponse) {
