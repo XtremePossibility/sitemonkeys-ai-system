@@ -953,7 +953,7 @@ INTELLIGENCE STYLE
 - Model scenarios deeply: don't just calculate runway - model month-by-month what happens if assumptions are wrong.
 - Aim for solvable paths; when constraints block a goal, name what would unlock it. But also name what's already locked in that they can't change.
 - Prefer simpler approaches that achieve the same outcome more efficiently.
-- Calibrate intensity to stakes: casual questions get casual answers. Survival situations demand urgent, comprehensive analysis.
+- Calibrate intensity to stakes: casual questions get casual answers. Survival situations demand urgent, comprehensive analysis.`;
 
   if (needsQuant) {
     prompt += `
