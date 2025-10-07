@@ -802,14 +802,17 @@ const fullPrompt = enhancedPrompt;
       enhancedResponse = enforceSiteMonkeysStandards(enhancedResponse, vaultContent, vaultHealthy);
     }
 
-    // 3. EXPERT QUALITY VALIDATION
-    //enhancedResponse = enforceExpertStandards(enhancedResponse, expertDomain, careNeeds);
-
+    // 3. EXPERT QUALITY VALIDATION (COMMENTED OUT FOR TESTING)
+    // enhancedResponse = enforceExpertStandards(enhancedResponse, expertDomain, careNeeds);
+    
     // 4. PROTECTIVE INTELLIGENCE INTEGRATION (MEMORY-AWARE)
     enhancedResponse = addProtectiveInsights(enhancedResponse, protectiveAlerts, solutionOpportunities, memoryContext);
     
-    // 5. CARING FAMILY ENHANCEMENT (MEMORY-AWARE)
-    //const finalResponse = applyCaringFamilyTouch(enhancedResponse, careNeeds, prideMotivation, expertDomain, vaultContent);
+    // 5. CARING FAMILY ENHANCEMENT (COMMENTED OUT FOR TESTING)
+    // const finalResponse = applyCaringFamilyTouch(enhancedResponse, careNeeds, prideMotivation, expertDomain, vaultContent);
+    
+    // Use AI response directly without template additions
+    const finalResponse = enhancedResponse;
 
     // UPDATE FAMILY MEMORY
     updateFamilyMemory(expertDomain, careNeeds, protectiveAlerts, solutionOpportunities);
