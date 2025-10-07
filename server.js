@@ -803,13 +803,13 @@ const fullPrompt = enhancedPrompt;
     }
 
     // 3. EXPERT QUALITY VALIDATION
-    enhancedResponse = enforceExpertStandards(enhancedResponse, expertDomain, careNeeds);
+    //enhancedResponse = enforceExpertStandards(enhancedResponse, expertDomain, careNeeds);
 
     // 4. PROTECTIVE INTELLIGENCE INTEGRATION (MEMORY-AWARE)
     enhancedResponse = addProtectiveInsights(enhancedResponse, protectiveAlerts, solutionOpportunities, memoryContext);
     
     // 5. CARING FAMILY ENHANCEMENT (MEMORY-AWARE)
-    const finalResponse = applyCaringFamilyTouch(enhancedResponse, careNeeds, prideMotivation, expertDomain, vaultContent);
+    //const finalResponse = applyCaringFamilyTouch(enhancedResponse, careNeeds, prideMotivation, expertDomain, vaultContent);
 
     // UPDATE FAMILY MEMORY
     updateFamilyMemory(expertDomain, careNeeds, protectiveAlerts, solutionOpportunities);
