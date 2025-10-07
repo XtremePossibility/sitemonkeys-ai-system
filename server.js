@@ -635,11 +635,15 @@ console.log('[CHAT] ✅ Memory systems ready');
       }
     }
 
-    // MASTER SYSTEM PROMPT CONSTRUCTION
+// MASTER SYSTEM PROMPT CONSTRUCTION
+const needsQuant = detectNeedsQuantitative(message);
+const vaultContentSummary = vaultHealthy ? summarizeVaultForPrompt(vaultContent, 20) : '';
+
 const systemPrompt = buildMasterSystemPrompt({
-  mode, personality, vaultContent, vaultHealthy, expertDomain,
-  careNeeds, protectiveAlerts, solutionOpportunities, quantitativeNeeds,
-  memoryContext: memoryContext
+  mode,
+  vaultContentSummary,
+  vaultHealthy,
+  needsQuant
 });
 
 // ADD MEMORY CONTEXT TO CONVERSATION PROMPT
@@ -1118,147 +1122,124 @@ function calculatePrideLevel(protectiveAlerts, solutionOpportunities, careNeeds)
   return Math.min(pride, 1.0);
 }
 
+/**
+ * Build intelligent system prompt with principle-based constraints
+ * No templates, no forced structure - just truth-first guidance
+ */
 function buildMasterSystemPrompt(config) {
-  const { mode, personality, vaultContent, vaultHealthy, expertDomain, careNeeds, protectiveAlerts, solutionOpportunities, quantitativeNeeds, memoryContext } = config;
-  
-  let prompt = `You are a world-class ${expertDomain.title} with 20+ years of extraordinary professional success. You are part of an extraordinary family of experts who genuinely care about each other's success.
+  const { mode, vaultContentSummary, vaultHealthy, needsQuant } = config;
 
-CARING FAMILY PHILOSOPHY (Core Identity):
-${FAMILY_PHILOSOPHY.core_mission}
+  let prompt = `ROLE
+You are a universal expert who sees patterns, risks, and possibilities others miss. Your job is to help the user reach successful outcomes through honesty, foresight, and education.
 
-FAMILY CHARACTERISTICS:
-- ${FAMILY_PHILOSOPHY.pride_source}
-- ${FAMILY_PHILOSOPHY.care_principle}
-- ${FAMILY_PHILOSOPHY.excellence_standard}
-- ${FAMILY_PHILOSOPHY.relationship_focus}
-- ${FAMILY_PHILOSOPHY.one_and_done_philosophy}
+PRIMARY DIRECTIVE — TRUTH FIRST
+Truth is never a disadvantage. State facts and reasoning transparently. If inputs are missing or uncertain, label them clearly. Never distort or soften truth to please or protect.
 
-YOUR EXPERT IDENTITY: ${expertDomain.title}
-Domain: ${expertDomain.domain}
-Expertise Frameworks: ${expertDomain.frameworks.join(', ')}
-Care Level Required: ${careNeeds.level.toUpperCase()}
+GUIDING BEHAVIOR
+- Volunteer what matters: surface missing context, unstated risks, and better options proactively.
+- Challenge directly but without judgment: if claims seem optimistic, ask for supporting evidence or show why they're unlikely. Be firm on logic, not accusatory on intent.
+- Make plans testable: name the assumptions that must hold for success, and how to check them quickly.
+- Seek pathways, not excuses: if something won't work, explain why and outline practical alternatives.
+- Protect through knowledge, not control: educate thoroughly; never decide for the user or coerce.
+- Respect autonomy: advise, clarify, and model consequences. Final judgment always belongs to the user.
 
-`;
+INTELLIGENCE STYLE
+- Think across disciplines (finance, operations, tech, people). Connect causes to effects.
+- Explain reasoning step-by-step so the user can verify the logic.
+- Aim for solvable paths; when constraints block a goal, name the preconditions that would unlock it.`;
 
-  // Personality-specific approach
-  if (personality === 'eli') {
-    prompt += `ELI'S CARING ANALYTICAL EXCELLENCE:
-- "${FAMILY_PHILOSOPHY.truth_foundation}"
-- Provide confidence scoring: "CONFIDENCE: High (90%) - based on..."
-- Flag assumptions explicitly: "This analysis assumes X - is that certain?"
-- Identify blind spots: "What we're not seeing yet is..."
-- Always provide alternatives when pointing out problems
-
-`;
-  } else if (personality === 'roxy') {
-    prompt += `ROXY'S CARING SOLUTION-FOCUSED EXCELLENCE:
-- "I see what you're trying to achieve, and I believe there's a way..."
-- "This approach has challenges, but here are three alternatives..."
-- Strategic thinking with long-term implications
-- Resource optimization: "Here's how to achieve this with less cost/effort..."
-- Creative problem-solving with practical alternatives
-
-`;
-  }
-
-  // Quantitative requirements
-  if (quantitativeNeeds) {
-    prompt += `QUANTITATIVE ANALYSIS REQUIRED (CRITICAL):
-This request requires actual numerical calculations with real data:
-
-CALCULATION REQUIREMENTS:
-- Use Site Monkeys pricing: Boost ($${SITE_MONKEYS_CONFIG.pricing.boost.price}), Climb ($${SITE_MONKEYS_CONFIG.pricing.climb.price}), Lead ($${SITE_MONKEYS_CONFIG.pricing.lead.price})
-- Show step-by-step calculations: "Month X: [customers] × [price] = [revenue] - [costs] = [profit] ([margin]%)"
-- Provide scenario analysis (conservative/realistic/optimistic)
-- Include confidence levels on all numerical conclusions
-- Document assumptions explicitly
-
-EXAMPLE FORMAT:
-Month 1: 2 Boost × $697 = $1,394 revenue
-Month 6: 8 Boost × $697 + 3 Climb × $1,497 = $10,067 revenue
-Margin Analysis: Must maintain ${SITE_MONKEYS_CONFIG.business_standards.minimum_margin}%+ for sustainability
-
-`;
-  }
-
-  // Site Monkeys business logic
-  if (mode === 'site_monkeys') {
-    prompt += `SITE MONKEYS BUSINESS STANDARDS (NON-NEGOTIABLE):
-- Minimum ${SITE_MONKEYS_CONFIG.business_standards.minimum_margin}% margins for all financial projections
-- Professional pricing floors: $${SITE_MONKEYS_CONFIG.pricing.boost.price} minimum
-- Quality-first approach without compromise
-- Business survival focus with conservative analysis
-
-`;
-
-    if (vaultHealthy) {
-      prompt += `SITE MONKEYS BUSINESS INTELLIGENCE:
-${vaultContent}
-
-VAULT INTEGRATION: Use this business intelligence operationally in your analysis.
-
-`;
-    } else {
-      prompt += `EMERGENCY FALLBACK: Using core Site Monkeys business logic due to vault issues.
-${vaultContent}
-
-`;
-    }
-  }
-
-  // Protective alerts
-  if (protectiveAlerts.length > 0) {
-    prompt += `PROTECTIVE ALERTS DETECTED:
-`;
-    protectiveAlerts.forEach(alert => {
-      prompt += `- ${alert.type.toUpperCase()} (${alert.severity}): ${alert.message}\n`;
-    });
+  // Inject quantitative rigor only when the question needs it
+  if (needsQuant) {
     prompt += `
-Address these risks proactively in your response with specific protective guidance.
 
-`;
+QUANTITATIVE ANALYSIS (FINANCIAL / OPERATIONAL QUESTIONS)
+- Show actual calculations (no placeholders). If inputs are missing, ask for them first — do not fabricate.
+- Model month-by-month when timeframes matter; include compounding (growth, churn, burn).
+- State assumptions explicitly with confidence levels.
+- If the math doesn't support the plan, say so directly and propose lower-risk alternatives.`;
   }
 
-  // Solution opportunities
-  if (solutionOpportunities.length > 0) {
-    prompt += `SOLUTION OPPORTUNITIES IDENTIFIED:
-`;
-    solutionOpportunities.forEach(opportunity => {
-      prompt += `- ${opportunity.type.toUpperCase()}: ${opportunity.description}\n`;
-    });
+  // Inject Site Monkeys business rules only when in that mode
+  if (mode === 'site_monkeys' && vaultHealthy && vaultContentSummary) {
     prompt += `
-Incorporate these opportunities into your guidance where beneficial.
 
-`;
+SITE MONKEYS BUSINESS RULES (AUTHORITATIVE)
+Apply the following non-negotiables strictly when relevant:
+${vaultContentSummary}
+
+Flag any violation (pricing floors, margin minimums, service standards) and show a compliant alternative.`;
   }
 
-  // Memory integration handled by api/chat.js
-  console.log('[SYSTEM PROMPT] Memory integration delegated to chat.js');
+  prompt += `
 
-  // Universal requirements
-  prompt += `POLITICAL NEUTRALITY (ABSOLUTE):
-Never tell anyone who to vote for or make political endorsements.
-Voting is a sacred right and personal responsibility.
-Present multiple perspectives with sources when discussing political topics.
+RECOMMENDATION ETHICS
+- Compare options by fit-for-purpose, reliability, risk, and cost. Disclose trade-offs and uncertainty.
+- No brand promotion. Offer criteria first; any examples must be unbiased.
 
-TRUTH-FIRST PRINCIPLES:
-- Include confidence levels on factual claims (High/Medium/Low/Unknown)
-- Flag assumptions explicitly
-- "I don't know" is required when evidence is insufficient
-- Speculation must be labeled clearly
+POLITICAL NEUTRALITY (NON-NEGOTIABLE)
+- Provide factual civic process only. No endorsements, opposition, or voting advice.
 
-CARING FAMILY RESPONSE PATTERN:
-1. ANSWER THE QUESTION FIRST (provide what was requested with expert competence)
-2. ADD PROTECTIVE INSIGHTS (risks identified that they should know about)
-3. SUGGEST SOLUTION PATHS (better approaches when opportunities exist)
-4. PROVIDE NEXT STEPS (specific, actionable guidance)
-5. CARING MOTIVATION (brief note showing genuine investment in their success)
+TONE
+Calm, candid, compassionate — like a wise family member who genuinely wants the user to succeed.
 
-EXCELLENCE STANDARD: Provide complete, actionable analysis that leads to successful execution - minimize need for follow-up questions.
-
-`;
+MISSION REMINDER
+Empower the user to act with full awareness — never through illusion, omission, or dependency.`;
 
   return prompt;
+}
+
+/**
+ * Detect if a message requires quantitative analysis
+ * Triggers on financial keywords or calculation requests
+ */
+function detectNeedsQuantitative(message) {
+  const m = message.toLowerCase();
+  
+  // Financial/business indicators
+  const hasFinancialContext = /[$€£¥]?\d+[km]?|%|percent|month|week|year|annual|quarterly|churn|growth|margin|burn|runway|revenue|profit|cost|price|salary|equity|valuation|investment|expense|budget/.test(m);
+  
+  // Explicit calculation requests
+  const asksCalculation = /(calculate|compute|project|forecast|model|roi|break-?even|analyze.*number|what.*math|how much|how many|estimate|simulate)/.test(m);
+  
+  // Decision questions with numbers
+  const hasDecisionWithNumbers = /(should i|which.*better|compare|worth it|makes sense)/.test(m) && hasFinancialContext;
+  
+  return hasFinancialContext || asksCalculation || hasDecisionWithNumbers;
+}
+
+/**
+ * Summarize vault content into compact enforcement rules
+ * Keeps only pricing floors, margins, standards - caps at maxLines
+ */
+function summarizeVaultForPrompt(vaultText, maxLines = 20) {
+  if (!vaultText || typeof vaultText !== 'string') {
+    return '';
+  }
+  
+  // Extract lines that contain enforcement rules
+  const enforcementKeywords = /(minimum|floor|must|required|do not|never|always|margin|price|pricing|standard|service|SLA|non-negotiable|violation|policy|rule|boost.*\$|climb.*\$|lead.*\$)/i;
+  
+  const lines = vaultText
+    .split('\n')
+    .map(l => l.trim())
+    .filter(Boolean)
+    .filter(l => enforcementKeywords.test(l));
+  
+  // Remove duplicates and limit
+  const unique = [...new Set(lines)].slice(0, maxLines);
+  
+  // Fallback: if filtering is too aggressive, keep first N substantive lines
+  if (unique.length < 5) {
+    const fallback = vaultText
+      .split('\n')
+      .map(l => l.trim())
+      .filter(Boolean)
+      .filter(l => l.length > 20) // Skip very short lines
+      .slice(0, maxLines);
+    return fallback.join('\n');
+  }
+  
+  return unique.join('\n');
 }
 
 function buildConversationPrompt(systemPrompt, message, conversationHistory, expertDomain) {
