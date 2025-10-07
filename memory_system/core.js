@@ -56,9 +56,10 @@ class CoreSystem {
       this.pool = new Pool({
         connectionString: process.env.DATABASE_URL,
         ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
-        max: 20,                    // 20 max connections
-        idleTimeoutMillis: 30000,   // 30s idle timeout
-        connectionTimeoutMillis: 2000, // 2s connection timeout
+        max: 30,                      // Increased from 20
+        idleTimeoutMillis: 60000,     // Doubled to 60s
+        connectionTimeoutMillis: 5000, // Increased from 2s
+        allowExitOnIdle: true          // Clean up idle connections
       });
 
       // Pool event handling with detailed logging
