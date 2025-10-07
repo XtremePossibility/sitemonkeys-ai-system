@@ -598,6 +598,7 @@ console.log('[CHAT] ✅ Memory systems ready');
     const careNeeds = { level: 'standard' };
     const protectiveAlerts = [];
     const solutionOpportunities = [];
+    const prideMotivation = 0.5;  // ADD THIS LINE
     
     const politicalContent = detectPoliticalContent(message);
     
