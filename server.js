@@ -653,7 +653,7 @@ if (conversation_history && conversation_history.length > 0) {
 }
 // Build base conversation prompt
 // Build base conversation prompt
-let enhancedPrompt = buildConversationPrompt(systemPrompt, message, conversation_history, expertDomain);
+let enhancedPrompt = buildConversationPrompt(systemPrompt, message, conversation_history);
 
 // === ROBUST DOCUMENT INJECTION (server.js) ===
 try {
@@ -1022,7 +1022,7 @@ function summarizeVaultForPrompt(vaultText, maxLines = 20) {
   return unique.join('\n');
 }
 
-function buildConversationPrompt(systemPrompt, message, conversationHistory, expertDomain) {
+function buildConversationPrompt(systemPrompt, message, conversationHistory) {
   let fullPrompt = systemPrompt;
 
   if (conversationHistory.length > 0) {
