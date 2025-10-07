@@ -836,7 +836,7 @@ if (global.memorySystem && typeof global.memorySystem.storeMemory === 'function'
       enforcement_applied: [
         'caring_family_intelligence_active',
         'universal_expert_recognition_complete',
-        quantitativeNeeds ? 'quantitative_reasoning_enforced' : 'qualitative_excellence_applied',
+        needsQuant ? 'quantitative_reasoning_enforced' : 'qualitative_excellence_applied',
         'protective_intelligence_scanning_active',
         'solution_opportunity_discovery_active',
         'political_neutrality_maintained',
@@ -1021,32 +1021,6 @@ function summarizeVaultForPrompt(vaultText, maxLines = 20) {
   }
   return unique.join('\n');
 }
-  
-  // Extract lines that contain enforcement rules
-  const enforcementKeywords = /(minimum|floor|must|required|do not|never|always|margin|price|pricing|standard|service|SLA|non-negotiable|violation|policy|rule|boost.*\$|climb.*\$|lead.*\$)/i;
-  
-  const lines = vaultText
-    .split('\n')
-    .map(l => l.trim())
-    .filter(Boolean)
-    .filter(l => enforcementKeywords.test(l));
-  
-  // Remove duplicates and limit
-  const unique = [...new Set(lines)].slice(0, maxLines);
-  
-  // Fallback: if filtering is too aggressive, keep first N substantive lines
-  if (unique.length < 5) {
-    const fallback = vaultText
-      .split('\n')
-      .map(l => l.trim())
-      .filter(Boolean)
-      .filter(l => l.length > 20) // Skip very short lines
-      .slice(0, maxLines);
-    return fallback.join('\n');
-  }
-  
-  return unique.join('\n');
-}
 
 function buildConversationPrompt(systemPrompt, message, conversationHistory, expertDomain) {
   let fullPrompt = systemPrompt;
@@ -1161,6 +1135,26 @@ function enforceSiteMonkeysStandards(response, vaultContent, vaultHealthy) {
       enforcementNotes.push(`Pricing below professional minimums detected: ${lowPrices.join(', ')}`);
     }
   }
+  
+  // Check for margin violations
+  const marginMatches = response.match(/(\d+)%.*margin/gi);
+  if (marginMatches) {
+    const lowMargins = marginMatches.filter(match => {
+      const percentage = parseInt(match.match(/\d+/)[0]);
+      return percentage < SITE_MONKEYS_CONFIG.business_standards.minimum_margin;
+    });
+    
+    if (lowMargins.length > 0) {
+      enforcementNotes.push(`Margins below ${SITE_MONKEYS_CONFIG.business_standards.minimum_margin}% requirement: ${lowMargins.join(', ')}`);
+    }
+  }
+  
+  if (enforcementNotes.length > 0) {
+    response += `\n\n🚨 SITE MONKEYS STANDARDS ENFORCEMENT:\n\nSite Monkeys maintains professional service standards to ensure sustainable operations and quality delivery:\n\nVIOLATIONS DETECTED:\n${enforcementNotes.map(note => `- ${note}`).join('\n')}\n\nREQUIRED STANDARDS:\n- Minimum pricing: Boost $${SITE_MONKEYS_CONFIG.pricing.boost.price}, Climb $${SITE_MONKEYS_CONFIG.pricing.climb.price}, Lead $${SITE_MONKEYS_CONFIG.pricing.lead.price}\n- Minimum margins: ${SITE_MONKEYS_CONFIG.business_standards.minimum_margin}% for business sustainability\n- Professional positioning with quality-first approach\n\nThese standards ensure long-term viability and exceptional client service.`;
+  }
+  
+  return response;
+}
   
 function estimateClaudeCost(message, vaultContent) {
   const promptLength = message.length + (vaultContent?.length || 0) + 2000; // System prompt
