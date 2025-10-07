@@ -632,7 +632,7 @@ console.log('[CHAT] ✅ Memory systems ready');
 // MASTER SYSTEM PROMPT CONSTRUCTION
 const vaultContentSummary = vaultHealthy ? summarizeVaultForPrompt(vaultContent, 20) : '';
 
-const systemPrompt = buildMasterSystemPrompt({
+const systemPrompt = buildConditionalSystemPrompt(message, {
   mode,
   vaultContentSummary,
   vaultHealthy,
@@ -640,7 +640,7 @@ const systemPrompt = buildMasterSystemPrompt({
   riskContext,
   opportunityContext
 });
-
+      
 // ADD MEMORY CONTEXT TO CONVERSATION PROMPT
 // ADD CONVERSATION HISTORY TO PROMPT (BEFORE MEMORY)
 let conversationHistoryText = '';
