@@ -489,12 +489,26 @@ console.log('  vaultStatus:', vaultStatus);
     let intelligenceRouting = null;
     let intelligenceMemories = null;
     
+    console.log('[MEMORY-DEBUG] Starting intelligence system memory extraction...');
+    console.log('[MEMORY-DEBUG] User message:', message.substring(0, 100));
+    
     try {
       intelligenceRouting = await intelligenceSystem.analyzeAndRoute(message, 'user');
+      console.log('[MEMORY-DEBUG] Intelligence routing result:', JSON.stringify(intelligenceRouting));
+      
       intelligenceMemories = await intelligenceSystem.extractRelevantMemories('user', message, intelligenceRouting);
+      console.log('[MEMORY-DEBUG] Extracted memories count:', intelligenceMemories ? intelligenceMemories.length : 0);
+      
+      if (intelligenceMemories && intelligenceMemories.length > 0) {
+        console.log('[MEMORY-DEBUG] First memory sample:', JSON.stringify(intelligenceMemories[0]).substring(0, 200));
+      } else {
+        console.log('[MEMORY-DEBUG] No memories extracted from intelligence system');
+      }
+      
       console.log('[INTELLIGENCE] Categorized as:', intelligenceRouting.primaryCategory);
     } catch (error) {
-      console.error('[INTELLIGENCE] Error:', error);
+      console.error('[INTELLIGENCE] Error:', error.message);
+      console.error('[INTELLIGENCE] Stack:', error.stack);
       intelligenceRouting = { primaryCategory: 'personal_life_interests' };
       intelligenceMemories = [];
     }
@@ -794,13 +808,23 @@ const fullPrompt = enhancedPrompt;
     }
 
 // ===== MEMORY STORAGE =====
+console.log('[MEMORY-STORAGE-DEBUG] Starting memory storage process...');
+console.log('[MEMORY-STORAGE-DEBUG] global.memorySystem exists:', !!global.memorySystem);
+console.log('[MEMORY-STORAGE-DEBUG] storeMemory function exists:', !!(global.memorySystem && typeof global.memorySystem.storeMemory === 'function'));
+
 if (global.memorySystem && typeof global.memorySystem.storeMemory === 'function') {
   try {
     console.log('[CHAT] 💾 Storing conversation in memory...');
     const cleanMessage = message.replace(/^User:\s*/i, '').trim();
     const cleanResponse = finalResponse.replace(/^Assistant:\s*/i, '').trim();
     const conversationEntry = `User: ${cleanMessage}\nAssistant: ${cleanResponse}`;
+    
+    console.log('[MEMORY-STORAGE-DEBUG] Conversation entry length:', conversationEntry.length);
+    console.log('[MEMORY-STORAGE-DEBUG] Entry preview:', conversationEntry.substring(0, 150));
+    
     const storeResult = await global.memorySystem.storeMemory('user', conversationEntry);
+    
+    console.log('[MEMORY-STORAGE-DEBUG] Store result:', JSON.stringify(storeResult));
     
     if (storeResult && storeResult.success) {
       console.log(`[CHAT] ✅ Memory stored as ID ${storeResult.memoryId}`);
@@ -809,10 +833,15 @@ if (global.memorySystem && typeof global.memorySystem.storeMemory === 'function'
       console.log(`[CHAT] ⚠️ Memory storage failed: ${storeResult?.error || 'Unknown error'}`);
     }
   } catch (error) {
-    console.error('[CHAT] ⚠️ Memory storage failed:', error);
+    console.error('[CHAT] ❌ Memory storage exception:', error.message);
+    console.error('[CHAT] ❌ Stack:', error.stack);
   }
 } else {
   console.log('[CHAT] ⚠️ Memory system not available or storeMemory missing');
+  console.log('[CHAT] 🔍 Debug: global.memorySystem =', global.memorySystem ? 'exists' : 'NULL');
+  if (global.memorySystem) {
+    console.log('[CHAT] 🔍 Available methods:', Object.keys(global.memorySystem));
+  }
 }
     // RESPONSE WITH FULL INTELLIGENCE METADATA
     res.json({
