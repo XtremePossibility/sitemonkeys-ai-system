@@ -744,7 +744,7 @@ ${safeText}
 
 INSTRUCTION: Analyze the document content above and explicitly reference it where relevant when answering the user's request.`;
 
-      //console.log('[DOC-INJECT] Injected document into prompt:', {
+      console.log('[DOC-INJECT] Injected document into prompt:', {
         label: docLabel,
         chars: docText.length,
         truncated: docText.length > MAX_CHARS
