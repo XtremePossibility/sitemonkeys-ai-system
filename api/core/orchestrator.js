@@ -1062,16 +1062,51 @@ export class Orchestrator {
   #buildContextString(context, mode) {
     let contextStr = '';
     
+    // ========== VAULT TAKES ABSOLUTE PRIORITY IN SITE MONKEYS MODE ==========
+    if (context.sources?.hasVault && context.vault && mode === 'site_monkeys') {
+      contextStr += `
+  ═══════════════════════════════════════════════════════════════
+  🍌 SITE MONKEYS BUSINESS VAULT (PRIMARY AUTHORITY)
+  ═══════════════════════════════════════════════════════════════
+  
+  ${context.vault}
+  
+  ═══════════════════════════════════════════════════════════════
+  END OF VAULT CONTENT
+  ═══════════════════════════════════════════════════════════════
+  
+  ⚠️ CRITICAL INSTRUCTION FOR AI:
+  The Site Monkeys Business Vault above is the ONLY authoritative source for:
+  - Pricing rules and business model
+  - Operational frameworks and procedures  
+  - Founder directives and company principles
+  - Site Monkeys-specific guidance
+  
+  When answering questions about "the vault", "founder directives", "what this system must do", or Site Monkeys operations, you MUST use ONLY the vault content above. 
+  
+  Do NOT reference any document context below for vault-related questions.
+  ═══════════════════════════════════════════════════════════════
+  `;
+      
+      console.log('[ORCHESTRATOR] ✅ Vault injected as PRIMARY context - documents will be ignored for vault queries');
+      
+      // STOP HERE - Do not add document context when vault is present
+      if (context.sources?.hasMemory && context.memory) {
+        contextStr += `\n\n**Relevant Information from Past Conversations:**\n${context.memory}\n`;
+      }
+      
+      return contextStr;
+    }
+    
+    // ========== FALLBACK: NO VAULT - USE DOCUMENTS AND MEMORY ==========
+    console.log('[ORCHESTRATOR] No vault available - using standard context priority');
+    
     if (context.sources?.hasMemory && context.memory) {
       contextStr += `\n\n**Relevant Information from Past Conversations:**\n${context.memory}\n`;
     }
     
     if (context.sources?.hasDocuments && context.documents) {
       contextStr += `\n\n**Uploaded Document Context:**\n${context.documents}\n`;
-    }
-    
-    if (context.sources?.hasVault && context.vault && mode === 'site_monkeys') {
-      contextStr += `\n\n**Site Monkeys Business Vault:**\n${context.vault}\n`;
     }
     
     return contextStr;
