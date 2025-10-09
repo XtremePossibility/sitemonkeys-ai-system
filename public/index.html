@@ -1115,6 +1115,15 @@ async function refreshVault() {
     console.log('🔢 Token count:', data.tokens);
     console.log('📄 Vault content preview:', data.vault_content?.substring(0, 500));
 
+    // Store vault in window for sendMessage to use
+    window.currentVaultContent = data.vault_content || '';
+    window.vaultStatus = {
+      loaded: true,
+      healthy: data.vault_status === 'operational',
+      tokens: data.tokens || 0
+    };
+    console.log('✅ Vault stored in window:', window.currentVaultContent.length, 'characters');
+
     if (data.status === 'refreshed') {
       document.getElementById('vault-info').innerHTML = `
         <div><span style="color:#00FF00;">✅</span> VAULT REFRESHED</div>
