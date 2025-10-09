@@ -551,23 +551,39 @@ export class Orchestrator {
   // ==================== STEP 4: ASSEMBLE CONTEXT ====================
   
   #assembleContext(memory, documents, vault) {
-    const memoryText = memory?.memories || '';
-    const documentText = documents?.content || '';
-    const vaultText = vault?.content || '';
-    
-    return {
-      memory: memoryText,
-      documents: documentText,
-      vault: vaultText,
-      totalTokens: (memory?.tokens || 0) + (documents?.tokens || 0) + (vault?.tokens || 0),
-      sources: {
-        hasMemory: memory?.hasMemory || false,
-        hasDocuments: !!documents,
-        hasVault: !!vault
-      }
-    };
+  // STEP 1: Validate context priority - vault wins over documents
+  const priorityCheck = validateContextPriority({
+    vaultContext: vault,
+    documentContext: documents,
+    mode: 'site_monkeys'
+  });
+  
+  console.log('[CONTEXT PRIORITY]', priorityCheck);
+  
+  // STEP 2: If vault exists and is healthy, null out documents
+  if (priorityCheck.contextSource === 'vault') {
+    console.log('[CONTEXT] Vault detected - excluding documents from context');
+    documents = null;
   }
-
+  
+  // STEP 3: Build context strings
+  const memoryText = memory?.memories || '';
+  const documentText = documents?.content || '';
+  const vaultText = vault?.content || '';
+  
+  return {
+    memory: memoryText,
+    documents: documentText,
+    vault: vaultText,
+    totalTokens: (memory?.tokens || 0) + (documents?.tokens || 0) + (vault?.tokens || 0),
+    sources: {
+      hasMemory: memory?.hasMemory || false,
+      hasDocuments: !!documents,
+      hasVault: !!vault
+    }
+  };
+}
+    
   // ==================== STEP 5: PERFORM SEMANTIC ANALYSIS ====================
   
   async #performSemanticAnalysis(message, context, conversationHistory) {
