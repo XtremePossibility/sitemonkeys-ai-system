@@ -573,16 +573,14 @@ console.log('  vaultStatus:', vaultStatus);
       };
     } 
         
+// Verify memory system status (non-blocking - just log the state)
 if (!persistentMemory.isReady()) {
-  console.error('[CHAT] ❌ Memory systems not ready');
-  return res.status(500).json({ 
-    error: 'Memory systems not initialized',
-    details: persistentMemory.getSystemStatus()
-  });
+  console.warn('[CHAT] ⚠️ Memory system not fully initialized - using fallback mode');
+  console.warn('[CHAT] 📊 Memory status:', persistentMemory.getSystemStatus());
+  // Don't block - we can operate with fallback memory
+} else {
+  console.log('[CHAT] ✅ Memory system ready and operational');
 }
-
-console.log('[CHAT] ✅ Memory systems ready');
-
     // INTELLIGENCE ANALYSIS - Context generation
     const riskContext = generateRiskContext(message);
     const opportunityContext = generateOpportunityContext(message);
