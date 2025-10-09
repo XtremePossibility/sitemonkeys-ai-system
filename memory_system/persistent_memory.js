@@ -312,7 +312,7 @@ class PersistentMemoryOrchestrator {
       if (this.isHealthy && this.coreSystem) {
         // Query database for recent memories
         const query = `
-          SELECT id, user_id, content, category_name, subcategory_name, token_count, 
+          SELECT id, user_id, content, category, subcategory, token_count,
                  relevance_score, created_at, accessed_at, access_count
           FROM persistent_memories
           WHERE user_id = $1
