@@ -3,35 +3,64 @@
 let vaultLoaded = false;
 
 async function loadVaultOnDemand() {
-  if (vaultLoaded) return window.currentVaultContent || '';
+  // Step 1: Check if vault already loaded in window
+  if (window.currentVaultContent && window.currentVaultContent.length > 500) {
+    console.log('✅ [VAULT] Using cached vault:', window.currentVaultContent.length, 'chars');
+    return window.currentVaultContent;
+  }
   
-  // Only load vault in Site Monkeys mode
+  // Step 2: Check current mode
   const currentMode = getCurrentMode();
   if (currentMode !== 'site_monkeys') {
-    console.log('🚫 Vault loading blocked - not in Site Monkeys mode');
+    console.log('🚫 [VAULT] Not in Site Monkeys mode - vault disabled');
     window.currentVaultContent = '';
     return '';
   }
   
-  console.log('🔄 Loading vault on demand for Site Monkeys mode...');
+  console.log('🔄 [VAULT] Attempting to load vault from backend...');
   
   try {
-    const vaultResponse = await fetch('/api/load-vault?refresh=true&manual=true');
+    // Step 3: Fetch vault from backend
+    const vaultResponse = await fetch('/api/load-vault?refresh=true&manual=true', {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' }
+    });
+    
+    if (!vaultResponse.ok) {
+      throw new Error(`Vault fetch failed: ${vaultResponse.status}`);
+    }
+    
     const vaultData = await vaultResponse.json();
+    console.log('📦 [VAULT] Response received:', {
+      has_vault_content: !!vaultData.vault_content,
+      vault_length: vaultData.vault_content?.length || 0,
+      vault_status: vaultData.vault_status,
+      tokens: vaultData.tokens
+    });
+    
     const vaultContent = vaultData.vault_content || '';
     
-    window.currentVaultContent = vaultContent;
-    window.vaultStatus = {
-      loaded: vaultContent.length > 1000,
-      healthy: vaultData.vault_status === 'operational',
-      tokens: vaultData.tokens || 0
-    };
+    // Step 4: Store in window for reuse
+    if (vaultContent.length > 500) {
+      window.currentVaultContent = vaultContent;
+      window.vaultStatus = {
+        loaded: true,
+        healthy: vaultContent.length > 1000,
+        tokens: vaultData.tokens || 0,
+        status: vaultData.vault_status || 'loaded'
+      };
+      
+      console.log('✅ [VAULT] Successfully loaded and cached:', vaultContent.length, 'chars');
+      return vaultContent;
+    } else {
+      console.warn('⚠️ [VAULT] Vault content too small or empty');
+      window.currentVaultContent = '';
+      return '';
+    }
     
-    vaultLoaded = true;
-    console.log('✅ Vault loaded on demand with length:', vaultContent.length);
-    return vaultContent;
   } catch (error) {
-    console.error('❌ Failed to load vault on demand:', error);
+    console.error('❌ [VAULT] Load failed:', error.message);
+    window.currentVaultContent = '';
     return '';
   }
 }
