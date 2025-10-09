@@ -18,6 +18,7 @@ import { integrateSystemIntelligence, enhancePromptWithIntelligence, getSystemIn
 import zlib from 'zlib';
 import { enhanceMemoryWithStructure } from './lib/memory-enhancer.js';
 import { masterOrchestrator } from './lib/master-intelligence-orchestrator.js';
+import { validateContextPriority } from './lib/context-priority-validator.js';
 
 // NEW ENFORCEMENT MODULE IMPORTS (ADD THESE)
 import { 
