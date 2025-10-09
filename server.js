@@ -132,50 +132,8 @@ const callOpenAI = async (payload) => {
     return result;
     
   } catch (error) {
-    // === INTELLIGENCE FAILURE HANDLER (SAFE FALLBACK INJECTION) ===
-    console.warn('[INTELLIGENCE] Primary intelligence call failed. Error:', error?.message || error);
-  
-    // Very explicit log so we can detect overuse of fallback
-    console.warn('[INTELLIGENCE] Fallback engaged - forcing vault+memory injection into fallback path');
-  
-    // Defensive: ensure vaultContent and memoryContext exist in safe form
-    const safeVault = (typeof vaultContent === 'string' && vaultContent.length > 0) ? vaultContent
-      : `SITE MONKEYS FALLBACK LOGIC:
-  Pricing: Boost $697, Climb $1,497, Lead $2,997
-  Minimum 85% margins required for all projections
-  Professional service standards maintained
-  Quality-first approach with caring delivery`;
-  
-    const safeMemory = (memoryContext && memoryContext.memories) ? memoryContext.memories : '';
-  
-    // Build a forced prompt with the same master system prompt and the best available inputs
-    const forcedPrompt = `
-  [FORCED FALLBACK PROMPT - injected because primary intelligence failed]
-  ${systemPrompt}
-  
-  ${vaultHealthy ? `📁 VAULT CONTENT (injected):\n${safeVault}\n\n` : '[NO VAULT AVAILABLE]\n\n'}
-  
-  ${safeMemory ? `🧠 MEMORY CONTEXT (injected):\n${safeMemory}\n\n` : '[NO MEMORY CONTEXT]\n\n'}
-  
-  USER REQUEST:
-  ${message}
-  
-  NOTE: Primary intelligence failed with error: ${error?.message || String(error)}.
-  Please attempt to answer using the injected vault and memory context. If you cannot, be explicit about what is missing.
-  `;
-  
-    try {
-      // Call the same API wrapper but with forced prompt
-      const fallbackApiResp = await makeIntelligentAPICall(forcedPrompt, personality, prideMotivation);
-      finalResponse = fallbackApiResp.response || generateEmergencyCaringResponse(new Error('Fallback produced no response'));
-  
-      console.log('[INTELLIGENCE] Fallback response received. Tokens:', fallbackApiResp.usage?.total_tokens || 0);
-    } catch (fallbackError) {
-      // If fallback itself fails, produce a safe emergency message
-      console.error('[INTELLIGENCE] Fallback also failed:', fallbackError?.message || fallbackError);
-  
-      finalResponse = generateEmergencyCaringResponse(fallbackError || error);
-    }
+    console.error('[OPENAI] API call failed:', error.message);
+    throw error;
   }
 
 };
@@ -542,46 +500,78 @@ console.log('  vaultStatus:', vaultStatus);
     }
     
     // ===== ENHANCED MEMORY CONTEXT WITH FULL INTELLIGENCE =====
-let memoryContext = '';
-let memoryResult = null;
-
-// Try intelligence system first
-if (intelligenceMemories && intelligenceMemories.length > 0) {
-  const memoryText = intelligenceMemories.map(m => m.content).join('\n\n');
-  const totalTokens = intelligenceMemories.reduce((sum, m) => sum + (m.token_count || 0), 0);
-  
-  memoryContext = {
-    memories: memoryText,
-    length: memoryText.length,
-    count: intelligenceMemories.length,
-    hasMemory: true,
-    contextFound: true,
-    totalTokens: totalTokens,
-    intelligenceEnhanced: true
-  };
-  console.log('[INTELLIGENCE] Using improved memory system with', totalTokens, 'tokens from', intelligenceMemories.length, 'memories');
-} else if (global.memorySystem && typeof global.memorySystem.retrieveMemory === 'function') {
-  try {
-    console.log('[CHAT] 📋 Retrieving fallback memory context...');
-    memoryResult = await global.memorySystem.retrieveMemory('user', message);
-    if (memoryResult && memoryResult.memories) {
-      memoryContext = {
-        memories: memoryResult.memories,
-        length: memoryResult.memories.length,
-        count: 1,
-        hasMemory: true,
-        contextFound: true
-      };
-      console.log(`[CHAT] ✅ Fallback memory context retrieved: ${memoryContext.memories.length} characters`);
+    let memoryContext = null;
+    let memoryResult = null;
+    
+    // Try intelligence system first
+    if (intelligenceMemories && Array.isArray(intelligenceMemories) && intelligenceMemories.length > 0) {
+      const memoryText = intelligenceMemories
+        .filter(m => m && m.content && typeof m.content === 'string')
+        .map(m => m.content)
+        .join('\n\n')
+        .trim();
+      
+      if (memoryText.length > 0) {
+        const totalTokens = intelligenceMemories.reduce((sum, m) => sum + (m.token_count || 0), 0);
+        
+        memoryContext = {
+          memories: memoryText,
+          length: memoryText.length,
+          count: intelligenceMemories.length,
+          hasMemory: true,
+          contextFound: true,
+          totalTokens: totalTokens,
+          intelligenceEnhanced: true
+        };
+        console.log(`[INTELLIGENCE] ✅ Memory loaded: ${totalTokens} tokens, ${intelligenceMemories.length} memories, ${memoryText.length} chars`);
+        console.log(`[INTELLIGENCE] 📄 Memory preview: "${memoryText.substring(0, 200)}..."`);
+      } else {
+        console.log('[INTELLIGENCE] ⚠️ Intelligence memories exist but contain no valid text');
+      }
     }
-  } catch (error) {
-    console.error('[CHAT] ⚠️ Memory retrieval failed:', error);
-    memoryContext = '';
-  }
-} else {
-  console.log('[CHAT] ⚠️ No memory context available');
-  memoryContext = '';
-}
+    
+    // Fallback to basic memory system if intelligence didn't provide valid memory
+    if (!memoryContext && global.memorySystem && typeof global.memorySystem.retrieveMemory === 'function') {
+      try {
+        console.log('[CHAT] 📋 Retrieving fallback memory context...');
+        memoryResult = await global.memorySystem.retrieveMemory('user', message);
+        
+        if (memoryResult && memoryResult.memories && typeof memoryResult.memories === 'string') {
+          const trimmedMemories = memoryResult.memories.trim();
+          
+          if (trimmedMemories.length > 0) {
+            memoryContext = {
+              memories: trimmedMemories,
+              length: trimmedMemories.length,
+              count: 1,
+              hasMemory: true,
+              contextFound: true,
+              intelligenceEnhanced: false
+            };
+            console.log(`[CHAT] ✅ Fallback memory loaded: ${trimmedMemories.length} chars`);
+            console.log(`[CHAT] 📄 Fallback preview: "${trimmedMemories.substring(0, 200)}..."`);
+          } else {
+            console.log('[CHAT] ⚠️ Fallback memory returned empty string');
+          }
+        } else {
+          console.log('[CHAT] ⚠️ Fallback memory returned invalid data structure');
+        }
+      } catch (error) {
+        console.error('[CHAT] ❌ Memory retrieval failed:', error.message);
+      }
+    }
+    
+    // Set safe default if no memory was successfully retrieved
+    if (!memoryContext) {
+      console.log('[CHAT] ℹ️ No memory context available - proceeding without session history');
+      memoryContext = {
+        memories: '',
+        length: 0,
+        count: 0,
+        hasMemory: false,
+        contextFound: false
+      };
+    } 
         
 if (!persistentMemory.isReady()) {
   console.error('[CHAT] ❌ Memory systems not ready');
@@ -718,7 +708,7 @@ INSTRUCTION: Analyze the document content above and explicitly reference it wher
 }
 // === END ROBUST DOCUMENT INJECTION ===
 
-if (memoryContext && memoryContext.memories && memoryContext.memories.length > 0) {
+if (memoryContext && memoryContext.hasMemory && memoryContext.memories && memoryContext.memories.length > 0) {
   enhancedPrompt = systemPrompt + `
 
 SESSION CONTINUATION - PREVIOUS MESSAGES FROM THIS CONVERSATION:
@@ -735,12 +725,10 @@ Family Member: ${message}
 
 Respond using conversation context and your expertise:`;
   
-  console.log(`[CHAT] 🧠 Added ${memoryContext.memories.length} characters of memory context to AI prompt`);
-  console.log('[DEBUG] First 500 chars of memory:', memoryContext.memories.substring(0, 500));
-  console.log(`[FULL DEBUG] Complete memory content:`, memoryContext.memories);
-  console.log(`[MEMORY STRUCTURE] Memory context object:`, JSON.stringify(memoryContext, null, 2));
-  console.log(`[MEMORY BREAKDOWN] Field types:`, typeof memoryContext.memories, typeof memoryContext.contextFound);
-} else if (conversationHistoryText) {
+  console.log(`[PROMPT] ✅ Memory injected into prompt: ${memoryContext.memories.length} chars from ${memoryContext.count} memories`);
+  console.log(`[PROMPT] 📄 Memory preview in prompt: "${memoryContext.memories.substring(0, 150)}..."`);
+  
+} else if (conversationHistoryText && conversationHistoryText.trim().length > 0) {
   enhancedPrompt = systemPrompt + `
 
 RECENT CONVERSATION:
@@ -752,7 +740,7 @@ CURRENT REQUEST:
 Family Member: ${message}
 
 Respond using conversation context and your expertise:`;
-  console.log(`[CHAT] 🔗 Added conversation history to AI prompt`);
+  console.log(`[PROMPT] ✅ Conversation history added: ${conversationHistoryText.length} chars`);
 
 } else {
   enhancedPrompt = systemPrompt + `
@@ -761,7 +749,7 @@ CURRENT REQUEST:
 Family Member: ${message}
 
 Respond with your expertise:`;
-  console.log(`[CHAT] ⚠️ No memory context available for AI prompt`);
+  console.log(`[PROMPT] ℹ️ No memory or history - fresh conversation prompt`);
 }
 
 // === FIX A: Sanitize memory injection to prevent fallback echo ===
@@ -775,6 +763,27 @@ if (memoryContext && memoryContext.memories) {
   console.log('[FIX A] Memory context sanitized for injection');
 }
 
+// Sanitize memory content before final prompt construction
+if (memoryContext && memoryContext.hasMemory && memoryContext.memories) {
+  const originalLength = memoryContext.memories.length;
+  memoryContext.memories = memoryContext.memories
+    .replace(/🚨 FALLBACK ANALYSIS[^\n]*/gi, '')
+    .replace(/📁 PROFESSIONAL ANALYSIS[^\n]*/gi, '')
+    .replace(/Caring Family System Error[^\n]*/gi, '')
+    .replace(/\[SYSTEM\][^\n]*/gi, '')
+    .replace(/\[DEBUG\][^\n]*/gi, '')
+    .trim();
+  
+  const cleanedLength = memoryContext.memories.length;
+  if (originalLength !== cleanedLength) {
+    console.log(`[MEMORY-SANITIZE] Cleaned ${originalLength - cleanedLength} chars of system artifacts from memory`);
+  }
+}
+
+const fullPrompt = enhancedPrompt;
+
+    console.log(`[FINAL PROMPT] Complete prompt being sent to AI:`, fullPrompt);
+    console.log(`[PROMPT LENGTH] Total prompt length:`, fullPrompt.length);  
       
 const fullPrompt = enhancedPrompt;
 
@@ -1747,6 +1756,14 @@ async function safeStartServer() {
     // Graceful shutdown for Railway
     process.on('SIGTERM', () => {
       console.log('SIGTERM received, shutting down gracefully');
+      
+      // Stop document cleanup interval
+      import('./api/upload-for-analysis.js').then(module => {
+        if (module.stopDocumentCleanup) {
+          module.stopDocumentCleanup();
+        }
+      });
+      
       server.close(() => process.exit(0));
     });
 
