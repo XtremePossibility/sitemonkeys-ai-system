@@ -36,9 +36,11 @@ async function loadVaultOnDemand() {
   }
 }
 
-// Initialize empty vault state
-window.currentVaultContent = '';
-window.vaultStatus = { loaded: false, healthy: false, tokens: 0 };
+// Initialize empty vault state ONLY if not already set
+if (typeof window.currentVaultContent === 'undefined') {
+  window.currentVaultContent = '';
+  window.vaultStatus = { loaded: false, healthy: false, tokens: 0 };
+}
 // REFRESH VAULT BUTTON HANDLER
 async function improvedRefreshVault() {
   console.log('🔄 Refresh vault button clicked...');
