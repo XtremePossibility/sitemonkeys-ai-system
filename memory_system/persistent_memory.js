@@ -141,6 +141,11 @@ class PersistentMemoryOrchestrator {
         return await self.storeMemoryForChat(userId, conversation);
       },
 
+      getRecentMemories: async (userId, limit = 5) => {
+        await self.ensureInitialized();
+        return await self.getRecentMemories(userId, limit);
+      },
+
       extractIntelligentMemory: async (message, userId, intelligenceContext) => {
         await self.ensureInitialized();
         return await self.extractIntelligentMemoryForChat(message, userId, intelligenceContext);
@@ -295,6 +300,44 @@ class PersistentMemoryOrchestrator {
       
       // Emergency fallback
       return await this.fallbackStore(userId, conversationData);
+    }
+  }
+
+  async getRecentMemories(userId, limit = 5) {
+    try {
+      console.log(`[PERSISTENT_MEMORY] ${new Date().toISOString()} Getting ${limit} recent memories for user ${userId}`);
+      
+      await this.ensureInitialized();
+      
+      if (this.isHealthy && this.coreSystem) {
+        // Query database for recent memories
+        const query = `
+          SELECT id, user_id, content, category_name, subcategory_name, token_count, 
+                 relevance_score, created_at, accessed_at, access_count
+          FROM persistent_memories
+          WHERE user_id = $1
+          ORDER BY created_at DESC
+          LIMIT $2
+        `;
+        
+        const result = await this.coreSystem.pool.query(query, [userId, limit]);
+        
+        if (result.rows && result.rows.length > 0) {
+          console.log(`[PERSISTENT_MEMORY] ${new Date().toISOString()} Retrieved ${result.rows.length} recent memories`);
+          return result.rows;
+        } else {
+          console.log(`[PERSISTENT_MEMORY] ${new Date().toISOString()} No recent memories found`);
+          return [];
+        }
+      } else {
+        // Fallback mode - check in-memory storage
+        console.log(`[PERSISTENT_MEMORY] ${new Date().toISOString()} Using fallback memory for recent retrieval`);
+        const userMemories = this.fallbackMemory.get(userId) || [];
+        return userMemories.slice(-limit).reverse(); // Get last N memories, newest first
+      }
+    } catch (error) {
+      console.error(`[PERSISTENT_MEMORY] ${new Date().toISOString()} Error getting recent memories:`, error);
+      return [];
     }
   }
 
