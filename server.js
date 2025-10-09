@@ -512,8 +512,8 @@ console.log('  vaultStatus:', vaultStatus);
               intelligenceMemories = recentMemories.map(mem => ({
                 content: mem.content,
                 token_count: mem.token_count || 0,
-                relevance_score: 0.5, // Medium relevance since it's just recency-based
-                category: mem.category || 'general'
+                relevance_score: 0.5,
+                category: mem.category_name || 'general'  // ← CORRECT
               }));
               console.log('[MEMORY-DEBUG] Fallback: Using', intelligenceMemories.length, 'recent memories');
             }
@@ -992,6 +992,14 @@ function buildConditionalSystemPrompt(message, config) {
   
   // SURVIVAL DETECTION - TRIGGERS SEPARATE EMERGENCY PATHWAY
   const survivalKeywords = /runway|burn.*rate|survival|bankruptcy|bankrupt|pregnant.*wife|wife.*pregnant|baby.*coming|family.*risk|months.*left|out.*money|cash.*running.*out/i;
+
+  // Don't trigger survival mode if the keywords are in uploaded documents
+  const hasDocumentContext = config.document_context || message.includes('[DOCUMENT CONTEXT]');
+  const isSurvivalEmergency = survivalKeywords.test(message.toLowerCase()) && !hasDocumentContext;
+  
+  if (isSurvivalEmergency) {
+    return buildSurvivalEmergencyPrompt(message, config);
+  }
   
   if (survivalKeywords.test(message.toLowerCase())) {
     return buildSurvivalEmergencyPrompt(message, config);
