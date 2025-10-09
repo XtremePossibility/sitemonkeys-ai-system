@@ -494,35 +494,49 @@ console.log('  vaultStatus:', vaultStatus);
     
     try {
       intelligenceRouting = await intelligenceSystem.analyzeAndRoute(message, 'user');
-      console.log('[MEMORY-DEBUG] Intelligence routing result:', JSON.stringify(intelligenceRouting));
-      
-      intelligenceMemories = await intelligenceSystem.extractRelevantMemories('user', message, intelligenceRouting);
-      console.log('[MEMORY-DEBUG] Extracted memories count:', intelligenceMemories ? intelligenceMemories.length : 0);
-      
-      // FALLBACK: If no memories found, get recent memories from database directly
-      if (!intelligenceMemories || intelligenceMemories.length === 0) {
-        console.log('[MEMORY-DEBUG] No memories from semantic search, trying direct database fallback...');
-        
-        if (global.memorySystem && typeof global.memorySystem.getRecentMemories === 'function') {
-          try {
-            const recentMemories = await global.memorySystem.getRecentMemories('user', 5);
-            console.log('[MEMORY-DEBUG] Fallback retrieved:', recentMemories ? recentMemories.length : 0, 'recent memories');
-            
-            if (recentMemories && recentMemories.length > 0) {
-              intelligenceMemories = recentMemories.map(mem => ({
-                content: mem.content,
-                token_count: mem.token_count || 0,
-                relevance_score: 0.5,
-                category: mem.category_name || 'general'  // ← CORRECT
-              }));
-              console.log('[MEMORY-DEBUG] Fallback: Using', intelligenceMemories.length, 'recent memories');
-            }
-          } catch (fallbackError) {
-            console.error('[MEMORY-DEBUG] Fallback memory retrieval failed:', fallbackError.message);
+      console.log('[MEMORY-DEBUG] Intelligence routing result:', intelligenceRouting.primaryCategory);
+    
+      // Try semantic search
+      let semanticMemories = await intelligenceSystem.extractRelevantMemories('user', message, intelligenceRouting);
+      console.log('[MEMORY-DEBUG] Semantic search found:', semanticMemories ? semanticMemories.length : 0, 'memories');
+    
+      // ALWAYS try to get recent memories from database
+      console.log('[MEMORY-DEBUG] Retrieving recent memories from database...');
+      intelligenceMemories = null;
+    
+      if (global.memorySystem && typeof global.memorySystem.getRecentMemories === 'function') {
+        try {
+          const recentMemories = await global.memorySystem.getRecentMemories('user', 10);
+          console.log('[MEMORY-DEBUG] Database query returned:', recentMemories ? recentMemories.length : 0, 'memories');
+          
+          if (recentMemories && recentMemories.length > 0) {
+            intelligenceMemories = recentMemories.map(mem => ({
+              content: mem.content,
+              token_count: mem.token_count || Math.ceil(mem.content.length / 4),
+              relevance_score: 0.6,
+              category: mem.category_name || 'general',
+              id: mem.id,
+              created_at: mem.created_at
+            }));
+            console.log('[MEMORY-DEBUG] Successfully loaded', intelligenceMemories.length, 'memories from database');
+            console.log('[MEMORY-DEBUG] First memory preview:', intelligenceMemories[0].content.substring(0, 150));
+          } else {
+            console.log('[MEMORY-DEBUG] Database query returned empty array');
+            intelligenceMemories = semanticMemories || [];
           }
-        } else {
-          console.log('[MEMORY-DEBUG] No getRecentMemories function available for fallback');
+        } catch (dbError) {
+          console.error('[MEMORY-DEBUG] Database error:', dbError.message);
+          intelligenceMemories = semanticMemories || [];
         }
+      } else {
+        console.log('[MEMORY-DEBUG] getRecentMemories not available');
+        intelligenceMemories = semanticMemories || [];
+      }
+    
+      if (intelligenceMemories && intelligenceMemories.length > 0) {
+        console.log('[MEMORY-DEBUG] FINAL: Injecting', intelligenceMemories.length, 'memories');
+      } else {
+        console.log('[MEMORY-DEBUG] FINAL: No memories to inject');
       }
       
       if (intelligenceMemories && intelligenceMemories.length > 0) {
