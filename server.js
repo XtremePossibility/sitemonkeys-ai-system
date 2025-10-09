@@ -458,7 +458,7 @@ app.post('/api/chat', async (req, res) => {
       } else if (process.env.VAULT_CONTENT) {
         vaultContent = process.env.VAULT_CONTENT;
         vaultStatus = 'loaded_from_environment';
-        vaultHealthy = (vaultContent.length >= 10000);  // ← Base healthy flag on actual content length
+        vaultHealthy = (vaultContent.length >= 500);  // Much lower threshold 
         console.log(`✅ Vault loaded from environment: ${vaultContent.length} chars, healthy: ${vaultHealthy}`);
       } else {
         vaultStatus = 'fallback_mode';
