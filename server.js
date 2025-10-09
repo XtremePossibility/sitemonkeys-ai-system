@@ -777,11 +777,6 @@ if (memoryContext && memoryContext.hasMemory && memoryContext.memories) {
     console.log(`[MEMORY-SANITIZE] Cleaned ${originalLength - cleanedLength} chars of system artifacts from memory`);
   }
 }
-
-const fullPrompt = enhancedPrompt;
-
-    console.log(`[FINAL PROMPT] Complete prompt being sent to AI:`, fullPrompt);
-    console.log(`[PROMPT LENGTH] Total prompt length:`, fullPrompt.length);  
       
 const fullPrompt = enhancedPrompt;
 
