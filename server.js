@@ -485,7 +485,7 @@ console.log('  vaultContent length:', vaultContent?.length || 0);
 console.log('  vaultContent preview:', vaultContent?.substring(0, 200) || 'EMPTY');
 console.log('  vaultStatus:', vaultStatus);
       
-    // ===== IMPROVED INTELLIGENCE SYSTEM =====
+    // ===== IMPROVED INTELLIGENCE SYSTEM WITH FALLBACK =====
     let intelligenceRouting = null;
     let intelligenceMemories = null;
     
@@ -499,10 +499,37 @@ console.log('  vaultStatus:', vaultStatus);
       intelligenceMemories = await intelligenceSystem.extractRelevantMemories('user', message, intelligenceRouting);
       console.log('[MEMORY-DEBUG] Extracted memories count:', intelligenceMemories ? intelligenceMemories.length : 0);
       
+      // FALLBACK: If no memories found, get recent memories from database directly
+      if (!intelligenceMemories || intelligenceMemories.length === 0) {
+        console.log('[MEMORY-DEBUG] No memories from semantic search, trying direct database fallback...');
+        
+        if (global.memorySystem && typeof global.memorySystem.getRecentMemories === 'function') {
+          try {
+            const recentMemories = await global.memorySystem.getRecentMemories('user', 5);
+            console.log('[MEMORY-DEBUG] Fallback retrieved:', recentMemories ? recentMemories.length : 0, 'recent memories');
+            
+            if (recentMemories && recentMemories.length > 0) {
+              intelligenceMemories = recentMemories.map(mem => ({
+                content: mem.content,
+                token_count: mem.token_count || 0,
+                relevance_score: 0.5, // Medium relevance since it's just recency-based
+                category: mem.category || 'general'
+              }));
+              console.log('[MEMORY-DEBUG] Fallback: Using', intelligenceMemories.length, 'recent memories');
+            }
+          } catch (fallbackError) {
+            console.error('[MEMORY-DEBUG] Fallback memory retrieval failed:', fallbackError.message);
+          }
+        } else {
+          console.log('[MEMORY-DEBUG] No getRecentMemories function available for fallback');
+        }
+      }
+      
       if (intelligenceMemories && intelligenceMemories.length > 0) {
+        console.log('[MEMORY-DEBUG] Final memory count:', intelligenceMemories.length);
         console.log('[MEMORY-DEBUG] First memory sample:', JSON.stringify(intelligenceMemories[0]).substring(0, 200));
       } else {
-        console.log('[MEMORY-DEBUG] No memories extracted from intelligence system');
+        console.log('[MEMORY-DEBUG] No memories available after all attempts');
       }
       
       console.log('[INTELLIGENCE] Categorized as:', intelligenceRouting.primaryCategory);
@@ -512,7 +539,7 @@ console.log('  vaultStatus:', vaultStatus);
       intelligenceRouting = { primaryCategory: 'personal_life_interests' };
       intelligenceMemories = [];
     }
-    
+        
     // ===== ENHANCED MEMORY CONTEXT WITH FULL INTELLIGENCE =====
     let memoryContext = null;
     let memoryResult = null;
