@@ -994,7 +994,9 @@ function buildConditionalSystemPrompt(message, config) {
   const survivalKeywords = /runway|burn.*rate|survival|bankruptcy|bankrupt|pregnant.*wife|wife.*pregnant|baby.*coming|family.*risk|months.*left|out.*money|cash.*running.*out/i;
 
   // Don't trigger survival mode if the keywords are in uploaded documents
-  const hasDocumentContext = config.document_context || message.includes('[DOCUMENT CONTEXT]');
+  const hasDocumentContext = config.document_context || message.includes('[DOCUMENT CONTEXT]') || 
+                           (message.toLowerCase().includes('explain') && 
+                            (message.toLowerCase().includes('document') || message.toLowerCase().includes('file')));
   const isSurvivalEmergency = survivalKeywords.test(message.toLowerCase()) && !hasDocumentContext;
   
   if (isSurvivalEmergency) {
