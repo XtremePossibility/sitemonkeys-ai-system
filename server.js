@@ -489,25 +489,25 @@ console.log('  vaultStatus:', vaultStatus);
     let intelligenceRouting = null;
     let intelligenceMemories = null;
     
-    console.log('[MEMORY-DEBUG] Starting intelligence system memory extraction...');
-    console.log('[MEMORY-DEBUG] User message:', message.substring(0, 100));
+    //console.log('[MEMORY-DEBUG] Starting intelligence system memory extraction...');
+    //console.log('[MEMORY-DEBUG] User message:', message.substring(0, 100));
     
     try {
       intelligenceRouting = await intelligenceSystem.analyzeAndRoute(message, 'user');
-      console.log('[MEMORY-DEBUG] Intelligence routing result:', intelligenceRouting.primaryCategory);
+      //console.log('[MEMORY-DEBUG] Intelligence routing result:', intelligenceRouting.primaryCategory);
     
       // Try semantic search
       let semanticMemories = await intelligenceSystem.extractRelevantMemories('user', message, intelligenceRouting);
-      console.log('[MEMORY-DEBUG] Semantic search found:', semanticMemories ? semanticMemories.length : 0, 'memories');
+      //console.log('[MEMORY-DEBUG] Semantic search found:', semanticMemories ? semanticMemories.length : 0, 'memories');
     
       // ALWAYS try to get recent memories from database
-      console.log('[MEMORY-DEBUG] Retrieving recent memories from database...');
+      //console.log('[MEMORY-DEBUG] Retrieving recent memories from database...');
       intelligenceMemories = null;
     
       if (global.memorySystem && typeof global.memorySystem.getRecentMemories === 'function') {
         try {
           const recentMemories = await global.memorySystem.getRecentMemories('user', 10);
-          console.log('[MEMORY-DEBUG] Database query returned:', recentMemories ? recentMemories.length : 0, 'memories');
+          //console.log('[MEMORY-DEBUG] Database query returned:', recentMemories ? recentMemories.length : 0, 'memories');
           
           if (recentMemories && recentMemories.length > 0) {
             intelligenceMemories = recentMemories.map(mem => ({
@@ -518,38 +518,38 @@ console.log('  vaultStatus:', vaultStatus);
               id: mem.id,
               created_at: mem.created_at
             }));
-            console.log('[MEMORY-DEBUG] Successfully loaded', intelligenceMemories.length, 'memories from database');
-            console.log('[MEMORY-DEBUG] First memory preview:', intelligenceMemories[0].content.substring(0, 150));
+            //console.log('[MEMORY-DEBUG] Successfully loaded', intelligenceMemories.length, 'memories from database');
+            //console.log('[MEMORY-DEBUG] First memory preview:', intelligenceMemories[0].content.substring(0, 150));
           } else {
-            console.log('[MEMORY-DEBUG] Database query returned empty array');
+            //console.log('[MEMORY-DEBUG] Database query returned empty array');
             intelligenceMemories = semanticMemories || [];
           }
         } catch (dbError) {
-          console.error('[MEMORY-DEBUG] Database error:', dbError.message);
+          //console.error('[MEMORY-DEBUG] Database error:', dbError.message);
           intelligenceMemories = semanticMemories || [];
         }
       } else {
-        console.log('[MEMORY-DEBUG] getRecentMemories not available');
+        //console.log('[MEMORY-DEBUG] getRecentMemories not available');
         intelligenceMemories = semanticMemories || [];
       }
     
       if (intelligenceMemories && intelligenceMemories.length > 0) {
-        console.log('[MEMORY-DEBUG] FINAL: Injecting', intelligenceMemories.length, 'memories');
+        //console.log('[MEMORY-DEBUG] FINAL: Injecting', intelligenceMemories.length, 'memories');
       } else {
-        console.log('[MEMORY-DEBUG] FINAL: No memories to inject');
+        //console.log('[MEMORY-DEBUG] FINAL: No memories to inject');
       }
       
       if (intelligenceMemories && intelligenceMemories.length > 0) {
-        console.log('[MEMORY-DEBUG] Final memory count:', intelligenceMemories.length);
-        console.log('[MEMORY-DEBUG] First memory sample:', JSON.stringify(intelligenceMemories[0]).substring(0, 200));
+        //console.log('[MEMORY-DEBUG] Final memory count:', intelligenceMemories.length);
+        //console.log('[MEMORY-DEBUG] First memory sample:', JSON.stringify(intelligenceMemories[0]).substring(0, 200));
       } else {
-        console.log('[MEMORY-DEBUG] No memories available after all attempts');
+        //console.log('[MEMORY-DEBUG] No memories available after all attempts');
       }
       
-      console.log('[INTELLIGENCE] Categorized as:', intelligenceRouting.primaryCategory);
+      //console.log('[INTELLIGENCE] Categorized as:', intelligenceRouting.primaryCategory);
     } catch (error) {
-      console.error('[INTELLIGENCE] Error:', error.message);
-      console.error('[INTELLIGENCE] Stack:', error.stack);
+      //console.error('[INTELLIGENCE] Error:', error.message);
+      //console.error('[INTELLIGENCE] Stack:', error.stack);
       intelligenceRouting = { primaryCategory: 'personal_life_interests' };
       intelligenceMemories = [];
     }
@@ -578,17 +578,17 @@ console.log('  vaultStatus:', vaultStatus);
           totalTokens: totalTokens,
           intelligenceEnhanced: true
         };
-        console.log(`[INTELLIGENCE] ✅ Memory loaded: ${totalTokens} tokens, ${intelligenceMemories.length} memories, ${memoryText.length} chars`);
-        console.log(`[INTELLIGENCE] 📄 Memory preview: "${memoryText.substring(0, 200)}..."`);
+        //console.log(`[INTELLIGENCE] ✅ Memory loaded: ${totalTokens} tokens, ${intelligenceMemories.length} memories, ${memoryText.length} chars`);
+        //console.log(`[INTELLIGENCE] 📄 Memory preview: "${memoryText.substring(0, 200)}..."`);
       } else {
-        console.log('[INTELLIGENCE] ⚠️ Intelligence memories exist but contain no valid text');
+        //console.log('[INTELLIGENCE] ⚠️ Intelligence memories exist but contain no valid text');
       }
     }
     
     // Fallback to basic memory system if intelligence didn't provide valid memory
     if (!memoryContext && global.memorySystem && typeof global.memorySystem.retrieveMemory === 'function') {
       try {
-        console.log('[CHAT] 📋 Retrieving fallback memory context...');
+        //console.log('[CHAT] 📋 Retrieving fallback memory context...');
         memoryResult = await global.memorySystem.retrieveMemory('user', message);
         
         if (memoryResult && memoryResult.memories && typeof memoryResult.memories === 'string') {
@@ -603,13 +603,13 @@ console.log('  vaultStatus:', vaultStatus);
               contextFound: true,
               intelligenceEnhanced: false
             };
-            console.log(`[CHAT] ✅ Fallback memory loaded: ${trimmedMemories.length} chars`);
-            console.log(`[CHAT] 📄 Fallback preview: "${trimmedMemories.substring(0, 200)}..."`);
+            //console.log(`[CHAT] ✅ Fallback memory loaded: ${trimmedMemories.length} chars`);
+            //console.log(`[CHAT] 📄 Fallback preview: "${trimmedMemories.substring(0, 200)}..."`);
           } else {
-            console.log('[CHAT] ⚠️ Fallback memory returned empty string');
+            //console.log('[CHAT] ⚠️ Fallback memory returned empty string');
           }
         } else {
-          console.log('[CHAT] ⚠️ Fallback memory returned invalid data structure');
+          //console.log('[CHAT] ⚠️ Fallback memory returned invalid data structure');
         }
       } catch (error) {
         console.error('[CHAT] ❌ Memory retrieval failed:', error.message);
@@ -618,7 +618,7 @@ console.log('  vaultStatus:', vaultStatus);
     
     // Set safe default if no memory was successfully retrieved
     if (!memoryContext) {
-      console.log('[CHAT] ℹ️ No memory context available - proceeding without session history');
+      //console.log('[CHAT] ℹ️ No memory context available - proceeding without session history');
       memoryContext = {
         memories: '',
         length: 0,
@@ -634,7 +634,7 @@ if (!persistentMemory.isReady()) {
   console.warn('[CHAT] 📊 Memory status:', persistentMemory.getSystemStatus());
   // Don't block - we can operate with fallback memory
 } else {
-  console.log('[CHAT] ✅ Memory system ready and operational');
+  //console.log('[CHAT] ✅ Memory system ready and operational');
 }
     // INTELLIGENCE ANALYSIS - Context generation
     const riskContext = generateRiskContext(message);
@@ -692,7 +692,7 @@ if (conversation_history && conversation_history.length > 0) {
   conversationHistoryText = recentHistory.map(turn => 
     `${turn.role === 'user' ? 'Family Member' : 'Assistant'}: ${turn.content}`
   ).join('\n');
-  console.log(`[CHAT] 🔗 Added ${recentHistory.length} conversation context entries`);
+  //console.log(`[CHAT] 🔗 Added ${recentHistory.length} conversation context entries`);
 }
 // Build base conversation prompt
 // Build base conversation prompt
@@ -744,16 +744,16 @@ ${safeText}
 
 INSTRUCTION: Analyze the document content above and explicitly reference it where relevant when answering the user's request.`;
 
-      console.log('[DOC-INJECT] Injected document into prompt:', {
+      //console.log('[DOC-INJECT] Injected document into prompt:', {
         label: docLabel,
         chars: docText.length,
         truncated: docText.length > MAX_CHARS
       });
     } else {
-      console.log('[DOC-INJECT] document_context present but empty; skipping injection.');
+      //console.log('[DOC-INJECT] document_context present but empty; skipping injection.');
     }
   } else {
-    console.log('[DOC-INJECT] No document_context in request; skipping injection.');
+    //console.log('[DOC-INJECT] No document_context in request; skipping injection.');
   }
 
 } catch (docError) {
@@ -778,8 +778,8 @@ Family Member: ${message}
 
 Respond using conversation context and your expertise:`;
   
-  console.log(`[PROMPT] ✅ Memory injected into prompt: ${memoryContext.memories.length} chars from ${memoryContext.count} memories`);
-  console.log(`[PROMPT] 📄 Memory preview in prompt: "${memoryContext.memories.substring(0, 150)}..."`);
+  //console.log(`[PROMPT] ✅ Memory injected into prompt: ${memoryContext.memories.length} chars from ${memoryContext.count} memories`);
+  //console.log(`[PROMPT] 📄 Memory preview in prompt: "${memoryContext.memories.substring(0, 150)}..."`);
   
 } else if (conversationHistoryText && conversationHistoryText.trim().length > 0) {
   enhancedPrompt = systemPrompt + `
@@ -793,7 +793,7 @@ CURRENT REQUEST:
 Family Member: ${message}
 
 Respond using conversation context and your expertise:`;
-  console.log(`[PROMPT] ✅ Conversation history added: ${conversationHistoryText.length} chars`);
+  //console.log(`[PROMPT] ✅ Conversation history added: ${conversationHistoryText.length} chars`);
 
 } else {
   enhancedPrompt = systemPrompt + `
