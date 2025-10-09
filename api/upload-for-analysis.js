@@ -325,6 +325,26 @@ async function handleAnalysisUpload(req, res) {
         files: []
       });
     }
+
+    // Enforce document limit before processing new upload
+    if (extractedDocuments.size >= MAX_DOCUMENTS) {
+      console.warn(`[DOCUMENT-CLEANUP] Document limit reached (${MAX_DOCUMENTS}), forcing immediate cleanup`);
+      autoCleanupDocuments();
+      
+      // If still at limit after cleanup, reject new upload
+      if (extractedDocuments.size >= MAX_DOCUMENTS) {
+        return res.status(429).json({
+          status: 'error',
+          message: 'Document storage limit reached. Please try again in a few minutes.',
+          error: 'Too many documents in memory',
+          successful_uploads: 0,
+          failed_uploads: req.files.length,
+          files: [],
+          currentDocuments: extractedDocuments.size,
+          maxDocuments: MAX_DOCUMENTS
+        });
+      }
+    }
     
     console.log(`📁 [Analysis] Processing ${req.files.length} file(s)`);
     
