@@ -750,10 +750,10 @@ INSTRUCTION: Analyze the document content above and explicitly reference it wher
         truncated: docText.length > MAX_CHARS
       });
     } else {
-      //console.log('[DOC-INJECT] document_context present but empty; skipping injection.');
+      console.log('[DOC-INJECT] document_context present but empty; skipping injection.');
     }
   } else {
-    //console.log('[DOC-INJECT] No document_context in request; skipping injection.');
+    console.log('[DOC-INJECT] No document_context in request; skipping injection.');
   }
 
 } catch (docError) {
