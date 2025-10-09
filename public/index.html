@@ -1179,19 +1179,9 @@ async function sendMessage() {
   box.scrollTop = box.scrollHeight;
 
   try {
-    // Load vault content for backend injection
-    let vaultContent = null;
-    try {
-      const vaultResponse = await fetch('/api/load-vault', {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json' }
-      });
-      const vaultData = await vaultResponse.json();
-      vaultContent = vaultData.vault_content;
-      console.log('🎯 Vault loaded for chat:', vaultContent ? 'SUCCESS (' + Math.ceil(vaultContent.length/4) + ' tokens)' : 'FAILED');
-    } catch (vaultError) {
-      console.warn('⚠️ Vault load failed, backend will use emergency fallbacks:', vaultError);
-    }
+  // USE ALREADY-LOADED VAULT FROM WINDOW
+  let vaultContent = window.currentVaultContent || '';
+  console.log('🎯 Using cached vault for chat:', vaultContent ? 'SUCCESS (' + Math.ceil(vaultContent.length/4) + ' tokens)' : 'FAILED');
 
     // Prepare enhanced message with document context
     // Simple document context injection
