@@ -5,8 +5,44 @@ import multer from 'multer';
 import path from 'path';
 import mammoth from 'mammoth';
 
-// Temporary server-side storage for extracted documents
+// Session storage for extracted documents with automatic cleanup
 export const extractedDocuments = new Map();
+const MAX_DOCUMENTS = 100;
+let cleanupInterval = null;
+
+// Automatic cleanup function - runs every minute
+function autoCleanupDocuments() {
+  const tenMinutesAgo = Date.now() - (10 * 60 * 1000);
+  let cleanedCount = 0;
+  
+  for (const [docId, doc] of extractedDocuments.entries()) {
+    if (doc.timestamp < tenMinutesAgo) {
+      extractedDocuments.delete(docId);
+      cleanedCount++;
+    }
+  }
+  
+  if (cleanedCount > 0) {
+    console.log(`[DOCUMENT-CLEANUP] Removed ${cleanedCount} expired documents from memory`);
+  }
+  
+  const currentSize = extractedDocuments.size;
+  if (currentSize > 0) {
+    console.log(`[DOCUMENT-CLEANUP] Current documents in memory: ${currentSize}/${MAX_DOCUMENTS}`);
+  }
+}
+
+// Start automatic cleanup interval (runs every 60 seconds)
+cleanupInterval = setInterval(autoCleanupDocuments, 60000);
+
+// Export function to stop cleanup on graceful shutdown
+export function stopDocumentCleanup() {
+  if (cleanupInterval) {
+    clearInterval(cleanupInterval);
+    cleanupInterval = null;
+    console.log('[DOCUMENT-CLEANUP] Cleanup interval stopped');
+  }
+}
 
 // Configure multer for file uploads (in-memory storage) - EXACT COPY
 
