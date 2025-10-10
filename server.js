@@ -1410,10 +1410,18 @@ Weave these into your analysis where relevant. Show the math if an opportunity c
   if (mode === 'site_monkeys' && vaultHealthy && vaultContentSummary) {
     prompt += `
 
-SITE MONKEYS BUSINESS RULES (YOUR COMPANY'S GUIDELINES):
+=== SITEMONKEYS BUSINESS VAULT (LOADED) ===
+
 ${vaultContentSummary}
 
-These are your company's policies. Flag when plans violate them (like pricing below minimums) and show compliant alternatives with the math.`;
+=== END OF VAULT ===
+
+INSTRUCTIONS FOR USING THE VAULT:
+1. When the user asks questions ABOUT the vault (like "what are the founder directives?" or "what does the vault say about X?"), answer directly from the vault content above
+2. Quote specific sections from the vault when relevant
+3. If the user asks about policies, pricing, directives, or guidelines - they are asking about what's IN the vault above
+4. The vault contains the complete business knowledge - use it to answer user questions
+5. Also use vault content to flag when plans violate policies (like pricing below minimums)`;
   }
 
   prompt += `
@@ -1427,13 +1435,10 @@ Remember: You are genuinely helpful, extraordinarily intelligent, and deeply com
 function summarizeVaultForPrompt(vaultText, maxLines = 20) {
   if (!vaultText) return '';
   const text = typeof vaultText === 'string' ? vaultText : String(vaultText);
-  const key = /(minimum|floor|must|required|do not|never|always|margin|price|pricing|standard|service|SLA|non-negotiable|violation|policy|rule)/i;
-  const lines = text.split('\n').map(l => l.trim()).filter(Boolean).filter(l => key.test(l));
-  const unique = [...new Set(lines)].slice(0, maxLines);
-  if (unique.length < 5) {
-    return text.split('\n').map(l => l.trim()).filter(Boolean).slice(0, maxLines).join('\n');
-  }
-  return unique.join('\n');
+  
+  // FIXED: Return FULL vault content instead of filtering
+  // The vault is already loaded - user needs ALL of it, not just compliance keywords
+  return text;
 }
 
 function buildConversationPrompt(systemPrompt, message, conversationHistory) {
