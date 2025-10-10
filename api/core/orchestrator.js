@@ -821,7 +821,30 @@ export class Orchestrator {
       
       const systemPrompt = this.#buildSystemPrompt(mode, analysis);
       
-      const fullPrompt = `${systemPrompt}\n\n${contextString}${historyString}\n\nUser query: ${message}`;
+      // VAULT-ONLY MODE: Pure vault queries bypass contamination
+      const isVaultQuery = context.sources?.hasVault && (
+        message.toLowerCase().includes('vault') ||
+        message.toLowerCase().includes('founder') ||
+        message.toLowerCase().includes('directive') ||
+        mode === 'site_monkeys'
+      );
+      
+      let fullPrompt;
+      if (isVaultQuery) {
+        console.log('[AI] 🔒 PURE VAULT MODE - Zero contamination');
+        fullPrompt = `You are a vault content specialist. Search through the ENTIRE vault systematically.
+      
+      VAULT CONTENT:
+      ${context.vault}
+      
+      USER QUESTION: ${message}
+      
+      Instructions: Search thoroughly and quote directly from the vault. Reference document names when quoting.`;
+        console.log(`[AI] Pure vault prompt: ${fullPrompt.length} chars`);
+      } else {
+        fullPrompt = `${systemPrompt}\n\n${contextString}${historyString}\n\nUser query: ${message}`;
+      }
+
       
       let response, inputTokens, outputTokens;
       
