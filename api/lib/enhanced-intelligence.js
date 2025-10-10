@@ -7,20 +7,20 @@ export class EnhancedIntelligence {
   constructor() {
     this.intelligenceCapabilities = {
       reasoning: true,
-      crossDomain: true, 
+      crossDomain: true,
       scenarios: true,
       quantitative: true,
-      memoryIntegration: true
+      memoryIntegration: true,
     };
   }
 
   // ================================================================
   // MAIN INTELLIGENCE ENHANCEMENT FUNCTION
   // ================================================================
-  
+
   async enhanceResponse(baseResponse, query, mode, memoryContext, vaultContext, confidence) {
     console.log('🧠 ENHANCED INTELLIGENCE: Processing query with full cognitive capabilities');
-    
+
     const enhancement = {
       originalResponse: baseResponse,
       intelligenceApplied: [],
@@ -31,26 +31,38 @@ export class EnhancedIntelligence {
       enhancedResponse: baseResponse,
       finalConfidence: confidence,
       assumptionsDetected: [],
-      unknownsIdentified: []
+      unknownsIdentified: [],
     };
 
     // 1. MULTI-STEP REASONING ENGINE
     if (this.requiresReasoning(query, mode)) {
       console.log('🔗 Applying multi-step reasoning chain');
-      enhancement.reasoningChain = await this.buildReasoningChain(query, memoryContext, vaultContext);
+      enhancement.reasoningChain = await this.buildReasoningChain(
+        query,
+        memoryContext,
+        vaultContext,
+      );
       enhancement.intelligenceApplied.push('reasoning');
     }
-    // 2. CROSS-DOMAIN KNOWLEDGE SYNTHESIS  
+    // 2. CROSS-DOMAIN KNOWLEDGE SYNTHESIS
     if (this.requiresCrossDomainAnalysis(query, memoryContext)) {
       console.log('🌐 Synthesizing cross-domain knowledge');
-      enhancement.crossDomainSynthesis = await this.synthesizeKnowledgeDomains(query, memoryContext, vaultContext);
+      enhancement.crossDomainSynthesis = await this.synthesizeKnowledgeDomains(
+        query,
+        memoryContext,
+        vaultContext,
+      );
       enhancement.intelligenceApplied.push('cross_domain');
     }
 
     // 3. SCENARIO MODELING (All Modes)
     if (mode === 'business_validation' || mode === 'site_monkeys' || mode === 'truth_general') {
       console.log('📊 Building scenario analysis');
-      enhancement.scenarioAnalysis = await this.modelBusinessScenarios(query, vaultContext, memoryContext);
+      enhancement.scenarioAnalysis = await this.modelBusinessScenarios(
+        query,
+        vaultContext,
+        memoryContext,
+      );
       enhancement.intelligenceApplied.push('scenarios');
     }
 
@@ -58,20 +70,28 @@ export class EnhancedIntelligence {
     const numbers = this.extractNumbers(query);
     if (numbers.length > 0) {
       console.log('🔢 Performing quantitative analysis');
-      enhancement.quantitativeAnalysis = await this.performQuantitativeAnalysis(query, numbers, memoryContext);
+      enhancement.quantitativeAnalysis = await this.performQuantitativeAnalysis(
+        query,
+        numbers,
+        memoryContext,
+      );
       enhancement.intelligenceApplied.push('quantitative');
     }
 
     // 5. INTEGRATE ALL INTELLIGENCE INTO RESPONSE
     enhancement.enhancedResponse = await this.integrateIntelligenceIntoResponse(
-      baseResponse, enhancement, mode
+      baseResponse,
+      enhancement,
+      mode,
     );
 
     // 6. CALCULATE FINAL CONFIDENCE WITH CHAIN DEGRADATION
     enhancement.finalConfidence = this.calculateIntelligenceConfidence(enhancement, confidence);
 
-    console.log(`🎯 Intelligence enhancement complete. Applied: ${enhancement.intelligenceApplied.join(', ')}`);
-    
+    console.log(
+      `🎯 Intelligence enhancement complete. Applied: ${enhancement.intelligenceApplied.join(', ')}`,
+    );
+
     return enhancement;
   }
 
@@ -86,7 +106,7 @@ export class EnhancedIntelligence {
       confidence: 0.85,
       finalConclusion: '',
       evidenceQuality: 'medium',
-      logicalGaps: []
+      logicalGaps: [],
     };
 
     try {
@@ -97,7 +117,7 @@ export class EnhancedIntelligence {
         premise: premise.statement,
         confidence: premise.confidence,
         evidence: premise.evidence,
-        assumptions: premise.assumptions
+        assumptions: premise.assumptions,
       });
 
       // Step 2: If-then logical progression
@@ -107,21 +127,20 @@ export class EnhancedIntelligence {
           step: 2,
           logic: `If ${premise.statement}, then ${consequence.statement}`,
           confidence: Math.min(premise.confidence * 0.9, consequence.confidence),
-          reasoning: consequence.reasoning
+          reasoning: consequence.reasoning,
         });
       }
 
       // Step 3: Final synthesis
       reasoning.finalConclusion = this.synthesizeReasoningConclusion(reasoning.steps);
       reasoning.confidence = this.calculateReasoningChainConfidence(reasoning.steps);
-
     } catch (error) {
       console.error('Reasoning chain error:', error);
       reasoning.steps.push({
         step: 1,
         premise: 'Analysis requires additional context',
         confidence: 0.3,
-        assumptions: ['Insufficient data for multi-step reasoning']
+        assumptions: ['Insufficient data for multi-step reasoning'],
       });
     }
 
@@ -133,7 +152,7 @@ export class EnhancedIntelligence {
       statement: 'Initial analysis based on available context',
       confidence: memoryContext ? 0.8 : 0.6,
       evidence: memoryContext ? 'Supported by user history' : 'Based on query content',
-      assumptions: []
+      assumptions: [],
     };
   }
 
@@ -141,7 +160,7 @@ export class EnhancedIntelligence {
     return {
       statement: 'Logical consequence follows from premise',
       confidence: premise.confidence * 0.9,
-      reasoning: 'Derived through logical progression'
+      reasoning: 'Derived through logical progression',
     };
   }
 
@@ -155,7 +174,7 @@ export class EnhancedIntelligence {
       connectedDomains: [],
       knowledgeBridges: [],
       conflicts: [],
-      confidence: 0.7
+      confidence: 0.7,
     };
 
     // Identify connected domains
@@ -190,7 +209,7 @@ export class EnhancedIntelligence {
       health: /health|medical|fitness|exercise|diet/i,
       personal: /relationship|family|personal|social|emotional/i,
       technical: /technical|software|system|process|automation/i,
-      legal: /legal|law|compliance|regulation|contract/i
+      legal: /legal|law|compliance|regulation|contract/i,
     };
 
     for (const [domain, pattern] of Object.entries(domainPatterns)) {
@@ -207,18 +226,18 @@ export class EnhancedIntelligence {
       'business-legal': 'Business decisions require legal compliance assessment',
       'business-personal': 'Business choices impact personal life and stress levels',
       'health-personal': 'Physical health directly affects relationship quality',
-      'technical-business': 'Technical solutions must align with business objectives'
+      'technical-business': 'Technical solutions must align with business objectives',
     };
 
     const key = `${domain1}-${domain2}`;
     const reverseKey = `${domain2}-${domain1}`;
-    
+
     return {
       from: domain1,
       to: domain2,
       connection: connections[key] || connections[reverseKey] || 'Potential interdependence exists',
       relevance: 0.7,
-      assumptions: [`Connection assumes standard ${domain1}-${domain2} relationships`]
+      assumptions: [`Connection assumes standard ${domain1}-${domain2} relationships`],
     };
   }
 
@@ -234,25 +253,24 @@ export class EnhancedIntelligence {
       blackSwan: null,
       recommendedAction: '',
       keyRisks: [],
-      confidence: 0.75
+      confidence: 0.75,
     };
 
     try {
       scenarios.bestCase = this.buildScenario('best', query, 0.15);
-      scenarios.mostLikely = this.buildScenario('likely', query, 0.60);  
-      scenarios.worstCase = this.buildScenario('worst', query, 0.20);
+      scenarios.mostLikely = this.buildScenario('likely', query, 0.6);
+      scenarios.worstCase = this.buildScenario('worst', query, 0.2);
       scenarios.blackSwan = this.buildScenario('catastrophic', query, 0.05);
 
       scenarios.recommendedAction = this.determineRecommendedAction(scenarios);
       scenarios.keyRisks = this.extractKeyRisks(scenarios);
-
     } catch (error) {
       console.error('Scenario modeling error:', error);
       scenarios.mostLikely = {
         description: 'Standard outcome expected',
         probability: 0.7,
         keyFactors: ['Normal market conditions'],
-        risks: ['Standard business risks apply']
+        risks: ['Standard business risks apply'],
       };
     }
 
@@ -263,24 +281,32 @@ export class EnhancedIntelligence {
     const scenarioTypes = {
       best: {
         description: 'Optimal outcome with favorable conditions',
-        keyFactors: ['All assumptions prove correct', 'Market conditions favorable', 'No unexpected obstacles'],
-        risks: ['Overconfidence', 'Underestimating complexity']
+        keyFactors: [
+          'All assumptions prove correct',
+          'Market conditions favorable',
+          'No unexpected obstacles',
+        ],
+        risks: ['Overconfidence', 'Underestimating complexity'],
       },
       likely: {
-        description: 'Expected outcome under normal conditions', 
-        keyFactors: ['Standard market conditions', 'Typical execution challenges', 'Normal resource constraints'],
-        risks: ['Market shifts', 'Execution delays', 'Resource limitations']
+        description: 'Expected outcome under normal conditions',
+        keyFactors: [
+          'Standard market conditions',
+          'Typical execution challenges',
+          'Normal resource constraints',
+        ],
+        risks: ['Market shifts', 'Execution delays', 'Resource limitations'],
       },
       worst: {
         description: 'Negative outcome with unfavorable conditions',
         keyFactors: ['Key assumptions fail', 'Market downturn', 'Significant obstacles emerge'],
-        risks: ['Financial loss', 'Reputation damage', 'Opportunity cost']
+        risks: ['Financial loss', 'Reputation damage', 'Opportunity cost'],
       },
       catastrophic: {
         description: 'Severe negative outcome with systemic failure',
         keyFactors: ['Multiple critical failures', 'Market collapse', 'Legal/regulatory issues'],
-        risks: ['Business failure', 'Legal liability', 'Personal financial impact']
-      }
+        risks: ['Business failure', 'Legal liability', 'Personal financial impact'],
+      },
     };
 
     const scenario = scenarioTypes[type];
@@ -290,11 +316,11 @@ export class EnhancedIntelligence {
       description: scenario.description,
       keyFactors: scenario.keyFactors,
       risks: scenario.risks,
-      confidence: 0.7
+      confidence: 0.7,
     };
   }
 
-  // ================================================================  
+  // ================================================================
   // QUANTITATIVE ANALYSIS ENGINE
   // ================================================================
 
@@ -306,13 +332,13 @@ export class EnhancedIntelligence {
       assumptions: [],
       results: {},
       confidence: 0.8,
-      limitations: []
+      limitations: [],
     };
 
     try {
       // Determine appropriate mathematical model
       analysis.model = this.selectQuantitativeModel(query, numbers);
-      
+
       // Perform calculations with step-by-step breakdown
       if (analysis.model) {
         analysis.calculations = await this.performCalculations(analysis.model, numbers, query);
@@ -322,7 +348,6 @@ export class EnhancedIntelligence {
       // Identify mathematical assumptions
       analysis.assumptions = this.identifyQuantitativeAssumptions(query, numbers);
       analysis.limitations = this.identifyModelLimitations(analysis.model, numbers);
-
     } catch (error) {
       console.error('Quantitative analysis error:', error);
       analysis.results = { error: 'Unable to perform numerical analysis' };
@@ -335,7 +360,7 @@ export class EnhancedIntelligence {
   extractNumbers(text) {
     const numberPattern = /\$?[\d,]+\.?\d*/g;
     const matches = text.match(numberPattern) || [];
-    return matches.map(match => parseFloat(match.replace(/[$,]/g, '')));
+    return matches.map((match) => parseFloat(match.replace(/[$,]/g, '')));
   }
 
   selectQuantitativeModel(query, numbers) {
@@ -347,7 +372,7 @@ export class EnhancedIntelligence {
   }
 
   // ================================================================
-  // RESPONSE INTEGRATION ENGINE  
+  // RESPONSE INTEGRATION ENGINE
   // ================================================================
 
   async integrateIntelligenceIntoResponse(baseResponse, enhancement, mode) {
@@ -360,19 +385,28 @@ export class EnhancedIntelligence {
     }
 
     // Add cross-domain insights
-    if (enhancement.crossDomainSynthesis && enhancement.crossDomainSynthesis.knowledgeBridges.length > 0) {
+    if (
+      enhancement.crossDomainSynthesis &&
+      enhancement.crossDomainSynthesis.knowledgeBridges.length > 0
+    ) {
       const crossDomainSection = this.formatCrossDomainSynthesis(enhancement.crossDomainSynthesis);
       enhancedResponse += `\n\n🌐 **Cross-Domain Insights:**\n${crossDomainSection}`;
     }
 
     // Add scenario analysis for business modes
-    if (enhancement.scenarioAnalysis && (mode === 'business_validation' || mode === 'site_monkeys')) {
+    if (
+      enhancement.scenarioAnalysis &&
+      (mode === 'business_validation' || mode === 'site_monkeys')
+    ) {
       const scenarioSection = this.formatScenarioAnalysis(enhancement.scenarioAnalysis);
       enhancedResponse += `\n\n📊 **Scenario Analysis:**\n${scenarioSection}`;
     }
 
     // Add quantitative analysis if numbers were processed
-    if (enhancement.quantitativeAnalysis && enhancement.quantitativeAnalysis.calculations.length > 0) {
+    if (
+      enhancement.quantitativeAnalysis &&
+      enhancement.quantitativeAnalysis.calculations.length > 0
+    ) {
       const quantSection = this.formatQuantitativeAnalysis(enhancement.quantitativeAnalysis);
       enhancedResponse += `\n\n🔢 **Quantitative Analysis:**\n${quantSection}`;
     }
@@ -389,15 +423,18 @@ export class EnhancedIntelligence {
   // ================================================================
 
   formatReasoningChain(reasoningChain) {
-    return reasoningChain.steps.map((step, index) => 
-      `${index + 1}. ${step.premise || step.logic} (Confidence: ${Math.round(step.confidence * 100)}%)`
-    ).join('\n');
+    return reasoningChain.steps
+      .map(
+        (step, index) =>
+          `${index + 1}. ${step.premise || step.logic} (Confidence: ${Math.round(step.confidence * 100)}%)`,
+      )
+      .join('\n');
   }
 
   formatCrossDomainSynthesis(synthesis) {
-    return synthesis.knowledgeBridges.map(bridge =>
-      `• ${bridge.from} ↔ ${bridge.to}: ${bridge.connection}`
-    ).join('\n');
+    return synthesis.knowledgeBridges
+      .map((bridge) => `• ${bridge.from} ↔ ${bridge.to}: ${bridge.connection}`)
+      .join('\n');
   }
 
   formatScenarioAnalysis(scenarios) {
@@ -418,7 +455,7 @@ export class EnhancedIntelligence {
     let output = `**Model Used:** ${analysis.model}\n`;
     if (analysis.calculations.length > 0) {
       output += '**Calculations:**\n';
-      analysis.calculations.forEach(calc => {
+      analysis.calculations.forEach((calc) => {
         output += `• ${calc.description}: ${calc.result}\n`;
       });
     }
@@ -441,74 +478,84 @@ export class EnhancedIntelligence {
       /^where (is|was|are)/i,
       /^who (is|was|are)/i,
       /^how (much|many|long|far|old)/i, // Quantitative facts
-      /^what (color|size|type|kind) (is|are)/i // Descriptive facts
+      /^what (color|size|type|kind) (is|are)/i, // Descriptive facts
     ];
-    
+
     // Check if this is a simple factual query
-    if (simpleFactualPatterns.some(pattern => pattern.test(query.trim()))) {
+    if (simpleFactualPatterns.some((pattern) => pattern.test(query.trim()))) {
       return false;
     }
-    
+
     // Genuine reasoning complexity indicators
     const reasoningIndicators = [
       // Length-based complexity
       query.length > 50,
-      
+
       // Analytical question words (not just any question words)
       /\b(why does|how should|what should|how can|how do|what factors|what causes)\b/i.test(query),
-      
-      // Analysis and evaluation keywords  
+
+      // Analysis and evaluation keywords
       /\b(analyze|compare|evaluate|assess|decide|determine|strategy|plan|approach)\b/i.test(query),
-      
+
       // Causal reasoning language
-      /\b(because|since|therefore|thus|consequently|as a result|leads to|affects|impacts)\b/i.test(query),
-      
+      /\b(because|since|therefore|thus|consequently|as a result|leads to|affects|impacts)\b/i.test(
+        query,
+      ),
+
       // Problem-solving context
       /\b(problem|issue|challenge|difficulty|solve|fix|improve|optimize|solution)\b/i.test(query),
-      
+
       // Evaluation and judgment
       /\b(best|better|worst|optimal|effective|efficient|recommend|suggest|advice)\b/i.test(query),
-      
+
       // Hypothetical and scenario reasoning
       /\b(if|suppose|assume|consider|imagine|scenario|what if|would|could|should)\b/i.test(query),
-      
+
       // Multi-part questions (require synthesis)
-      query.includes('and how') || query.includes('and what') || query.includes('and why')
+      query.includes('and how') || query.includes('and what') || query.includes('and why'),
     ];
-    
+
     // Business modes require reasoning only for genuinely complex business queries
-    const businessModeReasoning = (mode === 'business_validation' || mode === 'site_monkeys') && 
-      (query.length > 30 || 
-       /\b(business|revenue|profit|cost|strategy|market|customer|growth|analysis)\b/i.test(query)) &&
-      !simpleFactualPatterns.some(pattern => pattern.test(query.trim()));
-    
+    const businessModeReasoning =
+      (mode === 'business_validation' || mode === 'site_monkeys') &&
+      (query.length > 30 ||
+        /\b(business|revenue|profit|cost|strategy|market|customer|growth|analysis)\b/i.test(
+          query,
+        )) &&
+      !simpleFactualPatterns.some((pattern) => pattern.test(query.trim()));
+
     // Return true only if genuine reasoning indicators are present
-    return reasoningIndicators.some(indicator => indicator) || businessModeReasoning;
+    return reasoningIndicators.some((indicator) => indicator) || businessModeReasoning;
   }
   requiresCrossDomainAnalysis(query, memoryContext) {
-    return (memoryContext && Array.isArray(memoryContext) && memoryContext.length > 0) ||
-           /\b(impact|affect|influence|relationship|connect|balance|integrate)\b/i.test(query) ||
-           /\b(work|business|health|personal|financial|social|stress|pivot|marketing)\b/i.test(query);
+    return (
+      (memoryContext && Array.isArray(memoryContext) && memoryContext.length > 0) ||
+      /\b(impact|affect|influence|relationship|connect|balance|integrate)\b/i.test(query) ||
+      /\b(work|business|health|personal|financial|social|stress|pivot|marketing)\b/i.test(query)
+    );
   }
 
   calculateIntelligenceConfidence(enhancement, baseConfidence) {
     let finalConfidence = baseConfidence;
-    
+
     // Reasoning chain affects confidence
     if (enhancement.reasoningChain) {
       finalConfidence = Math.min(finalConfidence, enhancement.reasoningChain.confidence);
     }
-    
+
     // Cross-domain synthesis slightly reduces confidence due to complexity
     if (enhancement.crossDomainSynthesis) {
       finalConfidence *= 0.95;
     }
-    
+
     // Quantitative analysis can increase confidence if model is appropriate
-    if (enhancement.quantitativeAnalysis && enhancement.quantitativeAnalysis.model !== 'basic_arithmetic') {
+    if (
+      enhancement.quantitativeAnalysis &&
+      enhancement.quantitativeAnalysis.model !== 'basic_arithmetic'
+    ) {
       finalConfidence = Math.min(finalConfidence * 1.05, 0.95);
     }
-    
+
     return Math.max(0.2, Math.min(finalConfidence, 0.95));
   }
 
@@ -520,16 +567,20 @@ export class EnhancedIntelligence {
 
   // Helper functions for calculations, domain detection, etc.
   memoryContainsDomain(memoryContext, domain) {
-    return memoryContext && JSON.stringify(memoryContext).toLowerCase().includes(domain.toLowerCase());
+    return (
+      memoryContext && JSON.stringify(memoryContext).toLowerCase().includes(domain.toLowerCase())
+    );
   }
 
   performCalculations(model, numbers, query) {
     // Simplified calculation logic
-    return [{
-      description: `${model} calculation`,
-      result: `Analysis based on values: ${numbers.join(', ')}`,
-      confidence: 0.8
-    }];
+    return [
+      {
+        description: `${model} calculation`,
+        result: `Analysis based on values: ${numbers.join(', ')}`,
+        confidence: 0.8,
+      },
+    ];
   }
 
   extractCalculationResults(calculations) {
@@ -556,14 +607,14 @@ export class EnhancedIntelligence {
   }
 
   synthesizeReasoningConclusion(steps) {
-    return steps.length > 0 ? 
-      `Analysis suggests ${steps[steps.length - 1].premise || 'conclusion requires additional validation'}` :
-      'Insufficient data for conclusive analysis';
+    return steps.length > 0
+      ? `Analysis suggests ${steps[steps.length - 1].premise || 'conclusion requires additional validation'}`
+      : 'Insufficient data for conclusive analysis';
   }
 
   calculateReasoningChainConfidence(steps) {
     if (steps.length === 0) return 0.3;
-    const confidences = steps.map(s => s.confidence);
+    const confidences = steps.map((s) => s.confidence);
     return Math.min(...confidences) * Math.pow(0.95, steps.length); // 5% confidence decay per step
   }
 }

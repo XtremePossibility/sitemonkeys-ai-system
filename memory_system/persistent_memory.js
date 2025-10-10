@@ -10,17 +10,17 @@ class PersistentMemoryOrchestrator {
   constructor() {
     this.coreSystem = coreSystem;
     this.intelligenceSystem = intelligenceSystem;
-    
+
     // System state management
     this.isInitialized = false;
     this.initPromise = null;
     this.initStarted = false;
     this.isHealthy = false;
-    
+
     // Fallback memory for complete system failure
     this.fallbackMemory = new Map();
     this.lastHealthCheck = null;
-    
+
     // Performance monitoring
     this.performanceStats = {
       totalRequests: 0,
@@ -28,13 +28,15 @@ class PersistentMemoryOrchestrator {
       successRate: 0,
       errorCount: 0,
       fallbackUsage: 0,
-      lastReset: Date.now()
+      lastReset: Date.now(),
     };
 
     this.logger = {
       log: (message) => console.log(`[PERSISTENT_MEMORY] ${new Date().toISOString()} ${message}`),
-      error: (message, error) => console.error(`[PERSISTENT_MEMORY ERROR] ${new Date().toISOString()} ${message}`, error),
-      warn: (message) => console.warn(`[PERSISTENT_MEMORY WARN] ${new Date().toISOString()} ${message}`)
+      error: (message, error) =>
+        console.error(`[PERSISTENT_MEMORY ERROR] ${new Date().toISOString()} ${message}`, error),
+      warn: (message) =>
+        console.warn(`[PERSISTENT_MEMORY WARN] ${new Date().toISOString()} ${message}`),
     };
 
     // Set up global interface immediately for compatibility
@@ -49,12 +51,12 @@ class PersistentMemoryOrchestrator {
     if (this.isHealthy && this.isInitialized) {
       return true; // Already initialized and healthy
     }
-      
+
     if (this.initPromise) {
       // Initialization already in progress, wait for it
       return await this.initPromise;
     }
-      
+
     if (!this.initStarted) {
       // Start initialization for the first time
       this.logger.log('Auto-initializing Site Monkeys Memory System...');
@@ -62,7 +64,7 @@ class PersistentMemoryOrchestrator {
       this.initPromise = this.initialize();
       return await this.initPromise;
     }
-      
+
     return false;
   }
 
@@ -95,7 +97,7 @@ class PersistentMemoryOrchestrator {
       this.logger.log('Step 3: Performing comprehensive health verification...');
       const healthStatus = await this.performComprehensiveHealthCheck();
       this.isHealthy = healthStatus.overall;
-      
+
       if (this.isHealthy) {
         this.logger.log('All subsystems healthy - persistent mode active');
       } else {
@@ -106,18 +108,19 @@ class PersistentMemoryOrchestrator {
       this.logger.log('Step 4: Global memory interface active');
 
       this.isInitialized = true;
-      this.logger.log(`Persistent Memory System initialization complete - Mode: ${this.isHealthy ? 'persistent' : 'fallback'}`);
-      
+      this.logger.log(
+        `Persistent Memory System initialization complete - Mode: ${this.isHealthy ? 'persistent' : 'fallback'}`,
+      );
+
       // Schedule periodic health monitoring
       setInterval(() => this.performPeriodicHealthCheck(), 300000); // Every 5 minutes
-      
-      return this.isHealthy;
 
+      return this.isHealthy;
     } catch (error) {
       this.logger.error('Critical initialization failure:', error);
       this.isInitialized = false;
       this.isHealthy = false;
-      
+
       // Even on complete failure, ensure fallback capabilities
       this.logger.log('Activating emergency fallback mode');
       return false;
@@ -135,7 +138,7 @@ class PersistentMemoryOrchestrator {
         await self.ensureInitialized();
         return await self.retrieveMemoryForChat(userId, message);
       },
-          
+
       storeMemory: async (userId, conversation) => {
         await self.ensureInitialized();
         return await self.storeMemoryForChat(userId, conversation);
@@ -159,7 +162,7 @@ class PersistentMemoryOrchestrator {
       healthCheck: async () => {
         await self.ensureInitialized();
         return await self.healthCheck();
-      }
+      },
     };
 
     this.logger.log('Enhanced global memory interface established with intelligent extraction');
@@ -171,9 +174,11 @@ class PersistentMemoryOrchestrator {
 
   async retrieveMemoryForChat(userId, message) {
     const startTime = Date.now();
-    
+
     try {
-      this.logger.log(`Retrieve memory request: ${userId}, query: "${message.substring(0, 50)}..."`);
+      this.logger.log(
+        `Retrieve memory request: ${userId}, query: "${message.substring(0, 50)}..."`,
+      );
 
       // System health check
       if (!this.isHealthy) {
@@ -184,22 +189,28 @@ class PersistentMemoryOrchestrator {
       if (this.isHealthy) {
         // Full system operation
         this.logger.log('Using persistent memory system for retrieval');
-        
+
         // Step 1: Analyze and route the query
         const routing = await this.intelligenceSystem.analyzeAndRoute(message, userId);
-        this.logger.log(`Query routed to: ${routing.primaryCategory}/${routing.subcategory} (confidence: ${routing.confidence.toFixed(3)})`);
+        this.logger.log(
+          `Query routed to: ${routing.primaryCategory}/${routing.subcategory} (confidence: ${routing.confidence.toFixed(3)})`,
+        );
 
         // Step 2: Extract relevant memories
-        const memories = await this.intelligenceSystem.extractRelevantMemories(userId, message, routing);
+        const memories = await this.intelligenceSystem.extractRelevantMemories(
+          userId,
+          message,
+          routing,
+        );
         this.logger.log(`Extracted ${memories.length} relevant memories`);
 
         // Step 3: Format response
         if (memories.length > 0) {
           const formattedMemories = this.formatMemoriesForChat(memories);
           const totalTokens = memories.reduce((sum, m) => sum + (m.token_count || 0), 0);
-          
+
           this.updatePerformanceStats(true, Date.now() - startTime);
-          
+
           return {
             hasMemory: true,
             contextFound: true,
@@ -210,7 +221,7 @@ class PersistentMemoryOrchestrator {
             memoryCount: memories.length,
             category: routing.primaryCategory,
             subcategory: routing.subcategory,
-            confidence: routing.confidence
+            confidence: routing.confidence,
           };
         }
       }
@@ -220,11 +231,10 @@ class PersistentMemoryOrchestrator {
       const fallbackResult = await this.fallbackRetrieve(userId, message);
       this.updatePerformanceStats(fallbackResult.contextFound, Date.now() - startTime);
       return fallbackResult;
-
     } catch (error) {
       this.logger.error('Error in retrieveMemoryForChat:', error);
       this.updatePerformanceStats(false, Date.now() - startTime);
-      
+
       // Emergency fallback
       return await this.fallbackRetrieve(userId, message);
     }
@@ -232,9 +242,11 @@ class PersistentMemoryOrchestrator {
 
   async storeMemoryForChat(userId, conversationData) {
     const startTime = Date.now();
-    
+
     try {
-      this.logger.log(`Store memory request: ${userId}, content length: ${conversationData.length}`);
+      this.logger.log(
+        `Store memory request: ${userId}, content length: ${conversationData.length}`,
+      );
 
       // System health check
       if (!this.isHealthy) {
@@ -244,11 +256,11 @@ class PersistentMemoryOrchestrator {
       if (this.isHealthy) {
         // Full system operation
         this.logger.log('Using persistent memory system for storage');
-        
+
         // Step 1: Calculate relevance score
         const relevanceScore = await this.intelligenceSystem.calculateRelevanceScore(
-          conversationData, 
-          { source: 'chat_conversation', timestamp: Date.now() }
+          conversationData,
+          { source: 'chat_conversation', timestamp: Date.now() },
         );
 
         // Step 2: Analyze and route for categorization
@@ -267,23 +279,25 @@ class PersistentMemoryOrchestrator {
             routing_confidence: routing.confidence,
             timestamp: Date.now(),
             emotional_weight: routing.semanticAnalysis?.emotionalWeight || 0,
-            intent: routing.semanticAnalysis?.intent || 'general'
-          }
+            intent: routing.semanticAnalysis?.intent || 'general',
+          },
         };
 
         const result = await this.coreSystem.storeMemory(memoryObject);
-        
+
         if (result.success) {
-          this.logger.log(`Memory stored successfully: ID ${result.memoryId}, ${result.tokenCount} tokens`);
+          this.logger.log(
+            `Memory stored successfully: ID ${result.memoryId}, ${result.tokenCount} tokens`,
+          );
           this.updatePerformanceStats(true, Date.now() - startTime);
-          
+
           return {
             success: true,
             memoryId: result.memoryId,
             tokenCount: result.tokenCount,
             category: routing.primaryCategory,
             subcategory: routing.subcategory,
-            relevanceScore: relevanceScore
+            relevanceScore: relevanceScore,
           };
         }
       }
@@ -293,11 +307,10 @@ class PersistentMemoryOrchestrator {
       const fallbackResult = await this.fallbackStore(userId, conversationData);
       this.updatePerformanceStats(fallbackResult.success, Date.now() - startTime);
       return fallbackResult;
-
     } catch (error) {
       this.logger.error('Error in storeMemoryForChat:', error);
       this.updatePerformanceStats(false, Date.now() - startTime);
-      
+
       // Emergency fallback
       return await this.fallbackStore(userId, conversationData);
     }
@@ -305,10 +318,12 @@ class PersistentMemoryOrchestrator {
 
   async getRecentMemories(userId, limit = 5) {
     try {
-      console.log(`[PERSISTENT_MEMORY] ${new Date().toISOString()} Getting ${limit} recent memories for user ${userId}`);
-      
+      console.log(
+        `[PERSISTENT_MEMORY] ${new Date().toISOString()} Getting ${limit} recent memories for user ${userId}`,
+      );
+
       await this.ensureInitialized();
-      
+
       if (this.isHealthy && this.coreSystem) {
         // Query database for recent memories
         const query = `
@@ -319,11 +334,13 @@ class PersistentMemoryOrchestrator {
           ORDER BY created_at DESC
           LIMIT $2
         `;
-        
+
         const result = await this.coreSystem.pool.query(query, [userId, limit]);
-        
+
         if (result.rows && result.rows.length > 0) {
-          console.log(`[PERSISTENT_MEMORY] ${new Date().toISOString()} Retrieved ${result.rows.length} recent memories`);
+          console.log(
+            `[PERSISTENT_MEMORY] ${new Date().toISOString()} Retrieved ${result.rows.length} recent memories`,
+          );
           return result.rows;
         } else {
           console.log(`[PERSISTENT_MEMORY] ${new Date().toISOString()} No recent memories found`);
@@ -331,12 +348,17 @@ class PersistentMemoryOrchestrator {
         }
       } else {
         // Fallback mode - check in-memory storage
-        console.log(`[PERSISTENT_MEMORY] ${new Date().toISOString()} Using fallback memory for recent retrieval`);
+        console.log(
+          `[PERSISTENT_MEMORY] ${new Date().toISOString()} Using fallback memory for recent retrieval`,
+        );
         const userMemories = this.fallbackMemory.get(userId) || [];
         return userMemories.slice(-limit).reverse(); // Get last N memories, newest first
       }
     } catch (error) {
-      console.error(`[PERSISTENT_MEMORY] ${new Date().toISOString()} Error getting recent memories:`, error);
+      console.error(
+        `[PERSISTENT_MEMORY] ${new Date().toISOString()} Error getting recent memories:`,
+        error,
+      );
       return [];
     }
   }
@@ -350,7 +372,7 @@ class PersistentMemoryOrchestrator {
         const coreStats = await this.coreSystem.getUserStats(userId);
         const routingStats = this.intelligenceSystem.getRoutingStats();
         const extractionStats = this.intelligenceSystem.getExtractionStats();
-        
+
         return {
           user: coreStats,
           routing: routingStats,
@@ -358,9 +380,9 @@ class PersistentMemoryOrchestrator {
           system: {
             mode: 'persistent',
             healthy: this.isHealthy,
-            uptime: Date.now() - this.performanceStats.lastReset
+            uptime: Date.now() - this.performanceStats.lastReset,
           },
-          performance: this.getPerformanceStats()
+          performance: this.getPerformanceStats(),
         };
       } else {
         // Fallback stats
@@ -369,22 +391,24 @@ class PersistentMemoryOrchestrator {
           user: {
             userId: userId,
             totalMemories: userMemories.length,
-            totalTokens: userMemories.reduce((sum, mem) => sum + Math.ceil(mem.content.length / 4), 0),
-            mode: 'fallback'
+            totalTokens: userMemories.reduce(
+              (sum, mem) => sum + Math.ceil(mem.content.length / 4),
+              0,
+            ),
+            mode: 'fallback',
           },
           system: {
             mode: 'fallback',
             healthy: false,
-            fallbackMemories: this.fallbackMemory.size
-          }
+            fallbackMemories: this.fallbackMemory.size,
+          },
         };
       }
-
     } catch (error) {
       this.logger.error('Error getting memory stats:', error);
       return {
         error: error.message,
-        system: { mode: 'error', healthy: false }
+        system: { mode: 'error', healthy: false },
       };
     }
   }
@@ -392,7 +416,7 @@ class PersistentMemoryOrchestrator {
   async healthCheck() {
     try {
       const healthStatus = await this.performComprehensiveHealthCheck();
-      
+
       return {
         overall: healthStatus.overall,
         status: healthStatus.status,
@@ -400,12 +424,11 @@ class PersistentMemoryOrchestrator {
         subsystems: {
           core: healthStatus.core,
           intelligence: healthStatus.intelligence,
-          orchestrator: healthStatus.orchestrator
+          orchestrator: healthStatus.orchestrator,
         },
         performance: this.getPerformanceStats(),
-        lastCheck: new Date().toISOString()
+        lastCheck: new Date().toISOString(),
       };
-
     } catch (error) {
       this.logger.error('Health check failed:', error);
       return {
@@ -413,7 +436,7 @@ class PersistentMemoryOrchestrator {
         status: 'unhealthy',
         initialized: false,
         error: error.message,
-        lastCheck: new Date().toISOString()
+        lastCheck: new Date().toISOString(),
       };
     }
   }
@@ -429,7 +452,7 @@ class PersistentMemoryOrchestrator {
         status: 'unknown',
         core: { healthy: false },
         intelligence: { healthy: false },
-        orchestrator: { healthy: true }
+        orchestrator: { healthy: true },
       };
 
       // Core system health
@@ -439,7 +462,7 @@ class PersistentMemoryOrchestrator {
           healthy: coreHealth.overall,
           database: coreHealth.database,
           initialized: coreHealth.initialized,
-          details: coreHealth.details
+          details: coreHealth.details,
         };
       } catch (error) {
         this.logger.warn('Core health check failed:', error.message);
@@ -453,7 +476,7 @@ class PersistentMemoryOrchestrator {
           healthy: true,
           totalRoutes: intelligenceStats.totalRoutes,
           avgConfidence: intelligenceStats.avgConfidence,
-          cacheHitRate: intelligenceStats.cacheHitRate
+          cacheHitRate: intelligenceStats.cacheHitRate,
         };
       } catch (error) {
         this.logger.warn('Intelligence health check failed:', error.message);
@@ -462,12 +485,14 @@ class PersistentMemoryOrchestrator {
 
       // Overall system status
       healthStatus.overall = healthStatus.core.healthy && healthStatus.intelligence.healthy;
-      healthStatus.status = healthStatus.overall ? 'healthy' : 
-                           (healthStatus.core.healthy || healthStatus.intelligence.healthy) ? 'degraded' : 'unhealthy';
+      healthStatus.status = healthStatus.overall
+        ? 'healthy'
+        : healthStatus.core.healthy || healthStatus.intelligence.healthy
+          ? 'degraded'
+          : 'unhealthy';
 
       this.lastHealthCheck = Date.now();
       return healthStatus;
-
     } catch (error) {
       this.logger.error('Comprehensive health check failed:', error);
       return {
@@ -476,7 +501,7 @@ class PersistentMemoryOrchestrator {
         error: error.message,
         core: { healthy: false },
         intelligence: { healthy: false },
-        orchestrator: { healthy: false }
+        orchestrator: { healthy: false },
       };
     }
   }
@@ -495,7 +520,6 @@ class PersistentMemoryOrchestrator {
           this.logger.warn('System degraded - fallback mode activated');
         }
       }
-
     } catch (error) {
       this.logger.error('Periodic health check failed:', error);
       this.isHealthy = false;
@@ -505,12 +529,12 @@ class PersistentMemoryOrchestrator {
   async attemptSystemRecovery() {
     try {
       this.logger.log('Attempting system recovery...');
-      
+
       // Try to reinitialize failed subsystems
       if (!this.coreSystem.isInitialized) {
         await this.coreSystem.initialize();
       }
-      
+
       if (!this.intelligenceSystem.isInitialized) {
         await this.intelligenceSystem.initialize();
       }
@@ -518,13 +542,12 @@ class PersistentMemoryOrchestrator {
       // Recheck health
       const healthStatus = await this.performComprehensiveHealthCheck();
       this.isHealthy = healthStatus.overall;
-      
+
       if (this.isHealthy) {
         this.logger.log('System recovery successful');
       } else {
         this.logger.warn('System recovery partially successful');
       }
-
     } catch (error) {
       this.logger.error('System recovery failed:', error);
       this.isHealthy = false;
@@ -539,7 +562,7 @@ class PersistentMemoryOrchestrator {
     try {
       this.logger.log(`Fallback retrieve for user: ${userId}`);
       const userMemories = this.fallbackMemory.get(userId) || [];
-        
+
       if (userMemories.length === 0) {
         return {
           hasMemory: false,
@@ -549,29 +572,29 @@ class PersistentMemoryOrchestrator {
           conversationContext: '',
           totalTokens: 0,
           memoryCount: 0,
-          mode: 'fallback'
+          mode: 'fallback',
         };
       }
 
       // Simple keyword matching for fallback
       const messageLower = message.toLowerCase();
       const relevantMemories = userMemories
-        .filter(memory => {
+        .filter((memory) => {
           const contentLower = memory.content.toLowerCase();
-          const words = messageLower.split(' ').filter(w => w.length > 1); // Allow 2+ character words
+          const words = messageLower.split(' ').filter((w) => w.length > 1); // Allow 2+ character words
           // FIXED: More flexible matching including partial words and stem matching
-          return words.some(word => {
-          // Direct match
-          if (contentLower.includes(word)) return true;
-          // Stem matching for important words
-          if (word.length > 4) {
-            const stem = word.substring(0, word.length - 1); // Simple stemming
-            if (contentLower.includes(stem)) return true;
-          }
-          return false;
-        });
-      })
-      .slice(0, 3);
+          return words.some((word) => {
+            // Direct match
+            if (contentLower.includes(word)) return true;
+            // Stem matching for important words
+            if (word.length > 4) {
+              const stem = word.substring(0, word.length - 1); // Simple stemming
+              if (contentLower.includes(stem)) return true;
+            }
+            return false;
+          });
+        })
+        .slice(0, 3);
 
       if (relevantMemories.length > 0) {
         const formattedMemories = this.formatMemoriesForChat(relevantMemories);
@@ -586,7 +609,7 @@ class PersistentMemoryOrchestrator {
           conversationContext: formattedMemories,
           totalTokens: totalTokens,
           memoryCount: relevantMemories.length,
-          mode: 'fallback'
+          mode: 'fallback',
         };
       }
 
@@ -598,9 +621,8 @@ class PersistentMemoryOrchestrator {
         conversationContext: '',
         totalTokens: 0,
         memoryCount: 0,
-        mode: 'fallback'
+        mode: 'fallback',
       };
-
     } catch (error) {
       this.logger.error('Fallback retrieval error:', error);
       return {
@@ -611,7 +633,7 @@ class PersistentMemoryOrchestrator {
         conversationContext: '',
         totalTokens: 0,
         memoryCount: 0,
-        mode: 'error'
+        mode: 'error',
       };
     }
   }
@@ -619,7 +641,7 @@ class PersistentMemoryOrchestrator {
   async fallbackStore(userId, conversationData) {
     try {
       this.logger.log(`Fallback store for user: ${userId}`);
-        
+
       if (!this.fallbackMemory.has(userId)) {
         this.fallbackMemory.set(userId, []);
       }
@@ -631,9 +653,9 @@ class PersistentMemoryOrchestrator {
         timestamp: Date.now(),
         token_count: Math.ceil(conversationData.length / 4),
         category_name: 'fallback_general',
-        subcategory_name: 'General'
+        subcategory_name: 'General',
       };
-        
+
       userMemories.push(newMemory);
 
       // Keep only last 50 memories per user
@@ -643,16 +665,17 @@ class PersistentMemoryOrchestrator {
 
       this.fallbackMemory.set(userId, userMemories);
       this.performanceStats.fallbackUsage++;
-        
-      this.logger.warn(`Stored in fallback memory - ID: ${newMemory.id}, Total: ${userMemories.length}`);
-      
-      return { 
-        success: true, 
+
+      this.logger.warn(
+        `Stored in fallback memory - ID: ${newMemory.id}, Total: ${userMemories.length}`,
+      );
+
+      return {
+        success: true,
         memoryId: newMemory.id,
         tokenCount: newMemory.token_count,
-        mode: 'fallback'
+        mode: 'fallback',
       };
-
     } catch (error) {
       this.logger.error('Fallback storage error:', error);
       return { success: false, error: error.message, mode: 'error' };
@@ -667,32 +690,36 @@ class PersistentMemoryOrchestrator {
     if (!memories || memories.length === 0) {
       return '';
     }
-  
-    const memoryHeader = "=== RETRIEVED MEMORY CONTEXT ===\n";
-    const memoryFooter = "\n=== END MEMORY CONTEXT ===\n";
-  
+
+    const memoryHeader = '=== RETRIEVED MEMORY CONTEXT ===\n';
+    const memoryFooter = '\n=== END MEMORY CONTEXT ===\n';
+
     const formattedContent = memories
       .map((memory, index) => {
         const content = (memory.content || '').trim();
         if (!content) return null;
-        
+
         // CRITICAL: Preserve recognition markers
-        const timestamp = memory.created_at ? new Date(memory.created_at).toLocaleDateString() : 'Recent';
+        const timestamp = memory.created_at
+          ? new Date(memory.created_at).toLocaleDateString()
+          : 'Recent';
         const category = memory.category_name || 'General';
-        
+
         return `[MEMORY ${index + 1}] (${category} - ${timestamp})\n${content}`;
       })
-      .filter(memory => memory !== null)
+      .filter((memory) => memory !== null)
       .join('\n\n');
-  
+
     return `${memoryHeader}${formattedContent}${memoryFooter}`;
   }
 
   async extractIntelligentMemoryForChat(message, userId, intelligenceContext) {
     const startTime = Date.now();
-    
+
     try {
-      this.logger.log(`Intelligent memory extraction: ${userId}, query: "${message.substring(0, 50)}..."`);
+      this.logger.log(
+        `Intelligent memory extraction: ${userId}, query: "${message.substring(0, 50)}..."`,
+      );
       this.logger.log('Intelligence context:', JSON.stringify(intelligenceContext, null, 2));
 
       if (!this.isHealthy) {
@@ -703,28 +730,43 @@ class PersistentMemoryOrchestrator {
       if (this.isHealthy && this.intelligenceSystem) {
         try {
           const routing = await this.intelligenceSystem.analyzeAndRoute(message, userId);
-          this.logger.log(`Intelligence routing: ${routing.primaryCategory}/${routing.subcategory} (confidence: ${routing.confidence.toFixed(3)})`);
+          this.logger.log(
+            `Intelligence routing: ${routing.primaryCategory}/${routing.subcategory} (confidence: ${routing.confidence.toFixed(3)})`,
+          );
 
-          // Step 2: Extract relevant memories  
-          let memories = await this.intelligenceSystem.extractRelevantMemories(userId, message, routing);
+          // Step 2: Extract relevant memories
+          let memories = await this.intelligenceSystem.extractRelevantMemories(
+            userId,
+            message,
+            routing,
+          );
           this.logger.log(`Extracted ${memories.length} relevant memories`);
-          
+
           // CRITICAL FIX: Try relaxed extraction if no memories found
           if (memories.length === 0) {
-            this.logger.log('No memories found with standard criteria, trying relaxed extraction...');
+            this.logger.log(
+              'No memories found with standard criteria, trying relaxed extraction...',
+            );
             // Create relaxed routing with lower confidence threshold
             const relaxedRouting = {
               ...routing,
-              confidence: Math.max(0.3, routing.confidence * 0.6) // Lower the bar
+              confidence: Math.max(0.3, routing.confidence * 0.6), // Lower the bar
             };
-            memories = await this.intelligenceSystem.extractRelevantMemories(userId, message, relaxedRouting);
+            memories = await this.intelligenceSystem.extractRelevantMemories(
+              userId,
+              message,
+              relaxedRouting,
+            );
             this.logger.log(`Relaxed extraction found: ${memories.length} memories`);
           }
-          
+
           // Step 3: Format response
           if (memories.length > 0) {
             const enhancedResult = await this.applyIntelligenceEnhancements(
-              memories, message, intelligenceContext, routing
+              memories,
+              message,
+              intelligenceContext,
+              routing,
             );
 
             this.updatePerformanceStats(true, Date.now() - startTime);
@@ -737,7 +779,7 @@ class PersistentMemoryOrchestrator {
 
       this.logger.log('Using fallback memory retrieval for intelligent extraction');
       const fallbackResult = await this.fallbackRetrieve(userId, message);
-      
+
       const intelligentFallback = {
         contextFound: fallbackResult.contextFound,
         memories: fallbackResult.memories,
@@ -746,16 +788,15 @@ class PersistentMemoryOrchestrator {
         scenarioRelevantMemories: {},
         quantitativeContext: [],
         intelligenceEnhanced: false,
-        fallbackMode: true
+        fallbackMode: true,
       };
 
       this.updatePerformanceStats(fallbackResult.contextFound, Date.now() - startTime);
       return intelligentFallback;
-
     } catch (error) {
       this.logger.error('Error in extractIntelligentMemoryForChat:', error);
       this.updatePerformanceStats(false, Date.now() - startTime);
-      
+
       return {
         contextFound: false,
         memories: '',
@@ -764,7 +805,7 @@ class PersistentMemoryOrchestrator {
         scenarioRelevantMemories: {},
         quantitativeContext: [],
         intelligenceEnhanced: false,
-        error: true
+        error: true,
       };
     }
   }
@@ -786,7 +827,7 @@ class PersistentMemoryOrchestrator {
               memory_id: memory.id,
               content: memory.content,
               reasoning_type: this.identifyReasoningType(memory.content),
-              confidence: memory.relevance_score || 0.5
+              confidence: memory.relevance_score || 0.5,
             });
           }
         }
@@ -797,14 +838,15 @@ class PersistentMemoryOrchestrator {
         const domains = this.identifyDomains(query);
         for (const memory of memories) {
           const memoryDomains = this.identifyDomains(memory.content);
-          const sharedDomains = domains.filter(d => memoryDomains.includes(d));
-          
+          const sharedDomains = domains.filter((d) => memoryDomains.includes(d));
+
           if (sharedDomains.length > 0) {
             crossDomainConnections.push({
               memory_id: memory.id,
               content: memory.content,
               shared_domains: sharedDomains,
-              connection_strength: sharedDomains.length / Math.max(domains.length, memoryDomains.length)
+              connection_strength:
+                sharedDomains.length / Math.max(domains.length, memoryDomains.length),
             });
           }
         }
@@ -814,18 +856,20 @@ class PersistentMemoryOrchestrator {
       if (intelligenceContext.scenarioAnalysis) {
         const scenarios = ['success', 'failure', 'alternative'];
         for (const scenario of scenarios) {
-          const scenarioMemories = memories.filter(m => 
-            this.isScenarioRelevant(m.content, scenario)
+          const scenarioMemories = memories.filter((m) =>
+            this.isScenarioRelevant(m.content, scenario),
           );
           if (scenarioMemories.length > 0) {
-            scenarioRelevantMemories[scenario] = scenarioMemories.map(m => ({
+            scenarioRelevantMemories[scenario] = scenarioMemories.map((m) => ({
               memory_id: m.id,
               content: m.content,
-              scenario_relevance: this.calculateScenarioRelevance(m.content, scenario)
+              scenario_relevance: this.calculateScenarioRelevance(m.content, scenario),
             }));
           }
         }
-        this.logger.log(`Scenario analysis: ${Object.keys(scenarioRelevantMemories).length} scenarios`);
+        this.logger.log(
+          `Scenario analysis: ${Object.keys(scenarioRelevantMemories).length} scenarios`,
+        );
       }
 
       if (intelligenceContext.quantitativeAnalysis) {
@@ -836,11 +880,13 @@ class PersistentMemoryOrchestrator {
               memory_id: memory.id,
               content: memory.content,
               numbers: numbers,
-              quantitative_insights: this.analyzeNumbers(numbers, memory.content)
+              quantitative_insights: this.analyzeNumbers(numbers, memory.content),
             });
           }
         }
-        this.logger.log(`Quantitative context: ${quantitativeContext.length} memories with numbers`);
+        this.logger.log(
+          `Quantitative context: ${quantitativeContext.length} memories with numbers`,
+        );
       }
 
       return {
@@ -855,9 +901,8 @@ class PersistentMemoryOrchestrator {
         crossDomainConnections: crossDomainConnections,
         scenarioRelevantMemories: scenarioRelevantMemories,
         quantitativeContext: quantitativeContext,
-        intelligenceEnhanced: true
+        intelligenceEnhanced: true,
       };
-
     } catch (error) {
       this.logger.error('Error applying intelligence enhancements:', error);
       return {
@@ -867,15 +912,20 @@ class PersistentMemoryOrchestrator {
         crossDomainConnections: [],
         scenarioRelevantMemories: {},
         quantitativeContext: [],
-        intelligenceEnhanced: false
+        intelligenceEnhanced: false,
       };
     }
   }
 
   supportsReasoning(content) {
-    return content.includes('because') || content.includes('therefore') || 
-           content.includes('logic') || content.includes('reason') ||
-           content.includes('since') || content.includes('thus');
+    return (
+      content.includes('because') ||
+      content.includes('therefore') ||
+      content.includes('logic') ||
+      content.includes('reason') ||
+      content.includes('since') ||
+      content.includes('thus')
+    );
   }
 
   identifyReasoningType(content) {
@@ -889,16 +939,16 @@ class PersistentMemoryOrchestrator {
   identifyDomains(text) {
     const domains = [];
     const domainKeywords = {
-      'business': ['business', 'company', 'revenue', 'profit', 'market', 'strategy'],
-      'personal': ['personal', 'family', 'relationship', 'friend', 'life'],
-      'health': ['health', 'medical', 'doctor', 'symptoms', 'wellness'],
-      'financial': ['money', 'finance', 'budget', 'investment', 'cost'],
-      'career': ['career', 'job', 'work', 'employer', 'professional'],
-      'technical': ['technical', 'software', 'system', 'code', 'digital']
+      business: ['business', 'company', 'revenue', 'profit', 'market', 'strategy'],
+      personal: ['personal', 'family', 'relationship', 'friend', 'life'],
+      health: ['health', 'medical', 'doctor', 'symptoms', 'wellness'],
+      financial: ['money', 'finance', 'budget', 'investment', 'cost'],
+      career: ['career', 'job', 'work', 'employer', 'professional'],
+      technical: ['technical', 'software', 'system', 'code', 'digital'],
     };
 
     for (const [domain, keywords] of Object.entries(domainKeywords)) {
-      if (keywords.some(keyword => text.toLowerCase().includes(keyword))) {
+      if (keywords.some((keyword) => text.toLowerCase().includes(keyword))) {
         domains.push(domain);
       }
     }
@@ -908,42 +958,42 @@ class PersistentMemoryOrchestrator {
 
   isScenarioRelevant(content, scenario) {
     const scenarioKeywords = {
-      'success': ['success', 'achieve', 'accomplish', 'win', 'positive', 'good'],
-      'failure': ['failure', 'fail', 'problem', 'issue', 'negative', 'bad'],
-      'alternative': ['alternative', 'option', 'different', 'instead', 'other']
+      success: ['success', 'achieve', 'accomplish', 'win', 'positive', 'good'],
+      failure: ['failure', 'fail', 'problem', 'issue', 'negative', 'bad'],
+      alternative: ['alternative', 'option', 'different', 'instead', 'other'],
     };
 
     const keywords = scenarioKeywords[scenario] || [];
-    return keywords.some(keyword => content.toLowerCase().includes(keyword));
+    return keywords.some((keyword) => content.toLowerCase().includes(keyword));
   }
 
   calculateScenarioRelevance(content, scenario) {
     const scenarioKeywords = {
-      'success': ['success', 'achieve', 'accomplish', 'win', 'positive'],
-      'failure': ['failure', 'fail', 'problem', 'issue', 'negative'],
-      'alternative': ['alternative', 'option', 'different', 'instead']
+      success: ['success', 'achieve', 'accomplish', 'win', 'positive'],
+      failure: ['failure', 'fail', 'problem', 'issue', 'negative'],
+      alternative: ['alternative', 'option', 'different', 'instead'],
     };
 
     const keywords = scenarioKeywords[scenario] || [];
-    const matches = keywords.filter(keyword => content.toLowerCase().includes(keyword));
+    const matches = keywords.filter((keyword) => content.toLowerCase().includes(keyword));
     return matches.length / keywords.length;
   }
 
   extractNumbers(text) {
     const numberRegex = /\b\d+(?:,\d{3})*(?:\.\d+)?\b/g;
     const matches = text.match(numberRegex) || [];
-    return matches.map(match => parseFloat(match.replace(/,/g, '')));
+    return matches.map((match) => parseFloat(match.replace(/,/g, '')));
   }
 
   analyzeNumbers(numbers, context) {
     if (numbers.length === 0) return {};
-    
+
     const insights = {
       count: numbers.length,
       sum: numbers.reduce((a, b) => a + b, 0),
       average: numbers.reduce((a, b) => a + b, 0) / numbers.length,
       max: Math.max(...numbers),
-      min: Math.min(...numbers)
+      min: Math.min(...numbers),
     };
 
     if (context.toLowerCase().includes('revenue') || context.toLowerCase().includes('profit')) {
@@ -960,12 +1010,12 @@ class PersistentMemoryOrchestrator {
     const now = Date.now();
     const time = new Date(timestamp).getTime();
     const days = Math.floor((now - time) / (1000 * 60 * 60 * 24));
-    
+
     if (days === 0) return 'today';
     if (days === 1) return 'yesterday';
     if (days < 7) return `${days} days ago`;
-    if (days < 30) return `${Math.floor(days/7)} weeks ago`;
-    return `${Math.floor(days/30)} months ago`;
+    if (days < 30) return `${Math.floor(days / 7)} weeks ago`;
+    return `${Math.floor(days / 30)} months ago`;
   }
 
   // ================================================================
@@ -975,21 +1025,21 @@ class PersistentMemoryOrchestrator {
   updatePerformanceStats(success, responseTime) {
     try {
       this.performanceStats.totalRequests++;
-      
+
       // Update average response time
       const count = this.performanceStats.totalRequests;
       const currentAvg = this.performanceStats.avgResponseTime;
-      this.performanceStats.avgResponseTime = ((currentAvg * (count - 1)) + responseTime) / count;
-      
+      this.performanceStats.avgResponseTime = (currentAvg * (count - 1) + responseTime) / count;
+
       // Update success rate
       if (!success) {
         this.performanceStats.errorCount++;
       }
-      
-      this.performanceStats.successRate = 
-        ((this.performanceStats.totalRequests - this.performanceStats.errorCount) / 
-         this.performanceStats.totalRequests) * 100;
 
+      this.performanceStats.successRate =
+        ((this.performanceStats.totalRequests - this.performanceStats.errorCount) /
+          this.performanceStats.totalRequests) *
+        100;
     } catch (error) {
       this.logger.warn('Error updating performance stats:', error);
     }
@@ -1003,7 +1053,7 @@ class PersistentMemoryOrchestrator {
       errorCount: this.performanceStats.errorCount,
       fallbackUsage: this.performanceStats.fallbackUsage,
       uptime: Date.now() - this.performanceStats.lastReset,
-      mode: this.isHealthy ? 'persistent' : 'fallback'
+      mode: this.isHealthy ? 'persistent' : 'fallback',
     };
   }
 
@@ -1014,29 +1064,28 @@ class PersistentMemoryOrchestrator {
   async shutdown() {
     try {
       this.logger.log('Shutting down Persistent Memory System...');
-      
+
       // Shutdown subsystems in reverse order
       if (this.intelligenceSystem) {
         await this.intelligenceSystem.cleanup();
       }
-      
+
       if (this.coreSystem) {
         await this.coreSystem.shutdown();
       }
-      
+
       // Clear fallback memory
       this.fallbackMemory.clear();
-      
+
       // Clean up global interface
       if (global.memorySystem) {
         delete global.memorySystem;
       }
-      
+
       this.isInitialized = false;
       this.isHealthy = false;
-      
-      this.logger.log('Persistent Memory System shutdown completed');
 
+      this.logger.log('Persistent Memory System shutdown completed');
     } catch (error) {
       this.logger.error('Error during shutdown:', error);
     }
@@ -1068,7 +1117,7 @@ class PersistentMemoryOrchestrator {
       mode: this.isHealthy ? 'persistent' : 'fallback',
       uptime: Date.now() - this.performanceStats.lastReset,
       lastHealthCheck: this.lastHealthCheck ? new Date(this.lastHealthCheck).toISOString() : null,
-      fallbackUsers: this.fallbackMemory.size
+      fallbackUsers: this.fallbackMemory.size,
     };
   }
 }

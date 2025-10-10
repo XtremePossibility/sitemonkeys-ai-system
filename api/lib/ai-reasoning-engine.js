@@ -13,17 +13,17 @@ class AIReasoningEngine {
   async initialize() {
     try {
       console.log('🤖 Initializing AI reasoning engine...');
-      
+
       // Initialize available AI models
       await this.initializeModels();
-      
+
       // Setup adaptive prompting
       this.initializeAdaptivePrompts();
-      
+
       this.initialized = true;
       console.log('✅ AI reasoning engine ready');
       console.log(`🧠 Available models: ${Array.from(this.availableModels.keys()).join(', ')}`);
-      
+
       return true;
     } catch (error) {
       console.error('❌ AI reasoning engine initialization failed:', error);
@@ -41,18 +41,18 @@ class AIReasoningEngine {
       api_endpoint: 'anthropic',
       cost_per_token: 0.000008,
       context_limit: 200000,
-      reasoning_quality: 'exceptional'
+      reasoning_quality: 'exceptional',
     });
 
     // Backup models (if needed)
     this.availableModels.set('gpt4', {
       name: 'GPT-4',
-      capability: 'advanced_reasoning', 
+      capability: 'advanced_reasoning',
       strengths: ['Analysis', 'Problem solving', 'Creative thinking'],
       api_endpoint: 'openai',
       cost_per_token: 0.00003,
       context_limit: 128000,
-      reasoning_quality: 'high'
+      reasoning_quality: 'high',
     });
 
     // Local models (for cost control)
@@ -63,7 +63,7 @@ class AIReasoningEngine {
       api_endpoint: 'local',
       cost_per_token: 0,
       context_limit: 32000,
-      reasoning_quality: 'moderate'
+      reasoning_quality: 'moderate',
     });
   }
 
@@ -77,14 +77,14 @@ class AIReasoningEngine {
 - Strategic decision-making under uncertainty
 
 Apply rigorous analytical thinking to business challenges. Always consider survival implications first, then growth opportunities, then optimization.`,
-      
+
       reasoning_framework: [
-        "Analyze survival impact and cash flow implications",
-        "Model optimistic, realistic, and pessimistic scenarios", 
-        "Assess competitive dynamics and market forces",
-        "Identify key risks and mitigation strategies",
-        "Generate strategic recommendations with confidence levels"
-      ]
+        'Analyze survival impact and cash flow implications',
+        'Model optimistic, realistic, and pessimistic scenarios',
+        'Assess competitive dynamics and market forces',
+        'Identify key risks and mitigation strategies',
+        'Generate strategic recommendations with confidence levels',
+      ],
     });
 
     // Truth assessment reasoning prompts
@@ -96,14 +96,14 @@ Apply rigorous analytical thinking to business challenges. Always consider survi
 - Information quality and bias detection
 
 Apply scientific thinking to information assessment. Distinguish clearly between what is known, what is reasonably inferred, and what requires assumptions.`,
-      
+
       reasoning_framework: [
-        "Evaluate evidence quality and source credibility",
-        "Identify necessary assumptions and their implications",
-        "Calculate confidence levels based on evidence strength",
-        "Communicate uncertainty clearly and transparently",
-        "Provide actionable recommendations despite uncertainty"
-      ]
+        'Evaluate evidence quality and source credibility',
+        'Identify necessary assumptions and their implications',
+        'Calculate confidence levels based on evidence strength',
+        'Communicate uncertainty clearly and transparently',
+        'Provide actionable recommendations despite uncertainty',
+      ],
     });
 
     // User welfare reasoning prompts
@@ -115,14 +115,14 @@ Apply scientific thinking to information assessment. Distinguish clearly between
 - Ethical recommendation frameworks
 
 Focus on what truly helps users achieve their goals, not what they might want to hear.`,
-      
+
       reasoning_framework: [
         "Understand the user's actual underlying need",
-        "Assess genuine benefit vs potential harm",
-        "Consider long-term implications and opportunity costs",
-        "Evaluate alternatives and their trade-offs",
-        "Provide honest guidance that truly serves their interests"
-      ]
+        'Assess genuine benefit vs potential harm',
+        'Consider long-term implications and opportunity costs',
+        'Evaluate alternatives and their trade-offs',
+        'Provide honest guidance that truly serves their interests',
+      ],
     });
 
     // Multi-domain synthesis prompts
@@ -134,25 +134,19 @@ Focus on what truly helps users achieve their goals, not what they might want to
 - Think systemically about complex challenges
 
 Apply CEO-level strategic thinking to synthesize insights and generate breakthrough solutions.`,
-      
+
       reasoning_framework: [
-        "Integrate insights from multiple analytical domains",
-        "Identify synergies and tensions between different priorities",
-        "Generate novel approaches through creative synthesis",
-        "Balance short-term needs with long-term strategic value",
-        "Provide actionable strategic guidance with clear rationale"
-      ]
+        'Integrate insights from multiple analytical domains',
+        'Identify synergies and tensions between different priorities',
+        'Generate novel approaches through creative synthesis',
+        'Balance short-term needs with long-term strategic value',
+        'Provide actionable strategic guidance with clear rationale',
+      ],
     });
   }
 
   // MAIN REASONING METHOD - This is where genuine intelligence happens
-  async reason({
-    query,
-    context,
-    businessWisdom,
-    mode,
-    confidenceRequirement = 0.8
-  }) {
+  async reason({ query, context, businessWisdom, mode, confidenceRequirement = 0.8 }) {
     console.log('🧠 Initiating AI reasoning process...');
 
     try {
@@ -162,7 +156,7 @@ Apply CEO-level strategic thinking to synthesize insights and generate breakthro
         context,
         businessWisdom,
         mode,
-        confidenceRequirement
+        confidenceRequirement,
       });
 
       // Select optimal model and approach
@@ -174,21 +168,24 @@ Apply CEO-level strategic thinking to synthesize insights and generate breakthro
         context,
         businessWisdom,
         reasoningRequirements,
-        mode
+        mode,
       });
 
       // Execute AI reasoning
       const aiInsight = await this.executeAIReasoning({
         modelSelection,
         reasoningContext,
-        reasoningRequirements
+        reasoningRequirements,
       });
 
       // Enhance with multi-domain synthesis
       const synthesizedInsight = await this.enhanceWithSynthesis(aiInsight, reasoningContext);
 
       // Assess reasoning quality
-      const qualityAssessment = this.assessReasoningQuality(synthesizedInsight, reasoningRequirements);
+      const qualityAssessment = this.assessReasoningQuality(
+        synthesizedInsight,
+        reasoningRequirements,
+      );
 
       const reasoningResult = {
         reasoning_quality: qualityAssessment.quality,
@@ -205,7 +202,7 @@ Apply CEO-level strategic thinking to synthesize insights and generate breakthro
         reasoning_chain: synthesizedInsight.reasoning_chain || [],
         model_used: modelSelection.model,
         cost_estimate: qualityAssessment.cost_estimate,
-        processing_time: qualityAssessment.processing_time
+        processing_time: qualityAssessment.processing_time,
       };
 
       // Store for learning
@@ -214,13 +211,14 @@ Apply CEO-level strategic thinking to synthesize insights and generate breakthro
         query,
         context,
         reasoning_result: reasoningResult,
-        performance: qualityAssessment
+        performance: qualityAssessment,
       });
 
-      console.log(`✅ AI reasoning complete - Quality: ${qualityAssessment.quality}, Confidence: ${qualityAssessment.confidence}`);
+      console.log(
+        `✅ AI reasoning complete - Quality: ${qualityAssessment.quality}, Confidence: ${qualityAssessment.confidence}`,
+      );
 
       return reasoningResult;
-
     } catch (error) {
       console.error('❌ AI reasoning failed:', error);
       return this.reasoningFallback(query, context, businessWisdom, error);
@@ -235,7 +233,7 @@ Apply CEO-level strategic thinking to synthesize insights and generate breakthro
       confidence_requirement: confidenceRequirement,
       urgency: context.urgency || 'normal',
       cost_sensitivity: context.cost_sensitive || false,
-      novel_situation: this.assessNovelty(query, context)
+      novel_situation: this.assessNovelty(query, context),
     };
 
     return requirements;
@@ -276,7 +274,7 @@ Apply CEO-level strategic thinking to synthesize insights and generate breakthro
 
     // Add based on business wisdom
     if (businessWisdom.applicable_principles) {
-      businessWisdom.applicable_principles.forEach(principle => {
+      businessWisdom.applicable_principles.forEach((principle) => {
         domains.add(principle.domain);
       });
     }
@@ -303,7 +301,7 @@ Apply CEO-level strategic thinking to synthesize insights and generate breakthro
     const noveltyIndicators = [
       /unprecedented|unique|unusual|never seen|first time/i.test(query),
       context.novel_situation === true,
-      this.reasoningHistory.length > 0 && !this.findSimilarQuery(query)
+      this.reasoningHistory.length > 0 && !this.findSimilarQuery(query),
     ];
 
     return noveltyIndicators.some(Boolean);
@@ -314,9 +312,11 @@ Apply CEO-level strategic thinking to synthesize insights and generate breakthro
     let selectedModel = 'claude'; // Default to Claude for highest quality
 
     // Use local model for simple, low-stakes queries
-    if (requirements.complexity < 0.3 && 
-        requirements.confidence_requirement < 0.7 && 
-        requirements.cost_sensitive) {
+    if (
+      requirements.complexity < 0.3 &&
+      requirements.confidence_requirement < 0.7 &&
+      requirements.cost_sensitive
+    ) {
       selectedModel = 'local_llm';
     }
 
@@ -326,12 +326,12 @@ Apply CEO-level strategic thinking to synthesize insights and generate breakthro
     }
 
     const model = this.availableModels.get(selectedModel);
-    
+
     return {
       model: selectedModel,
       config: model,
       reasoning_approach: this.selectReasoningApproach(requirements),
-      estimated_cost: this.estimateReasoningCost(requirements, model)
+      estimated_cost: this.estimateReasoningCost(requirements, model),
     };
   }
 
@@ -339,7 +339,7 @@ Apply CEO-level strategic thinking to synthesize insights and generate breakthro
     const approaches = [];
 
     // Add domain-specific approaches
-    requirements.domains_required.forEach(domain => {
+    requirements.domains_required.forEach((domain) => {
       if (this.adaptivePrompts.has(domain)) {
         approaches.push(domain);
       }
@@ -358,24 +358,24 @@ Apply CEO-level strategic thinking to synthesize insights and generate breakthro
       user_query: query,
       business_context: context,
       mode: mode,
-      
+
       // Business wisdom integration
       applicable_principles: businessWisdom.applicable_principles || [],
       business_intelligence: businessWisdom.business_intelligence || [],
       decision_frameworks: businessWisdom.decision_frameworks || [],
       confidence_requirements: businessWisdom.confidence_requirements || {},
-      
+
       // Reasoning guidance
       reasoning_requirements: reasoningRequirements,
       wisdom_synthesis: businessWisdom.wisdom_synthesis || {},
-      
+
       // Quality requirements
       expected_quality: reasoningRequirements.confidence_requirement > 0.8 ? 'exceptional' : 'high',
       novel_situation: reasoningRequirements.novel_situation,
-      
+
       // Context enrichment
       multimodal_context: businessWisdom.multimodal_context || [],
-      real_time_data: context.real_time_data || []
+      real_time_data: context.real_time_data || [],
     };
 
     return reasoningContext;
@@ -388,49 +388,57 @@ Apply CEO-level strategic thinking to synthesize insights and generate breakthro
     const reasoningPrompt = this.buildReasoningPrompt(modelSelection, reasoningContext);
 
     // Execute AI reasoning (actual API call)
-    const aiResponse = await this.callAIModel(modelSelection.model, reasoningPrompt, reasoningContext);
+    const aiResponse = await this.callAIModel(
+      modelSelection.model,
+      reasoningPrompt,
+      reasoningContext,
+    );
 
     // Parse and structure the response
-    const structuredInsight = this.parseAIResponse(aiResponse, reasoningContext, reasoningRequirements);
+    const structuredInsight = this.parseAIResponse(
+      aiResponse,
+      reasoningContext,
+      reasoningRequirements,
+    );
 
     return structuredInsight;
   }
 
   buildReasoningPrompt(modelSelection, reasoningContext) {
-    let prompt = "";
+    let prompt = '';
 
     // Start with system-level reasoning guidance
     const primaryDomain = modelSelection.reasoning_approach[0];
     if (this.adaptivePrompts.has(primaryDomain)) {
-      prompt += this.adaptivePrompts.get(primaryDomain).system_prompt + "\n\n";
+      prompt += this.adaptivePrompts.get(primaryDomain).system_prompt + '\n\n';
     }
 
     // Add business wisdom context
-    prompt += "BUSINESS WISDOM CONTEXT:\n";
+    prompt += 'BUSINESS WISDOM CONTEXT:\n';
     if (reasoningContext.applicable_principles.length > 0) {
-      prompt += "Core Principles:\n";
-      reasoningContext.applicable_principles.forEach(principle => {
+      prompt += 'Core Principles:\n';
+      reasoningContext.applicable_principles.forEach((principle) => {
         prompt += `- ${principle.principle}: ${principle.application}\n`;
       });
-      prompt += "\n";
+      prompt += '\n';
     }
 
     if (reasoningContext.business_intelligence.length > 0) {
-      prompt += "Business Intelligence:\n";
-      reasoningContext.business_intelligence.forEach(intel => {
+      prompt += 'Business Intelligence:\n';
+      reasoningContext.business_intelligence.forEach((intel) => {
         prompt += `- ${intel.domain}: ${intel.wisdom}\n`;
         prompt += `  Framework: ${intel.application_pattern}\n`;
       });
-      prompt += "\n";
+      prompt += '\n';
     }
 
     // Add decision frameworks
     if (reasoningContext.decision_frameworks.length > 0) {
-      prompt += "Decision Frameworks:\n";
-      reasoningContext.decision_frameworks.forEach(framework => {
+      prompt += 'Decision Frameworks:\n';
+      reasoningContext.decision_frameworks.forEach((framework) => {
         prompt += `- ${framework.name}: ${framework.sequence.join(' → ')}\n`;
       });
-      prompt += "\n";
+      prompt += '\n';
     }
 
     // Add confidence requirements
@@ -439,11 +447,11 @@ Apply CEO-level strategic thinking to synthesize insights and generate breakthro
 
     // Add multimodal context if available
     if (reasoningContext.multimodal_context.length > 0) {
-      prompt += "MULTIMODAL CONTEXT:\n";
-      reasoningContext.multimodal_context.forEach(context => {
+      prompt += 'MULTIMODAL CONTEXT:\n';
+      reasoningContext.multimodal_context.forEach((context) => {
         prompt += `${context}\n`;
       });
-      prompt += "\n";
+      prompt += '\n';
     }
 
     // Add the actual query
@@ -452,28 +460,29 @@ Apply CEO-level strategic thinking to synthesize insights and generate breakthro
     // Add reasoning framework
     if (this.adaptivePrompts.has(primaryDomain)) {
       const framework = this.adaptivePrompts.get(primaryDomain).reasoning_framework;
-      prompt += "REASONING FRAMEWORK:\n";
+      prompt += 'REASONING FRAMEWORK:\n';
       framework.forEach((step, index) => {
         prompt += `${index + 1}. ${step}\n`;
       });
-      prompt += "\n";
+      prompt += '\n';
     }
 
     // Add specific reasoning requirements
-    prompt += "REASONING REQUIREMENTS:\n";
+    prompt += 'REASONING REQUIREMENTS:\n';
     prompt += `- Novel situation: ${reasoningContext.reasoning_requirements.novel_situation ? 'Yes' : 'No'}\n`;
     prompt += `- Complexity level: ${reasoningContext.reasoning_requirements.complexity}\n`;
     prompt += `- Domains to synthesize: ${reasoningContext.reasoning_requirements.domains_required.join(', ')}\n`;
     prompt += `- Expected quality: ${reasoningContext.expected_quality}\n\n`;
 
-    prompt += "Please provide extraordinary intelligence analysis that demonstrates genuine reasoning, strategic thinking, and practical value.";
+    prompt +=
+      'Please provide extraordinary intelligence analysis that demonstrates genuine reasoning, strategic thinking, and practical value.';
 
     return prompt;
   }
 
   async callAIModel(modelName, prompt, context) {
     const model = this.availableModels.get(modelName);
-    
+
     try {
       if (modelName === 'claude') {
         return await this.callClaude(prompt, context, model);
@@ -491,7 +500,7 @@ Apply CEO-level strategic thinking to synthesize insights and generate breakthro
   async callClaude(prompt, context, model) {
     // This would be your actual Claude API call
     // For now, return a structured response that demonstrates the concept
-    
+
     return {
       content: `Based on my analysis applying the business wisdom and reasoning frameworks provided:
 
@@ -516,13 +525,13 @@ The situation requires multi-domain consideration integrating business survival 
 
 **Confidence Assessment:**
 Based on evidence quality and principle alignment: 87% confidence in primary recommendations.`,
-      
+
       metadata: {
         reasoning_quality: 'genuine',
         domains_addressed: context.reasoning_requirements.domains_required,
         novel_insights_generated: true,
-        strategic_depth: 'high'
-      }
+        strategic_depth: 'high',
+      },
     };
   }
 
@@ -550,7 +559,7 @@ Based on evidence quality and principle alignment: 87% confidence in primary rec
       next_steps: this.extractNextSteps(aiResponse.content),
       novel_insights: this.extractNovelInsights(aiResponse.content),
       domains_synthesized: requirements.domains_required,
-      confidence_indicators: this.extractConfidenceIndicators(aiResponse.content)
+      confidence_indicators: this.extractConfidenceIndicators(aiResponse.content),
     };
 
     return insight;
@@ -561,11 +570,11 @@ Based on evidence quality and principle alignment: 87% confidence in primary rec
     if (reasoningContext.reasoning_requirements.domains_required.length > 1) {
       const synthesisPrompt = this.buildSynthesisPrompt(aiInsight, reasoningContext);
       const synthesisResponse = await this.callAIModel('claude', synthesisPrompt, reasoningContext);
-      
+
       return {
         ...aiInsight,
         synthesis_enhancement: synthesisResponse.content,
-        cross_domain_insights: this.extractCrossDomainInsights(synthesisResponse.content)
+        cross_domain_insights: this.extractCrossDomainInsights(synthesisResponse.content),
       };
     }
 
@@ -602,29 +611,34 @@ Provide strategic synthesis that demonstrates extraordinary intelligence.`;
       confidence = insight.confidence_indicators.overall_confidence || 0.7;
     }
 
-    const quality = qualityScore > 0.8 ? 'exceptional' : 
-                   qualityScore > 0.6 ? 'high' : 
-                   qualityScore > 0.4 ? 'good' : 'moderate';
+    const quality =
+      qualityScore > 0.8
+        ? 'exceptional'
+        : qualityScore > 0.6
+          ? 'high'
+          : qualityScore > 0.4
+            ? 'good'
+            : 'moderate';
 
     return {
       quality,
       confidence,
       quality_score: qualityScore,
       cost_estimate: this.calculateActualCost(insight),
-      processing_time: Date.now() // Would be actual processing time
+      processing_time: Date.now(), // Would be actual processing time
     };
   }
 
   reasoningFallback(query, context, businessWisdom, error) {
     console.log('🚨 AI reasoning fallback activated');
-    
+
     return {
       reasoning_quality: 'fallback',
       confidence: 0.4,
       primary_insight: `I need to analyze this situation carefully. Based on the business principles available, let me provide a structured approach to this challenge.`,
       error_handled: error.message,
       fallback_approach: 'principle_based_analysis',
-      business_wisdom_applied: businessWisdom.applicable_principles?.length || 0
+      business_wisdom_applied: businessWisdom.applicable_principles?.length || 0,
     };
   }
 
@@ -632,7 +646,7 @@ Provide strategic synthesis that demonstrates extraordinary intelligence.`;
   extractReasoningChain(content) {
     // Extract logical reasoning steps from the content
     const steps = content.match(/^\d+\.\s+.+$/gm) || [];
-    return steps.map(step => step.replace(/^\d+\.\s+/, ''));
+    return steps.map((step) => step.replace(/^\d+\.\s+/, ''));
   }
 
   extractStrategicInsights(content) {
@@ -641,7 +655,7 @@ Provide strategic synthesis that demonstrates extraordinary intelligence.`;
     const strategicSection = content.match(/\*\*Strategic[^:]*:\*\*([\s\S]*?)(?=\*\*|$)/);
     if (strategicSection) {
       const items = strategicSection[1].match(/^[-•]\s+.+$/gm) || [];
-      insights.push(...items.map(item => item.replace(/^[-•]\s+/, '')));
+      insights.push(...items.map((item) => item.replace(/^[-•]\s+/, '')));
     }
     return insights;
   }
@@ -662,7 +676,7 @@ Provide strategic synthesis that demonstrates extraordinary intelligence.`;
     const oppSection = content.match(/\*\*Opportunit[^:]*:\*\*([\s\S]*?)(?=\*\*|$)/);
     if (oppSection) {
       const items = oppSection[1].match(/^[-•]\s+.+$/gm) || [];
-      opportunities.push(...items.map(item => item.replace(/^[-•]\s+/, '')));
+      opportunities.push(...items.map((item) => item.replace(/^[-•]\s+/, '')));
     }
     return opportunities;
   }
@@ -673,7 +687,7 @@ Provide strategic synthesis that demonstrates extraordinary intelligence.`;
     const altSection = content.match(/\*\*Alternative[^:]*:\*\*([\s\S]*?)(?=\*\*|$)/);
     if (altSection) {
       const items = altSection[1].match(/^[-•]\s+.+$/gm) || [];
-      alternatives.push(...items.map(item => item.replace(/^[-•]\s+/, '')));
+      alternatives.push(...items.map((item) => item.replace(/^[-•]\s+/, '')));
     }
     return alternatives;
   }
@@ -684,7 +698,7 @@ Provide strategic synthesis that demonstrates extraordinary intelligence.`;
     const stepsSection = content.match(/\*\*Next Steps[^:]*:\*\*([\s\S]*?)(?=\*\*|$)/);
     if (stepsSection) {
       const items = stepsSection[1].match(/^[-•]\s+.+$/gm) || [];
-      steps.push(...items.map(item => item.replace(/^[-•]\s+/, '')));
+      steps.push(...items.map((item) => item.replace(/^[-•]\s+/, '')));
     }
     return steps;
   }
@@ -695,7 +709,7 @@ Provide strategic synthesis that demonstrates extraordinary intelligence.`;
     const novelSection = content.match(/\*\*Novel[^:]*:\*\*([\s\S]*?)(?=\*\*|$)/);
     if (novelSection) {
       const items = novelSection[1].match(/^[-•]\s+.+$/gm) || [];
-      insights.push(...items.map(item => item.replace(/^[-•]\s+/, '')));
+      insights.push(...items.map((item) => item.replace(/^[-•]\s+/, '')));
     }
     return insights;
   }
@@ -705,7 +719,7 @@ Provide strategic synthesis that demonstrates extraordinary intelligence.`;
     const confidenceMatch = content.match(/(\d+)%\s+confidence/i);
     return {
       overall_confidence: confidenceMatch ? parseInt(confidenceMatch[1]) / 100 : 0.7,
-      evidence_quality: content.includes('strong evidence') ? 'high' : 'moderate'
+      evidence_quality: content.includes('strong evidence') ? 'high' : 'moderate',
     };
   }
 
@@ -715,15 +729,17 @@ Provide strategic synthesis that demonstrates extraordinary intelligence.`;
     const synthSection = content.match(/synthesis|cross-domain|integration/i);
     if (synthSection) {
       const items = content.match(/^[-•]\s+.+$/gm) || [];
-      insights.push(...items.map(item => item.replace(/^[-•]\s+/, '')));
+      insights.push(...items.map((item) => item.replace(/^[-•]\s+/, '')));
     }
     return insights;
   }
 
   // Helper methods for reasoning requirements
   isBusinessQuery(query, context) {
-    return /business|company|strategy|revenue|profit|market|competition/i.test(query) ||
-           context.business_context === true;
+    return (
+      /business|company|strategy|revenue|profit|market|competition/i.test(query) ||
+      context.business_context === true
+    );
   }
 
   isRecommendationQuery(query) {
@@ -732,8 +748,8 @@ Provide strategic synthesis that demonstrates extraordinary intelligence.`;
 
   findSimilarQuery(query) {
     // Check reasoning history for similar queries
-    return this.reasoningHistory.find(entry => 
-      this.calculateQuerySimilarity(entry.query, query) > 0.8
+    return this.reasoningHistory.find(
+      (entry) => this.calculateQuerySimilarity(entry.query, query) > 0.8,
     );
   }
 
@@ -741,7 +757,7 @@ Provide strategic synthesis that demonstrates extraordinary intelligence.`;
     // Simple similarity calculation (could be enhanced with embeddings)
     const words1 = query1.toLowerCase().split(/\s+/);
     const words2 = query2.toLowerCase().split(/\s+/);
-    const intersection = words1.filter(word => words2.includes(word));
+    const intersection = words1.filter((word) => words2.includes(word));
     return intersection.length / Math.max(words1.length, words2.length);
   }
 
@@ -750,11 +766,11 @@ Provide strategic synthesis that demonstrates extraordinary intelligence.`;
     const baseTokens = 2000; // Base prompt size
     const complexityMultiplier = 1 + requirements.complexity;
     const estimatedTokens = baseTokens * complexityMultiplier;
-    
+
     return {
       estimated_tokens: Math.round(estimatedTokens),
       estimated_cost: estimatedTokens * model.cost_per_token,
-      model_used: model.name
+      model_used: model.name,
     };
   }
 
@@ -763,7 +779,7 @@ Provide strategic synthesis that demonstrates extraordinary intelligence.`;
     return {
       actual_tokens: 3000, // Would be actual token count
       actual_cost: 0.024, // Would be actual cost
-      cost_efficiency: 'high'
+      cost_efficiency: 'high',
     };
   }
 
@@ -774,7 +790,7 @@ Provide strategic synthesis that demonstrates extraordinary intelligence.`;
       available_models: Array.from(this.availableModels.keys()),
       reasoning_approaches: Array.from(this.adaptivePrompts.keys()),
       reasoning_history_size: this.reasoningHistory.length,
-      total_reasoning_sessions: this.reasoningHistory.length
+      total_reasoning_sessions: this.reasoningHistory.length,
     };
   }
 }

@@ -8,7 +8,7 @@ async function loadVaultOnDemand() {
     console.log('✅ [VAULT] Using cached vault:', window.currentVaultContent.length, 'chars');
     return window.currentVaultContent;
   }
-  
+
   // Step 2: Check current mode
   const currentMode = getCurrentMode();
   if (currentMode !== 'site_monkeys') {
@@ -16,30 +16,30 @@ async function loadVaultOnDemand() {
     window.currentVaultContent = '';
     return '';
   }
-  
+
   console.log('🔄 [VAULT] Attempting to load vault from backend...');
-  
+
   try {
     // Step 3: Fetch vault from backend
     const vaultResponse = await fetch('/api/load-vault?refresh=true&manual=true', {
       method: 'GET',
-      headers: { 'Content-Type': 'application/json' }
+      headers: { 'Content-Type': 'application/json' },
     });
-    
+
     if (!vaultResponse.ok) {
       throw new Error(`Vault fetch failed: ${vaultResponse.status}`);
     }
-    
+
     const vaultData = await vaultResponse.json();
     console.log('📦 [VAULT] Response received:', {
       has_vault_content: !!vaultData.vault_content,
       vault_length: vaultData.vault_content?.length || 0,
       vault_status: vaultData.vault_status,
-      tokens: vaultData.tokens
+      tokens: vaultData.tokens,
     });
-    
+
     const vaultContent = vaultData.vault_content || '';
-    
+
     // Step 4: Store in window for reuse
     if (vaultContent.length > 500) {
       window.currentVaultContent = vaultContent;
@@ -47,9 +47,9 @@ async function loadVaultOnDemand() {
         loaded: true,
         healthy: vaultContent.length > 1000,
         tokens: vaultData.tokens || 0,
-        status: vaultData.vault_status || 'loaded'
+        status: vaultData.vault_status || 'loaded',
       };
-      
+
       console.log('✅ [VAULT] Successfully loaded and cached:', vaultContent.length, 'chars');
       return vaultContent;
     } else {
@@ -57,7 +57,6 @@ async function loadVaultOnDemand() {
       window.currentVaultContent = '';
       return '';
     }
-    
   } catch (error) {
     console.error('❌ [VAULT] Load failed:', error.message);
     window.currentVaultContent = '';
@@ -76,15 +75,15 @@ async function improvedRefreshVault() {
   try {
     const response = await fetch('/api/load-vault?refresh=true&manual=true');
     const data = await response.json();
-    
+
     // CACHE THE VAULT CONTENT FOR CHAT
     window.currentVaultContent = data.vault_content || '';
     window.vaultStatus = {
       loaded: true,
       healthy: data.vault_status === 'operational',
-      tokens: data.tokens || 0
+      tokens: data.tokens || 0,
     };
-    
+
     console.log('✅ Vault refreshed and cached:', window.currentVaultContent.length);
   } catch (error) {
     console.error('❌ Vault refresh failed:', error);
@@ -131,43 +130,53 @@ async function sendMessage() {
     console.log('🔍 Using vault with length:', vaultContent.length);
 
     // === BUILD DOCUMENT CONTEXT FROM UPLOAD ===
-    const lastDoc = (Array.isArray(extractedDocuments) && extractedDocuments.length > 0)
-      ? extractedDocuments[extractedDocuments.length - 1]
-      : null;
+    const lastDoc =
+      Array.isArray(extractedDocuments) && extractedDocuments.length > 0
+        ? extractedDocuments[extractedDocuments.length - 1]
+        : null;
 
     const requestPayload = {
-      message: text,                                 // user’s question
-      conversation_history: conversationHistory,     // keep chat context
+      message: text, // user’s question
+      conversation_history: conversationHistory, // keep chat context
       mode: getCurrentMode(),
       vault_loaded: isVaultMode(),
       vault_content: vaultContent || null,
-      document_context: lastDoc ? {
-        filename: lastDoc.filename || '',
-        content: lastDoc.fullContent || lastDoc.content || '',
-        fullContent: lastDoc.fullText || '',  
-        wordCount: lastDoc.wordCount || 0,
-        contentType: lastDoc.contentType || '',
-        keyPhrases: Array.isArray(lastDoc.keyPhrases) ? lastDoc.keyPhrases : []
-      } : null
+      document_context: lastDoc
+        ? {
+            filename: lastDoc.filename || '',
+            content: lastDoc.fullContent || lastDoc.content || '',
+            fullContent: lastDoc.fullText || '',
+            wordCount: lastDoc.wordCount || 0,
+            contentType: lastDoc.contentType || '',
+            keyPhrases: Array.isArray(lastDoc.keyPhrases) ? lastDoc.keyPhrases : [],
+          }
+        : null,
     };
 
     // Debug log for verification
     console.log('🚀 Sending request:', {
       mode: requestPayload.mode,
       vault_content_length: vaultContent.length,
-      message_preview: text.substring(0, 50) + '...'
+      message_preview: text.substring(0, 50) + '...',
     });
-    console.log('[REQUEST] document_context:',
+    console.log(
+      '[REQUEST] document_context:',
       requestPayload.document_context
-        ? { filename: requestPayload.document_context.filename, len: requestPayload.document_context.fullContent?.length || requestPayload.document_context.content?.length || 0 }
-        : null
+        ? {
+            filename: requestPayload.document_context.filename,
+            len:
+              requestPayload.document_context.fullContent?.length ||
+              requestPayload.document_context.content?.length ||
+              0,
+          }
+        : null,
     );
 
     // SEND TO BACKEND
     const response = await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(requestPayload)
+      body: JSON.stringify(requestPayload),
     });
 
     if (!response.ok) {
@@ -196,7 +205,7 @@ async function sendMessage() {
       triggered_frameworks: data.enforcement_applied || [],
       assumption_warnings: data.assumption_analysis?.detected || [],
       security_pass: data.security_pass || false,
-      fallback_used: data.performance?.api_error?.fallback_used || false
+      fallback_used: data.performance?.api_error?.fallback_used || false,
     };
 
     console.log('🔍 SYSTEM VERIFICATION:', systemVerification);
@@ -235,11 +244,16 @@ async function sendMessage() {
     // Alternate between Eli & Roxy
     const isEli = aiToggle;
     const who = isEli ? 'Eli' : 'Roxy';
-    const avatar = isEli ? "boy-mascot.png" : "girl-mascot.png";
+    const avatar = isEli ? 'boy-mascot.png' : 'girl-mascot.png';
 
-    const modeIndicator = getCurrentMode() === 'truth_general' ? '🔍' : 
-                         getCurrentMode() === 'business_validation' ? '📊' : 
-                         getCurrentMode() === 'site_monkeys' ? '🍌' : '🤖';
+    const modeIndicator =
+      getCurrentMode() === 'truth_general'
+        ? '🔍'
+        : getCurrentMode() === 'business_validation'
+          ? '📊'
+          : getCurrentMode() === 'site_monkeys'
+            ? '🍌'
+            : '🤖';
 
     const responseBubble = document.createElement('div');
     responseBubble.className = 'bubble ai';
@@ -248,19 +262,19 @@ async function sendMessage() {
     box.scrollTop = box.scrollHeight;
 
     // Store conversation history
-    conversationHistory.push({ 
-      role: 'user', 
+    conversationHistory.push({
+      role: 'user',
       content: text,
       timestamp: new Date().toISOString(),
-      mode_requested: getCurrentMode()
+      mode_requested: getCurrentMode(),
     });
-    conversationHistory.push({ 
-      role: 'assistant', 
+    conversationHistory.push({
+      role: 'assistant',
       content: reply,
       clean_content: cleanReply,
       system_verification: systemVerification,
       timestamp: new Date().toISOString(),
-      speaker: who
+      speaker: who,
     });
 
     if (conversationHistory.length > 12) {
@@ -278,7 +292,6 @@ async function sendMessage() {
         box.scrollTop = box.scrollHeight;
       }, 1000);
     }
-
   } catch (error) {
     console.error('❌ Chat system error:', error);
 
@@ -295,7 +308,6 @@ async function sendMessage() {
   }
 }
 
-
 // TOKEN AND COST DISPLAY FUNCTIONS
 function updateTokenDisplay(tokenData) {
   console.log('💰 DISPLAY DEBUG:', tokenData);
@@ -303,20 +315,19 @@ function updateTokenDisplay(tokenData) {
     // Target the exact elements by their IDs from the HTML
     const tokenCountElement = document.getElementById('token-count');
     const costEstimateElement = document.getElementById('cost-estimate');
-    
+
     if (tokenCountElement) {
       tokenCountElement.textContent = tokenData.session_total_tokens || 0;
       tokenCountElement.style.color = '#00ff41';
       console.log('[COST] Updated token count');
     }
-    
+
     if (costEstimateElement) {
       const sessionCost = (tokenData.session_total_cost || 0).toFixed(4);
       costEstimateElement.textContent = `$${sessionCost}`;
       costEstimateElement.style.color = '#00ff41';
       console.log('[COST] Updated cost estimate');
     }
-    
   } catch (error) {
     console.warn('Token display update failed:', error);
   }

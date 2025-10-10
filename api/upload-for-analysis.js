@@ -12,20 +12,20 @@ let cleanupInterval = null;
 
 // Automatic cleanup function - runs every minute
 function autoCleanupDocuments() {
-  const tenMinutesAgo = Date.now() - (10 * 60 * 1000);
+  const tenMinutesAgo = Date.now() - 10 * 60 * 1000;
   let cleanedCount = 0;
-  
+
   for (const [docId, doc] of extractedDocuments.entries()) {
     if (doc.timestamp < tenMinutesAgo) {
       extractedDocuments.delete(docId);
       cleanedCount++;
     }
   }
-  
+
   if (cleanedCount > 0) {
     console.log(`[DOCUMENT-CLEANUP] Removed ${cleanedCount} expired documents from memory`);
   }
-  
+
   const currentSize = extractedDocuments.size;
   if (currentSize > 0) {
     console.log(`[DOCUMENT-CLEANUP] Current documents in memory: ${currentSize}/${MAX_DOCUMENTS}`);
@@ -48,7 +48,7 @@ export function stopDocumentCleanup() {
 
 // Helper function to clean old documents (prevent memory bloat)
 function cleanOldDocuments() {
-  const tenMinutesAgo = Date.now() - (10 * 60 * 1000);
+  const tenMinutesAgo = Date.now() - 10 * 60 * 1000;
   for (const [key, doc] of extractedDocuments.entries()) {
     if (doc.timestamp < tenMinutesAgo) {
       extractedDocuments.delete(key);
@@ -61,59 +61,67 @@ const upload = multer({
   storage: storage,
   limits: {
     fileSize: 50 * 1024 * 1024, // 50MB limit
-    files: 10 // Max 10 files at once
+    files: 10, // Max 10 files at once
   },
   fileFilter: (req, file, cb) => {
     // Accept all file types
     cb(null, true);
-  }
+  },
 });
 
 // File type detection - EXACT COPY
 function detectFileType(filename, mimetype) {
   const ext = path.extname(filename).toLowerCase();
-  
+
   // Images
   if (/\.(jpg|jpeg|png|gif|bmp|svg|tiff|webp)$/i.test(filename) || mimetype.startsWith('image/')) {
     return 'image';
   }
-  
+
   // Documents
-  if (/\.(pdf|doc|docx|txt|md|rtf|odt)$/i.test(filename) || 
-      mimetype.includes('document') || mimetype.includes('pdf') || mimetype.includes('text')) {
+  if (
+    /\.(pdf|doc|docx|txt|md|rtf|odt)$/i.test(filename) ||
+    mimetype.includes('document') ||
+    mimetype.includes('pdf') ||
+    mimetype.includes('text')
+  ) {
     return 'document';
   }
-  
+
   // Spreadsheets
   if (/\.(xls|xlsx|csv|ods)$/i.test(filename) || mimetype.includes('spreadsheet')) {
     return 'spreadsheet';
   }
-  
+
   // Presentations
   if (/\.(ppt|pptx|odp)$/i.test(filename) || mimetype.includes('presentation')) {
     return 'presentation';
   }
-  
+
   // Audio
   if (/\.(mp3|wav|m4a|ogg|aac|flac)$/i.test(filename) || mimetype.startsWith('audio/')) {
     return 'audio';
   }
-  
+
   // Video
   if (/\.(mp4|avi|mov|wmv|flv|webm|mkv)$/i.test(filename) || mimetype.startsWith('video/')) {
     return 'video';
   }
-  
+
   // Archives
-  if (/\.(zip|rar|7z|tar|gz)$/i.test(filename) || mimetype.includes('archive') || mimetype.includes('compressed')) {
+  if (
+    /\.(zip|rar|7z|tar|gz)$/i.test(filename) ||
+    mimetype.includes('archive') ||
+    mimetype.includes('compressed')
+  ) {
     return 'archive';
   }
-  
+
   // Code files
   if (/\.(js|html|css|json|xml|py|java|cpp|c|php|rb|go|rs)$/i.test(filename)) {
     return 'code';
   }
-  
+
   return 'other';
 }
 
@@ -123,14 +131,19 @@ async function extractDocxContent(fileBuffer) {
     console.log('📄 Extracting content from .docx file...');
     const result = await mammoth.extractRawText({ buffer: fileBuffer });
     const extractedText = result.value;
-    
+
     // Immediately check if extraction worked
     if (extractedText && extractedText.trim().length > 0) {
       const wordCount = extractedText.split(/\s+/).length;
       console.log(`✅ Successfully extracted ${wordCount} words from .docx`);
 
-      console.log('📄 Full text length:', extractedText.length, 'Preview length:', extractedText.substring(0, 200).length);
-      
+      console.log(
+        '📄 Full text length:',
+        extractedText.length,
+        'Preview length:',
+        extractedText.substring(0, 200).length,
+      );
+
       // Return BOTH preview and full text
       return {
         success: true,
@@ -138,20 +151,20 @@ async function extractDocxContent(fileBuffer) {
         characterCount: extractedText.length,
         preview: extractedText.substring(0, 200) + (extractedText.length > 200 ? '...' : ''),
         fullText: extractedText,
-        hasContent: true
+        hasContent: true,
       };
     } else {
       console.log('⚠️ .docx file appears to be empty');
       return {
         success: false,
-        error: 'Document appears to be empty or unreadable'
+        error: 'Document appears to be empty or unreadable',
       };
     }
   } catch (error) {
     console.error('❌ Error extracting .docx content:', error);
     return {
       success: false,
-      error: `Failed to extract content: ${error.message}`
+      error: `Failed to extract content: ${error.message}`,
     };
   }
 }
@@ -161,7 +174,7 @@ function analyzeContent(wordCount, characterCount, preview) {
   // Simple rule-based analysis - no external API calls
   let contentType = 'General Document';
   const lowerPreview = preview.toLowerCase();
-  
+
   if (lowerPreview.includes('business plan') || lowerPreview.includes('executive summary')) {
     contentType = 'Business Document';
   } else if (lowerPreview.includes('resume') || lowerPreview.includes('curriculum vitae')) {
@@ -169,13 +182,13 @@ function analyzeContent(wordCount, characterCount, preview) {
   } else if (lowerPreview.includes('contract') || lowerPreview.includes('agreement')) {
     contentType = 'Legal Document';
   }
-  
+
   const readingTime = Math.ceil(wordCount / 200); // ~200 words per minute
-  
+
   return {
     contentType: contentType,
     readingTime: readingTime,
-    summary: `${contentType} with ${wordCount} words (${readingTime} minute read)`
+    summary: `${contentType} with ${wordCount} words (${readingTime} minute read)`,
   };
 }
 
@@ -184,29 +197,31 @@ function extractKeyPhrases(preview) {
   // Find sentences with key indicator words
   const sentences = preview.split(/[.!?]+/);
   const keyIndicators = ['objective', 'goal', 'action', 'next step', 'deadline', 'important'];
-  
+
   const keyPhrases = sentences
-    .filter(sentence => {
+    .filter((sentence) => {
       const lower = sentence.toLowerCase();
-      return keyIndicators.some(indicator => lower.includes(indicator));
+      return keyIndicators.some((indicator) => lower.includes(indicator));
     })
     .slice(0, 3)
-    .map(s => s.trim())
-    .filter(s => s.length > 10);
-    
+    .map((s) => s.trim())
+    .filter((s) => s.length > 10);
+
   return keyPhrases;
 }
 
 // Function 4: Check if file is DOCX
 function isDocxFile(file) {
-  return file.mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
-         file.originalname.toLowerCase().endsWith('.docx');
+  return (
+    file.mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
+    file.originalname.toLowerCase().endsWith('.docx')
+  );
 }
 
 // Process uploaded file - EXACT COPY
 async function processFile(file) {
   const fileType = detectFileType(file.originalname, file.mimetype);
-  
+
   let processingResult = {
     success: true,
     message: '',
@@ -214,32 +229,31 @@ async function processFile(file) {
     size: file.size,
     preview: '',
     contentExtracted: false,
-    docxAnalysis: null
+    docxAnalysis: null,
   };
-  
+
   try {
     // SPECIAL HANDLING FOR DOCX FILES
     if (fileType === 'document' && isDocxFile(file)) {
       console.log(`📄 Processing .docx file: ${file.originalname}`);
-      
+
       // Extract content (memory-efficient)
       const extractionResult = await extractDocxContent(file.buffer);
-      
+
       if (extractionResult.success) {
         // Mark as extracted
         processingResult.contentExtracted = true;
-        
+
         // Do simple analysis
         const analysis = analyzeContent(
-          extractionResult.wordCount, 
-          extractionResult.characterCount, 
-          extractionResult.preview
+          extractionResult.wordCount,
+          extractionResult.characterCount,
+          extractionResult.preview,
         );
-        
+
         // Extract key phrases
         const keyPhrases = extractKeyPhrases(extractionResult.preview);
-        
-      
+
         // Store analysis results
         processingResult.docxAnalysis = {
           wordCount: extractionResult.wordCount,
@@ -250,17 +264,15 @@ async function processFile(file) {
           preview: extractionResult.preview,
           fullText: extractionResult.fullText,
         };
-        
+
         processingResult.message = `DOCX analyzed: ${file.originalname} (${extractionResult.wordCount} words)`;
         processingResult.preview = `📄 ${analysis.summary}`;
-        
       } else {
         // Content extraction failed
         processingResult.message = `DOCX processing failed: ${extractionResult.error}`;
         processingResult.preview = `❌ Could not extract content from ${file.originalname}`;
         processingResult.success = false;
       }
-      
     } else {
       // Handle all other file types (your existing logic)
       switch (fileType) {
@@ -268,28 +280,28 @@ async function processFile(file) {
           processingResult.message = `Image uploaded for analysis: ${file.originalname}`;
           processingResult.preview = `Image ready for analysis and processing`;
           break;
-          
+
         case 'document':
           processingResult.message = `Document uploaded for analysis: ${file.originalname}`;
           processingResult.preview = `Document ready for text analysis and processing`;
           break;
-          
+
         case 'spreadsheet':
           processingResult.message = `Spreadsheet uploaded for analysis: ${file.originalname}`;
           processingResult.preview = `Data tables ready for analysis`;
           break;
-          
+
         case 'code':
           processingResult.message = `Code file uploaded for analysis: ${file.originalname}`;
           processingResult.preview = `Source code ready for review and analysis`;
           break;
-          
+
         default:
           processingResult.message = `File uploaded for analysis: ${file.originalname}`;
           processingResult.preview = `File stored and ready for processing`;
       }
     }
-    
+
     // Store metadata (same as before, but with docx info)
     processingResult.metadata = {
       filename: file.originalname,
@@ -298,22 +310,21 @@ async function processFile(file) {
       uploadTime: new Date().toISOString(),
       fileType: fileType,
       contentExtracted: processingResult.contentExtracted,
-      hasDocxAnalysis: !!processingResult.docxAnalysis
+      hasDocxAnalysis: !!processingResult.docxAnalysis,
     };
-    
   } catch (error) {
     processingResult.success = false;
     processingResult.message = `Failed to process ${file.originalname}: ${error.message}`;
     console.error('❌ Error in processFile:', error);
   }
-  
+
   return processingResult;
 }
 
 // Main upload handler - EXACT COPY with analysis-specific logging
 async function handleAnalysisUpload(req, res) {
   console.log('📤 [Analysis] File upload request received');
-  
+
   try {
     // Check if files were uploaded
     if (!req.files || req.files.length === 0) {
@@ -322,15 +333,17 @@ async function handleAnalysisUpload(req, res) {
         message: 'No files uploaded',
         successful_uploads: 0,
         failed_uploads: 0,
-        files: []
+        files: [],
       });
     }
 
     // Enforce document limit before processing new upload
     if (extractedDocuments.size >= MAX_DOCUMENTS) {
-      console.warn(`[DOCUMENT-CLEANUP] Document limit reached (${MAX_DOCUMENTS}), forcing immediate cleanup`);
+      console.warn(
+        `[DOCUMENT-CLEANUP] Document limit reached (${MAX_DOCUMENTS}), forcing immediate cleanup`,
+      );
       autoCleanupDocuments();
-      
+
       // If still at limit after cleanup, reject new upload
       if (extractedDocuments.size >= MAX_DOCUMENTS) {
         return res.status(429).json({
@@ -341,24 +354,24 @@ async function handleAnalysisUpload(req, res) {
           failed_uploads: req.files.length,
           files: [],
           currentDocuments: extractedDocuments.size,
-          maxDocuments: MAX_DOCUMENTS
+          maxDocuments: MAX_DOCUMENTS,
         });
       }
     }
-    
+
     console.log(`📁 [Analysis] Processing ${req.files.length} file(s)`);
-    
+
     const results = [];
     let successCount = 0;
     let failureCount = 0;
-    
+
     // Process each uploaded file
     for (const file of req.files) {
       console.log(`🔄 [Analysis] Processing: ${file.originalname} (${file.size} bytes)`);
-      
+
       try {
         const result = await processFile(file);
-        
+
         if (result.success) {
           successCount++;
           results.push({
@@ -371,7 +384,7 @@ async function handleAnalysisUpload(req, res) {
             preview: result.preview,
             metadata: result.metadata,
             contentExtracted: result.contentExtracted,
-            docxAnalysis: result.docxAnalysis  // This contains the word count, analysis, etc.
+            docxAnalysis: result.docxAnalysis, // This contains the word count, analysis, etc.
           });
           console.log(`✅ [Analysis] Successfully processed: ${file.originalname}`);
         } else {
@@ -380,23 +393,22 @@ async function handleAnalysisUpload(req, res) {
             success: false,
             filename: file.originalname,
             message: result.message,
-            error: 'Processing failed'
+            error: 'Processing failed',
           });
           console.log(`❌ [Analysis] Failed to process: ${file.originalname}`);
         }
-        
       } catch (error) {
         failureCount++;
         results.push({
           success: false,
           filename: file.originalname,
           message: `Upload failed: ${error.message}`,
-          error: error.message
+          error: error.message,
         });
         console.log(`❌ [Analysis] Error processing ${file.originalname}:`, error);
       }
     }
-    
+
     // Return results - FRONTEND COMPATIBLE
     const response = {
       success: successCount > 0,
@@ -406,50 +418,51 @@ async function handleAnalysisUpload(req, res) {
       successful_uploads: successCount,
       failed_uploads: failureCount,
       files: results,
-      analysis_results: results.map(file => ({
+      analysis_results: results.map((file) => ({
         filename: file.filename,
         success: file.success,
-        analysis: file.docxAnalysis ? 
-          `DOCX Content: ${file.docxAnalysis.wordCount} words, Type: ${file.docxAnalysis.contentType}` :
-          file.success ? `File "${file.filename}" uploaded and ready for analysis.` : `Failed to process ${file.filename}`,
+        analysis: file.docxAnalysis
+          ? `DOCX Content: ${file.docxAnalysis.wordCount} words, Type: ${file.docxAnalysis.contentType}`
+          : file.success
+            ? `File "${file.filename}" uploaded and ready for analysis.`
+            : `Failed to process ${file.filename}`,
         type: file.type,
         wordCount: file.docxAnalysis?.wordCount,
         contentType: file.docxAnalysis?.contentType,
         contentExtracted: file.contentExtracted,
-        docxAnalysis: file.docxAnalysis
+        docxAnalysis: file.docxAnalysis,
       })),
       enhanced_query: null,
       system_status: {
         docx_extraction_enabled: true,
-        memory_efficient: true
-      }
+        memory_efficient: true,
+      },
     };
 
     // Store extracted content for chat system access
-    results.forEach(file => {
+    results.forEach((file) => {
       if (file.contentExtracted) {
         const documentId = `${Date.now()}_${file.filename}`;
         extractedDocuments.set('latest', {
           id: documentId,
           filename: file.filename,
           content: file.docxAnalysis.preview,
-          fullContent: file.docxAnalysis.fullText,  // ← ADD THIS LINE
+          fullContent: file.docxAnalysis.fullText, // ← ADD THIS LINE
           wordCount: file.docxAnalysis.wordCount,
           contentType: file.docxAnalysis.contentType,
           keyPhrases: file.docxAnalysis.keyPhrases,
-          timestamp: Date.now()
+          timestamp: Date.now(),
         });
-                
+
         console.log(`📄 [STORAGE] Stored document for chat access: ${file.filename}`);
       }
     });
-    
+
     // Clean old documents
     cleanOldDocuments();
-    
+
     console.log(`📊 [Analysis] Upload complete: ${successCount}/${req.files.length} successful`);
     res.json(response);
-    
   } catch (error) {
     console.error('❌ [Analysis] Upload endpoint error:', error);
     res.status(500).json({
@@ -458,7 +471,7 @@ async function handleAnalysisUpload(req, res) {
       error: error.message,
       successful_uploads: 0,
       failed_uploads: req.files ? req.files.length : 0,
-      files: []
+      files: [],
     });
   }
 }

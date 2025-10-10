@@ -2,7 +2,6 @@
 // Consolidates conflicting response structures from chat.js and ai-processors.js
 
 export class UnifiedResponseSchema {
-  
   // MASTER SCHEMA BUILDER - Single authority for all response formatting
   static buildUnifiedResponse(processedResponse, systemData, enforcementData) {
     const {
@@ -13,14 +12,14 @@ export class UnifiedResponseSchema {
       careLevel = 5,
       prideMotivation = 0.8,
       vaultStatus = 'not_loaded',
-      conversationHistory = []
+      conversationHistory = [],
     } = systemData;
 
     const {
       enforcement_metadata = {},
       compliance_validation = {},
       response_modifications = [],
-      conflicts_resolved = 0
+      conflicts_resolved = 0,
     } = enforcementData;
 
     // UNIFIED RESPONSE CONTRACT - Resolves chat.js vs ai-processors.js schema conflict
@@ -29,7 +28,7 @@ export class UnifiedResponseSchema {
       response: processedResponse,
       mode_active: mode,
       personality_active: personality,
-      
+
       // COGNITIVE INTELLIGENCE (From chat.js schema - preserved)
       cognitive_intelligence: {
         expert_domain: expertDomain,
@@ -41,12 +40,15 @@ export class UnifiedResponseSchema {
         solution_opportunities: this.extractSolutionOpportunities(processedResponse),
         family_care_score: careLevel * 20, // Normalized to 100
         expert_quality_score: this.assessExpertQuality(processedResponse, expertDomain),
-        overall_quality_score: this.calculateOverallQuality(processedResponse, compliance_validation),
+        overall_quality_score: this.calculateOverallQuality(
+          processedResponse,
+          compliance_validation,
+        ),
         quantitative_quality: this.assessQuantitativeContent(processedResponse),
-        business_survival_score: mode === 'business_validation' ? 
-          this.calculateSurvivalScore(processedResponse) : 100
+        business_survival_score:
+          mode === 'business_validation' ? this.calculateSurvivalScore(processedResponse) : 100,
       },
-      
+
       // ENFORCEMENT METADATA (From ai-processors.js schema - preserved)
       enforcement_metadata: {
         total_enforcements: enforcement_metadata.total_modifications || 0,
@@ -54,19 +56,23 @@ export class UnifiedResponseSchema {
         integrity_score: compliance_validation.compliance_score || 85,
         conflicts_resolved: conflicts_resolved,
         enforcement_pipeline_version: 'UNIFIED_V1',
-        processing_timestamp: new Date().toISOString()
+        processing_timestamp: new Date().toISOString(),
       },
-      
+
       // ENFORCEMENT APPLIED (From chat.js schema - consolidated)
       enforcement_applied: [
         ...response_modifications,
         'unified_enforcement_pipeline_active',
-        mode === 'site_monkeys' ? 'site_monkeys_vault_logic_integrated' : 'standard_enforcement_applied',
-        compliance_validation.mode_compliance === 'FULLY_COMPLIANT' ? 'mode_compliance_verified' : 'mode_compliance_corrected',
+        mode === 'site_monkeys'
+          ? 'site_monkeys_vault_logic_integrated'
+          : 'standard_enforcement_applied',
+        compliance_validation.mode_compliance === 'FULLY_COMPLIANT'
+          ? 'mode_compliance_verified'
+          : 'mode_compliance_corrected',
         'response_object_unification_complete',
-        'schema_warfare_resolved'
+        'schema_warfare_resolved',
       ],
-      
+
       // MODE COMPLIANCE (New unified section)
       mode_compliance: {
         status: compliance_validation.mode_compliance || 'UNKNOWN',
@@ -74,12 +80,12 @@ export class UnifiedResponseSchema {
         corrections_applied: compliance_validation.corrections_applied?.length || 0,
         compliance_score: compliance_validation.compliance_score || 85,
         fingerprint_valid: compliance_validation.fingerprint_valid !== false,
-        drift_detected: this.assessModeDrift(processedResponse, mode)
+        drift_detected: this.assessModeDrift(processedResponse, mode),
       },
-      
+
       // SYSTEM FINGERPRINT (Unified identification)
       system_fingerprint: this.generateSystemFingerprint(mode, enforcement_metadata, personality),
-      
+
       // RESPONSE QUALITY METRICS (New unified quality assessment)
       response_quality: {
         confidence_score: this.extractConfidenceScore(processedResponse),
@@ -87,27 +93,27 @@ export class UnifiedResponseSchema {
         evidence_strength: this.assessEvidenceStrength(processedResponse),
         enforcement_coverage: this.calculateEnforcementCoverage(enforcement_metadata),
         response_completeness: this.assessResponseCompleteness(processedResponse, mode),
-        professional_standards: mode === 'site_monkeys' ? 
-          this.assessProfessionalStandards(processedResponse) : 100
+        professional_standards:
+          mode === 'site_monkeys' ? this.assessProfessionalStandards(processedResponse) : 100,
       },
-      
+
       // VAULT STATUS (Site Monkeys specific)
       vault_status: {
         loaded: vaultStatus === 'loaded',
         healthy: vaultStatus === 'loaded',
         compliance_enforced: mode === 'site_monkeys',
         pricing_standards_met: this.validatePricingStandards(processedResponse),
-        branding_compliant: this.validateBrandingCompliance(processedResponse, mode)
+        branding_compliant: this.validateBrandingCompliance(processedResponse, mode),
       },
-      
+
       // CONVERSATION CONTEXT (Enhanced tracking)
       conversation_context: {
         history_length: conversationHistory.length,
         memory_integration_active: true,
         context_continuity_score: this.assessContextContinuity(conversationHistory),
-        expert_consistency_maintained: true
+        expert_consistency_maintained: true,
       },
-      
+
       // SYSTEM HEALTH (New monitoring section)
       system_health: {
         pipeline_integrity: 'HEALTHY',
@@ -115,8 +121,8 @@ export class UnifiedResponseSchema {
         enforcement_conflicts: 'RESOLVED',
         response_object_races: 'ELIMINATED',
         dependency_chains: 'CLEAN',
-        overall_status: conflicts_resolved > 0 ? 'CONFLICTS_RESOLVED' : 'OPTIMAL'
-      }
+        overall_status: conflicts_resolved > 0 ? 'CONFLICTS_RESOLVED' : 'OPTIMAL',
+      },
     };
   }
 
@@ -136,12 +142,12 @@ export class UnifiedResponseSchema {
       /medium confidence/i,
       /low confidence/i,
       /uncertain/i,
-      /i don't know/i
+      /i don't know/i,
     ];
 
     let baseConfidence = 75;
-    
-    confidenceIndicators.forEach(indicator => {
+
+    confidenceIndicators.forEach((indicator) => {
       if (indicator.test(response)) {
         const match = response.match(/(\d+)%/);
         if (match) {
@@ -152,7 +158,7 @@ export class UnifiedResponseSchema {
           baseConfidence = 75;
         } else if (response.includes('low confidence')) {
           baseConfidence = 50;
-        } else if (response.includes('uncertain') || response.includes('don\'t know')) {
+        } else if (response.includes('uncertain') || response.includes("don't know")) {
           baseConfidence = 30;
         }
       }
@@ -167,11 +173,11 @@ export class UnifiedResponseSchema {
       /⚠️.*warning/gi,
       /🚨.*alert/gi,
       /risk.*detected/gi,
-      /caution.*required/gi
+      /caution.*required/gi,
     ];
 
     let alertCount = 0;
-    alertPatterns.forEach(pattern => {
+    alertPatterns.forEach((pattern) => {
       const matches = response.match(pattern);
       if (matches) alertCount += matches.length;
     });
@@ -182,17 +188,25 @@ export class UnifiedResponseSchema {
   // SURVIVAL SCORE CALCULATION (Business Validation Mode)
   static calculateSurvivalScore(response) {
     let score = 100;
-    
+
     // Check for survival keywords
-    if (!response.includes('cash') && !response.includes('runway') && !response.includes('survival')) {
+    if (
+      !response.includes('cash') &&
+      !response.includes('runway') &&
+      !response.includes('survival')
+    ) {
       score -= 30;
     }
-    
+
     // Check for risk analysis
-    if (!response.includes('risk') && !response.includes('worst case') && !response.includes('downside')) {
+    if (
+      !response.includes('risk') &&
+      !response.includes('worst case') &&
+      !response.includes('downside')
+    ) {
       score -= 25;
     }
-    
+
     // Check for margin analysis
     const marginMatch = response.match(/(\d+)%.*margin/i);
     if (marginMatch) {
@@ -210,7 +224,7 @@ export class UnifiedResponseSchema {
     const priceMatches = response.match(/\$(\d+)/g);
     if (!priceMatches) return true;
 
-    const lowPrices = priceMatches.filter(match => {
+    const lowPrices = priceMatches.filter((match) => {
       const amount = parseInt(match.replace('$', ''));
       return amount > 0 && amount < 697;
     });
@@ -231,22 +245,22 @@ export class UnifiedResponseSchema {
     if (confidenceMatch) {
       return parseInt(confidenceMatch[1]);
     }
-    
+
     if (response.includes('high confidence')) return 90;
     if (response.includes('medium confidence')) return 75;
     if (response.includes('low confidence')) return 50;
-    if (response.includes('uncertain') || response.includes('don\'t know')) return 30;
-    
+    if (response.includes('uncertain') || response.includes("don't know")) return 30;
+
     return 75; // Default confidence
   }
 
   // Additional helper methods for completeness
   static generateExpertTitle(domain) {
     const titles = {
-      'business': 'Business Strategy Expert',
-      'technical': 'Technical Architecture Expert', 
-      'financial': 'Financial Analysis Expert',
-      'general': 'General Knowledge Expert'
+      business: 'Business Strategy Expert',
+      technical: 'Technical Architecture Expert',
+      financial: 'Financial Analysis Expert',
+      general: 'General Knowledge Expert',
     };
     return titles[domain] || 'Expert Consultant';
   }
@@ -262,15 +276,15 @@ export class UnifiedResponseSchema {
 
   static calculateOverallQuality(response, compliance) {
     const baseQuality = this.assessExpertQuality(response, 'general');
-    const complianceBonus = (compliance.compliance_score || 85) / 100 * 15;
+    const complianceBonus = ((compliance.compliance_score || 85) / 100) * 15;
     return Math.min(100, baseQuality + complianceBonus);
   }
 
   static assessQuantitativeContent(response) {
     const numberMatches = response.match(/\d+/g);
     const calculationIndicators = ['calculate', 'analysis', '$', '%', 'cost', 'price', 'margin'];
-    const hasQuantitative = calculationIndicators.some(indicator => 
-      response.toLowerCase().includes(indicator)
+    const hasQuantitative = calculationIndicators.some((indicator) =>
+      response.toLowerCase().includes(indicator),
     );
     return hasQuantitative && numberMatches ? 85 : 50;
   }
@@ -278,7 +292,7 @@ export class UnifiedResponseSchema {
   static extractSolutionOpportunities(response) {
     const opportunityPatterns = [/opportunity/gi, /potential/gi, /could improve/gi, /recommend/gi];
     let count = 0;
-    opportunityPatterns.forEach(pattern => {
+    opportunityPatterns.forEach((pattern) => {
       const matches = response.match(pattern);
       if (matches) count += matches.length;
     });
@@ -288,31 +302,31 @@ export class UnifiedResponseSchema {
   static assessModeDrift(response, mode) {
     // Simple drift detection
     const driftIndicators = {
-      'truth_general': ['definitely', 'absolutely'],
-      'business_validation': ['ignore costs', 'money no object'],
-      'site_monkeys': ['cheap', 'budget']
+      truth_general: ['definitely', 'absolutely'],
+      business_validation: ['ignore costs', 'money no object'],
+      site_monkeys: ['cheap', 'budget'],
     };
-    
+
     const indicators = driftIndicators[mode] || [];
-    return indicators.some(indicator => response.toLowerCase().includes(indicator));
+    return indicators.some((indicator) => response.toLowerCase().includes(indicator));
   }
 
   static assessAssumptionHealth(response) {
     const assumptionWords = ['assume', 'obviously', 'clearly', 'everyone knows'];
     let count = 0;
-    assumptionWords.forEach(word => {
+    assumptionWords.forEach((word) => {
       if (response.toLowerCase().includes(word)) count++;
     });
-    return Math.max(0, 100 - (count * 20));
+    return Math.max(0, 100 - count * 20);
   }
 
   static assessEvidenceStrength(response) {
     const evidenceWords = ['because', 'evidence', 'data', 'research', 'study', 'analysis'];
     let count = 0;
-    evidenceWords.forEach(word => {
+    evidenceWords.forEach((word) => {
       if (response.toLowerCase().includes(word)) count++;
     });
-    return Math.min(100, 40 + (count * 15));
+    return Math.min(100, 40 + count * 15);
   }
 
   static assessResponseCompleteness(response, mode) {
