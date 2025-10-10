@@ -690,6 +690,7 @@ if (!persistentMemory.isReady()) {
 const vaultContentSummary = vaultHealthy ? summarizeVaultForPrompt(vaultContent, 20) : '';
 
 const systemPrompt = buildConditionalSystemPrompt(message, {
+  message,  // ← ADD THIS LINE
   mode,
   vaultContentSummary,
   vaultHealthy,
@@ -1139,7 +1140,7 @@ REMEMBER: This is a family emergency. Your usual measured tone would endanger th
 }
 
 function buildStandardPrompt(config) {
-  const { mode, vaultContentSummary, vaultHealthy, needsQuant, riskContext, opportunityContext } = config;
+  const { message, mode, vaultContentSummary, vaultHealthy, needsQuant, riskContext, opportunityContext } = config;
   
   // YOUR ENTIRE EXISTING V5 PROMPT GOES HERE EXACTLY AS IS
   let prompt = `You are a trusted advisor with extraordinary expertise across all domains.
