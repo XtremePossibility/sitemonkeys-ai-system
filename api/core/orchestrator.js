@@ -1079,7 +1079,8 @@ export class Orchestrator {
     let contextStr = '';
     
     // ========== VAULT TAKES ABSOLUTE PRIORITY IN SITE MONKEYS MODE ==========
-    if (context.sources?.hasVault && context.vault && mode === 'site_monkeys') {
+    if (context.sources?.hasVault && context.vault) {
+
       contextStr += `
   ═══════════════════════════════════════════════════════════════
   🍌 SITE MONKEYS BUSINESS VAULT (PRIMARY AUTHORITY)
