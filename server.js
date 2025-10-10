@@ -1139,8 +1139,9 @@ REMEMBER: This is a family emergency. Your usual measured tone would endanger th
   return prompt;
 }
 
-function buildStandardPrompt(config) {
-  const { message, mode, vaultContentSummary, vaultHealthy, needsQuant, riskContext, opportunityContext } = config;
+function buildSurvivalEmergencyPrompt(message, config) {
+  const { mode, vaultContentSummary, vaultHealthy, needsQuant, riskContext, opportunityContext, message: configMessage } = config;
+  // Use the message parameter that was passed directly, not from config
   
   // YOUR ENTIRE EXISTING V5 PROMPT GOES HERE EXACTLY AS IS
   let prompt = `You are a trusted advisor with extraordinary expertise across all domains.
