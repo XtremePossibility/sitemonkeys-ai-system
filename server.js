@@ -1040,8 +1040,9 @@ function buildConditionalSystemPrompt(message, config) {
   return buildStandardPrompt(config);
 }
 
-function buildSurvivalEmergencyPrompt(message, config) {
-  const { mode, vaultContentSummary, vaultHealthy, needsQuant, riskContext, opportunityContext } = config;
+function buildStandardPrompt(config) {
+  const { message, mode, vaultContentSummary, vaultHealthy, needsQuant, riskContext, opportunityContext } = config;
+  // ← Added "message," to the destructuring
   
   let prompt = `🚨 FAMILY EMERGENCY FINANCIAL ADVISOR MODE 🚨
 
