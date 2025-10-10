@@ -564,9 +564,20 @@ console.log('  vaultStatus:', vaultStatus);
     } catch (error) {
       //console.error('[INTELLIGENCE] Error:', error.message);
       //console.error('[INTELLIGENCE] Stack:', error.stack);
-      intelligenceRouting = { primaryCategory: 'personal_life_interests' };
+      // Check if vault is loaded - if so, force business category
+      if (vaultHealthy && vaultContent && vaultContent.length > 100) {
+        console.log('[INTELLIGENCE] ⚠️ Intelligence failed but vault is loaded - forcing business_validation');
+        intelligenceRouting = { 
+          primaryCategory: 'business_validation',
+          subcategory: 'vault_query',
+          confidence: 0.9,
+          reasoning: 'Vault loaded - defaulting to business context'
+        };
+      } else {
+        intelligenceRouting = { primaryCategory: 'personal_life_interests' };
+      }
       intelligenceMemories = [];
-    }
+          }
         
     // ===== ENHANCED MEMORY CONTEXT WITH FULL INTELLIGENCE =====
     let memoryContext = null;
