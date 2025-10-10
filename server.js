@@ -21,6 +21,8 @@ import { analysisMiddleware, handleAnalysisUpload } from './api/upload-for-analy
 import { extractedDocuments } from './api/upload-for-analysis.js';
 import repoSnapshotRoute from './api/repo-snapshot.js';
 import { addInventoryEndpoint } from './system-inventory-endpoint.js';
+import { Orchestrator } from './api/core/orchestrator.js';
+const orchestrator = new Orchestrator();
 
 // ===== CRITICAL RAILWAY ERROR HANDLERS =====
 process.on('unhandledRejection', (reason, promise) => {
@@ -1703,6 +1705,33 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+// TEST ORCHESTRATOR - New endpoint, doesn't touch existing chat
+app.post('/api/chat-test', async (req, res) => {
+    try {
+        const { message, mode, userId, sessionId } = req.body;
+        
+        const result = await orchestrator.processRequest({
+            message,
+            mode: mode || 'truth_general',
+            userId: userId || 'anonymous',
+            sessionId: sessionId || `session-${Date.now()}`,
+            context: { timestamp: new Date().toISOString(), source: 'web_chat' }
+        });
+        
+        res.json({
+            response: result.response,
+            orchestrator_test: true,
+            metadata: result.metadata
+        });
+    } catch (error) {
+        console.error('[CHAT-TEST] Error:', error);
+        res.status(500).json({
+            response: "Orchestrator test failed",
+            error: error.message
+        });
+    }
+});
+
 // ===== MEMORY SYSTEM HEALTH CHECK =====
 app.get('/api/memory-status', async (req, res) => {
     try {
@@ -1844,6 +1873,13 @@ async function safeStartServer() {
       // WAIT 10 seconds before doing ANYTHING else
       await new Promise(resolve => setTimeout(resolve, 10000));
       console.log('[SERVER] Stability window passed, initializing background systems...');
+      // Initialize orchestrator
+      try {
+        await orchestrator.initialize();
+        console.log('[SERVER] ✓ Orchestrator initialized with semantic analysis');
+      } catch (orchError) {
+        console.error('[SERVER] ⚠️ Orchestrator init failed:', orchError.message);
+      }
       
       // NOW do memory initialization
       initializeMemorySystem().catch(err => {
