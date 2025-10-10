@@ -1419,25 +1419,26 @@ Weave these into your analysis where relevant. Show the math if an opportunity c
     
     if (isVaultQuery) {
       // For vault questions, put vault content FIRST in prompt
-      prompt = `CRITICAL INSTRUCTION: The user is asking about content in the Site Monkeys Vault. Your PRIMARY task is to answer FROM the vault content below. Do NOT give generic answers.
+      prompt = `⚠️ VAULT QUERY DETECTED ⚠️
 
-=== SITEMONKEYS BUSINESS VAULT ===
+The user is asking about the Site Monkeys Vault content. You MUST answer using ONLY the vault content below.
+
+=== RULES (ABSOLUTE) ===
+1. Find the relevant sections in the vault below
+2. Copy the exact text that answers the question
+3. DO NOT add your own interpretation
+4. DO NOT paraphrase
+5. If you can't find it in the vault, say "I don't see that specific information in the vault"
+
+=== SITEMONKEYS VAULT CONTENT ===
 
 ${vaultContentSummary}
 
 === END OF VAULT ===
 
-USER QUESTION ABOUT VAULT CONTENT:
-"${message}"
+USER QUESTION: "${message}"
 
-ANSWER INSTRUCTIONS:
-1. Read the vault content above carefully
-2. Find the specific sections that answer the user's question
-3. Quote directly from those sections in your response
-4. If the answer isn't in the vault, say "I don't see that specific information in the vault"
-5. Do NOT make up or generalize - quote the actual vault content
-
-Now answer the user's question using ONLY information from the vault above:
+Now answer using ONLY the vault content above. Quote the relevant sections directly.
 
 ` + prompt;
     } else {
