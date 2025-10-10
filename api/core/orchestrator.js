@@ -1093,15 +1093,23 @@ export class Orchestrator {
   ═══════════════════════════════════════════════════════════════
   
   ⚠️ CRITICAL INSTRUCTION FOR AI:
-  The Site Monkeys Business Vault above is the ONLY authoritative source for:
-  - Pricing rules and business model
-  - Operational frameworks and procedures  
-  - Founder directives and company principles
-  - Site Monkeys-specific guidance
+  The Site Monkeys Business Vault above is the AUTHORITATIVE source. Search through ALL documents in the vault using FLEXIBLE matching:
   
-  When answering questions about "the vault", "founder directives", "what this system must do", or Site Monkeys operations, you MUST use ONLY the vault content above. 
+  SEARCH RULES:
+  - "founder directives" = look for "Founders_Directive", "Founder's Directive", or any directive content
+  - "company rules" = look for operational directives and procedures
+  - "pricing" = look for pricing rules and business model info
+  - "what must this system do" = look for operational requirements and constraints
   
-  Do NOT reference any document context below for vault-related questions.
+  RESPONSE RULES:
+  - Quote the EXACT text from the vault that answers the question
+  - If multiple documents contain relevant info, reference the document name [filename]
+  - Search thoroughly through ALL vault content before saying you can't find something
+  - Do NOT add interpretation beyond what's written in the vault
+  - Only say "I don't see that specific information" if genuinely no relevant content exists after thorough search
+  
+  The user is asking about vault content - search comprehensively and quote directly.
+
   ═══════════════════════════════════════════════════════════════
   `;
       
