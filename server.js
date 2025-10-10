@@ -1407,21 +1407,51 @@ ${opportunityContext}
 Weave these into your analysis where relevant. Show the math if an opportunity could save money or create value.`;
   }
 
+  // VAULT HANDLING - MUST BE HIGHEST PRIORITY FOR VAULT QUESTIONS
   if (mode === 'site_monkeys' && vaultHealthy && vaultContentSummary) {
-    prompt += `
+    // Check if user is asking about vault content
+    const messageLower = message.toLowerCase();
+    const isVaultQuery = messageLower.includes('vault') || 
+                        messageLower.includes('founder') ||
+                        messageLower.includes('directive') ||
+                        messageLower.includes('what does it say') ||
+                        messageLower.includes('according to');
+    
+    if (isVaultQuery) {
+      // For vault questions, put vault content FIRST in prompt
+      prompt = `CRITICAL INSTRUCTION: The user is asking about content in the Site Monkeys Vault. Your PRIMARY task is to answer FROM the vault content below. Do NOT give generic answers.
 
-=== SITEMONKEYS BUSINESS VAULT (LOADED) ===
+=== SITEMONKEYS BUSINESS VAULT ===
 
 ${vaultContentSummary}
 
 === END OF VAULT ===
 
-INSTRUCTIONS FOR USING THE VAULT:
-1. When the user asks questions ABOUT the vault (like "what are the founder directives?" or "what does the vault say about X?"), answer directly from the vault content above
-2. Quote specific sections from the vault when relevant
-3. If the user asks about policies, pricing, directives, or guidelines - they are asking about what's IN the vault above
-4. The vault contains the complete business knowledge - use it to answer user questions
-5. Also use vault content to flag when plans violate policies (like pricing below minimums)`;
+USER QUESTION ABOUT VAULT CONTENT:
+"${message}"
+
+ANSWER INSTRUCTIONS:
+1. Read the vault content above carefully
+2. Find the specific sections that answer the user's question
+3. Quote directly from those sections in your response
+4. If the answer isn't in the vault, say "I don't see that specific information in the vault"
+5. Do NOT make up or generalize - quote the actual vault content
+
+Now answer the user's question using ONLY information from the vault above:
+
+` + prompt;
+    } else {
+      // For non-vault questions, put vault at end for reference
+      prompt += `
+
+=== SITEMONKEYS BUSINESS VAULT (REFERENCE) ===
+
+${vaultContentSummary}
+
+=== END OF VAULT ===
+
+The vault above contains business rules and policies. Use it to validate recommendations and flag violations (like pricing below minimums).`;
+    }
   }
 
   prompt += `
