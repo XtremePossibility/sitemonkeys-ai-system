@@ -1441,8 +1441,7 @@ USER QUESTION: "${message}"
 Now answer using ONLY the vault content above. Quote the relevant sections directly.
 
 `;
-      return prompt;
-      
+      return prompt;  
     } else {
       // For non-vault questions, put vault at end for reference
       prompt += `
