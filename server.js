@@ -114,6 +114,20 @@ const callOpenAI = async (payload) => {
     console.log('📡 Making OpenAI API call...');
     lastRequestTime = Date.now();
     
+    // ========== DEBUG: SHOW FULL PROMPT ==========
+    console.log('╔══════════════════════════════════════════════════════════╗');
+    console.log('║  🔍 FULL PROMPT BEING SENT TO OPENAI                    ║');
+    console.log('╚══════════════════════════════════════════════════════════╝');
+    console.log('Payload messages:', JSON.stringify(payload.messages, null, 2));
+    console.log('──────────────────────────────────────────────────────────');
+    const promptText = JSON.stringify(payload.messages);
+    console.log(`Total prompt length: ${promptText.length} characters`);
+    console.log(`Searching for "Site Monkeys":`, promptText.includes('Site Monkeys') ? '✅ FOUND' : '❌ NOT FOUND');
+    console.log(`Searching for "vault":`, promptText.includes('vault') ? '✅ FOUND' : '❌ NOT FOUND');
+    console.log(`Searching for "founder":`, promptText.includes('founder') ? '✅ FOUND' : '❌ NOT FOUND');
+    console.log('══════════════════════════════════════════════════════════');
+    // =====================================================
+    
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
