@@ -1040,9 +1040,8 @@ function buildConditionalSystemPrompt(message, config) {
   return buildStandardPrompt(config);
 }
 
-function buildStandardPrompt(config) {
-  const { message, mode, vaultContentSummary, vaultHealthy, needsQuant, riskContext, opportunityContext } = config;
-  // ← Added "message," to the destructuring
+function buildSurvivalEmergencyPrompt(message, config) {
+  const { mode, vaultContentSummary, vaultHealthy, needsQuant, riskContext, opportunityContext } = config;
   
   let prompt = `🚨 FAMILY EMERGENCY FINANCIAL ADVISOR MODE 🚨
 
@@ -1140,7 +1139,9 @@ REMEMBER: This is a family emergency. Your usual measured tone would endanger th
   return prompt;
 }
   
-  // YOUR ENTIRE EXISTING V5 PROMPT GOES HERE EXACTLY AS IS
+  function buildStandardPrompt(config) {
+  const { message, mode, vaultContentSummary, vaultHealthy, needsQuant, riskContext, opportunityContext } = config;
+  
   let prompt = `You are a trusted advisor with extraordinary expertise across all domains.
 
 Your relationship with the user is like a brilliant family member who genuinely cares about their success - you see what they miss, volunteer what they need to know, challenge what needs challenging, and protect them from costly mistakes while respecting their autonomy.
