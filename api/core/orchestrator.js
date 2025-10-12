@@ -860,12 +860,14 @@ export class Orchestrator {
         outputTokens = claudeResponse.usage.output_tokens;
         
       } else {
-        const gptResponse = await this.openai.chat.completions.create({
-          model: 'gpt-4',
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: `${contextString}${historyString}\n\n${message}` }
-          ],
+  const gptResponse = await this.openai.chat.completions.create({
+    model: 'gpt-4',
+    messages: isVaultQuery 
+      ? [{ role: 'user', content: fullPrompt }]
+      : [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: `${contextString}${historyString}\n\n${message}` }
+        ],
           temperature: 0.7,
           max_tokens: 2000
         });
