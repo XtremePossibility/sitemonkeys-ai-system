@@ -546,12 +546,21 @@ export class Orchestrator {
   
   async #loadVaultContext(userId, sessionId) {
     try {
-      const vaultStatus = getVaultStatus(sessionId);
-      
-      if (!vaultStatus.loaded || !vaultStatus.healthy) {
-        this.log('[VAULT] Not loaded or unhealthy');
-        return null;
+      // Check global vault first (from KV cache)
+      if (global.vaultContent && global.vaultContent.length > 1000) {
+        const tokens = Math.ceil(global.vaultContent.length / 4);
+        this.log(`[VAULT] Loaded from global: ${tokens} tokens`);
+        
+        return {
+          content: global.vaultContent,
+          tokens: tokens,
+          loaded: true,
+          expires: new Date(Date.now() + 3600000).toISOString()
+        };
       }
+      
+      this.log('[VAULT] Not available in global cache');
+      return null;
       
       const vaultContent = generateVaultContext(sessionId);
       const tokens = Math.ceil(vaultContent.length / 4);
