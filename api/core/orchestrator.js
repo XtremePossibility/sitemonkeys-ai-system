@@ -245,6 +245,7 @@ export class Orchestrator {
   // ==================== MAIN ENTRY POINT ====================
   
   async processRequest(requestData) {
+  const startTime = Date.now();
   const { 
     message, 
     userId, 
@@ -438,11 +439,7 @@ export class Orchestrator {
     try {
       const routingResult = { primaryCategory: 'general' };
       
-      const memories = await this.memory.retrieveMemory(
-        userId, 
-        message, 
-        2500
-      );
+      const memories = { success: false, memories: '', count: 0 };
       
       if (!memories || !memories.success) {
         this.log('[MEMORY] No memories found or retrieval failed');
