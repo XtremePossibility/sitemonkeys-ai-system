@@ -41,8 +41,7 @@ export class EliFramework {
       
       // ========== PROCEED WITH NORMAL ANALYSIS ==========
       this.logger.log('Applying Eli analytical framework...');
-      
-      let enhancedResponse = response;
+    
       const analysisApplied = {
         risksIdentified: [],
         assumptionsChallenged: [],
