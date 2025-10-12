@@ -1417,9 +1417,7 @@ Weave these into your analysis where relevant. Show the math if an opportunity c
                         messageLower.includes('what does it say') ||
                         messageLower.includes('according to');
     
-    if (isVaultQuery) {
-      // For vault questions, put vault content FIRST in prompt
-      prompt = `⚠️ VAULT QUERY DETECTED ⚠️
+    // Just add vault to normal prompt, no special wrapper
 
 The user is asking about the Site Monkeys Vault content. You MUST answer using ONLY the vault content below.
 
