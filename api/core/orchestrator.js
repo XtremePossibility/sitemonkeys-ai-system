@@ -901,11 +901,11 @@ export class Orchestrator {
       
       trackApiCall({
         sessionId: 'orchestrator',
-        personality: personalityResult?.personality || 'eli',
+        personality: 'orchestrator',
         promptTokens: inputTokens,
         completionTokens: outputTokens
       });
-      
+            
       return {
         response: response,
         model: model,
