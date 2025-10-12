@@ -445,12 +445,23 @@ export class Orchestrator {
       if (global.memorySystem && typeof global.memorySystem.retrieveMemory === 'function') {
         try {
           const result = await global.memorySystem.retrieveMemory(userId, message);
-          if (result && result.success) {
+          
+          // Check what we actually got back
+          this.log(`[MEMORY-DEBUG] Result type: ${typeof result}, has memories: ${!!result?.memories}`);
+          
+          if (result && result.memories) {
+            // The result.memories might be an object or string - handle both
+            const memoryText = typeof result.memories === 'string' 
+              ? result.memories 
+              : JSON.stringify(result.memories);
+            
             memories = {
               success: true,
-              memories: result.memories || '',
-              count: result.count || 0
+              memories: memoryText,
+              count: result.count || 1
             };
+            
+            this.log(`[MEMORY-FIX] Successfully loaded ${memories.count} memories, ${memoryText.length} chars`);
           }
         } catch (error) {
           this.error('[MEMORY] Retrieval error:', error);
