@@ -4,7 +4,7 @@
 // Truth > Memory > Analysis > AI > Personality > Validation > Fallback (last resort)
 
 import coreSystem from '../../memory_system/core.js';
-import { RoutingIntelligence } from '../../memory_system/intelligence.js';
+import routingIntelligence from '../../memory_system/intelligence.js';
 import { SemanticAnalyzer } from '../core/intelligence/semantic_analyzer.js';
 import { EliFramework } from '../core/personalities/eli_framework.js';
 import { RoxyFramework } from '../core/personalities/roxy_framework.js';
@@ -33,7 +33,7 @@ export class Orchestrator {
   constructor() {
     // Core dependencies
     this.memory = coreSystem;
-    this.intelligence = new RoutingIntelligence();
+    this.intelligence = routingIntelligence;
     this.semanticAnalyzer = new SemanticAnalyzer();
     this.eliFramework = new EliFramework();
     this.roxyFramework = new RoxyFramework();
