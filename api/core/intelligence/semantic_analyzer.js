@@ -590,7 +590,7 @@ export class SemanticAnalyzer {
       fallbackUsed: true,
       driftWarning: 'Fallback analysis used - semantic analyzer unavailable'
     };
-  } Going to wash them up
+  }
 }
 
 export { SemanticAnalyzer };
