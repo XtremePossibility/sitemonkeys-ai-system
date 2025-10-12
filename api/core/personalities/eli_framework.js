@@ -740,5 +740,3 @@ export class EliFramework {
     return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
   }
 }
-
-export { EliFramework };
