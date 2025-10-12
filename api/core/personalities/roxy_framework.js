@@ -552,5 +552,3 @@ export class RoxyFramework {
     };
   }
 }
-
-export { RoxyFramework };
