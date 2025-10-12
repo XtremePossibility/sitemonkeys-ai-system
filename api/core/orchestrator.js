@@ -24,7 +24,7 @@ import { costTracker } from '../utils/cost-tracker.js';
 import { PoliticalGuardrails } from '../lib/politicalGuardrails.js';
 import { ProductValidator } from '../lib/productValidation.js';
 import { checkFounderProtection, handleCostCeiling } from '../lib/site-monkeys/emergency-fallbacks.js';
-import { validateCompliance as validateVaultCompliance } from '../lib/vault.js';
+//import { validateCompliance as validateVaultCompliance } from '../lib/vault.js';
 // ================================================
 
 // ==================== ORCHESTRATOR CLASS ====================
