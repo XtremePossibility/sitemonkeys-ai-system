@@ -136,5 +136,3 @@ export class PersonalitySelector {
     return reasons.length > 0 ? reasons.join('; ') : 'Score-based selection';
   }
 }
-
-export { PersonalitySelector };
