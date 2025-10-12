@@ -245,16 +245,15 @@ export class Orchestrator {
   // ==================== MAIN ENTRY POINT ====================
   
   async processRequest(requestData) {
-    const startTime = Date.now();
-    const { 
-      message, 
-      userId, 
-      mode = 'truth_general', 
-      sessionId, 
-      documentContext = null, 
-      vaultEnabled = false,
-      conversationHistory = []
-    } = requestData;
+  const { 
+    message, 
+    userId, 
+    mode = 'truth_general', 
+    sessionId, 
+    documentContext = null, 
+    vaultContent = null,  // ← Changed from vaultEnabled
+    conversationHistory = []
+  } = requestData;
     
     try {
       this.log(`[START] User: ${userId}, Mode: ${mode}`);
@@ -271,9 +270,13 @@ export class Orchestrator {
         this.log(`[DOCUMENTS] Loaded ${documentData.tokens} tokens from ${documentData.filename}`);
       }
       
-      // STEP 3: Load vault (if Site Monkeys mode and enabled)
-      const vaultData = (mode === 'site_monkeys' && vaultEnabled)
-        ? await this.#loadVaultContext(userId, sessionId)
+      // STEP 3: Use vault content from request (if provided)
+      const vaultData = (mode === 'site_monkeys' && vaultContent)
+        ? {
+            content: vaultContent,
+            tokens: Math.ceil(vaultContent.length / 4),
+            loaded: true
+          }
         : null;
       if (vaultData) {
         this.log(`[VAULT] Loaded ${vaultData.tokens} tokens`);
