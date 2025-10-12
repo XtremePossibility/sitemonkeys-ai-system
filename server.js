@@ -1419,7 +1419,6 @@ ${vaultContentSummary}
 
 The vault above contains business rules and policies. Use it to validate recommendations and flag violations (like pricing below minimums).`;
     }
-  }
 
   prompt += `
 
