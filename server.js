@@ -1409,13 +1409,7 @@ Weave these into your analysis where relevant. Show the math if an opportunity c
 
   // VAULT HANDLING - MUST BE HIGHEST PRIORITY FOR VAULT QUESTIONS
   if (mode === 'site_monkeys' && vaultHealthy && vaultContentSummary) {
-    // Check if user is asking about vault content
-    const messageLower = message.toLowerCase();
-    const isVaultQuery = messageLower.includes('vault') || 
-                        messageLower.includes('founder') ||
-                        messageLower.includes('directive') ||
-                        messageLower.includes('what does it say') ||
-                        messageLower.includes('according to');
+    prompt += `
 
 === SITEMONKEYS BUSINESS VAULT (REFERENCE) ===
 
