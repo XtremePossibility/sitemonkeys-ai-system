@@ -592,5 +592,3 @@ export class SemanticAnalyzer {
     };
   }
 }
-
-export { SemanticAnalyzer };
