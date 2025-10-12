@@ -279,6 +279,7 @@ static async check({ response, context }) {
       };
     }
   }
+  }
 
 export function guardPoliticalContent(response, originalMessage) {
   return PoliticalGuardrails.guardPoliticalContent(response, originalMessage);
