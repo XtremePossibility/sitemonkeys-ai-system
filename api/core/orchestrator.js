@@ -3,7 +3,7 @@
 // Executes all chat requests in correct priority order
 // Truth > Memory > Analysis > AI > Personality > Validation > Fallback (last resort)
 
-import { PersistentMemory } from '../../memory_system/core.js';
+import coreSystem from '../../memory_system/core.js';
 import { RoutingIntelligence } from '../../memory_system/intelligence.js';
 import { SemanticAnalyzer } from '../core/intelligence/semantic_analyzer.js';
 import { EliFramework } from '../core/personalities/eli_framework.js';
@@ -32,7 +32,7 @@ import { validateCompliance as validateVaultCompliance } from '../lib/vault.js';
 export class Orchestrator {
   constructor() {
     // Core dependencies
-    this.memory = new PersistentMemory();
+    this.memory = coreSystem;
     this.intelligence = new RoutingIntelligence();
     this.semanticAnalyzer = new SemanticAnalyzer();
     this.eliFramework = new EliFramework();
