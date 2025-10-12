@@ -439,7 +439,23 @@ export class Orchestrator {
     try {
       const routingResult = { primaryCategory: 'general' };
       
-      const memories = { success: false, memories: '', count: 0 };
+      // Use global.memorySystem which is already initialized
+      let memories = { success: false, memories: '', count: 0 };
+      
+      if (global.memorySystem && typeof global.memorySystem.retrieveMemory === 'function') {
+        try {
+          const result = await global.memorySystem.retrieveMemory(userId, message);
+          if (result && result.success) {
+            memories = {
+              success: true,
+              memories: result.memories || '',
+              count: result.count || 0
+            };
+          }
+        } catch (error) {
+          this.error('[MEMORY] Retrieval error:', error);
+        }
+      }
       
       if (!memories || !memories.success) {
         this.log('[MEMORY] No memories found or retrieval failed');
