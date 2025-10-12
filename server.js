@@ -1416,33 +1416,6 @@ Weave these into your analysis where relevant. Show the math if an opportunity c
                         messageLower.includes('directive') ||
                         messageLower.includes('what does it say') ||
                         messageLower.includes('according to');
-    
-    // Just add vault to normal prompt, no special wrapper
-
-The user is asking about the Site Monkeys Vault content. You MUST answer using ONLY the vault content below.
-
-=== RULES (ABSOLUTE) ===
-1. Find the relevant sections in the vault below
-2. Copy the exact text that answers the question
-3. DO NOT add your own interpretation
-4. DO NOT paraphrase
-5. If you can't find it in the vault, say "I don't see that specific information in the vault"
-
-=== SITEMONKEYS VAULT CONTENT ===
-
-${vaultContentSummary}
-
-=== END OF VAULT ===
-
-USER QUESTION: "${message}"
-
-Now answer using ONLY the vault content above. Quote the relevant sections directly.
-
-`;
-      return prompt;  
-    } else {
-      // For non-vault questions, put vault at end for reference
-      prompt += `
 
 === SITEMONKEYS BUSINESS VAULT (REFERENCE) ===
 
