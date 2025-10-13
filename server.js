@@ -448,17 +448,40 @@ app.post('/api/chat', async (req, res) => {
     
     console.log('[CHAT] Routing to orchestrator - memory retrieval enabled');
     
-    const result = await orchestrator.processRequest({
-      message: message,
-      userId: 'user',
-      mode: mode || 'site_monkeys',
-      sessionId: req.sessionID || crypto.randomUUID(),
-      vaultEnabled: !!vault_content,
-      conversationHistory: conversation_history || []
-    });
+        // ---- build explicit vault and document context ----
+        let vaultContext = null;
+        if (mode === 'site_monkeys' && typeof vault_content === 'string' && vault_content.length > 1000) {
+          vaultContext = {
+            content: vault_content,
+            tokens: Math.ceil(vault_content.length / 4),
+            loaded: true
+          };
+          console.log('[CHAT] 📁 Vault context attached:', vaultContext.tokens, 'tokens');
+        }
     
-    try {
-      if (global.memorySystem && typeof global.memorySystem.storeMemory === 'function') {
+        let documentContext = null;
+        if (document_context && typeof document_context === 'object' && typeof document_context.content === 'string') {
+          const text = document_context.content.trim();
+          if (text.length > 0) {
+            documentContext = {
+              content: text,
+              tokens: Math.ceil(text.length / 4),
+              filename: document_context.filename || 'uploaded-document',
+              loaded: true
+            };
+            console.log('[CHAT] 📄 Document context attached:', documentContext.tokens, 'tokens');
+          }
+        }
+    
+        const result = await orchestrator.processRequest({
+          message,
+          userId: 'user',
+          mode: mode || 'site_monkeys',
+          sessionId: req.sessionID || crypto.randomUUID(),
+          vaultContext,
+          documentContext,
+          conversationHistory: conversation_history || []
+        });
         const cleanUser = (message || '').toString().trim();
         const cleanAssistant = (result?.response || '').toString().trim();
         if (cleanUser && cleanAssistant) {
