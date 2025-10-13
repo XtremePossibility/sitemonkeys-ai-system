@@ -354,16 +354,16 @@ export function calculateTokenCost(tokens, aiType = 'openai') {
 
 // VALIDATION: Ensure no duplicate enforcement rules
 export function validateEnforcementRules() {
-  const allRules = [];
+  const ruleSet = new Set();
   const duplicates = [];
   
   Object.entries(MODES).forEach(([modeName, modeConfig]) => {
     if (modeConfig.enforcement_rules && Array.isArray(modeConfig.enforcement_rules)) {
       modeConfig.enforcement_rules.forEach(rule => {
-        if (allRules.includes(rule)) {
+        if (ruleSet.has(rule)) {
           duplicates.push({ mode: modeName, rule });
         } else {
-          allRules.push(rule);
+          ruleSet.add(rule);
         }
       });
     }
@@ -374,7 +374,7 @@ export function validateEnforcementRules() {
     return { valid: false, duplicates };
   }
   
-  return { valid: true, totalRules: allRules.length };
+  return { valid: true, totalRules: ruleSet.size };
 }
 
 // Run validation on module load (development check)

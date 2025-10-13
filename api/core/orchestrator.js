@@ -1,9 +1,5 @@
 // ==================== ORCHESTRATOR CLASS ====================
 export class Orchestrator {
-  constructor() {
-    // Placeholder for initialization
-  }
-
   log(message) {
     console.log(message);
   }
