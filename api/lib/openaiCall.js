@@ -48,7 +48,8 @@ export async function callOpenAI(params, maxRetries = 3) {
           let waitMs;
           const retryAfter = error.response?.headers?.['retry-after'] || error.headers?.['retry-after'];
           if (retryAfter) {
-            waitMs = parseInt(retryAfter) * 1000;
+            const parsed = parseInt(retryAfter, 10);
+            waitMs = isNaN(parsed) ? calculateBackoffWaitTime(attempt) : parsed * 1000;
           } else {
             // Exponential backoff with cap
             waitMs = calculateBackoffWaitTime(attempt);
