@@ -493,9 +493,6 @@ app.post('/api/chat', async (req, res) => {
         } else {
           console.warn('[CHAT] ⚠️ Missing user or assistant content, skipping memory store');
         }
-    } catch (e) {
-      console.error('[CHAT] 💾 Memory store failed:', e.message);
-    }
     
     return res.json({
       response: result.response,
