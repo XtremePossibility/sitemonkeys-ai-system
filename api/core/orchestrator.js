@@ -555,41 +555,35 @@ export class Orchestrator {
 
   // ==================== STEP 3: LOAD VAULT CONTEXT ====================
   
-  async #loadVaultContext(userId, sessionId) {
-    try {
-      // Check global vault first (from KV cache)
-      if (global.vaultContent && global.vaultContent.length > 1000) {
-        const tokens = Math.ceil(global.vaultContent.length / 4);
-        this.log(`[VAULT] Loaded from global: ${tokens} tokens`);
-        
-        return {
-          content: global.vaultContent,
-          tokens: tokens,
-          loaded: true,
-          expires: new Date(Date.now() + 3600000).toISOString()
-        };
+      try {
+        // If vault was passed in from the server request
+        if (userId && userId.content && userId.loaded) {
+          const tokens = Math.ceil(userId.content.length / 4);
+          this.log(`[VAULT] Loaded from request: ${tokens} tokens`);
+          return {
+            content: userId.content,
+            tokens,
+            loaded: true
+          };
+        }
+  
+        // Otherwise fall back to global cache
+        if (global.vaultContent && global.vaultContent.length > 1000) {
+          const tokens = Math.ceil(global.vaultContent.length / 4);
+          this.log(`[VAULT] Loaded from global: ${tokens} tokens`);
+          return {
+            content: global.vaultContent,
+            tokens,
+            loaded: true
+          };
+        }
+  
+        this.log('[VAULT] Not available in any source');
+        return null;
+      } catch (error) {
+        this.error('[VAULT] Loading failed, continuing without vault', error);
+        return null;
       }
-      
-      this.log('[VAULT] Not available in global cache');
-      return null;
-      
-      const vaultContent = generateVaultContext(sessionId);
-      const tokens = Math.ceil(vaultContent.length / 4);
-      
-      const expiresAt = new Date(Date.now() + 3600000).toISOString();
-      
-      return {
-        content: vaultContent,
-        tokens: tokens,
-        loaded: true,
-        expires: expiresAt
-      };
-      
-    } catch (error) {
-      this.error('[VAULT] Loading failed, continuing without vault', error);
-      return null;
-    }
-  }
 
   // ==================== STEP 4: ASSEMBLE CONTEXT ====================
   
