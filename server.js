@@ -504,7 +504,7 @@ app.post('/api/chat', async (req, res) => {
   } catch (error) {
     console.error('[CHAT ERROR]', error);
     res.status(500).json({ 
-      error: error.message,
+      error: error?.message || String(error) || 'Unknown error occurred',
       response: 'System error occurred' 
     });
   }

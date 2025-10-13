@@ -351,3 +351,36 @@ export function calculateTokenCost(tokens, aiType = 'openai') {
   
   return ((estimatedInputTokens * rates.input) + (estimatedOutputTokens * rates.output)) / 1000;
 }
+
+// VALIDATION: Ensure no duplicate enforcement rules
+export function validateEnforcementRules() {
+  const ruleSet = new Set();
+  const duplicates = [];
+  
+  Object.entries(MODES).forEach(([modeName, modeConfig]) => {
+    if (modeConfig.enforcement_rules && Array.isArray(modeConfig.enforcement_rules)) {
+      modeConfig.enforcement_rules.forEach(rule => {
+        if (ruleSet.has(rule)) {
+          duplicates.push({ mode: modeName, rule });
+        } else {
+          ruleSet.add(rule);
+        }
+      });
+    }
+  });
+  
+  if (duplicates.length > 0) {
+    console.warn('⚠️ Duplicate enforcement rules detected:', duplicates);
+    return { valid: false, duplicates };
+  }
+  
+  return { valid: true, totalRules: ruleSet.size };
+}
+
+// Run validation on module load (development check)
+if (process.env.NODE_ENV !== 'production') {
+  const validation = validateEnforcementRules();
+  if (!validation.valid) {
+    console.error('❌ Mode configuration has duplicate rules!');
+  }
+}

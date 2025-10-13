@@ -84,10 +84,49 @@ async function fixDatabase() {
                 is_dynamic BOOLEAN DEFAULT FALSE,
                 dynamic_focus VARCHAR(255),
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                UNIQUE(user_id, category_name, subcategory_name)
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
         `);
+
+        // Step 4.5: Safely add UNIQUE constraint after checking for violations
+        console.log('📋 Checking for constraint violations before adding UNIQUE constraint...');
+        const violations = await client.query(`
+            SELECT user_id, category_name, subcategory_name, COUNT(*) as count
+            FROM memory_categories
+            GROUP BY user_id, category_name, subcategory_name
+            HAVING COUNT(*) > 1
+        `);
+        
+        if (violations.rows.length > 0) {
+            console.warn(`⚠️ Found ${violations.rows.length} duplicate entries. Cleaning up...`);
+            // Keep only the most recent entry for each duplicate group
+            await client.query(`
+                DELETE FROM memory_categories a USING memory_categories b
+                WHERE a.id < b.id 
+                AND a.user_id = b.user_id 
+                AND a.category_name = b.category_name
+                AND COALESCE(a.subcategory_name, '') = COALESCE(b.subcategory_name, '')
+            `);
+            console.log('✅ Duplicate entries cleaned up');
+        } else {
+            console.log('✅ No constraint violations found');
+        }
+        
+        // Now safely add the constraint
+        await client.query(`
+            DO $$ 
+            BEGIN
+                IF NOT EXISTS (
+                    SELECT 1 FROM pg_constraint 
+                    WHERE conname = 'memory_categories_user_id_category_name_subcategory_name_key'
+                ) THEN
+                    ALTER TABLE memory_categories 
+                    ADD CONSTRAINT memory_categories_user_id_category_name_subcategory_name_key 
+                    UNIQUE(user_id, category_name, subcategory_name);
+                END IF;
+            END $$;
+        `);
+        console.log('✅ UNIQUE constraint added safely');
 
         // Step 5: Create user_memory_profiles table if missing
         console.log('📋 Creating user_memory_profiles table...');
