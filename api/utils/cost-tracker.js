@@ -3,9 +3,9 @@
 // Prevents runaway costs and enforces budget limits per mode
 
 const COST_CEILINGS = {
-  truth_general: 0.10,
-  business_validation: 0.25,
-  site_monkeys: 0.35
+  truth_general: 2.00,
+  business_validation: 4.00,
+  site_monkeys: 6.00
 };
 
 const MODEL_COSTS = {
