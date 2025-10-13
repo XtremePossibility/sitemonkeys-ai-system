@@ -63,21 +63,20 @@ class CoreSystem {
       });
       
       // --- Keep pool healthy between requests ---
-      pool.on('remove', () => {
-        console.warn('[DB] Client removed from pool — reconnecting soon');
-        // No immediate sync connect; the next query will establish it.
+      this.pool.on('remove', () => {
+        this.logger.warn('[DB] Client removed from pool — reconnecting soon');
       });
       
-      pool.on('error', (err) => {
-        console.error('[DB] Pool error:', err.message);
+      this.pool.on('error', (err) => {
+        this.logger.error('[DB] Pool error:', err);
       });
       
-      // Lightweight keep-alive every 30s to prevent idle shutdown
+      // Lightweight keep-alive every 30 s to prevent idle shutdown
       setInterval(async () => {
         try {
-          await pool.query('SELECT 1');
+          await this.pool.query('SELECT 1');
         } catch (e) {
-          console.error('[DB] Keep-alive failed:', e.message);
+          this.logger.error('[DB] Keep-alive failed:', e);
         }
       }, 30000);
 
