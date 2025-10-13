@@ -262,6 +262,8 @@ export class Orchestrator {
     vaultEnabled = false,
     conversationHistory = []
   } = requestData;
+  
+  const vaultContext = requestData.vaultContext || null;
     
     try {
       this.log(`[START] User: ${userId}, Mode: ${mode}`);
@@ -279,9 +281,11 @@ export class Orchestrator {
       }
       
       // STEP 3: Load vault (if Site Monkeys mode and enabled)
-      const vaultData = (mode === 'site_monkeys' && vaultEnabled)
-        ? await this.#loadVaultContext(userId, sessionId)
-        : null;
+      const vaultData = vaultContext
+        ? await this.#loadVaultContext(vaultContext)
+        : (mode === 'site_monkeys' && vaultEnabled
+            ? await this.#loadVaultContext(userId, sessionId)
+            : null);
       if (vaultData) {
         this.log(`[VAULT] Loaded ${vaultData.tokens} tokens`);
       }
