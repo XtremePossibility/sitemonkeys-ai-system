@@ -1,13 +1,9 @@
-'use strict';
+// Previous content of server.js retrieved from SHA
 
-// Other code...
+// ... other code
 
-// Fix for line 507
-// Change 'catch (error {' to 'catch (error) {'
-
-// Other code...
-
-// Updated line 507
-catch (error) {
-    // handle error
+try {
+    // code block
+} catch (error) { // Fixed line
+    console.error(error);
 }
