@@ -917,11 +917,7 @@ export class Orchestrator {
       
       trackApiCall({
         sessionId: 'orchestrator',
-        personality: (
-          typeof personalityResult === 'string'
-            ? personalityResult
-            : (personalityResult?.personality || personalityResult?.name || 'unknown')
-        ),
+        personality: typeof context?.mode === 'string' ? context.mode : 'unknown',
         promptTokens: inputTokens,
         completionTokens: outputTokens
       });
