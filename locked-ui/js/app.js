@@ -152,7 +152,13 @@ async function sendMessage() {
       throw new Error(`API Error: ${response.status} - ${response.statusText}`);
     }
 
-    const data = await response.json();
+    let data;
+    try {
+      data = await response.json();
+    } catch (jsonError) {
+      console.error('❌ JSON parsing error:', jsonError);
+      throw new Error(`Failed to parse server response: ${jsonError.message}`);
+    }
 
     // TOKEN DEBUG
     console.log('🔍 TOKEN DEBUG:', data.token_usage);

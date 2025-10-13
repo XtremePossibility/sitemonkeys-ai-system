@@ -77,6 +77,23 @@ class CoreSystem {
           await this.pool.query('SELECT 1');
         } catch (e) {
           this.logger.error('[DB] Keep-alive failed:', e);
+          // Attempt to reinitialize the connection pool
+          try {
+            this.logger.log('[DB] Attempting to reinitialize connection pool...');
+            await this.pool.end();
+            this.pool = new Pool({
+              connectionString: process.env.DATABASE_URL,
+              ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+              max: 30,
+              idleTimeoutMillis: 60000,
+              connectionTimeoutMillis: 5000,
+              allowExitOnIdle: true
+            });
+            await this.pool.query('SELECT 1');
+            this.logger.log('[DB] Connection pool reinitialized successfully');
+          } catch (reinitError) {
+            this.logger.error('[DB] Failed to reinitialize pool:', reinitError);
+          }
         }
       }, 30000);
 

@@ -3,6 +3,7 @@
 
 const MIN_API_INTERVAL_MS = Number(process.env.OPENAI_MIN_INTERVAL_MS || 1500); // 1.5s gap
 const MAX_RETRIES = Number(process.env.OPENAI_MAX_RETRIES || 3);
+const MAX_RETRY_TIMEOUT_MS = 30000; // 30 seconds max retry timeout
 
 let lastCallAt = 0;                 // simple global spacing
 let inFlight = Promise.resolve();   // serialize to avoid bursts
@@ -24,6 +25,8 @@ async function withQueue(fn) {
 
 export async function callOpenAI(payload) {
   return withQueue(async () => {
+    const requestStartTime = Date.now();
+    
     // Ensure minimum spacing between calls
     const now = Date.now();
     const since = now - lastCallAt;
@@ -47,7 +50,15 @@ export async function callOpenAI(payload) {
         // Respect official backoff window if present
         if (resp.status === 429) {
           const retryAfter = resp.headers.get('retry-after');
-          const waitMs = retryAfter ? Number(retryAfter) * 1000 : Math.pow(2, attempt) * 1000;
+          let waitMs = retryAfter ? Number(retryAfter) * 1000 : Math.pow(2, attempt) * 1000;
+          
+          // Check if waiting would exceed max retry timeout
+          const elapsedMs = Date.now() - requestStartTime;
+          if (elapsedMs + waitMs > MAX_RETRY_TIMEOUT_MS) {
+            console.error(`[OPENAI] Max retry timeout (${MAX_RETRY_TIMEOUT_MS}ms) would be exceeded. Aborting.`);
+            throw new Error(`Rate limit retry timeout exceeded (${MAX_RETRY_TIMEOUT_MS}ms)`);
+          }
+          
           console.log(`[OPENAI] 429 rate limited. Attempt ${attempt}/${MAX_RETRIES}. Waiting ${waitMs}ms`);
           await sleep(waitMs);
           continue;
@@ -67,7 +78,16 @@ export async function callOpenAI(payload) {
           console.error('[OPENAI] Failed after retries:', err.message);
           throw err;
         }
+        
         const waitMs = Math.pow(2, attempt) * 1000;
+        const elapsedMs = Date.now() - requestStartTime;
+        
+        // Check if waiting would exceed max retry timeout
+        if (elapsedMs + waitMs > MAX_RETRY_TIMEOUT_MS) {
+          console.error(`[OPENAI] Max retry timeout (${MAX_RETRY_TIMEOUT_MS}ms) would be exceeded. Aborting.`);
+          throw err;
+        }
+        
         console.log(`[OPENAI] Retryable error: ${err.message}. Backing off ${waitMs}ms`);
         await sleep(waitMs);
       }

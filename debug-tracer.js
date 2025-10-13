@@ -11,7 +11,11 @@ function log(message) {
   console.log(entry);
   
   // Also write to file immediately (survives SIGTERM)
-  fs.appendFileSync('railway-debug.log', entry + '\n');
+  try {
+    fs.appendFileSync('railway-debug.log', entry + '\n');
+  } catch (err) {
+    console.error(`Failed to write to debug log: ${err.message}`);
+  }
 }
 
 // Track every stage
