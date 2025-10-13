@@ -1,3 +1,4 @@
+// api/core/orchestrator.js
 // ==================== STEP 3: LOAD VAULT CONTEXT ====================
 async loadVaultContext(vaultCandidate, maybeSession) {
   try {
@@ -35,3 +36,5 @@ async loadVaultContext(vaultCandidate, maybeSession) {
     return null;
   }
 }
+
+// Other code...
