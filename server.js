@@ -457,7 +457,24 @@ app.post('/api/chat', async (req, res) => {
       conversationHistory: conversation_history || []
     });
     
-    res.json({
+    try {
+      if (global.memorySystem && typeof global.memorySystem.storeMemory === 'function') {
+        const cleanUser = (message || '').toString().trim();
+        const cleanAssistant = (result?.response || '').toString().trim();
+        if (cleanUser && cleanAssistant) {
+          // Store the exchange as a single memory item
+          const entry = `User: ${cleanUser}\nAssistant: ${cleanAssistant}`;
+          await global.memorySystem.storeMemory('user', entry);
+          console.log('[CHAT] 💾 Stored memory entry (post-reply), length:', entry.length);
+        }
+      } else {
+        console.warn('[CHAT] 💾 Memory system not available for storing');
+      }
+    } catch (e) {
+      console.error('[CHAT] 💾 Memory store failed:', e.message);
+    }
+    
+    return res.json({
       response: result.response,
       mode_active: mode,
       token_usage: result.metadata?.tokens || {},
