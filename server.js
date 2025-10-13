@@ -2,6 +2,7 @@
 // Preserves all breakthrough insights from this conversation
 // Ready for immediate Railway deployment
 //Redeploy2
+import crypto from 'crypto';
 import express from 'express';
 import cors from 'cors';
 import session from 'express-session';
