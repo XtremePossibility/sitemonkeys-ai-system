@@ -4,6 +4,7 @@
 //Redeploy2
 import express from 'express';
 import cors from 'cors';
+import session from 'express-session';
 import { exec } from 'child_process';
 import persistentMemory from './memory_system/persistent_memory.js';
 import intelligenceSystem from './memory_system/intelligence.js';
@@ -38,6 +39,17 @@ process.on('uncaughtException', (error) => {
 // NOW declare your variables:
 const app = express();
 addInventoryEndpoint(app);
+
+// 🔐 SESSION CONFIGURATION
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'sitemonkeys', // any random string
+  resave: false,
+  saveUninitialized: true,
+  cookie: {
+    maxAge: 1000 * 60 * 60 * 24, // 24 hours
+    sameSite: 'lax',
+  }
+}));
 
 // ===== APPLICATION STARTUP MEMORY INITIALIZATION =====
 console.log('[SERVER] 🚀 Initializing memory systems at application startup...');
