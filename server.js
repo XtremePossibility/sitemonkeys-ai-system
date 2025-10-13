@@ -484,15 +484,15 @@ app.post('/api/chat', async (req, res) => {
         });
         const cleanUser = (message || '').toString().trim();
         const cleanAssistant = (result?.response || '').toString().trim();
+        
         if (cleanUser && cleanAssistant) {
           // Store the exchange as a single memory item
           const entry = `User: ${cleanUser}\nAssistant: ${cleanAssistant}`;
           await global.memorySystem.storeMemory('user', entry);
           console.log('[CHAT] 💾 Stored memory entry (post-reply), length:', entry.length);
+        } else {
+          console.warn('[CHAT] ⚠️ Missing user or assistant content, skipping memory store');
         }
-      } else {
-        console.warn('[CHAT] 💾 Memory system not available for storing');
-      }
     } catch (e) {
       console.error('[CHAT] 💾 Memory store failed:', e.message);
     }
