@@ -61,6 +61,25 @@ class CoreSystem {
         connectionTimeoutMillis: 5000, // Increased from 2s
         allowExitOnIdle: true          // Clean up idle connections
       });
+      
+      // --- Keep pool healthy between requests ---
+      pool.on('remove', () => {
+        console.warn('[DB] Client removed from pool — reconnecting soon');
+        // No immediate sync connect; the next query will establish it.
+      });
+      
+      pool.on('error', (err) => {
+        console.error('[DB] Pool error:', err.message);
+      });
+      
+      // Lightweight keep-alive every 30s to prevent idle shutdown
+      setInterval(async () => {
+        try {
+          await pool.query('SELECT 1');
+        } catch (e) {
+          console.error('[DB] Keep-alive failed:', e.message);
+        }
+      }, 30000);
 
       // Pool event handling with detailed logging
       this.pool.on('connect', (client) => {
