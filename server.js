@@ -439,7 +439,7 @@ app.post('/api/chat', async (req, res) => {
       message: message,
       userId: 'user',
       mode: mode || 'site_monkeys',
-      sessionId: 'default-session',
+      sessionId: req.sessionID || crypto.randomUUID(),
       vaultEnabled: !!vault_content,
       conversationHistory: conversation_history || []
     });
