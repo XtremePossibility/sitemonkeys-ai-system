@@ -8,6 +8,15 @@ const openai = new OpenAI({
 const MAX_WAIT_TIME = 30000; // 30 seconds
 
 /**
+ * Calculate exponential backoff wait time with cap
+ * @param {number} attempt - Current attempt number
+ * @returns {number} - Wait time in milliseconds
+ */
+function calculateBackoffWaitTime(attempt) {
+  return Math.min(Math.pow(2, attempt) * 1000, MAX_WAIT_TIME);
+}
+
+/**
  * Call OpenAI API with exponential backoff retry logic
  * @param {Object} params - OpenAI API parameters
  * @param {number} maxRetries - Maximum number of retry attempts
@@ -37,18 +46,19 @@ export async function callOpenAI(params, maxRetries = 3) {
         if (isRateLimited) {
           // Extract retry-after header if present
           let waitMs;
-          if (error.headers && error.headers['retry-after']) {
-            waitMs = parseInt(error.headers['retry-after']) * 1000;
+          const retryAfter = error.response?.headers?.['retry-after'] || error.headers?.['retry-after'];
+          if (retryAfter) {
+            waitMs = parseInt(retryAfter) * 1000;
           } else {
-            // Exponential backoff with 30-second cap
-            waitMs = Math.min(Math.pow(2, attempt) * 1000, 30000);
+            // Exponential backoff with cap
+            waitMs = calculateBackoffWaitTime(attempt);
           }
           
           console.log(`⏳ Rate limited. Waiting ${waitMs}ms before retry ${attempt + 1}/${maxRetries}...`);
           await new Promise(resolve => setTimeout(resolve, waitMs));
         } else {
           // For other errors, use standard exponential backoff
-          const waitMs = Math.min(Math.pow(2, attempt) * 1000, 30000);
+          const waitMs = calculateBackoffWaitTime(attempt);
           console.log(`⚠️ Request failed. Retrying in ${waitMs}ms (${attempt + 1}/${maxRetries})...`);
           await new Promise(resolve => setTimeout(resolve, waitMs));
         }
