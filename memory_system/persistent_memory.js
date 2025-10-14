@@ -38,7 +38,7 @@ class PersistentMemoryOrchestrator {
     };
 
     // Set up global interface immediately for compatibility
-    this.setupGlobalInterface();
+    // this.setupGlobalInterface();
   }
 
   // ================================================================
