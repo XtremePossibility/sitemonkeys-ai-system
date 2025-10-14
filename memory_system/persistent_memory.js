@@ -41,11 +41,79 @@ class PersistentMemoryOrchestrator {
     // this.setupGlobalInterface();
   }
 
-  // ... rest of the file unchanged ...
+  // ADD THIS METHOD:
+  async ensureInitialized() {
+    this.logger.log('ensureInitialized() called');
+    
+    // Prevent multiple simultaneous initialization attempts
+    if (this.isInitialized) {
+      this.logger.log('Already initialized - returning immediately');
+      return 'already_initialized';
+    }
+    
+    if (this.initStarted && this.initPromise) {
+      this.logger.log('Initialization in progress - waiting for existing promise');
+      return await this.initPromise;
+    }
+    
+    // Mark initialization as started
+    this.initStarted = true;
+    
+    // Create initialization promise
+    this.initPromise = this._performInitialization();
+    
+    try {
+      const result = await this.initPromise;
+      this.isInitialized = true;
+      this.isHealthy = true;
+      this.logger.log('Initialization complete');
+      return result;
+    } catch (error) {
+      this.logger.error('Initialization failed', error);
+      this.isHealthy = false;
+      throw error;
+    }
+  }
 
-  // Example: if you see these in the file, comment them as follows:
-  // await this.performComprehensiveHealthCheck();
-  // if (!persistentMemory.isReady()) { ... }
+  async _performInitialization() {
+    try {
+      this.logger.log('Initializing core system...');
+      await this.coreSystem.initialize();
+      
+      this.logger.log('Initializing intelligence system...');
+      await this.intelligenceSystem.initialize();
+      
+      this.logger.log('Setting up global interface...');
+      this.setupGlobalInterface();
+      
+      this.logger.log('Performing health check...');
+      await this.performComprehensiveHealthCheck();
+      
+      return 'initialization_successful';
+    } catch (error) {
+      this.logger.error('Initialization process failed', error);
+      throw error;
+    }
+  }
+
+  isReady() {
+    return this.isInitialized && this.isHealthy;
+  }
+
+  async performComprehensiveHealthCheck() {
+    // Placeholder - implement health check logic
+    this.lastHealthCheck = Date.now();
+    this.isHealthy = true;
+    return { healthy: true, timestamp: this.lastHealthCheck };
+  }
+
+  setupGlobalInterface() {
+    // Placeholder - implement global interface setup
+    global.memorySystem = this;
+    this.logger.log('Global interface configured');
+  }
+
+  // ... rest of existing methods ...
 }
 
 // Export instance, not class - ready for immediate use
