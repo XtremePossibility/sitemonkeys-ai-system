@@ -38,7 +38,7 @@ The following environment variables must be configured in your Railway project s
 
 ### Optional Variables
 - **NODE_ENV**: Set to `production` for production deployments
-- **PORT**: Application port (Railway sets this automatically, defaults to 3000)
+- **PORT**: Railway automatically provides this (application uses `process.env.PORT || 3000`)
 
 ## Setup Steps
 
@@ -103,7 +103,7 @@ The system follows a strict initialization order to ensure stability:
 3. **Memory System Initialization**: Initialize PostgreSQL connection and memory systems
 4. **Orchestrator Ready**: Process incoming chat requests
 
-This order is critical and preserved in the codebase. The memory system initializes in the background after the server is stable to prevent Railway timeout issues.
+This order is critical and preserved in the codebase. The memory system initializes in the background after the server is stable to prevent startup delays that could trigger Railway's health check failures (Railway expects the application to bind to PORT within a reasonable timeframe).
 
 ## Health Checks
 
@@ -167,8 +167,8 @@ railway up
 ## Security Notes
 
 1. **Never commit secrets**: All sensitive credentials should be in Railway environment variables, not in code
-2. **Session Secret**: Generate a strong random string for SESSION_SECRET
-3. **Database SSL**: The system automatically uses SSL for production database connections
+2. **Session Secret**: Generate a strong random string for SESSION_SECRET (e.g., `openssl rand -base64 32`)
+3. **Database SSL**: The system automatically uses SSL for production database connections (when NODE_ENV=production). See `memory_system/core.js` line 58 for configuration details.
 
 ## Support
 
