@@ -23,7 +23,7 @@ import { analysisMiddleware, handleAnalysisUpload } from './api/upload-for-analy
 import { extractedDocuments } from './api/upload-for-analysis.js';
 import repoSnapshotRoute from './api/repo-snapshot.js';
 import { addInventoryEndpoint } from './system-inventory-endpoint.js';
-import { Orchestrator } from './api/core/orchestrator.js';
+import Orchestrator from './api/core/orchestrator.js';
 const orchestrator = new Orchestrator();
 
 // ===== CRITICAL RAILWAY ERROR HANDLERS =====

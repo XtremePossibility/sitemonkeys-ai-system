@@ -116,3 +116,99 @@ class CoreSystem {
       return false;
     }
   }
+
+  async executeQuery(query, params = []) {
+    try {
+      if (!this.pool) {
+        throw new Error('Database pool not initialized');
+      }
+      const result = await this.pool.query(query, params);
+      return result;
+    } catch (error) {
+      this.logger.error('Query execution failed:', error);
+      throw error;
+    }
+  }
+
+  async createDatabaseSchema() {
+    this.logger.log('Creating database schema...');
+    
+    try {
+      // Create persistent_memories table
+      await this.executeQuery(`
+        CREATE TABLE IF NOT EXISTS persistent_memories (
+          id SERIAL PRIMARY KEY,
+          user_id TEXT NOT NULL,
+          category_name VARCHAR(100) NOT NULL,
+          subcategory_name VARCHAR(100),
+          content TEXT NOT NULL,
+          token_count INTEGER NOT NULL DEFAULT 0,
+          relevance_score DECIMAL(3,2) DEFAULT 0.50,
+          usage_frequency INTEGER DEFAULT 0,
+          last_accessed TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          metadata JSONB DEFAULT '{}'::jsonb
+        )
+      `);
+
+      // Create memory_categories table
+      await this.executeQuery(`
+        CREATE TABLE IF NOT EXISTS memory_categories (
+          id SERIAL PRIMARY KEY,
+          user_id TEXT NOT NULL,
+          category_name VARCHAR(100) NOT NULL,
+          subcategory_name VARCHAR(100),
+          current_tokens INTEGER DEFAULT 0,
+          max_tokens INTEGER DEFAULT 50000,
+          is_dynamic BOOLEAN DEFAULT FALSE,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          UNIQUE(user_id, category_name, subcategory_name)
+        )
+      `);
+
+      // Create indexes
+      await this.executeQuery(`
+        CREATE INDEX IF NOT EXISTS idx_memories_user_category 
+        ON persistent_memories(user_id, category_name)
+      `);
+      
+      await this.executeQuery(`
+        CREATE INDEX IF NOT EXISTS idx_memories_relevance 
+        ON persistent_memories(relevance_score DESC)
+      `);
+
+      this.logger.log('Database schema created successfully');
+    } catch (error) {
+      this.logger.error('Schema creation failed:', error);
+      throw error;
+    }
+  }
+
+  async updateHealthStatus() {
+    try {
+      if (!this.pool) {
+        this.healthStatus.overall = false;
+        this.healthStatus.database.healthy = false;
+        return;
+      }
+
+      // Test database connectivity
+      await this.executeQuery('SELECT 1');
+      
+      this.healthStatus.database.healthy = true;
+      this.healthStatus.overall = true;
+      this.healthStatus.initialized = this.isInitialized;
+      this.healthStatus.lastCheck = new Date().toISOString();
+      
+      this.logger.log('Health status updated: System healthy');
+    } catch (error) {
+      this.healthStatus.database.healthy = false;
+      this.healthStatus.overall = false;
+      this.logger.error('Health check failed:', error);
+    }
+  }
+}
+
+const coreSystem = new CoreSystem();
+export default coreSystem;
