@@ -290,41 +290,6 @@ export class Orchestrator {
         this.log(`[VAULT] Loaded ${vaultData.tokens} tokens`);
       }
       
-      // ==================== STEP 3: LOAD VAULT CONTEXT ====================
-      async #loadVaultContext(vaultCandidate, maybeSession) {
-        try {
-          // 1️⃣ If vault object was passed directly from the server
-          if (vaultCandidate && vaultCandidate.content && vaultCandidate.loaded) {
-            const tokens = Math.ceil(vaultCandidate.content.length / 4);
-            this.log(`[VAULT] Loaded from request: ${tokens} tokens`);
-            return {
-              content: vaultCandidate.content,
-              tokens,
-              loaded: true
-            };
-          }
-      
-          // 2️⃣ Otherwise try the global cache
-          if (global.vaultContent && global.vaultContent.length > 1000) {
-            const tokens = Math.ceil(global.vaultContent.length / 4);
-            this.log(`[VAULT] Loaded from global: ${tokens} tokens`);
-            return {
-              content: global.vaultContent,
-              tokens,
-              loaded: true
-            };
-          }
-      
-          // 3️⃣ No vault found
-          this.log('[VAULT] Not available in any source');
-          return null;
-      
-        } catch (error) {
-          this.error('[VAULT] Loading failed, continuing without vault', error);
-          return null;
-        }
-      }
-      
       // STEP 4: Assemble complete context
       const context = this.#assembleContext(memoryContext, documentData, vaultData);
       context.userId = userId;
@@ -590,6 +555,7 @@ export class Orchestrator {
 
   // ==================== STEP 3: LOAD VAULT CONTEXT ====================
   
+  async #loadVaultContext(vaultCandidate, maybeSession) {
       try {
         // If vault was passed in from the server request
         if (userId && userId.content && userId.loaded) {
@@ -619,6 +585,7 @@ export class Orchestrator {
         this.error('[VAULT] Loading failed, continuing without vault', error);
         return null;
       }
+  }
 
   // ==================== STEP 4: ASSEMBLE CONTEXT ====================
   
