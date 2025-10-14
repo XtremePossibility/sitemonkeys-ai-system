@@ -558,11 +558,11 @@ export class Orchestrator {
   async #loadVaultContext(vaultCandidate, maybeSession) {
       try {
         // If vault was passed in from the server request
-        if (userId && userId.content && userId.loaded) {
-          const tokens = Math.ceil(userId.content.length / 4);
+        if (vaultCandidate && vaultCandidate.content && vaultCandidate.loaded) {
+          const tokens = Math.ceil(vaultCandidate.content.length / 4);
           this.log(`[VAULT] Loaded from request: ${tokens} tokens`);
           return {
-            content: userId.content,
+            content: vaultCandidate.content,
             tokens,
             loaded: true
           };
