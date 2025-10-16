@@ -63,9 +63,9 @@ async function initializeMemorySystem() {
             setTimeout(() => reject(new Error('Memory init timeout')), 30000)
         );
         
-        // FIX: Use initialize() instead of ensureInitialized()
+        // Initialize core system (persistent_memory is a wrapper around coreSystem)
         const initResult = await Promise.race([
-            persistentMemory.initialize(),
+            persistentMemory.coreSystem.initialize(),
             timeoutPromise
         ]);
         
@@ -74,7 +74,7 @@ async function initializeMemorySystem() {
         // Verify memory system is working
         console.log('[SERVER] 📊 Memory system verification:', {
             available: !!global.memorySystem,
-            ready: persistentMemory.isReady()
+            ready: persistentMemory.coreSystem?.isInitialized || false
         });
         
     } catch (initError) {
@@ -88,3 +88,105 @@ async function initializeMemorySystem() {
     
     console.log('[SERVER] 📊 Memory system initialization phase complete');
 }
+
+// ===== MIDDLEWARE CONFIGURATION =====
+app.use(cors({
+  origin: true,
+  credentials: true
+}));
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+app.use(express.static('public'));
+
+console.log('[SERVER] ✅ Middleware configured');
+
+// ===== API ROUTES =====
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.json({
+    status: 'healthy',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    memory: process.memoryUsage(),
+    orchestrator: {
+      initialized: orchestrator.initialized
+    }
+  });
+});
+
+// Chat endpoint - main AI processing
+app.post('/api/chat', async (req, res) => {
+  try {
+    console.log('[CHAT] 📨 Received chat request');
+    
+    const {
+      message,
+      userId = 'anonymous',
+      mode = 'truth_general',
+      sessionId,
+      documentContext,
+      vaultEnabled = false,
+      vaultContext,
+      conversationHistory = []
+    } = req.body;
+
+    if (!message) {
+      return res.status(400).json({
+        success: false,
+        error: 'Message is required'
+      });
+    }
+
+    // Process request through orchestrator
+    const result = await orchestrator.processRequest({
+      message,
+      userId,
+      mode,
+      sessionId,
+      documentContext,
+      vaultEnabled,
+      vaultContext,
+      conversationHistory
+    });
+
+    res.json(result);
+
+  } catch (error) {
+    console.error('[CHAT] ❌ Error processing chat:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message,
+      response: 'I encountered an error processing your request. Please try again.'
+    });
+  }
+});
+
+// Upload endpoints
+app.post('/api/upload', uploadMiddleware, handleFileUpload);
+app.post('/api/upload-for-analysis', analysisMiddleware, handleAnalysisUpload);
+
+// Repo snapshot endpoint
+app.use('/api', repoSnapshotRoute);
+
+console.log('[SERVER] ✅ Routes configured');
+
+// ===== START HTTP SERVER =====
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, '0.0.0.0', () => {
+  console.log('\n' + '='.repeat(60));
+  console.log('🚀 SITE MONKEYS AI SYSTEM - SERVER STARTED');
+  console.log('='.repeat(60));
+  console.log(`📡 Server listening on port ${PORT}`);
+  console.log(`🌐 Health check: http://localhost:${PORT}/health`);
+  console.log(`💬 Chat endpoint: http://localhost:${PORT}/api/chat`);
+  console.log(`🧠 Orchestrator initialized: ${orchestrator.initialized}`);
+  console.log('='.repeat(60) + '\n');
+
+  // Initialize memory system in background after server is stable
+  console.log('[SERVER] 🔄 Starting background memory initialization...');
+  initializeMemorySystem().catch(err => {
+    console.error('[SERVER] ⚠️ Memory initialization failed in background:', err.message);
+  });
+});
