@@ -79,7 +79,7 @@ import { masterOrchestrator } from './lib/master-intelligence-orchestrator.js';
 import { IntelligenceOrchestrator } from './lib/intelligence-orchestrator.js';
 import { coordinator as IntelligenceCoordinator } from './lib/intelligence-coordinator.js';
 
-import intelligenceSystem from '../memory_system/intelligence.js';
+import { intelligenceSystem } from '../categories/memory/index.js';
 
 console.log('[DEBUG] All cognitive modules loaded successfully');
 

@@ -3,8 +3,7 @@
 // Executes all chat requests in correct priority order
 // Truth > Memory > Analysis > AI > Personality > Validation > Fallback (last resort)
 
-import coreSystem from '../../memory_system/core.js';
-import routingIntelligence from '../../memory_system/intelligence.js';
+import { coreSystem, intelligenceSystem } from '../categories/memory/index.js';
 import { SemanticAnalyzer } from '../core/intelligence/semantic_analyzer.js';
 import { EliFramework } from '../core/personalities/eli_framework.js';
 import { RoxyFramework } from '../core/personalities/roxy_framework.js';
@@ -33,7 +32,7 @@ export class Orchestrator {
   constructor() {
     // Core dependencies
     this.memory = coreSystem;
-    this.intelligence = routingIntelligence;
+    this.intelligence = intelligenceSystem;
     this.semanticAnalyzer = new SemanticAnalyzer();
     this.initialized = false;
     this.semanticAnalyzer.initialize().then(() => {
