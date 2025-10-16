@@ -27,6 +27,7 @@ import { extractedDocuments } from './api/upload-for-analysis.js';
 import repoSnapshotRoute from './api/repo-snapshot.js';
 import { addInventoryEndpoint } from './system-inventory-endpoint.js';
 import Orchestrator from './api/core/orchestrator.js';
+import systemStatus from './api/system-status.js'; // <-- ADDED
 
 console.log('[SERVER] ✅ Dependencies loaded');
 console.log('[SERVER] 🎯 Initializing Orchestrator...');
@@ -64,7 +65,7 @@ app.use(session({
 }));
 
 // ===== APPLICATION STARTUP MEMORY INITIALIZATION =====
-console.log('[SERVER] 🚀 Initializing memory systems at application startup...');
+console.log('[SERVER] ��� Initializing memory systems at application startup...');
 
 // CRITICAL FIX: Move async initialization inside an async function
 async function initializeMemorySystem() {
@@ -127,6 +128,9 @@ app.get('/health', (req, res) => {
     }
   });
 });
+
+// System status endpoint
+app.get('/api/system-status', systemStatus); // <-- ADDED
 
 // Chat endpoint - main AI processing
 app.post('/api/chat', async (req, res) => {
