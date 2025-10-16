@@ -2,6 +2,10 @@
 // Preserves all breakthrough insights from this conversation
 // Ready for immediate Railway deployment
 //Redeploy2
+
+console.log('[SERVER] 🎬 Starting Site Monkeys AI System...');
+console.log('[SERVER] 📦 Loading dependencies...');
+
 import crypto from 'crypto';
 import express from 'express';
 import cors from 'cors';
@@ -23,16 +27,24 @@ import { extractedDocuments } from './api/upload-for-analysis.js';
 import repoSnapshotRoute from './api/repo-snapshot.js';
 import { addInventoryEndpoint } from './system-inventory-endpoint.js';
 import Orchestrator from './api/core/orchestrator.js';
+
+console.log('[SERVER] ✅ Dependencies loaded');
+console.log('[SERVER] 🎯 Initializing Orchestrator...');
+
 const orchestrator = new Orchestrator();
+
+console.log('[SERVER] ✅ Orchestrator created');
 
 // ===== CRITICAL RAILWAY ERROR HANDLERS =====
 process.on('unhandledRejection', (reason, promise) => {
   console.error('❌ Unhandled Promise Rejection:', reason);
+  console.error('Promise:', promise);
   // Don't exit - Railway will restart if we do
 });
 
 process.on('uncaughtException', (error) => {
   console.error('❌ Uncaught Exception:', error);
+  console.error('Stack:', error.stack);
   // Log but continue running
 });
 
@@ -63,7 +75,8 @@ async function initializeMemorySystem() {
             setTimeout(() => reject(new Error('Memory init timeout')), 30000)
         );
         
-        // Initialize core system (persistent_memory is a wrapper around coreSystem)
+        // NOTE: After PR #39 reorganization, persistentMemory is a thin wrapper
+        // Access coreSystem.initialize() directly since persistentMemory doesn't expose initialize()
         const initResult = await Promise.race([
             persistentMemory.coreSystem.initialize(),
             timeoutPromise
