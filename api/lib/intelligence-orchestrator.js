@@ -34,26 +34,25 @@ class IntelligenceOrchestrator {
   async initialize() {
     try {
       console.log('🧠 Initializing Extraordinary Intelligence System...');
-      
-      // Initialize all components
-      await this.wisdomExtractor.initialize();
-      await this.aiReasoning.initialize();
-      await this.validator.initialize();
-      await this.multimodal.initialize();
-      await this.learner.initialize();
-      await this.adapter.initialize();
-      await this.streamProcessor.initialize();
-      
+      const results = await Promise.allSettled([
+        this.wisdomExtractor.initialize(),
+        this.aiReasoning.initialize(),
+        this.validator.initialize(),
+        this.multimodal.initialize(),
+        this.learner.initialize(),
+        this.adapter.initialize(),
+        this.streamProcessor.initialize()
+      ]);
+      const componentNames = ['wisdomExtractor', 'aiReasoning', 'validator', 'multimodal', 'learner', 'adapter', 'streamProcessor'];
+      results.forEach((result, index) => {
+        if (result.status === 'fulfilled') {
+          console.log(`✅ ${componentNames[index]} initialized successfully`);
+        } else {
+          console.error(`⚠️ ${componentNames[index]} initialization failed:`, result.reason?.message || result.reason);
+        }
+      });
       this.initialized = true;
-      
-      console.log('✅ EXTRAORDINARY INTELLIGENCE SYSTEM ACTIVE');
-      console.log('🎯 Genuine AI reasoning with business wisdom');
-      console.log('🔒 Precision, reliability, and trust guaranteed');
-      console.log('🚀 Can handle virtually anything');
-      console.log('📈 Continuous learning and adaptation');
-      console.log('🖼️ Multimodal capability (images, audio, video)');
-      console.log('⚡ Real-time data integration');
-      
+      console.log('✅ Intelligence Orchestrator initialization complete');
       return true;
     } catch (error) {
       console.error('❌ Intelligence system initialization failed:', error);
