@@ -30,7 +30,13 @@ async function loadVaultOnDemand() {
       throw new Error(`Vault fetch failed: ${vaultResponse.status}`);
     }
     
-    const vaultData = await vaultResponse.json();
+    let vaultData;
+    try {
+      vaultData = await vaultResponse.json();
+    } catch (error) {
+      console.error('❌ [VAULT] Invalid JSON response:', error.message);
+      throw new Error('Vault response was not valid JSON');
+    }
     console.log('📦 [VAULT] Response received:', {
       has_vault_content: !!vaultData.vault_content,
       vault_length: vaultData.vault_content?.length || 0,
