@@ -4,6 +4,7 @@ Site Monkeys memory and enforcement shell with comprehensive 66-feature system v
 
 ## Documentation
 
+- **[DEPLOYMENT_CHECKLIST.md](./DEPLOYMENT_CHECKLIST.md)** - Quick post-merge deployment checklist
 - **[DEPLOYMENT.md](./DEPLOYMENT.md)** - Complete deployment and server restart instructions
 - **[RAILWAY_DEPLOY.md](./RAILWAY_DEPLOY.md)** - Railway auto-deployment configuration
 - **[CHANGES_SUMMARY.md](./CHANGES_SUMMARY.md)** - System health restoration summary
