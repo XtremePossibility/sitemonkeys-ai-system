@@ -1,0 +1,8 @@
+onboarding:
+  enabled: true
+permissions:
+  contents: write
+  pull-requests: write
+tasks:
+  - name: default
+    description: Default Copilot agent behavior for this repository.
