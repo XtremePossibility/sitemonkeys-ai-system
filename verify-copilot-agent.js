@@ -9,10 +9,10 @@ import Orchestrator from './api/core/orchestrator.js';
 import { persistentMemory } from './api/categories/memory/index.js';
 
 console.log('🤖 COPILOT AND AGENT VERIFICATION TEST\n');
-console.log('=' .repeat(60));
+console.log('='.repeat(60));
 console.log('This test verifies that the copilot and agent systems');
 console.log('are properly configured and functioning correctly.');
-console.log('=' .repeat(60) + '\n');
+console.log('='.repeat(60) + '\n');
 
 let testsPassed = 0;
 let testsTotal = 0;
@@ -40,7 +40,10 @@ async function runTest(testName, testFunction) {
     console.log(`❌ ERROR: ${testName}`);
     console.log(`   Error: ${error.message}`);
     if (error.stack) {
-      console.log(`   Stack: ${error.stack.split('\n')[1]}`);
+      const stackLines = error.stack.split('\n');
+      if (stackLines.length > 1) {
+        console.log(`   Stack: ${stackLines[1]}`);
+      }
     }
     return false;
   }
@@ -170,7 +173,8 @@ await runTest('Domain Identification', async () => {
 // Test 6: Number Extraction
 await runTest('Quantitative Analysis', async () => {
   const intelligence = new EnhancedIntelligence();
-  const text = "We have $50,000 in revenue and 15% growth rate";
+  const EXPECTED_REVENUE = 50000;
+  const text = `We have $${EXPECTED_REVENUE.toLocaleString()} in revenue and 15% growth rate`;
   
   const numbers = intelligence.extractNumbers(text);
   
@@ -178,8 +182,8 @@ await runTest('Quantitative Analysis', async () => {
     return { success: false, message: 'No numbers extracted' };
   }
   
-  if (!numbers.includes(50000)) {
-    return { success: false, message: 'Failed to extract $50,000' };
+  if (!numbers.includes(EXPECTED_REVENUE)) {
+    return { success: false, message: `Failed to extract $${EXPECTED_REVENUE.toLocaleString()}` };
   }
   
   console.log(`   ✓ Extracted ${numbers.length} numbers from text`);
@@ -261,6 +265,9 @@ const passRate = (testsPassed / testsTotal * 100).toFixed(1);
 console.log(`Tests Passed:  ${testsPassed}/${testsTotal} (${passRate}%)`);
 console.log(`Tests Failed:  ${testsTotal - testsPassed}/${testsTotal}`);
 
+// Test result thresholds
+const PASS_THRESHOLD = 0.8; // 80% tests must pass for mostly operational status
+
 if (testsPassed === testsTotal) {
   console.log('\n🎉 SUCCESS! All verification tests passed!\n');
   console.log('✅ Copilot system: OPERATIONAL');
@@ -269,7 +276,7 @@ if (testsPassed === testsTotal) {
   console.log('✅ Integration: CONFIRMED\n');
   console.log('The system is ready for use. All components are functioning correctly.');
   process.exit(0);
-} else if (testsPassed >= testsTotal * 0.8) {
+} else if (testsPassed >= testsTotal * PASS_THRESHOLD) {
   console.log('\n⚠️  Most tests passed, but some issues detected.');
   console.log(`${testsTotal - testsPassed} test(s) failed - review needed.`);
   console.log('The system is mostly operational but may need attention.\n');
