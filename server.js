@@ -195,38 +195,28 @@ console.log('[SERVER] ✅ Routes configured');
 
 // ===== START HTTP SERVER =====
 const PORT = process.env.PORT || 3000;
-
-app.listen(PORT, '0.0.0.0', async () => {
-  console.log('\n' + '='.repeat(60));
-  console.log('🚀 SITE MONKEYS AI SYSTEM - SERVER STARTED');
-  console.log('='.repeat(60));
-  console.log(`📡 Server listening on port ${PORT}`);
-  console.log(`🌐 Health check: http://localhost:${PORT}/health`);
-  console.log(`💬 Chat endpoint: http://localhost:${PORT}/api/chat`);
-  console.log('='.repeat(60) + '\n');
-
-  // Initialize memory system in background
-  console.log('[SERVER] 🔄 Starting background initialization...');
-  
-  try {
-    await initializeMemorySystem();
-    console.log('[SERVER] ✅ Memory system ready');
-  } catch (err) {
-    console.error('[SERVER] ⚠️ Memory system failed:', err.message);
-  }
-
-  // Initialize orchestrator
-  try {
-    console.log('[SERVER] 🎯 Initializing orchestrator...');
-    const success = await orchestrator.initialize();
-    if (success) {
-      console.log('[SERVER] ✅ Orchestrator ready');
-    } else {
-      console.error('[SERVER] ⚠️ Orchestrator initialization returned false');
-    }
-  } catch (err) {
-    console.error('[SERVER] ⚠️ Orchestrator failed:', err.message);
-  }
-
-  console.log(`[SERVER] 🧠 System fully initialized`);
+const server = app.listen(PORT, '0.0.0.0', () => {
+  console.log(`✅ Server listening on port ${PORT}`);
+  console.log(`🔍 Health check available at /health`);
 });
+
+(async () => {
+  console.log('🚀 Background initialization starting...');
+  try {
+    console.log('📊 Initializing memory system...');
+    await initializeMemorySystem();
+    console.log('✅ Memory system initialized');
+  } catch (err) {
+    console.error('⚠️ Memory system initialization failed:', err.message);
+    console.log('📦 Running with in-memory fallback');
+  }
+  try {
+    console.log('🧠 Initializing orchestrator...');
+    await orchestrator.initialize();
+    console.log('✅ Orchestrator initialized');
+  } catch (err) {
+    console.error('⚠️ Orchestrator initialization failed:', err.message);
+    console.log('🔄 System running in degraded mode');
+  }
+  console.log('🎉 System fully initialized and ready');
+})();

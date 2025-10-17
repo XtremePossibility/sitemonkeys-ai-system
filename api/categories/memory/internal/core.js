@@ -58,7 +58,7 @@ class CoreSystem {
         ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
         max: 30,                      // Increased from 20
         idleTimeoutMillis: 60000,     // Doubled to 60s
-        connectionTimeoutMillis: 5000, // Increased from 2s
+        connectionTimeoutMillis: 15000, // Increased from 2s
         allowExitOnIdle: true          // Clean up idle connections
       });
 
