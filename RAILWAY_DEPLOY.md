@@ -2,6 +2,8 @@
 
 This document explains how to configure automatic deployment to Railway for the Site Monkeys AI System.
 
+> **Note:** For comprehensive deployment instructions including server restart procedures, see [DEPLOYMENT.md](./DEPLOYMENT.md).
+
 ## Overview
 
 The repository is configured to automatically deploy to Railway when changes are merged to the `main` branch. No manual deployment steps are required.
