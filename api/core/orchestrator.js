@@ -34,13 +34,6 @@ export class Orchestrator {
     this.memory = coreSystem;
     this.intelligence = intelligenceSystem;
     this.semanticAnalyzer = new SemanticAnalyzer();
-    this.initialized = false;
-    this.semanticAnalyzer.initialize().then(() => {
-      this.initialized = true;
-      this.log('[ORCHESTRATOR] SemanticAnalyzer initialized');
-    }).catch(err => {
-      this.error('[ORCHESTRATOR] SemanticAnalyzer init failed:', err);
-    });
     this.eliFramework = new EliFramework();
     this.roxyFramework = new RoxyFramework();
     this.personalitySelector = new PersonalitySelector();
