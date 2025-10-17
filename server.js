@@ -116,8 +116,13 @@ console.log('[SERVER] ✅ Middleware configured');
 
 // ===== API ROUTES =====
 
-// Health check endpoint
+// Health check endpoint - Railway needs simple response
 app.get('/health', (req, res) => {
+  res.json({ status: 'healthy' });
+});
+
+// Detailed health check for monitoring
+app.get('/api/health', (req, res) => {
   res.json({
     status: 'healthy',
     timestamp: new Date().toISOString(),
