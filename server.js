@@ -196,19 +196,37 @@ console.log('[SERVER] ✅ Routes configured');
 // ===== START HTTP SERVER =====
 const PORT = process.env.PORT || 3000;
 
-app.listen(PORT, '0.0.0.0', () => {
+app.listen(PORT, '0.0.0.0', async () => {
   console.log('\n' + '='.repeat(60));
   console.log('🚀 SITE MONKEYS AI SYSTEM - SERVER STARTED');
   console.log('='.repeat(60));
   console.log(`📡 Server listening on port ${PORT}`);
   console.log(`🌐 Health check: http://localhost:${PORT}/health`);
   console.log(`💬 Chat endpoint: http://localhost:${PORT}/api/chat`);
-  console.log(`🧠 Orchestrator initialized: ${orchestrator.initialized}`);
   console.log('='.repeat(60) + '\n');
 
-  // Initialize memory system in background after server is stable
-  console.log('[SERVER] 🔄 Starting background memory initialization...');
-  initializeMemorySystem().catch(err => {
-    console.error('[SERVER] ⚠️ Memory initialization failed in background:', err.message);
-  });
+  // Initialize memory system in background
+  console.log('[SERVER] 🔄 Starting background initialization...');
+  
+  try {
+    await initializeMemorySystem();
+    console.log('[SERVER] ✅ Memory system ready');
+  } catch (err) {
+    console.error('[SERVER] ⚠️ Memory system failed:', err.message);
+  }
+
+  // Initialize orchestrator
+  try {
+    console.log('[SERVER] 🎯 Initializing orchestrator...');
+    const success = await orchestrator.initialize();
+    if (success) {
+      console.log('[SERVER] ✅ Orchestrator ready');
+    } else {
+      console.error('[SERVER] ⚠️ Orchestrator initialization returned false');
+    }
+  } catch (err) {
+    console.error('[SERVER] ⚠️ Orchestrator failed:', err.message);
+  }
+
+  console.log(`[SERVER] 🧠 System fully initialized`);
 });
