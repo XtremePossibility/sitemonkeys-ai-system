@@ -2,7 +2,7 @@
 // COMPREHENSIVE SYSTEM STATUS & FEATURE VALIDATION
 // Enterprise-grade automated testing of all SiteMonkeys AI System features
 // ================================================================
-// This file exercises 53+ major system features, configurations, integrations,
+// This file exercises 66 major system features, configurations, integrations,
 // and permissions to validate full system health and capability.
 //
 // Test Categories:
@@ -47,7 +47,7 @@ function fileExists(filePath) {
 }
 
 /**
- * Check if a module can be imported
+ * Check if a module can be imported (reserved for future dynamic module testing)
  */
 async function canImportModule(modulePath) {
   try {
@@ -69,12 +69,13 @@ function envVarSet(varName) {
  * Mock database connection test (stub for actual DB operations)
  */
 function testDatabaseConnection() {
-  // In production, this would actually test database connectivity
+  // In production, this would actually test database connectivity with a real ping/query
   // For now, we check if DATABASE_URL is configured
+  const configured = envVarSet('DATABASE_URL');
   return {
-    configured: envVarSet('DATABASE_URL'),
-    canConnect: envVarSet('DATABASE_URL'), // Stub: assume can connect if configured
-    note: 'Using stub - replace with actual DB ping in production'
+    configured: configured,
+    canConnect: configured, // Stub: in production, would test actual connection with pg.connect()
+    note: 'Stub - production should ping database with actual connection test'
   };
 }
 
@@ -149,8 +150,11 @@ export default async function systemStatus(req, res) {
 
     // Test 2: Node.js Version
     const nodeVersion = process.version;
+    // Parse version properly: extract numeric part from 'v20.19.5'
+    const versionMatch = nodeVersion.match(/^v(\d+)/);
+    const majorVersion = versionMatch ? parseInt(versionMatch[1]) : 0;
     addTest(results, 'Core Infrastructure', 'Node.js Version', 
-      nodeVersion >= 'v14.0.0' ? 'PASS' : 'WARN', {
+      majorVersion >= 14 ? 'PASS' : 'WARN', {
       version: nodeVersion,
       required: '>=14.0.0'
     });
@@ -218,11 +222,12 @@ export default async function systemStatus(req, res) {
       note: dbConfig.note
     });
 
-    // Test 12: Database Connection
+    // Test 12: Database Connection (would test actual connectivity in production)
+    // Currently uses same logic as configuration test - production should attempt pg.connect()
     addTest(results, 'Database Operations', 'Database Connection',
       dbConfig.canConnect ? 'PASS' : 'WARN', {
       canConnect: dbConfig.canConnect,
-      note: dbConfig.note
+      note: 'Production should test actual connection establishment, not just config'
     });
 
     // Test 13: Database Read Operations
