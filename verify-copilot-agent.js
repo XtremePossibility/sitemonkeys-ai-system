@@ -8,11 +8,14 @@ import { EnhancedIntelligence } from './api/lib/enhanced-intelligence.js';
 import Orchestrator from './api/core/orchestrator.js';
 import { persistentMemory } from './api/categories/memory/index.js';
 
+// Configuration constants
+const CONSOLE_WIDTH = 60; // Width for console formatting separators
+
 console.log('🤖 COPILOT AND AGENT VERIFICATION TEST\n');
-console.log('='.repeat(60));
+console.log('='.repeat(CONSOLE_WIDTH));
 console.log('This test verifies that the copilot and agent systems');
 console.log('are properly configured and functioning correctly.');
-console.log('='.repeat(60) + '\n');
+console.log('='.repeat(CONSOLE_WIDTH) + '\n');
 
 let testsPassed = 0;
 let testsTotal = 0;
@@ -21,7 +24,7 @@ let testsTotal = 0;
 async function runTest(testName, testFunction) {
   testsTotal++;
   console.log(`\n🧪 Test ${testsTotal}: ${testName}`);
-  console.log('-'.repeat(60));
+  console.log('-'.repeat(CONSOLE_WIDTH));
   
   try {
     const result = await testFunction();
@@ -256,9 +259,9 @@ await runTest('Business Scenario Modeling', async () => {
 // FINAL RESULTS
 // ================================================================
 
-console.log('\n' + '='.repeat(60));
+console.log('\n' + '='.repeat(CONSOLE_WIDTH));
 console.log('📊 VERIFICATION RESULTS');
-console.log('='.repeat(60) + '\n');
+console.log('='.repeat(CONSOLE_WIDTH) + '\n');
 
 const passRate = (testsPassed / testsTotal * 100).toFixed(1);
 
