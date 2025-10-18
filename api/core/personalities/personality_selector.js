@@ -1,3 +1,11 @@
+/**
+ * SiteMonkeys AI Proprietary Module
+ * Copyright © 2025 SiteMonkeys AI. All rights reserved.
+ * 
+ * This file contains proprietary innovations and algorithms.
+ * Unauthorized use, copying, or distribution is strictly prohibited.
+ */
+
 // /api/core/personalities/personality_selector.js
 // PERSONALITY SELECTOR - Chooses between Eli and Roxy based on analysis
 // Uses scoring system to determine optimal personality for each request

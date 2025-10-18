@@ -1,3 +1,11 @@
+/**
+ * SiteMonkeys AI Proprietary Module
+ * Copyright © 2025 SiteMonkeys AI. All rights reserved.
+ * 
+ * This file contains proprietary innovations and algorithms.
+ * Unauthorized use, copying, or distribution is strictly prohibited.
+ */
+
 // COMPLETE VAULT SYSTEM - SITE MONKEYS BUSINESS LOGIC ENGINE  
 // TIER 1: CORE VAULT ACCESS AND SECURITY  
 // TIER 2: BUSINESS RULE ENFORCEMENT   
