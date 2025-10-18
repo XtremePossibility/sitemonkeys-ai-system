@@ -70,7 +70,16 @@ export default [
         setTimeout: 'readonly',
         setInterval: 'readonly',
         clearTimeout: 'readonly',
-        clearInterval: 'readonly'
+        clearInterval: 'readonly',
+        // Application-specific globals defined in index.html
+        conversationHistory: 'writable',
+        getCurrentMode: 'readonly',
+        extractedDocuments: 'writable',
+        aiToggle: 'readonly',
+        systemActive: 'writable',
+        isVaultMode: 'readonly',
+        crypto: 'readonly',
+        AbortSignal: 'readonly'
       }
     }
   }
