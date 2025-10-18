@@ -25,7 +25,8 @@
     "fix-database": "node fix_database.js",
     "start": "node server.js",
     "test-intelligence": "node test-intelligence-system.js",
-    "validate-deployment": "node deploy-intelligence-upgrade.js"
+    "validate-deployment": "node deploy-intelligence-upgrade.js",
+    "verify": "node verify-copilot-agent.js"
   },
   "engines": {
     "node": ">=14.0.0"
