@@ -39,7 +39,7 @@ jobs:
       
       - name: License compliance check
         run: |
-          npx license-checker --summary --onlyAllow "MIT;Apache-2.0;ISC;BSD-2-Clause;BSD-3-Clause;0BSD;Unlicense" || echo "⚠️ License check found potential issues"
+          npx license-checker --summary --onlyAllow "MIT;Apache-2.0;ISC;BSD-2-Clause;BSD-3-Clause;0BSD;Unlicense;Python-2.0" || echo "⚠️ License check found potential issues"
         continue-on-error: true
       
       - name: Dependency review

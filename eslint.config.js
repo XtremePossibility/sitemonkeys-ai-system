@@ -21,6 +21,17 @@ export default [
     },
   },
   {
+    // Browser-specific config for client-side files
+    files: ['public/**/*.js'],
+    languageOptions: {
+      ecmaVersion: 'latest',
+      sourceType: 'script', // Browser scripts are typically not modules
+      globals: {
+        ...globals.browser,
+      },
+    },
+  },
+  {
     ignores: [
       'node_modules/',
       'dist/',
