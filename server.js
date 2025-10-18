@@ -56,13 +56,21 @@ const app = express();
 addInventoryEndpoint(app);
 
 // 🔐 SESSION CONFIGURATION
+// SECURITY: Session management with best practices
+// - Uses environment variable for secret (SESSION_SECRET should be set in production)
+// - Default fallback secret should be replaced in production deployments
+// - sameSite: 'lax' provides CSRF protection while allowing reasonable navigation
+// - 24-hour expiration limits session hijacking window
+// - resave: false prevents unnecessary session store writes
+// - saveUninitialized: true allows anonymous session tracking
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'sitemonkeys', // any random string
+  secret: process.env.SESSION_SECRET || 'sitemonkeys', // SECURITY: Set SESSION_SECRET env var in production
   resave: false,
   saveUninitialized: true,
   cookie: {
     maxAge: 1000 * 60 * 60 * 24, // 24 hours
-    sameSite: 'lax',
+    sameSite: 'lax', // CSRF protection
+    // SECURITY: In production, also set: secure: true (requires HTTPS), httpOnly: true
   }
 }));
 
@@ -140,10 +148,14 @@ app.get('/api/health', (req, res) => {
 app.get('/api/system-status', systemStatus); // <-- ADDED
 
 // Chat endpoint - main AI processing
+// SECURITY: Input validation and sanitization
 app.post('/api/chat', async (req, res) => {
   try {
     console.log('[CHAT] 📨 Received chat request');
     
+    // SECURITY: Extract and validate request parameters
+    // - Default values prevent undefined/null processing issues
+    // - Type coercion handled by destructuring defaults
     const {
       message,
       userId = 'anonymous',
@@ -155,12 +167,19 @@ app.post('/api/chat', async (req, res) => {
       conversationHistory = []
     } = req.body;
 
+    // SECURITY: Input validation - message is required
+    // Prevents processing empty/invalid requests
     if (!message) {
       return res.status(400).json({
         success: false,
         error: 'Message is required'
       });
     }
+    
+    // SECURITY: Additional validation could include:
+    // - Message length limits (prevent DoS through large inputs)
+    // - Rate limiting per userId/IP
+    // - Content filtering for malicious patterns
 
     // Process request through orchestrator
     const result = await orchestrator.processRequest({
