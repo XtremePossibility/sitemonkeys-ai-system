@@ -24,7 +24,7 @@ jobs:
         run: npm ci
       - name: ESLint auto-fix + Prettier format
         run: |
-          npx eslint . --fix || true
+          ESLINT_USE_FLAT_CONFIG=false npx eslint . --fix || true
           npx prettier --write .
       - name: Commit maintenance changes
         run: |
@@ -32,7 +32,7 @@ jobs:
           git config user.email "actions@github.com"
           git diff --quiet || (git add . && git commit -m "Auto-maintenance: lint & format")
       - name: Upload maintenance report
-        run: npx eslint . -f json > eslint-report.json || true
+        run: ESLINT_USE_FLAT_CONFIG=false npx eslint . -f json > eslint-report.json || true
       - uses: actions/upload-artifact@v4
         with:
           name: maintenance-report
