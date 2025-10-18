@@ -1,3 +1,11 @@
+/**
+ * SiteMonkeys AI Proprietary Module
+ * Copyright © 2025 SiteMonkeys AI. All rights reserved.
+ * 
+ * This file contains proprietary innovations and algorithms.
+ * Unauthorized use, copying, or distribution is strictly prohibited.
+ */
+
 // QUANTITATIVE ENFORCER - Forces Real Calculations, Rejects Business Speak
 // This is what fixes the "green beans problem" - forces the system to actually do math
 

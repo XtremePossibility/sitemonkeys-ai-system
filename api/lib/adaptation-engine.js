@@ -1,3 +1,11 @@
+/**
+ * SiteMonkeys AI Proprietary Module
+ * Copyright © 2025 SiteMonkeys AI. All rights reserved.
+ * 
+ * This file contains proprietary innovations and algorithms.
+ * Unauthorized use, copying, or distribution is strictly prohibited.
+ */
+
 // api/lib/adaptation-engine.js
 // ADAPTATION ENGINE - Adapts intelligence based on patterns, feedback, and performance
 // Makes the system smarter and more personalized over time

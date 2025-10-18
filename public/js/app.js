@@ -1,6 +1,7 @@
+/* global getCurrentMode, isVaultMode, systemActive:writable, aiToggle:writable, conversationHistory:writable, extractedDocuments:writable */
+
 // FORCE VAULT LOADING ON PAGE LOAD
 // VAULT LOADING ONLY ON DEMAND - NO AUTO-LOADING
-let vaultLoaded = false;
 
 async function loadVaultOnDemand() {
   // Step 1: Check if vault already loaded in window
@@ -100,6 +101,7 @@ async function improvedRefreshVault() {
 // Override the global function
 window.refreshVault = improvedRefreshVault;
 // ==================== FIXED SENDMESSAGE FUNCTION ====================
+// eslint-disable-next-line no-unused-vars -- Alternative sendMessage implementation for reference
 async function sendMessage() {
   const input = document.getElementById('user-input');
   const text = input.value.trim();

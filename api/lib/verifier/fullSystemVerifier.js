@@ -1,3 +1,11 @@
+/**
+ * SiteMonkeys AI Proprietary Module
+ * Copyright © 2025 SiteMonkeys AI. All rights reserved.
+ * 
+ * This file contains proprietary innovations and algorithms.
+ * Unauthorized use, copying, or distribution is strictly prohibited.
+ */
+
 import ledger from './masterLedger.json' assert { type: 'json' };
 import * as Memory from '../../categories/memory/verify.js';
 import * as Injection from '../../categories/injection/verify.js';

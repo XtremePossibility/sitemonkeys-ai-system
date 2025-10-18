@@ -1,3 +1,11 @@
+/**
+ * SiteMonkeys AI Proprietary Module
+ * Copyright © 2025 SiteMonkeys AI. All rights reserved.
+ * 
+ * This file contains proprietary innovations and algorithms.
+ * Unauthorized use, copying, or distribution is strictly prohibited.
+ */
+
 // SITE MONKEYS ENFORCEMENT - Brand Protection & Business Logic
 // Enforces pricing floors, vault integration, professional standards, override rejection
 
@@ -75,7 +83,7 @@ export function detectPricingViolations(response) {
   
   if (dollarMatches) {
     dollarMatches.forEach(match => {
-      const amount = parseInt(match.replace(/[\$,]/g, ''));
+      const amount = parseInt(match.replace(/[$,]/g, ''));
       
       if (amount > 0 && amount < SITE_MONKEYS_CONFIG.pricing.boost.price) {
         violations.push({
@@ -89,21 +97,6 @@ export function detectPricingViolations(response) {
       }
     });
   }
-  
-  // Check for pricing reduction language
-  PRICING_VIOLATION_TRIGGERS.forEach(trigger => {
-    if (responseLower.includes(trigger.toLowerCase())) {
-      violations.push({
-        type: 'pricing_reduction_language',
-        severity: 'high',
-        trigger: trigger,
-        message: `Response contains pricing reduction language: "${trigger}"`
-      });
-    }
-  });
-  
-  return violations;
-}
   
   // Check for pricing reduction language
   PRICING_VIOLATION_TRIGGERS.forEach(trigger => {
@@ -331,7 +324,7 @@ export function enforcePricingFloors(response, mode) {
   
   if (priceMatches) {
     const lowPrices = priceMatches.filter(match => {
-      const amount = parseInt(match.replace(/[\$,]/g, ''));
+      const amount = parseInt(match.replace(/[$,]/g, ''));
       return amount > 0 && amount < SITE_MONKEYS_CONFIG.pricing.boost.price;
     });
     

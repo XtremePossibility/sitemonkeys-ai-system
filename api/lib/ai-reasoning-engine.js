@@ -1,3 +1,11 @@
+/**
+ * SiteMonkeys AI Proprietary Module
+ * Copyright © 2025 SiteMonkeys AI. All rights reserved.
+ * 
+ * This file contains proprietary innovations and algorithms.
+ * Unauthorized use, copying, or distribution is strictly prohibited.
+ */
+
 // api/lib/ai-reasoning-engine.js
 // AI REASONING ENGINE - Genuine AI intelligence with business wisdom
 // This is where real reasoning happens - not pattern matching or rules

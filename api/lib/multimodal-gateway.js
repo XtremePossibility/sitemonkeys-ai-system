@@ -1,3 +1,11 @@
+/**
+ * SiteMonkeys AI Proprietary Module
+ * Copyright © 2025 SiteMonkeys AI. All rights reserved.
+ * 
+ * This file contains proprietary innovations and algorithms.
+ * Unauthorized use, copying, or distribution is strictly prohibited.
+ */
+
 // api/lib/multimodal-gateway.js
 // MULTIMODAL GATEWAY - Handle images, audio, video inputs
 // Normalizes all media types into intelligence-ready context
