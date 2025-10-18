@@ -1,3 +1,11 @@
+/**
+ * SiteMonkeys AI Proprietary Module
+ * Copyright © 2025 SiteMonkeys AI. All rights reserved.
+ * 
+ * This file contains proprietary innovations and algorithms.
+ * Unauthorized use, copying, or distribution is strictly prohibited.
+ */
+
 // PROTECTIVE INTELLIGENCE - Proactive Risk Detection & Adaptive Initiative
 // Scans for unstated risks, finds solution paths, provides initiative-based alerts
 

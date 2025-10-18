@@ -1,3 +1,11 @@
+/**
+ * SiteMonkeys AI Proprietary Module
+ * Copyright © 2025 SiteMonkeys AI. All rights reserved.
+ * 
+ * This file contains proprietary innovations and algorithms.
+ * Unauthorized use, copying, or distribution is strictly prohibited.
+ */
+
 // COMPLETE ASSUMPTION HEALTH MONITORING SYSTEM
 // TIER 1: ASSUMPTION DETECTION AND TRACKING
 // TIER 2: HEALTH ASSESSMENT AND CONFLICT DETECTION
