@@ -28,6 +28,7 @@ import repoSnapshotRoute from './api/repo-snapshot.js';
 import { addInventoryEndpoint } from './system-inventory-endpoint.js';
 import Orchestrator from './api/core/orchestrator.js';
 import systemStatus from './api/system-status.js'; // <-- ADDED
+import { systemCheckHandler } from './api/system-health-check.js';
 
 console.log('[SERVER] ✅ Dependencies loaded');
 console.log('[SERVER] 🎯 Initializing Orchestrator...');
@@ -150,6 +151,9 @@ app.get('/api/health', (req, res) => {
 
 // System status endpoint
 app.get('/api/system-status', systemStatus); // <-- ADDED
+
+// System health check endpoint
+app.get('/api/system-check', systemCheckHandler);
 
 // Chat endpoint - main AI processing
 app.post('/api/chat', async (req, res) => {

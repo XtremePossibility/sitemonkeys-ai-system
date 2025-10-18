@@ -1,3 +1,11 @@
+/**
+ * SiteMonkeys AI Proprietary Module
+ * Copyright © 2025 SiteMonkeys AI. All rights reserved.
+ * 
+ * This file contains proprietary innovations and algorithms.
+ * Unauthorized use, copying, or distribution is strictly prohibited.
+ */
+
 // /api/core/intelligence/semantic_analyzer.js
 // SEMANTIC ANALYZER - Real embedding-based semantic understanding
 // Uses OpenAI embeddings for intent/domain classification, not pattern matching

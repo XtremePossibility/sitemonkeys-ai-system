@@ -1,3 +1,11 @@
+/**
+ * SiteMonkeys AI Proprietary Module
+ * Copyright © 2025 SiteMonkeys AI. All rights reserved.
+ * 
+ * This file contains proprietary innovations and algorithms.
+ * Unauthorized use, copying, or distribution is strictly prohibited.
+ */
+
 // SITE MONKEYS EMERGENCY FALLBACK CONSTANTS
 // Zero-Failure Protection: These values activate ONLY if vault loading fails
 
