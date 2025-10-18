@@ -49,6 +49,20 @@ process.on('uncaughtException', (error) => {
   // Log but continue running
 });
 
+// ===== PROCESS LIFECYCLE DIAGNOSTICS =====
+process.on('exit', (code) => {
+  console.log(`[SERVER] 🛑 Process exit event with code: ${code}`);
+});
+
+process.on('beforeExit', (code) => {
+  console.log(`[SERVER] ⚠️ Process beforeExit event with code: ${code}`);
+});
+
+process.on('SIGTERM', () => {
+  console.log('[SERVER] 🛑 SIGTERM signal received, shutting down gracefully');
+  process.exit(0);
+});
+
 // NOW declare your variables:
 const app = express();
 addInventoryEndpoint(app);
@@ -118,7 +132,7 @@ console.log('[SERVER] ✅ Middleware configured');
 
 // Health check endpoint - Railway needs simple response
 app.get('/health', (req, res) => {
-  res.json({ status: 'healthy' });
+  res.status(200).json({ status: 'healthy' });
 });
 
 // Detailed health check for monitoring
@@ -219,4 +233,11 @@ const server = app.listen(PORT, '0.0.0.0', () => {
     console.log('🔄 System running in degraded mode');
   }
   console.log('🎉 System fully initialized and ready');
+  
+  // Add keepalive timer to prevent event loop from going idle
+  console.log('⏰ Starting keepalive timer (60s interval) to prevent process exit');
+  const keepaliveTimer = setInterval(() => {
+    console.log('💓 Keepalive ping - process active');
+  }, 60000);
+  console.log('✅ Keepalive timer active - process will remain running');
 })();
