@@ -3,6 +3,15 @@
 // TIER 2: HEALTH ASSESSMENT AND CONFLICT DETECTION
 // TIER 3: OVERRIDE TRACKING AND PATTERN ANALYSIS
 
+// Helper functions for logging and drift status
+function logOverride(type, details, _context) {
+  console.log(`[ASSUMPTION OVERRIDE] ${type}:`, details);
+}
+
+function getDriftStatus() {
+  return 'stable'; // Default drift status
+}
+
 // TIER 3: ASSUMPTION TRACKING DATABASE
 let assumptionDatabase = {
   session_assumptions: [],

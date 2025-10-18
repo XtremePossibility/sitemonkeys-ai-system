@@ -6,24 +6,12 @@
 console.log('[SERVER] 🎬 Starting Site Monkeys AI System...');
 console.log('[SERVER] 📦 Loading dependencies...');
 
-import crypto from 'crypto';
 import express from 'express';
 import cors from 'cors';
 import session from 'express-session';
-import { exec } from 'child_process';
 import { persistentMemory } from './api/categories/memory/index.js';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
-// Lazy load googleapis to avoid 200-600MB memory spike at startup
-import axios from 'axios';
-import JSZip from 'jszip';
-import xml2js from 'xml2js';
-import zlib from 'zlib';
-import { promisify } from 'util';
 import { uploadMiddleware, handleFileUpload } from './api/upload-file.js';
 import { analysisMiddleware, handleAnalysisUpload } from './api/upload-for-analysis.js';
-import { extractedDocuments } from './api/upload-for-analysis.js';
 import repoSnapshotRoute from './api/repo-snapshot.js';
 import { addInventoryEndpoint } from './system-inventory-endpoint.js';
 import Orchestrator from './api/core/orchestrator.js';
@@ -209,7 +197,7 @@ console.log('[SERVER] ✅ Routes configured');
 
 // ===== START HTTP SERVER =====
 const PORT = process.env.PORT || 3000;
-const server = app.listen(PORT, '0.0.0.0', () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`✅ Server listening on port ${PORT}`);
   console.log(`🔍 Health check available at /health`);
 });
@@ -236,7 +224,7 @@ const server = app.listen(PORT, '0.0.0.0', () => {
   
   // Add keepalive timer to prevent event loop from going idle
   console.log('⏰ Starting keepalive timer (60s interval) to prevent process exit');
-  const keepaliveTimer = setInterval(() => {
+  setInterval(() => {
     console.log('💓 Keepalive ping - process active');
   }, 60000);
   console.log('✅ Keepalive timer active - process will remain running');

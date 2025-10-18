@@ -154,7 +154,7 @@ static validateRecommendation(response, mode, vaultData = null) {
     
     switch (mode) {
       case 'truth_general':
-        modeValidation.comparison_framework = ProductValidator.validateComparisonFramework(response)
+        modeValidation.comparison_framework = ProductValidator.validateComparisonFramework(response);
         break;
         
       case 'business_validation':

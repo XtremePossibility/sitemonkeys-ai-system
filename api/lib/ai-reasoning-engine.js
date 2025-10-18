@@ -779,4 +779,4 @@ Provide strategic synthesis that demonstrates extraordinary intelligence.`;
   }
 }
 
-module.exports = { AIReasoningEngine };
+export { AIReasoningEngine };

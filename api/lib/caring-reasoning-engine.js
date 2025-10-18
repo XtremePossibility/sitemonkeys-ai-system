@@ -110,7 +110,7 @@ export class CaringReasoningEngine {
   // GENUINE REASONING IMPLEMENTATIONS - NO PLACEHOLDERS
   // ============================================================================
 
-  inferDeeperNeeds(userMessage, situationalContext) {
+  inferDeeperNeeds(userMessage, situationalContext, intentAnalysis = null) {
     const deeperNeeds = {
       confidence_building: false,
       risk_mitigation: false,
