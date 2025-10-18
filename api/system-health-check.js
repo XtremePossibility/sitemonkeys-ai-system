@@ -21,8 +21,13 @@ export async function runSystemHealthCheck() {
 
   // Check 1: Database Connection
   try {
-    await coreSystem.pool.query('SELECT 1');
-    results.checks.database = { status: 'ok', message: 'Database connection successful' };
+    if (coreSystem.pool) {
+      await coreSystem.pool.query('SELECT 1');
+      results.checks.database = { status: 'ok', message: 'Database connection successful' };
+    } else {
+      results.checks.database = { status: 'degraded', message: 'Database pool not initialized' };
+      if (results.overall === 'healthy') results.overall = 'degraded';
+    }
   } catch (error) {
     results.checks.database = { status: 'failed', message: error.message };
     results.overall = 'unhealthy';
@@ -30,12 +35,19 @@ export async function runSystemHealthCheck() {
 
   // Check 2: Memory System
   try {
-    const testMemory = await coreSystem.retrieveMemory('system-test', 'health-check', 1);
-    results.checks.memory = { 
-      status: 'ok', 
-      message: 'Memory system operational',
-      canRetrieve: true
-    };
+    if (coreSystem.isInitialized) {
+      results.checks.memory = { 
+        status: 'ok', 
+        message: 'Memory system initialized',
+        isInitialized: true
+      };
+    } else {
+      results.checks.memory = { 
+        status: 'degraded', 
+        message: 'Memory system not yet initialized' 
+      };
+      if (results.overall === 'healthy') results.overall = 'degraded';
+    }
   } catch (error) {
     results.checks.memory = { status: 'degraded', message: error.message };
     if (results.overall === 'healthy') results.overall = 'degraded';
