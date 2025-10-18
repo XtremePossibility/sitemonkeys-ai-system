@@ -1,3 +1,5 @@
+/* global getCurrentMode, isVaultMode, systemActive:writable, aiToggle:writable, conversationHistory:writable, extractedDocuments:writable */
+
 // VAULT LOADING ONLY ON DEMAND - NO AUTO-LOADING
 let vaultLoaded = false;
 

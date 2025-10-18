@@ -83,7 +83,7 @@ export function detectPricingViolations(response) {
   
   if (dollarMatches) {
     dollarMatches.forEach(match => {
-      const amount = parseInt(match.replace(/[\$,]/g, ''));
+      const amount = parseInt(match.replace(/[$,]/g, ''));
       
       if (amount > 0 && amount < SITE_MONKEYS_CONFIG.pricing.boost.price) {
         violations.push({
@@ -324,7 +324,7 @@ export function enforcePricingFloors(response, mode) {
   
   if (priceMatches) {
     const lowPrices = priceMatches.filter(match => {
-      const amount = parseInt(match.replace(/[\$,]/g, ''));
+      const amount = parseInt(match.replace(/[$,]/g, ''));
       return amount > 0 && amount < SITE_MONKEYS_CONFIG.pricing.boost.price;
     });
     

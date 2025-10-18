@@ -676,7 +676,7 @@ export function sanitizeResponseWithCognitiveFirewall(response, enforcement_requ
   
   enforcement_required.forEach(enforcement => {
     switch (enforcement) {
-      case 'POLITICAL_NEUTRALIZATION':
+      case 'POLITICAL_NEUTRALIZATION': {
         // Replace political bias with neutral language
         const politicalReplacements = [
           { pattern: /(trump|biden|harris) is (right|wrong)/gi, replacement: '[POLITICAL_CONTENT_NEUTRALIZED]' },
@@ -689,6 +689,7 @@ export function sanitizeResponseWithCognitiveFirewall(response, enforcement_requ
           }
         });
         break;
+      }
         
       case 'AUTHORITY_RESISTANCE':
         // Add authority resistance disclaimer
@@ -696,7 +697,7 @@ export function sanitizeResponseWithCognitiveFirewall(response, enforcement_requ
         modifications.push('Authority resistance disclaimer added');
         break;
         
-      case 'ASSUMPTION_CHALLENGE':
+      case 'ASSUMPTION_CHALLENGE': {
         // Flag assumptions in the response
         const assumptions = ['obviously', 'everyone knows', 'clearly', 'without question'];
         assumptions.forEach(assumption => {
@@ -707,8 +708,9 @@ export function sanitizeResponseWithCognitiveFirewall(response, enforcement_requ
           }
         });
         break;
+      }
         
-      case 'SPECULATION_BLOCK':
+      case 'SPECULATION_BLOCK': {
         // Replace speculative language
         const speculativeTerms = ['likely', 'probably', 'seems', 'appears to'];
         speculativeTerms.forEach(term => {
@@ -719,6 +721,7 @@ export function sanitizeResponseWithCognitiveFirewall(response, enforcement_requ
           }
         });
         break;
+      }
     }
   });
   

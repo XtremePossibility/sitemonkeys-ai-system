@@ -22,7 +22,7 @@ export default [
   },
   {
     // Browser-specific config for client-side files
-    files: ['public/**/*.js'],
+    files: ['public/**/*.js', 'locked-ui/**/*.js'],
     languageOptions: {
       ecmaVersion: 'latest',
       sourceType: 'script', // Browser scripts are typically not modules
