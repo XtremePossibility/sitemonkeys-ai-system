@@ -3,9 +3,9 @@
 
 import { ValidationEngine } from './validation-engine.js';
 import { MultimodalGateway } from './multimodal-gateway.js';
-const { LearningEngine } = require('./learning-engine');
-const { AdaptationEngine } = require('./adaptation-engine');
-const { StreamProcessor } = require('./stream-processor');
+import { LearningEngine } from './learning-engine.js';
+import { AdaptationEngine } from './adaptation-engine.js';
+import { StreamProcessor } from './stream-processor.js';
 
 // Simple integration class that coordinates everything
 class CompleteIntelligenceSystem {

@@ -268,7 +268,7 @@ async function monitorHandler(req, res) {
 }
 
 // --- EXPORT HANDLER ---
-module.exports = monitorHandler;
+export default monitorHandler;
 
 // --- USAGE IN server.js ---
 // const monitorHandler = require('./api/system-monitor');

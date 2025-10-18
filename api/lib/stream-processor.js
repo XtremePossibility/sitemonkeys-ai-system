@@ -2,7 +2,7 @@
 // STREAM PROCESSOR - Real-time data integration and processing
 // Integrates live data streams for current awareness and context
 
-const express = require('express');
+import express from 'express';
 
 class StreamProcessor {
   constructor() {

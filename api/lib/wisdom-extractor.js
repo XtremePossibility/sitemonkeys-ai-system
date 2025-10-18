@@ -5,19 +5,19 @@
 // Import existing modules (NO CHANGES TO THEM)
 import * as assumptions from './assumptions.js';
 import * as survivalGuardian from './survival-guardian.js';
-const protectiveIntelligence = require('./protective-intelligence');
-const politicalGuardrails = require('./politicalGuardrails');
-const productValidation = require('./productValidation');
-const personalities = require('./personalities');
-const enforcementProtocols = require('./site-monkeys/enforcement-protocols');
-const systemIntelligence = require('./system-intelligence');
-const enhancedIntelligence = require('./enhanced-intelligence');
-const quantitativeEnforcer = require('./quantitative-enforcer');
-const politicalNeutrality = require('./political-neutrality');
-const expertValidator = require('./expert-validator');
-const caringFamilyCore = require('./caring-family-core');
-const founderProtection = require('./site-monkeys/founder-protection');
-const siteMonkeysEnforcement = require('./site-monkeys-enforcement');
+import * as protectiveIntelligence from './protective-intelligence.js';
+import * as politicalGuardrails from './politicalGuardrails.js';
+import * as productValidation from './productValidation.js';
+import * as personalities from './personalities.js';
+import * as enforcementProtocols from './site-monkeys/enforcement-protocols.js';
+import * as systemIntelligence from './system-intelligence.js';
+import * as enhancedIntelligence from './enhanced-intelligence.js';
+import * as quantitativeEnforcer from './quantitative-enforcer.js';
+import * as politicalNeutrality from './political-neutrality.js';
+import * as expertValidator from './expert-validator.js';
+import * as caringFamilyCore from './caring-family-core.js';
+import * as founderProtection from './site-monkeys/founder-protection.js';
+import * as siteMonkeysEnforcement from './site-monkeys-enforcement.js';
 
 class WisdomExtractor {
   constructor() {

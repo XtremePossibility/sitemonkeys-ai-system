@@ -926,4 +926,4 @@ class AdaptationEngine {
   }
 }
 
-module.exports = { AdaptationEngine };
+export { AdaptationEngine };
