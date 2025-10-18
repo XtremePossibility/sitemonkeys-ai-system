@@ -447,14 +447,8 @@ if (intelligenceMemories && intelligenceMemories.length > 0) {
     console.log('🛡️ [BULLETPROOF] Starting bulletproof intelligence processing...');
     
     try {
-      // Single bulletproof processing call that handles EVERYTHING
-        
-      } else {
-        // Normal orchestrator path for non-document queries
-        console.log('🛡️ [BULLETPROOF] Starting bulletproof intelligence processing...');
-        
-        try {
-          const bulletproofResult = await masterOrchestrator.processWithUnifiedIntelligence({
+      // Normal orchestrator path for non-document queries
+      const bulletproofResult = await masterOrchestrator.processWithUnifiedIntelligence({
             // ... existing orchestrator call ...
         message: enhancedMessage,
         enhancedMessage: enhancedMessage,  // ← ADDED THIS LINE
@@ -722,38 +716,38 @@ if (complianceValidation.corrected_content) {
       intelligence_status: intelligence,
       system_intelligence_active: intelligence.vaultIntelligenceActive,
       session_data: {
-  ...sessionData,
-  intelligence_capabilities: {
-    reasoning_engine: true,
-    cross_domain_synthesis: true,
-    scenario_modeling: mode === 'business_validation' || mode === 'site_monkeys',
-    quantitative_analysis: true,
-    enhanced_memory: memoryContext?.intelligenceEnhanced || false
-  },
-  memory_intelligence: memoryContext?.intelligenceEnhanced ? {
-    reasoning_support_memories: memoryContext.reasoningSupport?.length || 0,
-    cross_domain_connections: memoryContext.crossDomainConnections?.length || 0,
-    scenario_relevant_memories: Object.values(memoryContext.scenarioRelevantMemories || {}).reduce((sum, arr) => sum + arr.length, 0),
-    quantitative_context_memories: memoryContext.quantitativeContext?.length || 0
-  } : null
-}
-    });
-
-  } catch (error) {
-    console.error('Cognitive System Error:', error);
-    
-    const emergencyResponse = generateCaringEmergencyResponse(error, mode, vaultContent);
-    
-    res.status(200).json({
-      response: emergencyResponse,
-      mode_active: mode,
-      error_handled: true,
-      emergency_mode: true,
-      enforcement_applied: ['emergency_caring_response_active', 'truth_first_maintained'],
-      vault_status: { loaded: false, tokens: 0, healthy: false, source: 'error' },
-      session_data: formatSessionDataForUI()
+        ...sessionData,
+        intelligence_capabilities: {
+          reasoning_engine: true,
+          cross_domain_synthesis: true,
+          scenario_modeling: mode === 'business_validation' || mode === 'site_monkeys',
+          quantitative_analysis: true,
+          enhanced_memory: memoryContext?.intelligenceEnhanced || false
+        },
+        memory_intelligence: memoryContext?.intelligenceEnhanced ? {
+          reasoning_support_memories: memoryContext.reasoningSupport?.length || 0,
+          cross_domain_connections: memoryContext.crossDomainConnections?.length || 0,
+          scenario_relevant_memories: Object.values(memoryContext.scenarioRelevantMemories || {}).reduce((sum, arr) => sum + arr.length, 0),
+          quantitative_context_memories: memoryContext.quantitativeContext?.length || 0
+        } : null
+      }
     });
   }
+} catch (error) {
+  console.error('Cognitive System Error:', error);
+  
+  const emergencyResponse = generateCaringEmergencyResponse(error, mode, vaultContent);
+  
+  res.status(200).json({
+    response: emergencyResponse,
+    mode_active: mode,
+    error_handled: true,
+    emergency_mode: true,
+    enforcement_applied: ['emergency_caring_response_active', 'truth_first_maintained'],
+    vault_status: { loaded: false, tokens: 0, healthy: false, source: 'error' },
+    session_data: formatSessionDataForUI()
+  });
+}
 }
 
 // ================================================================
@@ -761,7 +755,7 @@ if (complianceValidation.corrected_content) {
 // Add this function to your chat.js file before buildMasterPrompt
 // ================================================================
 
-function applyEnhancedReasoning(response, message, mode, expertDomain, memoryContext, vaultContent) {
+async function applyEnhancedReasoning(response, message, mode, expertDomain, memoryContext, vaultContent) {
   try {
     console.log('[ENHANCED REASONING] Processing advanced cognitive capabilities');
     

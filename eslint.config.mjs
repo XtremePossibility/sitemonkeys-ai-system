@@ -4,13 +4,14 @@ export default [
       'node_modules/**',
       'dist/**',
       'build/**',
-      '.git/**'
+      '.git/**',
+      'api/lib/verifier/**'
     ]
   },
   {
     files: ['**/*.js'],
     languageOptions: {
-      ecmaVersion: 2022,
+      ecmaVersion: 2024,
       sourceType: 'module',
       globals: {
         console: 'readonly',

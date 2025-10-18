@@ -1,4 +1,4 @@
-import ledger from './masterLedger.json' assert { type: 'json' };
+import ledger from './masterLedger.json' with { type: 'json' };
 import * as Memory from '../../categories/memory/verify.js';
 import * as Injection from '../../categories/injection/verify.js';
 import * as Truth from '../../categories/truth/verify.js';

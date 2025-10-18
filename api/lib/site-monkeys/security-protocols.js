@@ -1,6 +1,8 @@
 // SITE MONKEYS SECURITY PROTOCOLS
 // IP Protection, Clone Resistance, and Contractor Compartmentalization
 
+import crypto from 'crypto';
+
 const SECURITY_PROTOCOLS = {
   // CONTRACTOR ACCESS CONTROLS
   contractor_limits: {

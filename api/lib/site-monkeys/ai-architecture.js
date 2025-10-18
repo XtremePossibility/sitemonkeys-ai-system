@@ -1,3 +1,4 @@
+/* global fetch, AbortSignal */
 
 // SITE MONKEYS AI ARCHITECTURE
 // Triple-AI Failover System with Quality Gates

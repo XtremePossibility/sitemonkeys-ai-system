@@ -1025,8 +1025,10 @@ class StreamProcessor {
 // Create singleton instance
 const streamProcessor = new StreamProcessor();
 
-module.exports = { 
+export { 
   StreamProcessor,
   streamProcessor,
-  streamRouter: streamProcessor.createWebhookRouter()
+  streamProcessor as default
 };
+
+export const streamRouter = streamProcessor.createWebhookRouter();
