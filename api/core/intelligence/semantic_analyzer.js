@@ -8,7 +8,9 @@ import { costTracker } from '../../utils/cost-tracker.js';
 
 export class SemanticAnalyzer {
   constructor() {
-    this.openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+    this.openai = new OpenAI({ 
+      apiKey: process.env.OPENAI_API_KEY || 'sk-dummy-key-for-testing' 
+    });
     this.embeddingModel = 'text-embedding-3-small';
     this.embeddingCache = new Map();
     this.maxCacheSize = 500;
@@ -37,8 +39,10 @@ export class SemanticAnalyzer {
   // ==================== INITIALIZATION ====================
 
   async initialize() {
+    const initStartTime = Date.now();
+    
     try {
-      this.logger.log('Initializing SemanticAnalyzer - pre-computing category embeddings...');
+      this.logger.log('Initializing SemanticAnalyzer - pre-computing category embeddings in parallel...');
       
       // Intent category representative phrases
       const intentPhrases = {
@@ -62,26 +66,84 @@ export class SemanticAnalyzer {
         general: "everyday questions, general knowledge, casual conversation, various topics, common inquiries"
       };
       
-      // Pre-compute intent embeddings
-      this.intentEmbeddings = {};
-      for (const [intent, phrase] of Object.entries(intentPhrases)) {
-        this.intentEmbeddings[intent] = await this.#getEmbedding(phrase);
-        this.logger.log(`Pre-computed embedding for intent: ${intent}`);
-      }
+      // Configurable timeout (default 20 seconds, can be overridden via environment variable)
+      const timeoutMs = parseInt(process.env.SEMANTIC_INIT_TIMEOUT_MS || '20000', 10);
       
-      // Pre-compute domain embeddings
-      this.domainEmbeddings = {};
-      for (const [domain, phrase] of Object.entries(domainPhrases)) {
-        this.domainEmbeddings[domain] = await this.#getEmbedding(phrase);
-        this.logger.log(`Pre-computed embedding for domain: ${domain}`);
-      }
+      // Create timeout promise
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error(`Embedding initialization timeout after ${timeoutMs}ms`)), timeoutMs)
+      );
       
-      this.logger.log('SemanticAnalyzer initialization complete');
+      // Create parallel embedding computation promise
+      const embeddingPromise = (async () => {
+        // Launch all embedding computations in parallel
+        const intentPromises = Object.entries(intentPhrases).map(async ([intent, phrase]) => {
+          const embedding = await this.#getEmbedding(phrase);
+          this.logger.log(`✓ Pre-computed embedding for intent: ${intent}`);
+          return [intent, embedding];
+        });
+        
+        const domainPromises = Object.entries(domainPhrases).map(async ([domain, phrase]) => {
+          const embedding = await this.#getEmbedding(phrase);
+          this.logger.log(`✓ Pre-computed embedding for domain: ${domain}`);
+          return [domain, embedding];
+        });
+        
+        // Wait for all embeddings to complete in parallel
+        this.logger.log(`Computing ${intentPromises.length + domainPromises.length} embeddings in parallel...`);
+        const [intentResults, domainResults] = await Promise.all([
+          Promise.all(intentPromises),
+          Promise.all(domainPromises)
+        ]);
+        
+        // Store results
+        this.intentEmbeddings = Object.fromEntries(intentResults);
+        this.domainEmbeddings = Object.fromEntries(domainResults);
+        
+        return true;
+      })();
+      
+      // Race between embedding computation and timeout
+      await Promise.race([embeddingPromise, timeoutPromise]);
+      
+      const initTime = Date.now() - initStartTime;
+      this.logger.log(`✅ SemanticAnalyzer initialization complete in ${initTime}ms`);
       return true;
       
     } catch (error) {
-      this.logger.error('Initialization failed', error);
-      throw new Error(`SemanticAnalyzer initialization failed: ${error.message}`);
+      const initTime = Date.now() - initStartTime;
+      
+      if (error.message.includes('timeout')) {
+        this.logger.error(`⚠️ Initialization timed out after ${initTime}ms - entering fallback mode`, error);
+      } else {
+        this.logger.error(`⚠️ Initialization failed after ${initTime}ms - entering fallback mode`, error);
+      }
+      
+      // Set empty embeddings to allow system to continue in fallback mode
+      this.intentEmbeddings = {
+        question: new Array(1536).fill(0),
+        command: new Array(1536).fill(0),
+        discussion: new Array(1536).fill(0),
+        problem_solving: new Array(1536).fill(0),
+        decision_making: new Array(1536).fill(0),
+        emotional_expression: new Array(1536).fill(0),
+        information_sharing: new Array(1536).fill(0)
+      };
+      
+      this.domainEmbeddings = {
+        business: new Array(1536).fill(0),
+        technical: new Array(1536).fill(0),
+        personal: new Array(1536).fill(0),
+        health: new Array(1536).fill(0),
+        financial: new Array(1536).fill(0),
+        creative: new Array(1536).fill(0),
+        general: new Array(1536).fill(0)
+      };
+      
+      this.logger.log('🔄 System will continue with degraded semantic analysis (fallback mode)');
+      
+      // Return true to allow system to continue - fallback analysis will be used
+      return true;
     }
   }
 
