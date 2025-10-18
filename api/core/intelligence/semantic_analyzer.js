@@ -8,7 +8,9 @@ import { costTracker } from '../../utils/cost-tracker.js';
 
 export class SemanticAnalyzer {
   constructor() {
-    this.openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+    this.openai = new OpenAI({ 
+      apiKey: process.env.OPENAI_API_KEY || 'sk-dummy-key-for-testing' 
+    });
     this.embeddingModel = 'text-embedding-3-small';
     this.embeddingCache = new Map();
     this.maxCacheSize = 500;
