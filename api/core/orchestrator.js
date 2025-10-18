@@ -37,8 +37,12 @@ export class Orchestrator {
     this.eliFramework = new EliFramework();
     this.roxyFramework = new RoxyFramework();
     this.personalitySelector = new PersonalitySelector();
-    this.openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-    this.anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+    this.openai = new OpenAI({ 
+      apiKey: process.env.OPENAI_API_KEY || 'sk-dummy-key-for-testing' 
+    });
+    this.anthropic = new Anthropic({ 
+      apiKey: process.env.ANTHROPIC_API_KEY || 'sk-ant-dummy-key-for-testing' 
+    });
     
     // Initialization flag
     this.initialized = false;

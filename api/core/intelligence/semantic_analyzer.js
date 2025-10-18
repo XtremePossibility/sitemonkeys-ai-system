@@ -66,9 +66,12 @@ export class SemanticAnalyzer {
         general: "everyday questions, general knowledge, casual conversation, various topics, common inquiries"
       };
       
-      // Create timeout promise (20 seconds)
+      // Configurable timeout (default 20 seconds, can be overridden via environment variable)
+      const timeoutMs = parseInt(process.env.SEMANTIC_INIT_TIMEOUT_MS || '20000', 10);
+      
+      // Create timeout promise
       const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Embedding initialization timeout after 20 seconds')), 20000)
+        setTimeout(() => reject(new Error(`Embedding initialization timeout after ${timeoutMs}ms`)), timeoutMs)
       );
       
       // Create parallel embedding computation promise
