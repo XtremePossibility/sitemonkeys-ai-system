@@ -89,13 +89,8 @@ function generateModeFingerprint(mode, vaultHealthy) {
   return `${mode.toUpperCase()}-${vaultCode}-${timestamp}`;
 }
 
-function validateVaultStructure(content) {
-  if (!content || typeof content !== 'string') return false;
-  if (content.length < 1000) return false;
-  if (!content.includes('SITE MONKEYS')) return false;
-  if (!content.includes('Boost') || !content.includes('Climb') || !content.includes('Lead')) return false;
-  return true;
-}
+// validateVaultStructure is imported from './lib/site-monkeys/emergency-fallbacks.js'
+// Removed duplicate local declaration
 
 // SYSTEM GLOBALS
 let lastPersonality = 'roxy';

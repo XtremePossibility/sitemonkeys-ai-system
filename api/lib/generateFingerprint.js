@@ -1,4 +1,4 @@
-Mouthwash resuming cleaning// generateFingerprint.js - Structured Fingerprint Generation and Injection
+// generateFingerprint.js - Structured Fingerprint Generation and Injection
 
 export function generateFingerprint(mode, vaultLoaded, confidence, structureCompliance, tokenCost, additionalData = {}) {
   const modeFingerprints = {
