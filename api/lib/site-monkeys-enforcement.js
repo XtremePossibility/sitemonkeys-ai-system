@@ -112,21 +112,6 @@ export function detectPricingViolations(response) {
   
   return violations;
 }
-  
-  // Check for pricing reduction language
-  PRICING_VIOLATION_TRIGGERS.forEach(trigger => {
-    if (responseLower.includes(trigger.toLowerCase())) {
-      violations.push({
-        type: 'pricing_reduction_language',
-        severity: 'high',
-        trigger: trigger,
-        message: `Response contains pricing reduction language: "${trigger}"`
-      });
-    }
-  });
-  
-  return violations;
-}
 
 export function detectMarginViolations(response) {
   const violations = [];

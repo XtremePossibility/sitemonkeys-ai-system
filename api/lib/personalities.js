@@ -101,7 +101,6 @@ MEMORY-INTEGRATED THINKING:
 - Reference relevant past discussions
 - Build on previous analysis
 - Note any pattern changes or developments
-` : ''}
 
 USER QUERY: "${message}"
 
