@@ -236,7 +236,7 @@ const server = app.listen(PORT, '0.0.0.0', () => {
   
   // Add keepalive timer to prevent event loop from going idle
   console.log('⏰ Starting keepalive timer (60s interval) to prevent process exit');
-  setInterval(() => {
+  const keepaliveTimer = setInterval(() => {
     console.log('💓 Keepalive ping - process active');
   }, 60000);
   console.log('✅ Keepalive timer active - process will remain running');
