@@ -14,7 +14,7 @@ class CoreSystem {
       overall: false,
       database: { healthy: false },
       initialized: false,
-      lastCheck: null
+      lastCheck: null,
     };
 
     // Valid category names (underscore format)
@@ -29,18 +29,19 @@ class CoreSystem {
       'goals_future_dreams',
       'tools_tech_workflow',
       'daily_routines_habits',
-      'personal_life_interests'
+      'personal_life_interests',
     ];
 
     this.categoryLimits = {
       tokenLimit: 50000,
-      memoryLimit: 1000
+      memoryLimit: 1000,
     };
 
     this.logger = {
       log: (message) => console.log(`[CORE] ${new Date().toISOString()} ${message}`),
-      error: (message, error) => console.error(`[CORE ERROR] ${new Date().toISOString()} ${message}`, error),
-      warn: (message) => console.warn(`[CORE WARN] ${new Date().toISOString()} ${message}`)
+      error: (message, error) =>
+        console.error(`[CORE ERROR] ${new Date().toISOString()} ${message}`, error),
+      warn: (message) => console.warn(`[CORE WARN] ${new Date().toISOString()} ${message}`),
     };
   }
 
@@ -56,10 +57,10 @@ class CoreSystem {
       this.pool = new Pool({
         connectionString: process.env.DATABASE_URL,
         ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
-        max: 30,                      // Increased from 20
-        idleTimeoutMillis: 60000,     // Doubled to 60s
+        max: 30, // Increased from 20
+        idleTimeoutMillis: 60000, // Doubled to 60s
         connectionTimeoutMillis: 15000, // Increased from 2s
-        allowExitOnIdle: true          // Clean up idle connections
+        allowExitOnIdle: true, // Clean up idle connections
       });
 
       // --- Keep pool healthy between requests ---
@@ -109,7 +110,6 @@ class CoreSystem {
       this.isInitialized = true;
       this.logger.log('Core System initialized successfully');
       return true;
-
     } catch (error) {
       this.logger.error('Core System initialization failed:', error);
       this.isInitialized = false;
@@ -132,7 +132,7 @@ class CoreSystem {
 
   async createDatabaseSchema() {
     this.logger.log('Creating database schema...');
-    
+
     try {
       // Create persistent_memories table
       await this.executeQuery(`
@@ -172,7 +172,7 @@ class CoreSystem {
         CREATE INDEX IF NOT EXISTS idx_memories_user_category 
         ON persistent_memories(user_id, category_name)
       `);
-      
+
       await this.executeQuery(`
         CREATE INDEX IF NOT EXISTS idx_memories_relevance 
         ON persistent_memories(relevance_score DESC)
@@ -195,12 +195,12 @@ class CoreSystem {
 
       // Test database connectivity
       await this.executeQuery('SELECT 1');
-      
+
       this.healthStatus.database.healthy = true;
       this.healthStatus.overall = true;
       this.healthStatus.initialized = this.isInitialized;
       this.healthStatus.lastCheck = new Date().toISOString();
-      
+
       this.logger.log('Health status updated: System healthy');
     } catch (error) {
       this.healthStatus.database.healthy = false;

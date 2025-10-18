@@ -2,7 +2,10 @@
 // This file properly connects your actual modules with correct function calls
 // ADD THIS FILE: api/lib/system-intelligence.js
 
-import { requiresQuantitativeReasoning, enforceQuantitativeAnalysis } from './quantitative-enforcer.js';
+import {
+  requiresQuantitativeReasoning,
+  enforceQuantitativeAnalysis,
+} from './quantitative-enforcer.js';
 import { checkVaultTriggers, generateVaultContext, getVaultStatus } from './vault.js';
 import { identifyExpertDomain } from './caring-family-core.js';
 
@@ -17,7 +20,7 @@ export function integrateSystemIntelligence(message, vaultContent, vaultHealthy)
     quantitativeRequired: false,
     intelligenceContext: '',
     vaultStatus: 'inactive',
-    vaultTriggers: []
+    vaultTriggers: [],
   };
 
   try {
@@ -35,11 +38,11 @@ export function integrateSystemIntelligence(message, vaultContent, vaultHealthy)
     if (vaultContent && vaultHealthy && typeof checkVaultTriggers === 'function') {
       // Using correct parameter - your function expects just message
       integration.vaultTriggers = checkVaultTriggers(message);
-      
+
       if (integration.vaultTriggers && integration.vaultTriggers.length > 0) {
         integration.vaultIntelligenceActive = true;
         integration.vaultStatus = 'operational';
-        
+
         // Generate vault context using your actual function
         if (typeof generateVaultContext === 'function') {
           // Your function expects triggeredFrameworks (the triggers array)
@@ -53,9 +56,9 @@ export function integrateSystemIntelligence(message, vaultContent, vaultHealthy)
       integration.vaultIntelligenceActive = true;
       integration.vaultStatus = 'fallback_active';
       // Use Site Monkeys pricing if available
-      integration.intelligenceContext = 'SITE MONKEYS PRICING: Boost ($697), Climb ($1,497), Lead ($2,997)';
+      integration.intelligenceContext =
+        'SITE MONKEYS PRICING: Boost ($697), Climb ($1,497), Lead ($2,997)';
     }
-
   } catch (error) {
     console.warn('System intelligence integration error:', error.message);
     // Graceful degradation - system still works without intelligence
@@ -92,7 +95,7 @@ Target margins: Must maintain business survival standards.`;
 
     // Add vault triggers information
     if (intelligence.vaultTriggers && intelligence.vaultTriggers.length > 0) {
-      const triggerCategories = intelligence.vaultTriggers.map(t => t.category).join(', ');
+      const triggerCategories = intelligence.vaultTriggers.map((t) => t.category).join(', ');
       enhancedPrompt += `\n\nVAULT RULES TRIGGERED: ${triggerCategories} - Enforcement required.`;
     }
 
@@ -100,7 +103,6 @@ Target margins: Must maintain business survival standards.`;
     if (intelligence.expertDomain !== 'general') {
       enhancedPrompt += `\n\nEXPERT DOMAIN: ${intelligence.expertDomain} - Think like a 20-year professional in this field.`;
     }
-
   } catch (error) {
     console.warn('Prompt enhancement error:', error.message);
     // Return base prompt if enhancement fails
@@ -117,7 +119,7 @@ export function validateIntelligentResponse(response, intelligence, message) {
   const validation = {
     valid: true,
     issues: [],
-    enhancements: []
+    enhancements: [],
   };
 
   try {
@@ -125,12 +127,12 @@ export function validateIntelligentResponse(response, intelligence, message) {
     if (intelligence.quantitativeRequired && typeof enforceQuantitativeAnalysis === 'function') {
       // Your function signature: enforceQuantitativeAnalysis(response, originalMessage, expertDomain, vaultContent)
       const enhancedResponse = enforceQuantitativeAnalysis(
-        response, 
-        message, 
-        intelligence.expertDomain, 
-        intelligence.intelligenceContext
+        response,
+        message,
+        intelligence.expertDomain,
+        intelligence.intelligenceContext,
       );
-      
+
       // If your enforcer modified the response, it found issues
       if (enhancedResponse !== response) {
         validation.valid = false;
@@ -146,7 +148,6 @@ export function validateIntelligentResponse(response, intelligence, message) {
         validation.issues.push('Site Monkeys pricing data not applied to calculations');
       }
     }
-
   } catch (error) {
     console.warn('Response validation error:', error.message);
   }
@@ -160,7 +161,7 @@ export function validateIntelligentResponse(response, intelligence, message) {
  */
 export function getSystemIntelligenceStatus(intelligence) {
   let vaultStatusObj = { vault_loaded: false };
-  
+
   try {
     // Use your actual getVaultStatus function
     if (typeof getVaultStatus === 'function') {
@@ -174,11 +175,12 @@ export function getSystemIntelligenceStatus(intelligence) {
     vault_intelligence_active: intelligence.vaultIntelligenceActive,
     vault_status: intelligence.vaultStatus,
     expert_domain: intelligence.expertDomain,
-    quantitative_analysis_applied: intelligence.quantitativeRequired && intelligence.vaultIntelligenceActive,
+    quantitative_analysis_applied:
+      intelligence.quantitativeRequired && intelligence.vaultIntelligenceActive,
     intelligence_context_length: intelligence.intelligenceContext.length,
     vault_triggers_count: intelligence.vaultTriggers.length,
-    vault_triggers: intelligence.vaultTriggers.map(t => t.category),
+    vault_triggers: intelligence.vaultTriggers.map((t) => t.category),
     system_health: intelligence.vaultIntelligenceActive ? 'operational' : 'degraded',
-    vault_system_status: vaultStatusObj
+    vault_system_status: vaultStatusObj,
   };
 }

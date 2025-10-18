@@ -10,17 +10,17 @@ class PersistentMemoryOrchestrator {
   constructor() {
     this.coreSystem = coreSystem;
     this.intelligenceSystem = intelligenceSystem;
-    
+
     // System state management
     this.isInitialized = false;
     this.initPromise = null;
     this.initStarted = false;
     this.isHealthy = false;
-    
+
     // Fallback memory for complete system failure
     this.fallbackMemory = new Map();
     this.lastHealthCheck = null;
-    
+
     // Performance monitoring
     this.performanceStats = {
       totalRequests: 0,
@@ -28,13 +28,15 @@ class PersistentMemoryOrchestrator {
       successRate: 0,
       errorCount: 0,
       fallbackUsage: 0,
-      lastReset: Date.now()
+      lastReset: Date.now(),
     };
 
     this.logger = {
       log: (message) => console.log(`[PERSISTENT_MEMORY] ${new Date().toISOString()} ${message}`),
-      error: (message, error) => console.error(`[PERSISTENT_MEMORY ERROR] ${new Date().toISOString()} ${message}`, error),
-      warn: (message) => console.warn(`[PERSISTENT_MEMORY WARN] ${new Date().toISOString()} ${message}`)
+      error: (message, error) =>
+        console.error(`[PERSISTENT_MEMORY ERROR] ${new Date().toISOString()} ${message}`, error),
+      warn: (message) =>
+        console.warn(`[PERSISTENT_MEMORY WARN] ${new Date().toISOString()} ${message}`),
     };
 
     // Set up global interface immediately for compatibility

@@ -8,7 +8,7 @@ export default function testDeploy(req, res) {
     status: 'SUCCESS',
     message: 'Test deployment file is working',
     timestamp: new Date().toISOString(),
-    test: 'If you see this, file deployment works'
+    test: 'If you see this, file deployment works',
   });
 }
 

@@ -5,7 +5,11 @@
 import { EnhancedIntelligence } from './enhanced-intelligence.js';
 import { IntelligenceCoordinator } from './intelligence-coordinator.js';
 import { ResponseObjectUnifier } from './response-object-unifier.js';
-import { EMERGENCY_FALLBACKS, validateSystemCompliance, enforceZeroFailureResponse } from './site-monkeys/emergency-fallbacks.js';
+import {
+  EMERGENCY_FALLBACKS,
+  validateSystemCompliance,
+  enforceZeroFailureResponse,
+} from './site-monkeys/emergency-fallbacks.js';
 import { applyPoliticalGuardrails } from './politicalGuardrails.js';
 import { validateProduct } from './productValidation.js';
 
@@ -15,30 +19,30 @@ export class MasterIntelligenceOrchestrator {
     this.coordinator = new IntelligenceCoordinator();
     this.responseUnifier = new ResponseObjectUnifier();
     this.initialized = false;
-    
+
     // BULLETPROOF: Enhanced token and cost management
     this.tokenLimits = {
-      documentContentPerDoc: 1200,   // Safer per-document limit
-      totalDocumentContent: 2500,    // Total across all docs
-      memoryInjection: 2400,         // Align with existing enforcement
-      conversationHistory: 3000,     // NEW: History window
-      vaultContent: 6000,            // Reduced for safety
-      totalPrompt: 10000             // Overall safety limit
+      documentContentPerDoc: 1200, // Safer per-document limit
+      totalDocumentContent: 2500, // Total across all docs
+      memoryInjection: 2400, // Align with existing enforcement
+      conversationHistory: 3000, // NEW: History window
+      vaultContent: 6000, // Reduced for safety
+      totalPrompt: 10000, // Overall safety limit
     };
-    
+
     // BULLETPROOF: Enhanced processing stats
     this.processingStats = {
       totalProcessed: 0,
       successfulUnifications: 0,
       fallbacksAvoided: 0,
       documentsProcessed: 0,
-      multiDocumentsHandled: 0,      // NEW: Multi-doc tracking
+      multiDocumentsHandled: 0, // NEW: Multi-doc tracking
       documentsLimited: 0,
       confidenceBlended: 0,
       vaultConflictsResolved: 0,
-      historyWindowed: 0,            // NEW: History pruning tracking
-      smartTruncations: 0,           // NEW: Intelligent truncation tracking
-      adaptiveCostSavings: 0         // NEW: Adaptive cost savings
+      historyWindowed: 0, // NEW: History pruning tracking
+      smartTruncations: 0, // NEW: Intelligent truncation tracking
+      adaptiveCostSavings: 0, // NEW: Adaptive cost savings
     };
   }
 
@@ -46,28 +50,31 @@ export class MasterIntelligenceOrchestrator {
   async processWithUnifiedIntelligence(context) {
     this.processingStats.totalProcessed++;
     const startTime = Date.now();
-    
+
     console.log('🛡️ [BULLETPROOF] Unified intelligence processing with complete protection');
-    
+
     try {
       // ===============================================
       // PHASE 1: BULLETPROOF CONTEXT PREPARATION
       // ===============================================
       const bulletproofContext = await this.prepareBulletproofContext(context);
       console.log('✅ [BULLETPROOF] Context prepared with complete safeguards');
-      
+
       // ===============================================
       // PHASE 2: ADAPTIVE INTELLIGENCE PROCESSING
       // ===============================================
       const intelligenceResult = await this.processWithAdaptiveIntelligence(bulletproofContext);
       console.log('✅ [BULLETPROOF] Adaptive intelligence processing complete');
-      
+
       // ===============================================
       // PHASE 3: BULLETPROOF RESPONSE VALIDATION
       // ===============================================
-      const bulletproofResponse = await this.validateBulletproofResponse(intelligenceResult, bulletproofContext);
+      const bulletproofResponse = await this.validateBulletproofResponse(
+        intelligenceResult,
+        bulletproofContext,
+      );
       console.log('✅ [BULLETPROOF] Response validated with complete protection');
-      
+
       // Update success metrics
       this.processingStats.successfulUnifications++;
       if (bulletproofContext.documentAnalysis) {
@@ -76,10 +83,9 @@ export class MasterIntelligenceOrchestrator {
           this.processingStats.multiDocumentsHandled++;
         }
       }
-      
+
       console.log(`🛡️ [BULLETPROOF] Processing complete in ${Date.now() - startTime}ms`);
       return bulletproofResponse;
-      
     } catch (error) {
       console.error('❌ [BULLETPROOF] Processing error with recovery:', error);
       return await this.handleBulletproofError(error, context);
@@ -96,8 +102,8 @@ export class MasterIntelligenceOrchestrator {
       vault_content = null,
       vaultContent = null,
       user_id = 'default_user',
-      document_context = null,      // Single doc (current system)
-      documents_context = null,     // Multi-doc (future-proof)
+      document_context = null, // Single doc (current system)
+      documents_context = null, // Multi-doc (future-proof)
       memoryContext,
       expertDomain,
       careNeeds,
@@ -105,7 +111,7 @@ export class MasterIntelligenceOrchestrator {
       solutionOpportunities,
       vaultHealthy,
       optimalPersonality,
-      prideMotivation
+      prideMotivation,
     } = context;
 
     // BULLETPROOF: Vault variable unification with conflict tracking
@@ -122,9 +128,9 @@ export class MasterIntelligenceOrchestrator {
     // BULLETPROOF: Smart vault truncation at paragraph boundaries
     if (unifiedVaultContent && unifiedVaultContent.length > this.tokenLimits.vaultContent * 4) {
       unifiedVaultContent = this.smartTruncateText(
-        unifiedVaultContent, 
+        unifiedVaultContent,
         this.tokenLimits.vaultContent * 4,
-        'vault'
+        'vault',
       );
       this.processingStats.smartTruncations++;
       console.log('⚠️ [BULLETPROOF] Vault content intelligently truncated');
@@ -135,18 +141,22 @@ export class MasterIntelligenceOrchestrator {
     if (conversation_history && conversation_history.length > 15) {
       windowedHistory = conversation_history.slice(-15);
       this.processingStats.historyWindowed++;
-      console.log(`⚠️ [BULLETPROOF] History windowed: ${conversation_history.length} → 15 messages`);
+      console.log(
+        `⚠️ [BULLETPROOF] History windowed: ${conversation_history.length} → 15 messages`,
+      );
     }
 
     // Ensure total history tokens don't exceed limit
-    const historyText = windowedHistory.map(turn => turn.content || '').join(' ');
+    const historyText = windowedHistory.map((turn) => turn.content || '').join(' ');
     if (historyText.length > this.tokenLimits.conversationHistory * 4) {
       const truncatedHistory = this.smartTruncateText(
         historyText,
         this.tokenLimits.conversationHistory * 4,
-        'history'
+        'history',
       );
-      windowedHistory = [{ role: 'system', content: truncatedHistory + '\n[HISTORY SUMMARIZED FOR EFFICIENCY]' }];
+      windowedHistory = [
+        { role: 'system', content: truncatedHistory + '\n[HISTORY SUMMARIZED FOR EFFICIENCY]' },
+      ];
       console.log('⚠️ [BULLETPROOF] History content truncated for token efficiency');
     }
 
@@ -166,7 +176,7 @@ export class MasterIntelligenceOrchestrator {
 
     if (documentsToProcess.length > 0) {
       console.log(`📄 [BULLETPROOF] Processing ${documentsToProcess.length} document(s)`);
-      
+
       const processedDocs = [];
       let remainingTokenBudget = this.tokenLimits.totalDocumentContent;
 
@@ -178,21 +188,23 @@ export class MasterIntelligenceOrchestrator {
 
         let docContent = doc.content || 'Content not extracted';
         const docWordCount = docContent.split(' ').length;
-        
+
         // Limit this document to remaining budget or per-doc limit, whichever is smaller
         const maxWordsForThisDoc = Math.min(
           this.tokenLimits.documentContentPerDoc,
-          Math.floor(remainingTokenBudget / 4 * 0.75) // Convert tokens to approximate words
+          Math.floor((remainingTokenBudget / 4) * 0.75), // Convert tokens to approximate words
         );
 
         if (docWordCount > maxWordsForThisDoc) {
           docContent = this.smartTruncateText(
             docContent,
             maxWordsForThisDoc * 4, // Convert back to characters
-            'document'
+            'document',
           );
           this.processingStats.smartTruncations++;
-          console.log(`⚠️ [BULLETPROOF] Document ${index + 1} truncated: ${docWordCount} → ${maxWordsForThisDoc} words`);
+          console.log(
+            `⚠️ [BULLETPROOF] Document ${index + 1} truncated: ${docWordCount} → ${maxWordsForThisDoc} words`,
+          );
         }
 
         const docTokens = Math.ceil(docContent.length / 4);
@@ -206,7 +218,7 @@ export class MasterIntelligenceOrchestrator {
           keyPhrases: doc.keyPhrases,
           content: docContent,
           tokensUsed: docTokens,
-          wasLimited: docWordCount > maxWordsForThisDoc
+          wasLimited: docWordCount > maxWordsForThisDoc,
         });
       }
 
@@ -234,7 +246,9 @@ Please provide comprehensive analysis of this document based on the user's reque
 USER REQUEST: ${message}
 
 UPLOADED DOCUMENTS (${processedDocs.length}):
-${processedDocs.map((doc, i) => `
+${processedDocs
+  .map(
+    (doc, i) => `
 DOCUMENT ${i + 1}: ${doc.filename}
 TYPE: ${doc.contentType || 'Unknown'}
 WORD COUNT: ${doc.wordCount}
@@ -242,7 +256,9 @@ KEY PHRASES: ${doc.keyPhrases ? doc.keyPhrases.join(', ') : 'None'}
 
 CONTENT:
 ${doc.content}
-`).join('\n---\n')}
+`,
+  )
+  .join('\n---\n')}
 
 Please provide comprehensive analysis comparing and contrasting these documents based on the user's request.`;
       }
@@ -252,7 +268,7 @@ Please provide comprehensive analysis comparing and contrasting these documents 
         multipleDocuments: processedDocs.length > 1,
         totalTokensUsed: totalDocumentTokens,
         documents: processedDocs,
-        anyLimited: processedDocs.some(doc => doc.wasLimited)
+        anyLimited: processedDocs.some((doc) => doc.wasLimited),
       };
     }
 
@@ -264,16 +280,18 @@ Please provide comprehensive analysis comparing and contrasting these documents 
         const truncatedMemory = this.smartTruncateText(
           memoryContext.memories,
           this.tokenLimits.memoryInjection * 4,
-          'memory'
+          'memory',
         );
         bulletproofMemoryContext = {
           ...memoryContext,
           memories: truncatedMemory,
           wasLimited: true,
           originalTokens: memoryTokens,
-          limitedTokens: this.tokenLimits.memoryInjection
+          limitedTokens: this.tokenLimits.memoryInjection,
         };
-        console.log(`⚠️ [BULLETPROOF] Memory context limited: ${memoryTokens} → ${this.tokenLimits.memoryInjection} tokens`);
+        console.log(
+          `⚠️ [BULLETPROOF] Memory context limited: ${memoryTokens} → ${this.tokenLimits.memoryInjection} tokens`,
+        );
       }
     }
 
@@ -295,7 +313,7 @@ Please provide comprehensive analysis comparing and contrasting these documents 
       optimalPersonality,
       prideMotivation,
       processingTimestamp: new Date().toISOString(),
-      
+
       // BULLETPROOF: Complete safeguard metadata
       safeguardsApplied: {
         vaultVariableUnified: !!vault_content && !!vaultContent,
@@ -303,8 +321,8 @@ Please provide comprehensive analysis comparing and contrasting these documents 
         historyWindowed: conversation_history.length !== windowedHistory.length,
         memoryLimited: bulletproofMemoryContext?.wasLimited || false,
         documentsLimited: documentAnalysis?.anyLimited || false,
-        multiDocumentHandling: documentAnalysis?.multipleDocuments || false
-      }
+        multiDocumentHandling: documentAnalysis?.multipleDocuments || false,
+      },
     };
   }
 
@@ -316,7 +334,7 @@ Please provide comprehensive analysis comparing and contrasting these documents 
     const breakPoints = {
       paragraph: /\n\s*\n/g,
       sentence: /[.!?]\s+/g,
-      phrase: /[,;]\s+/g
+      phrase: /[,;]\s+/g,
     };
 
     // Try to truncate at paragraph boundary first
@@ -326,7 +344,9 @@ Please provide comprehensive analysis comparing and contrasting these documents 
         const breakPoint = matches[i].index + matches[i][0].length;
         if (breakPoint <= maxLength * 0.9) {
           const truncated = text.substring(0, breakPoint);
-          console.log(`✅ [BULLETPROOF] Smart truncation at ${breakType} boundary for ${contentType}`);
+          console.log(
+            `✅ [BULLETPROOF] Smart truncation at ${breakType} boundary for ${contentType}`,
+          );
           return truncated + `\n\n[${contentType.toUpperCase()} TRUNCATED - SHOWING FIRST SECTION]`;
         }
       }
@@ -342,10 +362,10 @@ Please provide comprehensive analysis comparing and contrasting these documents 
   // BULLETPROOF: Adaptive intelligence with cost optimization (addresses gap #5)
   async processWithAdaptiveIntelligence(bulletproofContext) {
     console.log('🧠 [BULLETPROOF] Adaptive intelligence processing with cost optimization');
-    
+
     const attempts = [];
     let shouldTryEnhanced = true;
-    
+
     // ADAPTIVE: Try sophisticated intelligence first
     try {
       const sophisticatedResult = await this.coordinator.processQuery(
@@ -354,27 +374,31 @@ Please provide comprehensive analysis comparing and contrasting these documents 
           memory: bulletproofContext.memoryContext,
           vault: bulletproofContext.unifiedVaultContent,
           mode: bulletproofContext.mode,
-          documentAnalysis: bulletproofContext.documentAnalysis
+          documentAnalysis: bulletproofContext.documentAnalysis,
         },
-        bulletproofContext.mode
+        bulletproofContext.mode,
       );
-      
+
       if (sophisticatedResult && sophisticatedResult.response) {
         const confidence = sophisticatedResult.confidence || 0.7;
         attempts.push({
           source: 'sophisticated_intelligence',
           response: sophisticatedResult.response,
           confidence: confidence,
-          enginesActivated: sophisticatedResult.enginesActivated || ['intelligence_coordinator']
+          enginesActivated: sophisticatedResult.enginesActivated || ['intelligence_coordinator'],
         });
-        
+
         // ADAPTIVE: Only try Enhanced if Sophisticated confidence is low
         if (confidence >= 0.8) {
           shouldTryEnhanced = false;
           this.processingStats.adaptiveCostSavings++;
-          console.log(`✅ [BULLETPROOF] High confidence (${confidence}) - skipping Enhanced for cost optimization`);
+          console.log(
+            `✅ [BULLETPROOF] High confidence (${confidence}) - skipping Enhanced for cost optimization`,
+          );
         } else {
-          console.log(`✅ [BULLETPROOF] Sophisticated confidence ${confidence} - will try Enhanced for blending`);
+          console.log(
+            `✅ [BULLETPROOF] Sophisticated confidence ${confidence} - will try Enhanced for blending`,
+          );
         }
       }
     } catch (error) {
@@ -390,17 +414,19 @@ Please provide comprehensive analysis comparing and contrasting these documents 
           bulletproofContext.mode,
           bulletproofContext.memoryContext,
           bulletproofContext.unifiedVaultContent,
-          0.8
+          0.8,
         );
-        
+
         if (enhancedResult && enhancedResult.enhancedResponse) {
           attempts.push({
             source: 'enhanced_intelligence',
             response: enhancedResult.enhancedResponse,
             confidence: enhancedResult.finalConfidence || 0.6,
-            enginesActivated: ['enhanced_intelligence']
+            enginesActivated: ['enhanced_intelligence'],
           });
-          console.log(`✅ [BULLETPROOF] Enhanced intelligence: confidence ${enhancedResult.finalConfidence || 0.6}`);
+          console.log(
+            `✅ [BULLETPROOF] Enhanced intelligence: confidence ${enhancedResult.finalConfidence || 0.6}`,
+          );
         }
       } catch (error) {
         console.warn('⚠️ [BULLETPROOF] Enhanced intelligence failed:', error.message);
@@ -419,17 +445,18 @@ Please provide comprehensive analysis comparing and contrasting these documents 
         source: 'bulletproof_fallback',
         response: `I understand you're asking: ${bulletproofContext.originalMessage}
 
-Let me help you with this thoughtfully. ${bulletproofContext.documentAnalysis ? 
-  (bulletproofContext.documentAnalysis.multipleDocuments ? 
-    `I can see you've uploaded ${bulletproofContext.documentAnalysis.documentCount} documents and I'll analyze them based on your request.` :
-    `I can see you've uploaded a document (${bulletproofContext.documentAnalysis.documents[0].filename}) and I'll analyze it based on your request.`
-  ) : ''
-}
+Let me help you with this thoughtfully. ${
+          bulletproofContext.documentAnalysis
+            ? bulletproofContext.documentAnalysis.multipleDocuments
+              ? `I can see you've uploaded ${bulletproofContext.documentAnalysis.documentCount} documents and I'll analyze them based on your request.`
+              : `I can see you've uploaded a document (${bulletproofContext.documentAnalysis.documents[0].filename}) and I'll analyze it based on your request.`
+            : ''
+        }
 
 Based on the context available, I'll provide you with the most helpful guidance possible.`,
         confidence: 0.7,
         intelligenceEnhanced: false,
-        enginesActivated: ['bulletproof_fallback']
+        enginesActivated: ['bulletproof_fallback'],
       };
     }
 
@@ -439,13 +466,13 @@ Based on the context available, I'll provide you with the most helpful guidance 
 
     // Multiple attempts - enhanced blending logic
     this.processingStats.confidenceBlended++;
-    
-    const sophisticatedAttempt = attempts.find(a => a.source === 'sophisticated_intelligence');
-    const enhancedAttempt = attempts.find(a => a.source === 'enhanced_intelligence');
+
+    const sophisticatedAttempt = attempts.find((a) => a.source === 'sophisticated_intelligence');
+    const enhancedAttempt = attempts.find((a) => a.source === 'enhanced_intelligence');
 
     if (sophisticatedAttempt && enhancedAttempt) {
       const confidenceDiff = Math.abs(sophisticatedAttempt.confidence - enhancedAttempt.confidence);
-      
+
       if (confidenceDiff < 0.1) {
         // Very similar confidence - prefer sophisticated
         console.log('✅ [BULLETPROOF] Similar confidence - preferring sophisticated');
@@ -453,34 +480,36 @@ Based on the context available, I'll provide you with the most helpful guidance 
           ...sophisticatedAttempt,
           intelligenceEnhanced: true,
           confidenceBlended: true,
-          alternativeConfidence: enhancedAttempt.confidence
+          alternativeConfidence: enhancedAttempt.confidence,
         };
       }
     }
 
     // Use highest confidence
-    const bestAttempt = attempts.reduce((best, current) => 
-      current.confidence > best.confidence ? current : best
+    const bestAttempt = attempts.reduce((best, current) =>
+      current.confidence > best.confidence ? current : best,
     );
-    
-    console.log(`✅ [BULLETPROOF] Best confidence selection: ${bestAttempt.source} (${bestAttempt.confidence})`);
+
+    console.log(
+      `✅ [BULLETPROOF] Best confidence selection: ${bestAttempt.source} (${bestAttempt.confidence})`,
+    );
     return {
       ...bestAttempt,
       intelligenceEnhanced: true,
-      confidenceBlended: attempts.length > 1
+      confidenceBlended: attempts.length > 1,
     };
   }
 
   // BULLETPROOF: Response validation with complete protection
   async validateBulletproofResponse(intelligenceResult, bulletproofContext) {
     console.log('🔧 [BULLETPROOF] Complete response validation');
-    
+
     // Initialize unified response object
     this.responseUnifier.initializeResponseObject(intelligenceResult.response);
-    
+
     // Apply all validations with error tolerance
     const validationResults = [];
-    
+
     try {
       this.responseUnifier.applyPoliticalNeutrality(bulletproofContext.originalMessage);
       validationResults.push('political_neutrality_applied');
@@ -496,17 +525,20 @@ Based on the context available, I'll provide you with the most helpful guidance 
       console.warn('⚠️ [BULLETPROOF] Product validation warning:', error.message);
       validationResults.push('product_validation_warning');
     }
-    
+
     if (bulletproofContext.mode === 'site_monkeys') {
       try {
-        this.responseUnifier.applySiteMonkeysStandards(bulletproofContext.mode, bulletproofContext.unifiedVaultContent);
+        this.responseUnifier.applySiteMonkeysStandards(
+          bulletproofContext.mode,
+          bulletproofContext.unifiedVaultContent,
+        );
         validationResults.push('site_monkeys_standards_applied');
       } catch (error) {
         console.warn('⚠️ [BULLETPROOF] Site Monkeys validation warning:', error.message);
         validationResults.push('site_monkeys_standards_warning');
       }
     }
-    
+
     try {
       this.responseUnifier.applyConflictResolution();
       validationResults.push('conflict_resolution_applied');
@@ -514,9 +546,9 @@ Based on the context available, I'll provide you with the most helpful guidance 
       console.warn('⚠️ [BULLETPROOF] Conflict resolution warning:', error.message);
       validationResults.push('conflict_resolution_warning');
     }
-    
+
     const finalResponse = this.responseUnifier.getFinalResponse();
-    
+
     // BULLETPROOF: Complete response object with all metadata
     return {
       response: finalResponse.content,
@@ -530,23 +562,26 @@ Based on the context available, I'll provide you with the most helpful guidance 
       enforcementApplied: finalResponse.enforcement_metadata.enforcement_chain,
       conflictsResolved: finalResponse.enforcement_metadata.conflicts_resolved,
       processingTime: Date.now() - Date.parse(bulletproofContext.processingTimestamp),
-      
+
       // BULLETPROOF: Complete safeguard reporting
       safeguardsApplied: {
         ...bulletproofContext.safeguardsApplied,
         validationResults: validationResults,
         confidenceBlended: intelligenceResult.confidenceBlended || false,
-        adaptiveCostOptimization: this.processingStats.adaptiveCostSavings > 0
+        adaptiveCostOptimization: this.processingStats.adaptiveCostSavings > 0,
       },
-      
+
       // BULLETPROOF: Enhanced document metadata
       documentAnalysis: bulletproofContext.documentAnalysis,
-      
+
       usage: {
         prompt_tokens: Math.ceil(bulletproofContext.enhancedMessage.length / 4),
         completion_tokens: Math.ceil(finalResponse.content.length / 4),
-        estimated_cost: this.estimateProcessingCost(bulletproofContext.enhancedMessage, finalResponse.content)
-      }
+        estimated_cost: this.estimateProcessingCost(
+          bulletproofContext.enhancedMessage,
+          finalResponse.content,
+        ),
+      },
     };
   }
 
@@ -555,7 +590,7 @@ Based on the context available, I'll provide you with the most helpful guidance 
     const promptTokens = Math.ceil(prompt.length / 4);
     const responseTokens = Math.ceil(response.length / 4);
     const totalTokens = promptTokens + responseTokens;
-    
+
     // Rough GPT-4 pricing estimate (adjust based on your actual costs)
     const costPer1kTokens = 0.03;
     return (totalTokens / 1000) * costPer1kTokens;
@@ -564,7 +599,7 @@ Based on the context available, I'll provide you with the most helpful guidance 
   // BULLETPROOF: Error handling with complete recovery
   async handleBulletproofError(error, context) {
     console.error('🚨 [BULLETPROOF] Complete error recovery:', error);
-    
+
     return {
       response: `I understand you're asking: ${context.message}
 
@@ -580,16 +615,16 @@ How can I best help you with this?`,
       enginesActivated: ['bulletproof_error_recovery'],
       error: {
         message: error.message,
-        recoveryApplied: true
+        recoveryApplied: true,
       },
       safeguardsApplied: {
         errorRecovery: true,
-        gracefulDegradation: true
+        gracefulDegradation: true,
       },
       usage: {
         prompt_tokens: Math.ceil(context.message.length / 4),
-        completion_tokens: 150
-      }
+        completion_tokens: 150,
+      },
     };
   }
 
@@ -603,7 +638,7 @@ How can I best help you with this?`,
       componentStatus: {
         enhanced_intelligence: !!this.enhanced,
         intelligence_coordinator: !!this.coordinator,
-        response_unifier: !!this.responseUnifier
+        response_unifier: !!this.responseUnifier,
       },
       protectionEffectiveness: {
         documentsLimited: this.processingStats.documentsLimited,
@@ -612,8 +647,8 @@ How can I best help you with this?`,
         vaultConflictsResolved: this.processingStats.vaultConflictsResolved,
         historyWindowed: this.processingStats.historyWindowed,
         smartTruncations: this.processingStats.smartTruncations,
-        adaptiveCostSavings: this.processingStats.adaptiveCostSavings
-      }
+        adaptiveCostSavings: this.processingStats.adaptiveCostSavings,
+      },
     };
   }
 }

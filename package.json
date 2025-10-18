@@ -31,6 +31,15 @@
     "node": ">=14.0.0"
   },
   "devDependencies": {
-    "eslint": "^9.38.0"
-  }
+    "eslint": "^9.38.0",
+    "prettier": "^3.6.2"
+  },
+  "description": "Site Monkeys memory and enforcement shell with comprehensive 66-feature system validation.",
+  "main": "database_connection_fix.js",
+  "directories": {
+    "lib": "lib"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
 }

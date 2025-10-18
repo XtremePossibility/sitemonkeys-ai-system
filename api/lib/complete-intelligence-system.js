@@ -35,9 +35,16 @@ class CompleteIntelligenceSystem {
       learning: this.learning.initialized,
       adaptation: this.adaptation.initialized,
       streams: this.streams.initialized,
-      system_ready: this.initialized
+      system_ready: this.initialized,
     };
   }
 }
 
-export { CompleteIntelligenceSystem, ValidationEngine, MultimodalGateway, LearningEngine, AdaptationEngine, StreamProcessor };
+export {
+  CompleteIntelligenceSystem,
+  ValidationEngine,
+  MultimodalGateway,
+  LearningEngine,
+  AdaptationEngine,
+  StreamProcessor,
+};

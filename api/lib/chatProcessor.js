@@ -29,11 +29,11 @@ class PersistentSessionStore {
           patternWarnings: [],
           enforcementHistory: [],
           vaultCache: null,
-          integrityEvents: []
+          integrityEvents: [],
         });
       }
     }
-    
+
     const session = this.sessions.get(sessionId);
     session.lastActivity = Date.now();
     this.persistence.set(sessionId, session);
@@ -50,24 +50,26 @@ class PersistentSessionStore {
       overrideLog: [],
       pressureAttempts: [],
       patternWarnings: [],
-      enforcementHistory: [{
-        type: 'SESSION_RESET',
-        timestamp: Date.now(),
-        reason: reason,
-        previousDrift: oldSession?.driftScore || 'unknown',
-        previousOverrides: oldSession?.overrideLog?.length || 0
-      }],
+      enforcementHistory: [
+        {
+          type: 'SESSION_RESET',
+          timestamp: Date.now(),
+          reason: reason,
+          previousDrift: oldSession?.driftScore || 'unknown',
+          previousOverrides: oldSession?.overrideLog?.length || 0,
+        },
+      ],
       vaultCache: oldSession?.vaultCache || null,
-      integrityEvents: []
+      integrityEvents: [],
     };
-    
+
     this.sessions.set(sessionId, newSession);
     this.persistence.set(sessionId, newSession);
     return newSession;
   }
 
   cleanup() {
-    const cutoff = Date.now() - (24 * 60 * 60 * 1000);
+    const cutoff = Date.now() - 24 * 60 * 60 * 1000;
     for (const [id, session] of this.sessions.entries()) {
       if (session.lastActivity < cutoff) {
         this.sessions.delete(id);
@@ -92,40 +94,40 @@ class OverrideAuditor {
       userPressure: userPressure,
       sessionPosition: session.overrideLog.length + 1,
       driftImpact: this.calculateDriftImpact(type, userPressure),
-      justification: this.generateJustification(type, context)
+      justification: this.generateJustification(type, context),
     };
 
     session.overrideLog.push(overrideRecord);
     session.driftScore = Math.max(0.1, session.driftScore - overrideRecord.driftImpact);
-    
+
     this.detectPatterns(session);
     return overrideRecord;
   }
 
   static calculateDriftImpact(type, userPressure) {
     const baseDrift = {
-      'TRUTH_ACCOMMODATION': 0.15,
-      'BUSINESS_RISK_MINIMIZATION': 0.12,
-      'VAULT_RULE_BYPASS': 0.10,
-      'PRESSURE_ACCOMMODATION': 0.20,
-      'EVIDENCE_LOWERING': 0.18,
-      'POLITICAL_BIAS': 0.25
+      TRUTH_ACCOMMODATION: 0.15,
+      BUSINESS_RISK_MINIMIZATION: 0.12,
+      VAULT_RULE_BYPASS: 0.1,
+      PRESSURE_ACCOMMODATION: 0.2,
+      EVIDENCE_LOWERING: 0.18,
+      POLITICAL_BIAS: 0.25,
     };
 
-    let impact = baseDrift[type] || 0.10;
+    let impact = baseDrift[type] || 0.1;
     if (userPressure) impact += 0.05;
-    
-    return Math.min(impact, 0.30);
+
+    return Math.min(impact, 0.3);
   }
 
   static generateJustification(type, context) {
     const justifications = {
-      'TRUTH_ACCOMMODATION': 'Response modified to meet truth-first standards',
-      'BUSINESS_RISK_MINIMIZATION': 'Added risk analysis to counter optimistic bias',
-      'VAULT_RULE_BYPASS': 'Vault rule enforcement applied',
-      'PRESSURE_ACCOMMODATION': 'Pressure resistance activated',
-      'EVIDENCE_LOWERING': 'Evidence standards enforced',
-      'POLITICAL_BIAS': 'Political neutrality restored'
+      TRUTH_ACCOMMODATION: 'Response modified to meet truth-first standards',
+      BUSINESS_RISK_MINIMIZATION: 'Added risk analysis to counter optimistic bias',
+      VAULT_RULE_BYPASS: 'Vault rule enforcement applied',
+      PRESSURE_ACCOMMODATION: 'Pressure resistance activated',
+      EVIDENCE_LOWERING: 'Evidence standards enforced',
+      POLITICAL_BIAS: 'Political neutrality restored',
     };
 
     return justifications[type] || 'Cognitive integrity enforcement applied';
@@ -133,7 +135,7 @@ class OverrideAuditor {
 
   static detectPatterns(session) {
     const recentOverrides = session.overrideLog.filter(
-      override => Date.now() - override.timestamp < 900000
+      (override) => Date.now() - override.timestamp < 900000,
     );
 
     if (recentOverrides.length >= 3) {
@@ -142,19 +144,19 @@ class OverrideAuditor {
         timestamp: Date.now(),
         count: recentOverrides.length,
         severity: 'HIGH',
-        message: `${recentOverrides.length} overrides in 15 minutes - potential pressure accommodation`
+        message: `${recentOverrides.length} overrides in 15 minutes - potential pressure accommodation`,
       };
-      
+
       session.patternWarnings.push(patternWarning);
     }
 
-    const truthOverrides = recentOverrides.filter(o => o.type.includes('TRUTH'));
+    const truthOverrides = recentOverrides.filter((o) => o.type.includes('TRUTH'));
     if (truthOverrides.length >= 2) {
       session.patternWarnings.push({
         type: 'TRUTH_EROSION',
         timestamp: Date.now(),
         severity: 'CRITICAL',
-        message: 'Multiple truth enforcement triggers - truth standards may be eroding'
+        message: 'Multiple truth enforcement triggers - truth standards may be eroding',
       });
     }
   }
@@ -165,9 +167,14 @@ class OverrideAuditor {
       recentOverrides: session.overrideLog.slice(-5),
       patternWarnings: session.patternWarnings,
       driftScore: session.driftScore,
-      integrityStatus: session.driftScore > 0.8 ? 'STRONG' : 
-                      session.driftScore > 0.6 ? 'MODERATE' : 
-                      session.driftScore > 0.4 ? 'COMPROMISED' : 'CRITICAL'
+      integrityStatus:
+        session.driftScore > 0.8
+          ? 'STRONG'
+          : session.driftScore > 0.6
+            ? 'MODERATE'
+            : session.driftScore > 0.4
+              ? 'COMPROMISED'
+              : 'CRITICAL',
     };
   }
 }
@@ -178,42 +185,42 @@ class PatternDetector {
     const patterns = [];
     const timeWindow = 1800000;
     const recent = session.overrideLog.filter(
-      override => Date.now() - override.timestamp < timeWindow
+      (override) => Date.now() - override.timestamp < timeWindow,
     );
 
-    const truthSoftening = recent.filter(o => 
-      o.type.includes('TRUTH') || o.type.includes('ACCOMMODATION')
+    const truthSoftening = recent.filter(
+      (o) => o.type.includes('TRUTH') || o.type.includes('ACCOMMODATION'),
     );
     if (truthSoftening.length >= 2) {
       patterns.push({
         type: 'TRUTH_SOFTENING',
         severity: 'HIGH',
         evidence: truthSoftening.length,
-        message: `Truth enforcement triggered ${truthSoftening.length} times - standards may be softening`
+        message: `Truth enforcement triggered ${truthSoftening.length} times - standards may be softening`,
       });
     }
 
-    const riskMinimization = recent.filter(o => 
-      o.type.includes('RISK') || o.type.includes('BUSINESS')
+    const riskMinimization = recent.filter(
+      (o) => o.type.includes('RISK') || o.type.includes('BUSINESS'),
     );
     if (riskMinimization.length >= 2) {
       patterns.push({
         type: 'RISK_MINIMIZATION',
         severity: 'HIGH',
         evidence: riskMinimization.length,
-        message: `Business risk enforcement triggered ${riskMinimization.length} times - risk awareness declining`
+        message: `Business risk enforcement triggered ${riskMinimization.length} times - risk awareness declining`,
       });
     }
 
     const pressurePattern = session.pressureAttempts.filter(
-      attempt => Date.now() - attempt.timestamp < timeWindow
+      (attempt) => Date.now() - attempt.timestamp < timeWindow,
     );
     if (pressurePattern.length >= 3) {
       patterns.push({
         type: 'SUSTAINED_PRESSURE',
         severity: 'CRITICAL',
         evidence: pressurePattern.length,
-        message: `${pressurePattern.length} pressure attempts detected - user may be trying to override system`
+        message: `${pressurePattern.length} pressure attempts detected - user may be trying to override system`,
       });
     }
 
@@ -223,11 +230,16 @@ class PatternDetector {
   static assessMemoryHealth(session) {
     const health = {
       score: session.driftScore,
-      status: session.driftScore > 0.8 ? 'HEALTHY' : 
-              session.driftScore > 0.6 ? 'DECLINING' : 
-              session.driftScore > 0.4 ? 'COMPROMISED' : 'CRITICAL',
+      status:
+        session.driftScore > 0.8
+          ? 'HEALTHY'
+          : session.driftScore > 0.6
+            ? 'DECLINING'
+            : session.driftScore > 0.4
+              ? 'COMPROMISED'
+              : 'CRITICAL',
       patterns: this.analyzeSession(session),
-      recommendations: []
+      recommendations: [],
     };
 
     if (health.score < 0.5) {
@@ -250,11 +262,11 @@ class ModeFingerprinter {
     const date = new Date(timestamp).toISOString().split('T')[0];
     const enforcement = enforcementApplied.length > 0 ? enforcementApplied.join('+') : 'NONE';
     const vault = vaultStatus.loaded ? vaultStatus.source : 'NONE';
-    
+
     const fingerprints = {
       truth_general: `TG-${date}-${enforcement}`,
       business_validation: `BV-${date}-${enforcement}`,
-      site_monkeys: `SM-${date}-${vault}-${enforcement}`
+      site_monkeys: `SM-${date}-${vault}-${enforcement}`,
     };
 
     return {
@@ -263,23 +275,26 @@ class ModeFingerprinter {
       enforcement: enforcement,
       vault: vault,
       confidence: this.calculateConfidence(mode, enforcementApplied),
-      timestamp: timestamp
+      timestamp: timestamp,
     };
   }
 
   static calculateConfidence(mode, enforcementApplied) {
     let confidence = 0.7;
-    
+
     if (enforcementApplied.includes('TRUTH_ENFORCEMENT')) confidence += 0.1;
     if (enforcementApplied.includes('BUSINESS_ENFORCEMENT')) confidence += 0.1;
     if (enforcementApplied.includes('VAULT_ENFORCEMENT')) confidence += 0.1;
     if (enforcementApplied.includes('PRESSURE_RESISTANCE')) confidence += 0.05;
-    
+
     return Math.min(confidence, 1.0);
   }
 
   static embedFingerprint(response, fingerprint) {
-    return response + `\n\n🔍 [${fingerprint.fingerprint}] Confidence:${Math.round(fingerprint.confidence * 100)}% | Enforcement:${fingerprint.enforcement}`;
+    return (
+      response +
+      `\n\n🔍 [${fingerprint.fingerprint}] Confidence:${Math.round(fingerprint.confidence * 100)}% | Enforcement:${fingerprint.enforcement}`
+    );
   }
 }
 
@@ -292,14 +307,16 @@ export async function processRequest(requestBody) {
       conversation_history = [],
       vault_loaded = false,
       user_preference = null,
-      session_id = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+      session_id = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
     } = requestBody;
 
     console.log(`🧠 COGNITIVE FIREWALL ACTIVATED: ${mode}, vault: ${vault_loaded}`);
 
     // Get persistent session
     const session = sessionStore.getSession(session_id);
-    console.log(`📊 Session: ${session_id}, Drift: ${session.driftScore.toFixed(2)}, Mode: ${mode}`);
+    console.log(
+      `📊 Session: ${session_id}, Drift: ${session.driftScore.toFixed(2)}, Mode: ${mode}`,
+    );
 
     // VAULT SYSTEM - ONLY FOR SITE MONKEYS
     let vaultResults = [];
@@ -315,11 +332,11 @@ export async function processRequest(requestBody) {
             pricing_logic: {
               minimum_price: 697,
               currency: 'USD',
-              frequency: 'monthly'
-            }
-          }
+              frequency: 'monthly',
+            },
+          },
         };
-        
+
         session.vaultCache = embeddedVault;
         vaultStatus = { loaded: true, source: 'EMBEDDED', required: true };
         vaultResults = analyzeForVault(message);
@@ -331,28 +348,33 @@ export async function processRequest(requestBody) {
           security_pass: false,
           triggered_frameworks: [],
           assumption_warnings: [],
-          fallback_used: false
+          fallback_used: false,
         };
       }
     }
 
     // PROCESS REQUEST WITH FULL ENFORCEMENT
     const vaultVerification = { allowed: vault_loaded && mode === 'site_monkeys' };
-    
+
     const result = await processWithEliAndRoxy({
       message,
       mode,
       vaultVerification,
       conversationHistory: conversation_history || [],
       userPreference: user_preference,
-      openai
+      openai,
     });
 
     // GENERATE MODE FINGERPRINT
     const timestamp = Date.now();
     const enforcementApplied = result.enforcement_applied || [];
-    const fingerprint = ModeFingerprinter.generateFingerprint(mode, enforcementApplied, vaultStatus, timestamp);
-    
+    const fingerprint = ModeFingerprinter.generateFingerprint(
+      mode,
+      enforcementApplied,
+      vaultStatus,
+      timestamp,
+    );
+
     // EMBED FINGERPRINT IN RESPONSE
     const finalResponse = ModeFingerprinter.embedFingerprint(result.response, fingerprint);
 
@@ -369,22 +391,21 @@ export async function processRequest(requestBody) {
       triggered_frameworks: result.enhancement?.meta_questions || [],
       assumption_warnings: result.cognitive_integrity?.patterns_detected || [],
       fallback_used: result.error ? true : false,
-      
+
       // Additional comprehensive data
       cognitive_integrity: {
         drift_score: session.driftScore,
         integrity_status: auditReport.integrityStatus,
         memory_health: memoryHealth.status,
         patterns_detected: memoryHealth.patterns,
-        override_count: auditReport.totalOverrides
+        override_count: auditReport.totalOverrides,
       },
       mode_fingerprint: fingerprint,
-      session_id: session_id
+      session_id: session_id,
     };
-
   } catch (error) {
     console.error('🔥 Cognitive firewall error:', error);
-    
+
     return {
       response: `🛡️ COGNITIVE FIREWALL PROTECTION ACTIVE\n\nCritical system error encountered, but all cognitive protection measures remain fully operational.\n\nERROR TYPE: ${error.name || 'Unknown System Error'}\nERROR DETAILS: ${error.message || 'No details available'}\n\nPROTECTIVE MEASURES ACTIVE:\n• Truth-first analysis principles maintained\n• Business survival assessment frameworks operational\n• Political neutrality enforcement active\n• Evidence-based recommendation filtering active\n• Pressure resistance systems operational\n• Override tracking and pattern detection active\n\nAll decision-making safeguards remain in place. The cognitive firewall continues to protect your thinking even during technical difficulties.\n\nPlease retry your request. If this error persists, the system is actively protecting you from potentially unreliable analysis.`,
       mode_active: 'error',
@@ -392,7 +413,7 @@ export async function processRequest(requestBody) {
       security_pass: false,
       triggered_frameworks: [],
       assumption_warnings: [],
-      fallback_used: true
+      fallback_used: true,
     };
   }
 }
@@ -402,12 +423,16 @@ function analyzeForVault(message) {
   const results = [];
   const lowerMessage = message.toLowerCase();
 
-  if (lowerMessage.includes('price') || lowerMessage.includes('cost') || lowerMessage.includes('$')) {
+  if (
+    lowerMessage.includes('price') ||
+    lowerMessage.includes('cost') ||
+    lowerMessage.includes('$')
+  ) {
     const priceMatches = message.match(/\$(\d+(?:,\d{3})*)/g);
     if (priceMatches) {
-      const prices = priceMatches.map(p => parseInt(p.replace(/[\$,]/g, '')));
+      const prices = priceMatches.map((p) => parseInt(p.replace(/[\$,]/g, '')));
       const minPrice = Math.min(...prices);
-      
+
       if (minPrice < 697) {
         results.push({
           domain: 'pricing',
@@ -415,20 +440,24 @@ function analyzeForVault(message) {
           reasoning: `Price $${minPrice} violates minimum threshold of $697`,
           price_found: minPrice,
           required_price: 697,
-          critical: true
+          critical: true,
         });
       }
     }
   }
 
-  if (lowerMessage.includes('spend') || lowerMessage.includes('expense') || lowerMessage.includes('cost')) {
+  if (
+    lowerMessage.includes('spend') ||
+    lowerMessage.includes('expense') ||
+    lowerMessage.includes('cost')
+  ) {
     const spendMatches = message.match(/(?:spend|expense|cost).*?\$(\d+(?:,\d{3})*)/gi);
     if (spendMatches) {
-      const amounts = spendMatches.map(match => {
+      const amounts = spendMatches.map((match) => {
         const numberMatch = match.match(/\$(\d+(?:,\d{3})*)/);
         return numberMatch ? parseInt(numberMatch[1].replace(/,/g, '')) : 0;
       });
-      
+
       const maxAmount = Math.max(...amounts);
       if (maxAmount >= 5000) {
         results.push({
@@ -437,7 +466,7 @@ function analyzeForVault(message) {
           reasoning: `Expense $${maxAmount} exceeds threshold requiring runway analysis`,
           amount_found: maxAmount,
           required_analysis: ['runway_impact', 'roi_justification', 'alternatives'],
-          critical: true
+          critical: true,
         });
       }
     }

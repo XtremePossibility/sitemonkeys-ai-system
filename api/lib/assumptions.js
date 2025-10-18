@@ -18,76 +18,76 @@ let assumptionDatabase = {
   override_history: [],
   pattern_warnings: [],
   health_scores: {},
-  last_reset: Date.now()
+  last_reset: Date.now(),
 };
 
 // TIER 1: ASSUMPTION DETECTION
 export function checkAssumptionHealth(response) {
   const detectedAssumptions = extractAssumptions(response);
   const healthMetrics = calculateHealthMetrics(detectedAssumptions);
-  
+
   // Update assumption database
-  detectedAssumptions.forEach(assumption => {
+  detectedAssumptions.forEach((assumption) => {
     assumptionDatabase.session_assumptions.push({
       text: assumption.text,
       type: assumption.type,
       confidence: assumption.confidence,
       timestamp: Date.now(),
-      health_score: assumption.health_score
+      health_score: assumption.health_score,
     });
   });
-  
+
   return {
     assumptions_detected: detectedAssumptions.length,
     assumptions: detectedAssumptions,
     overall_health: healthMetrics.overall_health,
     risk_level: healthMetrics.risk_level,
-    recommendations: healthMetrics.recommendations
+    recommendations: healthMetrics.recommendations,
   };
 }
 
 // TIER 1: ASSUMPTION EXTRACTION
 function extractAssumptions(response) {
   const assumptions = [];
-  
+
   // Pattern-based assumption detection
   const ASSUMPTION_PATTERNS = [
     {
       pattern: /obviously|clearly|everyone knows|it's common knowledge/gi,
       type: 'universal_claim',
       risk_level: 'high',
-      health_penalty: -20
+      health_penalty: -20,
     },
     {
       pattern: /always works|never fails|guaranteed|100% success/gi,
       type: 'absolute_certainty',
       risk_level: 'critical',
-      health_penalty: -30
+      health_penalty: -30,
     },
     {
       pattern: /most people|generally|typically|usually/gi,
       type: 'generalization',
       risk_level: 'medium',
-      health_penalty: -10
+      health_penalty: -10,
     },
     {
       pattern: /should|must|need to|have to/gi,
       type: 'normative_assumption',
       risk_level: 'low',
-      health_penalty: -5
+      health_penalty: -5,
     },
     {
       pattern: /studies show|research indicates|data suggests/gi,
       type: 'evidence_based',
       risk_level: 'low',
       health_penalty: 0,
-      health_bonus: 15
-    }
+      health_bonus: 15,
+    },
   ];
-  
-  ASSUMPTION_PATTERNS.forEach(pattern => {
+
+  ASSUMPTION_PATTERNS.forEach((pattern) => {
     const matches = [...response.matchAll(pattern.pattern)];
-    matches.forEach(match => {
+    matches.forEach((match) => {
       assumptions.push({
         text: match[0],
         type: pattern.type,
@@ -95,34 +95,34 @@ function extractAssumptions(response) {
         confidence: calculateAssumptionConfidence(match[0], pattern.type),
         health_score: 100 + (pattern.health_penalty || 0) + (pattern.health_bonus || 0),
         position: match.index,
-        context: extractContext(response, match.index, 50)
+        context: extractContext(response, match.index, 50),
       });
     });
   });
-  
+
   return assumptions;
 }
 
 // TIER 2: ASSUMPTION CONFIDENCE CALCULATION
 function calculateAssumptionConfidence(assumptionText, type) {
   let baseConfidence = 50;
-  
+
   // Adjust based on assumption type
   const typeModifiers = {
     evidence_based: 40,
     normative_assumption: 10,
     generalization: -15,
     universal_claim: -25,
-    absolute_certainty: -40
+    absolute_certainty: -40,
   };
-  
+
   baseConfidence += typeModifiers[type] || 0;
-  
+
   // Adjust based on qualifier words
   if (/might|maybe|possibly|perhaps/i.test(assumptionText)) baseConfidence += 20;
   if (/definitely|absolutely|certainly/i.test(assumptionText)) baseConfidence -= 20;
   if (/studies|research|data|evidence/i.test(assumptionText)) baseConfidence += 25;
-  
+
   return Math.max(0, Math.min(100, baseConfidence));
 }
 
@@ -132,17 +132,17 @@ function calculateHealthMetrics(assumptions) {
     return {
       overall_health: 100,
       risk_level: 'none',
-      recommendations: ['Continue with current analytical rigor']
+      recommendations: ['Continue with current analytical rigor'],
     };
   }
-  
+
   const avgHealth = assumptions.reduce((sum, a) => sum + a.health_score, 0) / assumptions.length;
-  const criticalCount = assumptions.filter(a => a.risk_level === 'critical').length;
-  const highRiskCount = assumptions.filter(a => a.risk_level === 'high').length;
-  
+  const criticalCount = assumptions.filter((a) => a.risk_level === 'critical').length;
+  const highRiskCount = assumptions.filter((a) => a.risk_level === 'high').length;
+
   let risk_level = 'low';
   let recommendations = [];
-  
+
   if (criticalCount > 0) {
     risk_level = 'critical';
     recommendations.push('IMMEDIATE ACTION: Remove absolute certainty claims');
@@ -159,13 +159,13 @@ function calculateHealthMetrics(assumptions) {
     recommendations.push('Assumption health is acceptable');
     recommendations.push('Continue current analytical approach');
   }
-  
+
   return {
     overall_health: Math.round(avgHealth),
     risk_level,
     recommendations,
     critical_assumptions: criticalCount,
-    high_risk_assumptions: highRiskCount
+    high_risk_assumptions: highRiskCount,
   };
 }
 
@@ -173,13 +173,13 @@ function calculateHealthMetrics(assumptions) {
 export function detectAssumptionConflicts(response, vaultContext) {
   const conflicts = [];
   const responseAssumptions = extractAssumptions(response);
-  
+
   if (vaultContext) {
     const vaultAssumptions = extractAssumptions(vaultContext);
-    
+
     // Check for direct conflicts between response and vault assumptions
-    responseAssumptions.forEach(respAssumption => {
-      vaultAssumptions.forEach(vaultAssumption => {
+    responseAssumptions.forEach((respAssumption) => {
+      vaultAssumptions.forEach((vaultAssumption) => {
         const conflictLevel = calculateConflictLevel(respAssumption, vaultAssumption);
         if (conflictLevel > 0.6) {
           conflicts.push({
@@ -188,13 +188,13 @@ export function detectAssumptionConflicts(response, vaultContext) {
             vault_assumption: vaultAssumption.text,
             conflict_level: conflictLevel,
             severity: conflictLevel > 0.8 ? 'critical' : 'moderate',
-            resolution_required: true
+            resolution_required: true,
           });
         }
       });
     });
   }
-  
+
   // Check for internal conflicts within response
   for (let i = 0; i < responseAssumptions.length; i++) {
     for (let j = i + 1; j < responseAssumptions.length; j++) {
@@ -206,12 +206,12 @@ export function detectAssumptionConflicts(response, vaultContext) {
           assumption_2: responseAssumptions[j].text,
           conflict_level: conflictLevel,
           severity: 'moderate',
-          resolution_required: true
+          resolution_required: true,
         });
       }
     }
   }
-  
+
   return conflicts;
 }
 
@@ -220,7 +220,7 @@ function calculateConflictLevel(assumption1, assumption2) {
   // Simplified conflict detection - in production this would be more sophisticated
   const text1 = assumption1.text.toLowerCase();
   const text2 = assumption2.text.toLowerCase();
-  
+
   // Look for contradictory words
   const contradictions = [
     ['always', 'never'],
@@ -228,23 +228,27 @@ function calculateConflictLevel(assumption1, assumption2) {
     ['must', 'cannot'],
     ['required', 'optional'],
     ['increase', 'decrease'],
-    ['profitable', 'unprofitable']
+    ['profitable', 'unprofitable'],
   ];
-  
+
   let conflictScore = 0;
   contradictions.forEach(([word1, word2]) => {
-    if ((text1.includes(word1) && text2.includes(word2)) || 
-        (text1.includes(word2) && text2.includes(word1))) {
+    if (
+      (text1.includes(word1) && text2.includes(word2)) ||
+      (text1.includes(word2) && text2.includes(word1))
+    ) {
       conflictScore += 0.4;
     }
   });
-  
+
   // Check for opposing sentiment
-  if ((assumption1.health_score > 80 && assumption2.health_score < 40) ||
-      (assumption1.health_score < 40 && assumption2.health_score > 80)) {
+  if (
+    (assumption1.health_score > 80 && assumption2.health_score < 40) ||
+    (assumption1.health_score < 40 && assumption2.health_score > 80)
+  ) {
     conflictScore += 0.3;
   }
-  
+
   return Math.min(1.0, conflictScore);
 }
 
@@ -256,33 +260,33 @@ export function trackOverride(overrideType, originalAssumption, newAssumption, r
     original: originalAssumption,
     new: newAssumption,
     reason: reason,
-    session_id: generateSessionId()
+    session_id: generateSessionId(),
   };
-  
+
   assumptionDatabase.override_history.push(override);
-  
+
   // Check for override patterns
   const patterns = detectOverridePatterns();
   if (patterns.length > 0) {
-    patterns.forEach(pattern => {
+    patterns.forEach((pattern) => {
       assumptionDatabase.pattern_warnings.push({
         pattern: pattern.type,
         frequency: pattern.frequency,
         warning_level: pattern.severity,
         timestamp: Date.now(),
-        recommendation: pattern.recommendation
+        recommendation: pattern.recommendation,
       });
     });
   }
-  
+
   // Log to system
   logOverride(overrideType, reason, 'assumption_system');
-  
+
   return {
     override_logged: true,
     override_id: override.timestamp,
     patterns_detected: patterns.length,
-    patterns: patterns
+    patterns: patterns,
   };
 }
 
@@ -290,46 +294,46 @@ export function trackOverride(overrideType, originalAssumption, newAssumption, r
 function detectOverridePatterns() {
   const patterns = [];
   const recent = assumptionDatabase.override_history.filter(
-    override => Date.now() - override.timestamp < 24 * 60 * 60 * 1000 // Last 24 hours
+    (override) => Date.now() - override.timestamp < 24 * 60 * 60 * 1000, // Last 24 hours
   );
-  
+
   // Pattern 1: Frequent assumption bypassing
-  const bypassCount = recent.filter(o => o.type === 'assumption_bypass').length;
+  const bypassCount = recent.filter((o) => o.type === 'assumption_bypass').length;
   if (bypassCount >= 3) {
     patterns.push({
       type: 'frequent_assumption_bypass',
       frequency: bypassCount,
       severity: 'high',
-      recommendation: 'Review assumption validation standards - possible drift detected'
+      recommendation: 'Review assumption validation standards - possible drift detected',
     });
   }
-  
+
   // Pattern 2: Repeated confidence reduction
-  const confidenceReductions = recent.filter(o => o.type === 'confidence_reduction').length;
+  const confidenceReductions = recent.filter((o) => o.type === 'confidence_reduction').length;
   if (confidenceReductions >= 5) {
     patterns.push({
       type: 'confidence_erosion',
       frequency: confidenceReductions,
       severity: 'medium',
-      recommendation: 'Evidence standards may need reinforcement'
+      recommendation: 'Evidence standards may need reinforcement',
     });
   }
-  
+
   // Pattern 3: Same assumption repeatedly overridden
-  const assumptionTexts = recent.map(o => o.original);
-  const duplicates = assumptionTexts.filter((text, index) => 
-    assumptionTexts.indexOf(text) !== index
+  const assumptionTexts = recent.map((o) => o.original);
+  const duplicates = assumptionTexts.filter(
+    (text, index) => assumptionTexts.indexOf(text) !== index,
   );
-  
+
   if (duplicates.length > 0) {
     patterns.push({
       type: 'repeated_assumption_override',
       frequency: duplicates.length,
       severity: 'critical',
-      recommendation: 'Investigate why the same assumptions are repeatedly challenged'
+      recommendation: 'Investigate why the same assumptions are repeatedly challenged',
     });
   }
-  
+
   return patterns;
 }
 
@@ -349,68 +353,76 @@ export function getAssumptionReport() {
   const totalAssumptions = assumptionDatabase.session_assumptions.length;
   const overrideCount = assumptionDatabase.override_history.length;
   const patternWarnings = assumptionDatabase.pattern_warnings.length;
-  
-  const healthScores = assumptionDatabase.session_assumptions.map(a => a.health_score);
-  const avgHealth = healthScores.length > 0 ? 
-    healthScores.reduce((sum, score) => sum + score, 0) / healthScores.length : 100;
-  
+
+  const healthScores = assumptionDatabase.session_assumptions.map((a) => a.health_score);
+  const avgHealth =
+    healthScores.length > 0
+      ? healthScores.reduce((sum, score) => sum + score, 0) / healthScores.length
+      : 100;
+
   const riskDistribution = assumptionDatabase.session_assumptions.reduce((dist, assumption) => {
     const type = assumption.type;
     dist[type] = (dist[type] || 0) + 1;
     return dist;
   }, {});
-  
+
   return {
     session_summary: {
       total_assumptions: totalAssumptions,
       override_count: overrideCount,
       pattern_warnings: patternWarnings,
       average_health: Math.round(avgHealth),
-      system_drift_status: getDriftStatus()
+      system_drift_status: getDriftStatus(),
     },
-    
+
     risk_distribution: riskDistribution,
-    
+
     recent_patterns: assumptionDatabase.pattern_warnings.slice(-5),
-    
+
     recommendations: generateHealthRecommendations(avgHealth, overrideCount, patternWarnings),
-    
-    session_health: calculateSessionHealth()
+
+    session_health: calculateSessionHealth(),
   };
 }
 
 function generateHealthRecommendations(avgHealth, overrideCount, patternWarnings) {
   const recommendations = [];
-  
+
   if (avgHealth < 60) {
-    recommendations.push('CRITICAL: Assumption health below acceptable threshold. Review evidence standards.');
+    recommendations.push(
+      'CRITICAL: Assumption health below acceptable threshold. Review evidence standards.',
+    );
   } else if (avgHealth < 75) {
     recommendations.push('WARNING: Assumption health declining. Increase evidence requirements.');
   }
-  
+
   if (overrideCount > 10) {
-    recommendations.push('HIGH OVERRIDE RATE: Review system integrity. Possible logic drift detected.');
+    recommendations.push(
+      'HIGH OVERRIDE RATE: Review system integrity. Possible logic drift detected.',
+    );
   }
-  
+
   if (patternWarnings > 3) {
-    recommendations.push('PATTERN ALERT: Multiple warning patterns detected. System review recommended.');
+    recommendations.push(
+      'PATTERN ALERT: Multiple warning patterns detected. System review recommended.',
+    );
   }
-  
+
   if (recommendations.length === 0) {
     recommendations.push('Assumption health is within acceptable parameters.');
   }
-  
+
   return recommendations;
 }
 
 function calculateSessionHealth() {
   const assumptions = assumptionDatabase.session_assumptions;
   if (assumptions.length === 0) return 100;
-  
+
   const avgHealth = assumptions.reduce((sum, a) => sum + a.health_score, 0) / assumptions.length;
   const overridePenalty = assumptionDatabase.override_history.length * 2;
   const patternPenalty = assumptionDatabase.pattern_warnings.length * 5;
-  
+
   return Math.max(0, Math.min(100, avgHealth - overridePenalty - patternPenalty));
 }
 
@@ -421,11 +433,11 @@ export function resetAssumptionTracking() {
     override_history: [],
     pattern_warnings: [],
     health_scores: {},
-    last_reset: Date.now()
+    last_reset: Date.now(),
   };
-  
+
   return {
     status: 'Assumption tracking reset successfully',
-    timestamp: Date.now()
+    timestamp: Date.now(),
   };
 }

@@ -20,7 +20,7 @@ const categoryMap = {
   Security,
   Infra,
   Platform,
-  Future
+  Future,
 };
 
 async function safeRun(fn, args) {
@@ -34,49 +34,49 @@ async function safeRun(fn, args) {
 
 export async function runVerifier() {
   const results = [];
-  
+
   for (const item of ledger.items) {
     const category = categoryMap[item.category];
-    
+
     if (!category) {
       results.push({
         id: item.id,
         name: item.name,
         ok: false,
-        err: 'Category not implemented yet'
+        err: 'Category not implemented yet',
       });
       continue;
     }
-    
+
     const testFn = category[item.testFunction];
-    
+
     if (!testFn) {
       results.push({
         id: item.id,
         name: item.name,
         ok: false,
-        err: 'Test function not found'
+        err: 'Test function not found',
       });
       continue;
     }
-    
+
     const result = await safeRun(testFn, item.testArgs);
     results.push({
       id: item.id,
       name: item.name,
       ok: result.ok,
-      err: result.err
+      err: result.err,
     });
   }
-  
-  const passed = results.filter(r => r.ok).length;
-  
+
+  const passed = results.filter((r) => r.ok).length;
+
   return {
     summary: {
       total: results.length,
       passed: passed,
-      failed: results.length - passed
+      failed: results.length - passed,
     },
-    failed: results.filter(r => !r.ok)
+    failed: results.filter((r) => !r.ok),
   };
 }

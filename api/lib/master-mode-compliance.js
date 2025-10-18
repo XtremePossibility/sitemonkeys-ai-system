@@ -2,14 +2,13 @@
 // Consolidates: ai-processors.js + modeLinter.js + config/modes.js implementations
 
 export class MasterModeCompliance {
-  
   // SINGLE AUTHORITATIVE FUNCTION - Replaces all three competing validateModeCompliance functions
   static validateModeCompliance(responseContent, mode, options = {}) {
-    const { 
-      fingerprint = null, 
+    const {
+      fingerprint = null,
       vaultLoaded = false,
       conversationHistory = [],
-      enforcementLevel = 'STANDARD'
+      enforcementLevel = 'STANDARD',
     } = options;
 
     const validation = {
@@ -21,9 +20,13 @@ export class MasterModeCompliance {
       corrected_content: responseContent,
       enforcement_metadata: {
         source_authority: 'MASTER_MODE_COMPLIANCE',
-        replaced_functions: ['ai-processors.validateModeCompliance', 'modeLinter.validateModeCompliance', 'config/modes.validateModeCompliance'],
-        processing_timestamp: new Date().toISOString()
-      }
+        replaced_functions: [
+          'ai-processors.validateModeCompliance',
+          'modeLinter.validateModeCompliance',
+          'config/modes.validateModeCompliance',
+        ],
+        processing_timestamp: new Date().toISOString(),
+      },
     };
 
     // FINGERPRINT VALIDATION (from modeLinter.js)
@@ -38,17 +41,19 @@ export class MasterModeCompliance {
     // TRUTH_GENERAL MODE - Consolidated requirements from all three sources
     if (mode === 'truth_general') {
       // From ai-processors.js: Basic confidence check
-      if (!responseContent.includes('confidence') && !responseContent.includes('I don\'t know')) {
+      if (!responseContent.includes('confidence') && !responseContent.includes("I don't know")) {
         validation.violations.push('missing_confidence_indicators');
-        validation.corrected_content += '\n\n📊 **Confidence Assessment**: This response requires confidence level verification (High/Medium/Low).';
+        validation.corrected_content +=
+          '\n\n📊 **Confidence Assessment**: This response requires confidence level verification (High/Medium/Low).';
         validation.corrections_applied.push('CONFIDENCE_INJECTION');
         validation.compliance_score -= 20;
       }
-      
-      // From config/modes.js: Enhanced uncertainty patterns  
+
+      // From config/modes.js: Enhanced uncertainty patterns
       if (!/confidence|certain|uncertain|likely|probably/i.test(responseContent)) {
         validation.violations.push('missing_uncertainty_acknowledgment');
-        validation.corrected_content += '\n\n🔍 **Uncertainty Flag**: Key claims need confidence scoring.';
+        validation.corrected_content +=
+          '\n\n🔍 **Uncertainty Flag**: Key claims need confidence scoring.';
         validation.corrections_applied.push('UNCERTAINTY_FLAG');
         validation.compliance_score -= 15;
       }
@@ -56,15 +61,20 @@ export class MasterModeCompliance {
       // From modeLinter.js: Assumption challenge requirements
       if (responseContent.includes('obviously') || responseContent.includes('everyone knows')) {
         validation.violations.push('unchallenged_assumptions_detected');
-        validation.corrected_content += '\n\n⚠️ **Assumption Challenge**: Claims marked as "obvious" require evidence verification.';
+        validation.corrected_content +=
+          '\n\n⚠️ **Assumption Challenge**: Claims marked as "obvious" require evidence verification.';
         validation.corrections_applied.push('ASSUMPTION_CHALLENGE');
         validation.compliance_score -= 25;
       }
 
       // Enhanced: Speculative language detection (from ai-processors.js)
-      if (responseContent.includes('probably') || responseContent.includes('likely') && !responseContent.includes('confidence')) {
+      if (
+        responseContent.includes('probably') ||
+        (responseContent.includes('likely') && !responseContent.includes('confidence'))
+      ) {
         validation.violations.push('speculative_language_without_confidence');
-        validation.corrected_content += '\n\n📊 **Speculation Flag**: Probability claims require explicit confidence levels.';
+        validation.corrected_content +=
+          '\n\n📊 **Speculation Flag**: Probability claims require explicit confidence levels.';
         validation.corrections_applied.push('SPECULATION_CONFIDENCE');
         validation.compliance_score -= 10;
       }
@@ -73,9 +83,14 @@ export class MasterModeCompliance {
     // BUSINESS_VALIDATION MODE - Consolidated survival analysis requirements
     if (mode === 'business_validation') {
       // From ai-processors.js: Basic survival keywords
-      if (!responseContent.includes('cash') && !responseContent.includes('survival') && !responseContent.includes('risk')) {
+      if (
+        !responseContent.includes('cash') &&
+        !responseContent.includes('survival') &&
+        !responseContent.includes('risk')
+      ) {
         validation.violations.push('missing_business_survival_analysis');
-        validation.corrected_content += '\n\n💰 **Business Survival Analysis**: Consider cash flow impact, runway duration, and continuity risks.';
+        validation.corrected_content +=
+          '\n\n💰 **Business Survival Analysis**: Consider cash flow impact, runway duration, and continuity risks.';
         validation.corrections_applied.push('SURVIVAL_ANALYSIS');
         validation.compliance_score -= 30;
       }
@@ -83,7 +98,8 @@ export class MasterModeCompliance {
       // From config/modes.js: Downside scenario modeling
       if (!/worst case|downside|if this fails|failure scenario/i.test(responseContent)) {
         validation.violations.push('missing_downside_scenario_modeling');
-        validation.corrected_content += '\n\n🚨 **Downside Modeling**: What happens if this strategy fails? Include worst-case scenario analysis.';
+        validation.corrected_content +=
+          '\n\n🚨 **Downside Modeling**: What happens if this strategy fails? Include worst-case scenario analysis.';
         validation.corrections_applied.push('DOWNSIDE_SCENARIOS');
         validation.compliance_score -= 25;
       }
@@ -91,11 +107,11 @@ export class MasterModeCompliance {
       // Enhanced: Margin analysis (from site-monkeys enforcement)
       const marginMatches = responseContent.match(/(\d+)%.*margin/gi);
       if (marginMatches) {
-        const lowMargins = marginMatches.filter(match => {
+        const lowMargins = marginMatches.filter((match) => {
           const percentage = parseInt(match.match(/\d+/)[0]);
           return percentage < 85; // Site Monkeys 85% minimum
         });
-        
+
         if (lowMargins.length > 0) {
           validation.violations.push('margins_below_survival_threshold');
           validation.corrected_content += `\n\n📊 **Margin Warning**: Detected margins below 85% survival threshold: ${lowMargins.join(', ')}`;
@@ -125,11 +141,11 @@ export class MasterModeCompliance {
       // Enhanced: Professional pricing enforcement
       const pricingMatches = responseContent.match(/\$(\d+)/g);
       if (pricingMatches) {
-        const lowPrices = pricingMatches.filter(match => {
+        const lowPrices = pricingMatches.filter((match) => {
           const amount = parseInt(match.replace('$', ''));
           return amount > 0 && amount < 697; // Site Monkeys minimum
         });
-        
+
         if (lowPrices.length > 0) {
           validation.violations.push('pricing_below_professional_minimum');
           validation.corrected_content += `\n\n🔐 **Professional Pricing**: Amounts below $697 minimum detected: ${lowPrices.join(', ')}. Site Monkeys maintains premium service standards.`;
@@ -161,30 +177,32 @@ export class MasterModeCompliance {
   // FINGERPRINT VALIDATION - From modeLinter.js
   static validateFingerprint(content, expectedFingerprint) {
     if (!expectedFingerprint) return true;
-    
-    const fingerprintPattern = new RegExp(`\\[${expectedFingerprint.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\]`);
+
+    const fingerprintPattern = new RegExp(
+      `\\[${expectedFingerprint.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\]`,
+    );
     return fingerprintPattern.test(content);
   }
 
   // MODE DRIFT DETECTION - Enhanced from modeLinter.js
   static detectModeDrift(responseContent, expectedMode, conversationHistory = []) {
     const driftIndicators = {
-      'truth_general': ['definitely', 'absolutely certain', 'without question'],
-      'business_validation': ['ignore costs', 'money is no object', 'don\'t worry about survival'],
-      'site_monkeys': ['cheap solution', 'budget option', 'discount pricing']
+      truth_general: ['definitely', 'absolutely certain', 'without question'],
+      business_validation: ['ignore costs', 'money is no object', "don't worry about survival"],
+      site_monkeys: ['cheap solution', 'budget option', 'discount pricing'],
     };
 
     const indicators = driftIndicators[expectedMode] || [];
-    const driftDetected = indicators.some(indicator => 
-      responseContent.toLowerCase().includes(indicator.toLowerCase())
+    const driftDetected = indicators.some((indicator) =>
+      responseContent.toLowerCase().includes(indicator.toLowerCase()),
     );
 
     return {
       drift_detected: driftDetected,
       drift_severity: driftDetected ? 'HIGH' : 'NONE',
-      drift_indicators_found: indicators.filter(indicator => 
-        responseContent.toLowerCase().includes(indicator.toLowerCase())
-      )
+      drift_indicators_found: indicators.filter((indicator) =>
+        responseContent.toLowerCase().includes(indicator.toLowerCase()),
+      ),
     };
   }
 
@@ -199,9 +217,10 @@ export class MasterModeCompliance {
       fingerprint_valid: validation.fingerprint_valid,
       authority_source: 'MASTER_MODE_COMPLIANCE',
       processing_complete: true,
-      recommendations: validation.violations.length > 0 ? 
-        'Review and address compliance violations before deployment' : 
-        'Response meets all mode compliance requirements'
+      recommendations:
+        validation.violations.length > 0
+          ? 'Review and address compliance violations before deployment'
+          : 'Response meets all mode compliance requirements',
     };
   }
 }
@@ -215,5 +234,5 @@ export function validateModeCompliance(responseContent, mode, options = {}) {
 export const ModeLinter = {
   validateModeCompliance: MasterModeCompliance.validateModeCompliance,
   detectModeDrift: MasterModeCompliance.detectModeDrift,
-  generateComplianceReport: MasterModeCompliance.generateComplianceReport
+  generateComplianceReport: MasterModeCompliance.generateComplianceReport,
 };
