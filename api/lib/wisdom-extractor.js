@@ -1,3 +1,11 @@
+/**
+ * SiteMonkeys AI Proprietary Module
+ * Copyright © 2025 SiteMonkeys AI. All rights reserved.
+ * 
+ * This file contains proprietary innovations and algorithms.
+ * Unauthorized use, copying, or distribution is strictly prohibited.
+ */
+
 // api/lib/wisdom-extractor.js
 // WISDOM EXTRACTOR - Extracts business intelligence from your existing modules
 // Transforms your 30+ modules into wisdom sources for AI reasoning

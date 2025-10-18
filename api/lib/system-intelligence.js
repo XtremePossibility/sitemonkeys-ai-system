@@ -1,3 +1,11 @@
+/**
+ * SiteMonkeys AI Proprietary Module
+ * Copyright © 2025 SiteMonkeys AI. All rights reserved.
+ * 
+ * This file contains proprietary innovations and algorithms.
+ * Unauthorized use, copying, or distribution is strictly prohibited.
+ */
+
 // SYSTEM INTELLIGENCE INTEGRATION - CORRECTED VERSION
 // This file properly connects your actual modules with correct function calls
 // ADD THIS FILE: api/lib/system-intelligence.js

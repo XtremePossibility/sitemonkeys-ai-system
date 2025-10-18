@@ -1,4 +1,12 @@
-Mouthwash resuming cleaning// generateFingerprint.js - Structured Fingerprint Generation and Injection
+/**
+ * SiteMonkeys AI Proprietary Module
+ * Copyright © 2025 SiteMonkeys AI. All rights reserved.
+ * 
+ * This file contains proprietary innovations and algorithms.
+ * Unauthorized use, copying, or distribution is strictly prohibited.
+ */
+
+// generateFingerprint.js - Structured Fingerprint Generation and Injection
 
 export function generateFingerprint(mode, vaultLoaded, confidence, structureCompliance, tokenCost, additionalData = {}) {
   const modeFingerprints = {
